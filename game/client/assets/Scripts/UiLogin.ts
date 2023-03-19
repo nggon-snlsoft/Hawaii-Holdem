@@ -65,7 +65,6 @@ export class UiLogin extends Component {
 		editBoxDidBegan.customEventData = "???";
 		this.editBoxPIN.editingDidBegan.push( editBoxDidBegan );
 
-
         this.labelLoginState.string = "Enter";
     }
 

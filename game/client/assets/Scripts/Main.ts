@@ -14,13 +14,10 @@ export class Main extends Component {
     start() {
 		this.uiLogin.init( this );		
 		this.uiJoinPlayer.init( this );
-
 		this.loginSystemPopup.initialize();
-		
 
 		if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
 			this.onPreloadDone();
-
 			return;
 		}
 

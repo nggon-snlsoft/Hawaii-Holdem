@@ -113,12 +113,11 @@ export class LoginSystemPopup extends Component {
     private isPopupShow : boolean = false;
 
     public initialize() {
+        LoginSystemPopup.instance = this;
+
         this.uiPopUp.init();
         this.uiPopUp.hide();
-
         this.closePopup();
-
-        LoginSystemPopup.instance = this;        
     }
 
     public showPopUpOk( title : string, content : string, closeCallback? : () => void){
