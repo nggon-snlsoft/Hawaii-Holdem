@@ -1,67 +1,80 @@
-import exp from 'constants';
 import express from 'express';
+import { sqlProxy } from '../modules/sqlProxy';
 import passport, { deserializeUser } from 'passport';
 import passportLocal from 'passport-local';
 const LocalStrategy = passportLocal.Strategy;
 
-const sql = require( '../modules/SqlProxy');
+export class UserController {
+    public router: any = null;
+    private sql: sqlProxy = null;
 
-passport.serializeUser( (user: any, done: any )=>{
-    console.log('serializeUser');
-    done( null, user.ID );
-} );
+    constructor( sql: sqlProxy ) {
+        this.router = express.Router();
+        this.sql = sql;
 
-passport.deserializeUser( (id: any, done: any )=>{
-    console.log('deserializeUser');    
-    done(null, null );
-});
+        this.initRouter();
+        this.initPassport();
 
-passport.use( new LocalStrategy({
-    usernameField: 'uid',
-    passwordField: 'password'
+        console.log('USER_CONTROLLER_INITIALIZED');
+    }
 
-}, ( uid, password, done )=>{
-    console.log(uid, password );
+    private initRouter() {
+        this.router.post( '/login', this.login.bind(this));
+    }
 
-    let query = 'SELECT * FROM USERS WHERE userId=? AND password=?';
-    let args = [uid, password];
+    private initPassport() {
+        passport.use( new LocalStrategy({
+            usernameField: 'uid',
+            passwordField: 'password'
+        
+        }, ( uid, password, done )=>{
+            console.log(uid, password );
+        
+            // let query = 'SELECT * FROM USERS WHERE userId=? AND password=?';
+            // let args = [uid, password];
+            // this.sql.query(query, args, ( err: any , result: any )=>{
+            //     if ( result == null ) {
+            //         return done(null, false, { message: 'INCORRECT' });
+            //     }
+        
+            //     let user: any = null;
+        
+            //     if ( result != null ) {
+            //         let j = JSON.stringify( result[0] );
+            //         if ( result[0] != null ) {
+            //             user = JSON.parse(j);            
+            //         }
+            //     }
+        
+            //     return done(null, user);
+        
+            // } );
 
-    const SqlClient = sql.init();    
-    SqlClient.query(query, args, ( err: any , result: any )=>{
-        if ( result == null ) {
-            return done(null, false, { message: 'INCORRECT' });
-        }
+            return done (null, null);
 
-        let user: any = null;
+        }) );
 
-        if ( result != null ) {
-            let j = JSON.stringify( result[0] );
-            if ( result[0] != null ) {
-                user = JSON.parse(j);            
-            }
-        }
+        passport.serializeUser( (user: any, done: any )=>{
+            console.log('serializeUser');
+            done( null, user.ID );
+        } );
+        
+        passport.deserializeUser( (id: any, done: any )=>{
+            console.log('deserializeUser');    
+            done(null, null );
+        });
+    }
 
-        return done(null, user);
+    public async login( req: any, res: any, next: any) {
+        passport.authenticate('local', (err: any, user: any, info: any)=> {
 
-    } );
-}) );
+            console.log('err: ' + err);
+            console.log(user);
+            console.log('info: ' + info );
 
-export async function auth( req: any, res: any, next: any ) {
-    passport.authenticate('local', (err: any, user: any, info: any)=>{
-
-
-        console.log('err: ' + err);
-        console.log(user);
-        console.log('info: ' + info );
-
-        if (err) {
-
-        }
-
-        if (!user) {
-
-        }
-
-        return res.json(user);
-    })(req, res, next );
+            return res.json(user);
+        })(req, res, next);
+    }
 }
+
+export default UserController;
