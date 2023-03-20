@@ -52,9 +52,9 @@ export class UiLobby extends Component {
 
         if (this.userInfo != null)
         {
+            this.uiPlayer.show();            
             this.uiTableList.show();
-            this.uiPlayer.show();
-            this.uiLobbyBottom.show();
+            // this.uiLobbyBottom.show();
         }
 
         this.node.active = true;
@@ -67,6 +67,10 @@ export class UiLobby extends Component {
         }, ()=>{
 
         });
+    }
+
+    public refreshUiPlayer() {
+        this.uiPlayer.refresh();        
     }
 
     private onShowAvartProfile() {

@@ -284,13 +284,15 @@ export class UiTableList extends Component {
 
     public show() {
         this.getTableList();
-
         this.node.active = true;
     }
 
     public getTableList() {
+
         NetworkManager.Instance().reqTableList((res)=>{
-            this.showTableList(res.tables);
+            console.log(res);
+
+            // this.showTableList(res.tables);
 
         }, (msg)=>{
 

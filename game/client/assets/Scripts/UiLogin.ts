@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Button, EditBox, EventHandler, Label, AudioSource, AudioClip, director, Scene, game } from 'cc';
-import { NetworkManager } from './NetworkManager';
+import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
@@ -8,7 +8,8 @@ const { ccclass, property } = _decorator;
 @ccclass('UiLogin')
 export class UiLogin extends Component {
     @property (Button) btnEnter: Button = null;
-    @property (EditBox) editBoxPIN: EditBox = null;
+    @property (EditBox) editBoxUID: EditBox = null;
+    @property (EditBox) editBoxPassword: EditBox = null;    
     @property (Label) labelLoginState: Label = null;
     @property (AudioSource) audioSource: AudioSource = null;
     @property (AudioClip) soundButtonClick: AudioClip = null;
@@ -41,31 +42,31 @@ export class UiLogin extends Component {
     
     onLoad()
     {
-        //this.btnEnter.interactable = false;
-        this.editBoxPIN.maxLength = this.pinLength;
+        // //this.btnEnter.interactable = false;
+        // this.editBoxPIN.maxLength = this.pinLength;
 
-        const editBoxReturn = new EventHandler();
-		editBoxReturn.target = this.node;
-		editBoxReturn.component = "UiLogin";
-		editBoxReturn.handler = "onEditBoxReturn";
-		editBoxReturn.customEventData = "???";
-		this.editBoxPIN?.editingReturn.push( editBoxReturn );
+        // const editBoxReturn = new EventHandler();
+		// editBoxReturn.target = this.node;
+		// editBoxReturn.component = "UiLogin";
+		// editBoxReturn.handler = "onEditBoxReturn";
+		// editBoxReturn.customEventData = "???";
+		// this.editBoxPIN?.editingReturn.push( editBoxReturn );
 
-		const editBoxChanged = new EventHandler();
-		editBoxChanged.target = this.node;
-		editBoxChanged.component = "UiLogin";
-		editBoxChanged.handler = "onEditBoxChanged";
-		editBoxChanged.customEventData = "???";
-		this.editBoxPIN?.textChanged.push( editBoxChanged );
+		// const editBoxChanged = new EventHandler();
+		// editBoxChanged.target = this.node;
+		// editBoxChanged.component = "UiLogin";
+		// editBoxChanged.handler = "onEditBoxChanged";
+		// editBoxChanged.customEventData = "???";
+		// this.editBoxPIN?.textChanged.push( editBoxChanged );
 
-		const editBoxDidBegan = new EventHandler();
-		editBoxDidBegan.target = this.node;
-		editBoxDidBegan.component = "UiLogin";
-		editBoxDidBegan.handler = "onEditingDidBegan";
-		editBoxDidBegan.customEventData = "???";
-		this.editBoxPIN.editingDidBegan.push( editBoxDidBegan );
+		// const editBoxDidBegan = new EventHandler();
+		// editBoxDidBegan.target = this.node;
+		// editBoxDidBegan.component = "UiLogin";
+		// editBoxDidBegan.handler = "onEditingDidBegan";
+		// editBoxDidBegan.customEventData = "???";
+		// this.editBoxPIN.editingDidBegan.push( editBoxDidBegan );
 
-        this.labelLoginState.string = "Enter";
+        // this.labelLoginState.string = "Enter";
     }
 
     start() {
@@ -82,52 +83,92 @@ export class UiLogin extends Component {
     }
 
     onClickEnter() {
-		this.labelLoginState.string = "Entering..";
         this.audioSource.playOneShot(this.soundButtonClick, 1);
 
-		NetworkManager.Instance().login( /* "11111111"*/ this.editBoxPIN.string,(res)=>{
-            
-            let info = NetworkManager.Instance().getUserInfo();
-            CommonUtil.setGameSetting(res.game);
+        let uid = this.editBoxUID.string;
+        let pass = this.editBoxPassword.string;
 
-            NetworkManager.Instance().setting(info.uuid, ( setting )=>{
-                this.labelLoginState.string = "Success";            
-                director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
-                    
-                }, ()=>{
-    
+		NetworkManager.Instance().loginHoldem( uid, pass ,(res)=>{
+            if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                let id: number = res.id;
+
+                NetworkManager.Instance().loadInitialData(id, (res)=>{
+                    console.log(res);
+                    if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                        if ( res.user != null && res.setting != null && res.conf != null ) {
+                            CommonUtil.setGameSetting(res.conf);
+                            director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
+                                
+                            }, ()=>{
+                
+                            });
+
+                        } else {
+                            LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                                LoginSystemPopup.instance.closePopup();
+                            });
+                        }
+                    } else {
+                        LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                            LoginSystemPopup.instance.closePopup();
+                        });
+                    }
+                }, (err)=>{
+                    LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                        LoginSystemPopup.instance.closePopup();
+                    });
                 });
-            }, ()=>{
+            }
+            else{
+                let desc: string = '';
+                switch ( res.msg ) {
+                    case 'INVALID_UID':
+                        desc = '잘못된 아이디 입니다.';
+                        break;
+                    case 'NO_EXIST_UID':
+                        desc = '아이디가 존재하지 않습니다.';
+                        break;
+                    case 'NO_MATCH_PASSWORD':
+                        desc = '비밀번호가 맞지 않습니다.';
+                        break;
+                    case 'DISABLE_ACCOUNT':
+                        desc = '사용할 수 없는 계정입니다.';
+                        break;
+                    case 'PENDING_ACCOUNT':
+                        desc = '가입 대기중인 계정입니다.';                        
+                        break;
+                    default:
+                }
 
-            });            
+                LoginSystemPopup.instance.showPopUpOk('로그인', desc, ()=>{
+                    LoginSystemPopup.instance.closePopup();
+                });
+            }
+
+            
+            // let info = NetworkManager.Instance().getUserInfo();
+            // CommonUtil.setGameSetting(res.game);
+
+            // NetworkManager.Instance().setting(info.uuid, ( setting )=>{
+            //     this.labelLoginState.string = "Success";            
+            //     director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
+                    
+            //     }, ()=>{
+    
+            //     });
+            // }, ()=>{
+
+            // });            
         },
         ()=>{
             this.labelLoginState.string = "FAIL";
         });
-		this.btnEnter.interactable = false;
+		// this.btnEnter.interactable = false;
 	}
 
     onClickJoin() {
         this.main.onShowJoin();
     }
-
-    onEditBoxReturn() {
-		if( this.pinLength != this.editBoxPIN.string.length ) {
-
-			return;
-		}
-
-		this.onClickEnter();
-	}
-
-    onEditBoxChanged() {
-		this.btnEnter.interactable = ( this.editBoxPIN.string.length == this.pinLength );
-	}
-
-    onEditingDidBegan() {
-		this.editBoxPIN.string = "";
-		this.labelLoginState.string = "Enter";
-	}
 
     show() {
         this.node.active = true;

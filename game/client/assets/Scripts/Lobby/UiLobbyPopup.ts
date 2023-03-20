@@ -168,24 +168,31 @@ export class UiLobbyPopup extends Component {
     }
 
     private applyChangeAvatar( num: number ) {
-        NetworkManager.Instance().updateUserAvatar(num, (res)=>{
-            
-            this.uiPopupChangeAvatar.hide();
-            this.uiLobby.refreshPlayer();
-            this.openProfile();
-
+        NetworkManager.Instance().updateUserAvatar(num, (res)=>{            
+            LobbySystemPopup.instance.showPopUpOk('아바타 변경', '아바타가 변경되었습니다.', ()=>{
+                this.uiLobby.refreshUiPlayer();
+                this.uiPopupChangeAvatar.hide();
+                this.openProfile();                
+            });
         }, (msg)=>{
-            
-
+            LobbySystemPopup.instance.showPopUpOk('아바타 변경', '아바타가 변경되지 않았습니다.', ()=>{
+                this.uiPopupChangeAvatar.hide();
+                this.openProfile();                
+            });
         });
     }
 
-    private applySetting( selected: any ) {
+    private applySetting( selected: any ) {        
         NetworkManager.Instance().updateUserSetting( selected, (res)=>{
-            this.closeSetting();
-
+            LobbySystemPopup.instance.showPopUpOk('설정', '설정이 변경되었습니다.', ()=>{
+                LobbySystemPopup.instance.closePopup();
+                this.closeSetting();
+            });
         }, (err)=>{
-
+            LobbySystemPopup.instance.showPopUpOk('설정', '설정을 변경할 수 없습니다.', ()=>{
+                LobbySystemPopup.instance.closePopup();
+                this.closeSetting();
+            });
         });
     }
 

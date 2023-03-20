@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button, Toggle, ToggleContainer } from 'cc';
+import { LobbySystemPopup } from '../LobbySystemPopup';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
 const { ccclass, property } = _decorator;
@@ -98,7 +99,9 @@ export class UiPopupSetting extends Component {
 
     public show() {
         let info = NetworkManager.Instance().getUserInfo();
-        NetworkManager.Instance().setting( info.uuid, (res)=>{
+
+        NetworkManager.Instance().reqSetting( info.id, (res)=>{
+            console.log(res);
             let setting = res.setting;
             this.node.active = true;
 
@@ -107,7 +110,9 @@ export class UiPopupSetting extends Component {
             this.toggleTables.toggleItems[ Number(setting.board) ].isChecked = true;
 
         }, (err)=>{
-
+            LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
+                LobbySystemPopup.instance.closePopup();
+            });
         });
     }
 

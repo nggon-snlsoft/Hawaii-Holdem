@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Button, EditBox } from 'cc';
 import { LobbySystemPopup } from '../LobbySystemPopup';
 import { LoginSystemPopup } from '../Login/LoginSystemPopup';
 import { Main } from '../Main';
+import { ENUM_RESULT_CODE, NetworkManager } from '../NetworkManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiJoinPlayer')
@@ -73,9 +74,57 @@ export class UiJoinPlayer extends Component {
         let isValid = this.validate();
         if ( isValid == true ) {
             LoginSystemPopup.instance.showPopUpYesOrNo('회원가입', '회원가입을 신청 하겠습니까? \n', ()=>{
-                this.main.onJoinCancel();
-            }, ()=>{
+                NetworkManager.Instance().reqJoinMember({
+                    uid: this.editBoxID.string,
+                    nickname: this.editBoxNickname.string,                        
+                    password: this.editBoxPassword.string,
+                    trans: this.editBoxTransferPassword.string,
+                    phone: this.editBoxPhone.string,
+                    bank: this.editBoxBank.string,
+                    holder: this.editBoxHolder.string,
+                    account: this.editBoxAccount.string,
+                    recommender: this.editBoxRecommender.string,
+        
+                }, (res)=>{
+                    button.interactable = true;
 
+                    if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                        LoginSystemPopup.instance.showPopUpOk('회원가입', '가입신청이 완료되었습니다.', ()=>{
+                            LoginSystemPopup.instance.closePopup();                    
+                            this.main.onJoinCancel();
+                        });
+        
+                    } else {
+                        let desc: string = '';
+        
+                        switch(res.msg) {
+                            case 'INVALID_UID':
+                                desc = '아이디가 형식에 맞지 않습니다.';
+                                break;
+                            case 'INVALID_FORM':
+                                desc = '모든칸을 입력해주세요';
+                            break;
+                            case 'DUPLICATE_UID':
+                                desc = '중복된 아이디가 있습니다.';
+                                break;
+                            case 'DUPLICATE_NICKNAME':
+                                desc = '중복된 닉네임이 있습니다.'
+                            break;
+                            default:
+        
+                        }
+        
+                        LoginSystemPopup.instance.showPopUpOk('회원가입', desc, ()=>{
+                            LoginSystemPopup.instance.closePopup();
+                        });
+                    }
+                }, (err)=>{
+                    LoginSystemPopup.instance.showPopUpOk('회원가입', '가입신청이 실패했습니다..', ()=>{
+                        LoginSystemPopup.instance.closePopup();
+                    });
+                });
+            }, ()=>{
+                LoginSystemPopup.instance.closePopup();
             });
         }
         else {
@@ -89,14 +138,54 @@ export class UiJoinPlayer extends Component {
 
     onClickIDCheck( button: Button ) {
         button.interactable = false;
-        this.isCheckID = true;
-        button.interactable = true;        
+        NetworkManager.Instance().reqCheckUID( this.editBoxID.string, (res)=>{
+            if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 있는 아이디 입니다.', ()=>{
+                    this.isCheckID = true;
+                    button.interactable = true;                            
+                    LoginSystemPopup.instance.closePopup();
+                });
+            } else {
+                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 아이디 입니다.', ()=>{
+                    this.editBoxID.string = '';
+                    this.isCheckID = false;
+                    button.interactable = true;
+                    LoginSystemPopup.instance.closePopup();
+                });
+            }
+        }, (err)=>{
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 확인에 실패했습니다.', ()=>{
+                this.isCheckID = false;
+                button.interactable = true;
+                LoginSystemPopup.instance.closePopup();
+            });            
+        });
     }
 
     onClickNicknameCheck( button: Button ) {
         button.interactable = false;
-        this.isCheckNickname = true;
-        button.interactable = true;
+        NetworkManager.Instance().reqCheckNickname( this.editBoxNickname.string, (res)=>{
+            if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 있는 닉네임 입니다.', ()=>{
+                    this.isCheckNickname = true;
+                    button.interactable = true;                            
+                    LoginSystemPopup.instance.closePopup();
+                });
+            } else {
+                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 닉네임 입니다.', ()=>{
+                    this.editBoxNickname.string = '';
+                    this.isCheckNickname = false;
+                    button.interactable = true;
+                    LoginSystemPopup.instance.closePopup();
+                });
+            }
+        }, (err)=>{
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 확인에 실패했습니다.', ()=>{
+                this.isCheckNickname = false;
+                button.interactable = true;
+                LoginSystemPopup.instance.closePopup();
+            });            
+        });
     }
 
     validate(): boolean {
@@ -108,12 +197,12 @@ export class UiJoinPlayer extends Component {
             return false;
         }
 
-        if ( this.isCheckID == false ) {
-            LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 중복체크 해주세요.', ()=>{
-                LoginSystemPopup.instance.closePopup();
-            });
-            return false;
-        }
+        // if ( this.isCheckID == false ) {
+        //     LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 중복체크 해주세요.', ()=>{
+        //         LoginSystemPopup.instance.closePopup();
+        //     });
+        //     return false;
+        // }
 
         if ( this.validateNickname() != true ) {
             LoginSystemPopup.instance.showPopUpOk('회원가입', '잘못된 닉네임 형식 입니다. ( 4~10자 영문/숫자/한글만 )', ()=>{
@@ -123,12 +212,12 @@ export class UiJoinPlayer extends Component {
             return false;
         }
 
-        if ( this.isCheckNickname == false ) {
-            LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 중복체크 해주세요.', ()=>{
-                LoginSystemPopup.instance.closePopup();
-            });
-            return false;
-        }
+        // if ( this.isCheckNickname == false ) {
+        //     LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 중복체크 해주세요.', ()=>{
+        //         LoginSystemPopup.instance.closePopup();
+        //     });
+        //     return false;
+        // }
 
 
         if ( this.validatePassword() != true ) {

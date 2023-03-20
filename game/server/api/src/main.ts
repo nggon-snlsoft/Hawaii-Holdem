@@ -1,16 +1,14 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import passport from 'passport';
-import path from 'path';
-import { listenerCount } from 'process';
 import session from 'express-session';
 import { sqlProxy } from './modules/sqlProxy';
+import dao from './modules/dao';
 
 const cors = require('cors');
 
-
-import userRoutes from './routes/UserRouter';
 import UserController from './controllers/UserController';
+import TableController from './controllers/TableController';
 
 const devDBInfo: any = {
     "host": "127.0.0.1",
@@ -29,14 +27,18 @@ export enum ENUM_RESULT_CODE {
 export class HoldemApiServer {
     public app: express.Application;
     private userController: UserController = null;
+    private tableController: TableController = null;
+
     readonly sqlClient: sqlProxy = null;
 
     constructor() {
         this.app = express();
         this.sqlClient = new sqlProxy(devDBInfo);
+        dao.init( this.sqlClient );
 
         this.initMiddleWares();
         this.userController = new UserController(this.sqlClient);
+        this.tableController = new TableController(this.sqlClient);
 
         this.initRoutes();
     }
@@ -44,6 +46,7 @@ export class HoldemApiServer {
     private initRoutes() {
 
         this.app.use('/users', this.userController.router );
+        this.app.use('/tables', this.tableController.router );        
         this.app.get('/', (req, res)=>{
 			res.send( "It could not be a better day to die" );
         });
@@ -64,6 +67,8 @@ export class HoldemApiServer {
 
         this.app.use( passport.initialize());
         this.app.use( passport.session() );
+
+        this.app.set( 'DAO', dao );
     }
 
     public listen( port: number ) {
