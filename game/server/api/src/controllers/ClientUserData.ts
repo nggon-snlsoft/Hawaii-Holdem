@@ -37,7 +37,19 @@ export class ClientUserData{
 
     static getClientRoomData(dbRoomData: any): any {
         let room: any = {
-
+			id: dbRoomData.id,
+			type: dbRoomData.type,
+			grade: dbRoomData.grade,
+			name: dbRoomData.name,
+			password: dbRoomData.password,
+			maxPlayers: dbRoomData.maxPlayers,
+			betTimeLimit: dbRoomData.betTimeLimit,
+			bigBlind: dbRoomData.bigBlind,
+			smallBlind: dbRoomData.smallBlind,
+			minBuyIn: dbRoomData.minStakePrice,
+			maxBuyIn: dbRoomData.maxStakePrice,
+			alive: dbRoomData.alive,
+			disable: dbRoomData.disable,
         }
         return room;
     }

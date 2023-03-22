@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Button, UITransform, director, Scene, Labe
 import { Board } from '../Board';
 import { CommonUtil } from '../CommonUtil';
 import { LobbySystemPopup } from '../LobbySystemPopup';
-import { NetworkManager } from '../NetworkManager';
+import { ENUM_RESULT_CODE, NetworkManager } from '../NetworkManager';
 import { UiTable } from '../UiTable';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
 const { ccclass, property } = _decorator;
@@ -13,6 +13,7 @@ export class TableListUiElement {
     @property(Label) labelTableName: Label = null;
     @property(Label) labelBlind: Label = null;
     @property(Label) labelBuyIn: Label = null;
+    @property(Label) labelPlayers: Label = null;    
     @property(Button) buttonJoin: Button = null;
 
     private table: any = null;
@@ -26,6 +27,7 @@ export class TableListUiElement {
         copyObject.labelTableName = newObject.getChildByPath("LABEL_TABLE_NAME")?.getComponent(Label);
         copyObject.labelBlind = newObject.getChildByPath("VALUES/LABEL_BLIND")?.getComponent(Label);
         copyObject.labelBuyIn = newObject.getChildByPath("VALUES/LABEL_MIN_BUYIN")?.getComponent(Label);
+        copyObject.labelPlayers = newObject.getChildByPath("VALUES/LABEL_PLAYERS")?.getComponent(Label);        
         copyObject.buttonJoin = newObject.getChildByPath("BUTTON_JOIN")?.getComponent(Button);
 
         return copyObject;
@@ -39,11 +41,12 @@ export class TableListUiElement {
 
     public setTable( table: any, cb: ( button:Button, table: any )=>void ) {
         this.table = table;
-        this.labelTableName.string = "Hold'em Table " + this.table.id;
+        this.labelTableName.string = this.table.name + ' ' + this.table.id;
         this.labelBlind.string = 
-            CommonUtil.getNumberStringWithComma( this.table.info.smallBlind )  + " / " + 
-            CommonUtil.getNumberStringWithComma( this.table.info.bigBlind );
-        this.labelBuyIn.string = CommonUtil.getNumberStringWithComma( this.table.info.minStakePrice );
+            CommonUtil.getNumberStringWithComma( this.table.smallBlind )  + " / " + 
+            CommonUtil.getNumberStringWithComma( this.table.bigBlind );
+        this.labelBuyIn.string = CommonUtil.getNumberStringWithComma( this.table.minBuyIn );
+        this.labelPlayers.string = table.players;
 
         this.cbJoinTable = cb;
 
@@ -180,122 +183,30 @@ export class UiTableList extends Component {
         this.cbJoinTable( table );
     }
 
-    private onClickQuickStart()
-    {
-        this.searchQuickStartRoom();
-    }
-
-    private searchQuickStartRoom(){
-        let roomId: number = 141;        
-        NetworkManager.Instance().reqPublicRoomList(
-            (res)=>{
-                
-                let info = res.find((elem)=> {
-                    return elem.id == roomId;
-
-                });
-
-                if (info == null)
-                {
-                    return;
-                }
-
-                NetworkManager.Instance().reqPublicRoomInfo(141, (roomInfo)=>{
-                    this.setTableInfo(info, roomInfo);                    
-                    this.onJoinQuickRoom(roomId);
-
-                }, (msg)=>{
-
-                });
-            }, 
-            (msg)=>{
-
-            });
-    }
-
-    private setTableInfo(info: any, res: any) {
-        this.info = info;
-        this.res = res;
-    }
-
-    private getTableInfo(): any {
-        return {
-            isPublic: true,
-            id: this.info.id,
-            maxPlayers: this.info.maxPlayers,
-            name: this.info.name,
-            type: this.info.rule,
-            sb: this.info.sb,
-            bb: this.info.bb,
-            betSpeed: this.res.betTimeLimit,
-            min: this.res.minStakePrice,
-            max: this.res.maxStakePrice,
-            passTerm: this.res.timePassTerm,
-            passPrice: this.res.timePassPrice,
-            useTimePass: this.info.useTimePass,
-            useRake: this.info.useRake,
-            useFlopRake: this.info.useFlopRake,
-            rake: this.info.rake
-        };
-    }
-
-    private onJoinQuickRoom(roomId: number) {
-        NetworkManager.Instance().reqJoinPublicRoom(roomId, (room, count)=>{
-
-            Board.info = this.getTableInfo();
-
-            Board.isPublic = true;
-            Board.room = room;
-            Board.buyin = 10000;
-            
-            UiTable.seatMaxFromServer = count;
-
-            director.loadScene("GameScene", 
-            (error: null | Error, scene?: Scene)=>{
-
-            }, 
-            ()=>{
-
-            });
-        }, 
-        (msg, exitLobby)=>{
-
-        })
-    }
-
-    private onClickSearchRoom()
-    {
-        LobbySystemPopup.instance.showPopUpOk("SEARCH ROOM", "아직 지원하지 않는 기능", ()=>{
-
-        });
-    }
-
-    private onClickTournament()
-    {
-        LobbySystemPopup.instance.showPopUpOk("TOURNAMENT", "아직 지원하지 않는 기능", ()=>{
-
-        });
-    }
-
-    private onClickMakeRoom()
-    {
-        // this.uiLobby.makeInstanceRoom();
-    }
-
     public show() {
         this.getTableList();
         this.node.active = true;
     }
 
     public getTableList() {
+        NetworkManager.Instance().reqTABLE_LIST((res)=>{
+            if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                this.showTableList(res.tables);
+            } else {
 
-        NetworkManager.Instance().reqTableList((res)=>{
-            console.log(res);
+            }
+        }, (err)=>{
 
-            // this.showTableList(res.tables);
+            if ( err.code == ENUM_RESULT_CODE.DISCONNECT_SERVER ) {
+                LobbySystemPopup.instance.showPopUpOk('로비', '게임서버에 연결할 수 없습니다.', ()=>{
+                    LobbySystemPopup.instance.closePopup();                    
+                    director.loadScene('LoginScene', ()=>{
 
-        }, (msg)=>{
+                    }, ()=>{
 
+                    });
+                });
+            }
         });
     }
 }

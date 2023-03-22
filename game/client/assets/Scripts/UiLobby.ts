@@ -54,7 +54,7 @@ export class UiLobby extends Component {
         {
             this.uiPlayer.show();            
             this.uiTableList.show();
-            // this.uiLobbyBottom.show();
+            this.uiLobbyBottom.show();
         }
 
         this.node.active = true;
@@ -130,38 +130,32 @@ export class UiLobby extends Component {
     private onJoinTable(table: any) {
         let user = NetworkManager.Instance().getUserInfo();
         if ( user != null ) {
-            if (user.balance < table.info.minStakePrice) {
+            if (user.balance < table.minBuyIn ) {
                 LobbySystemPopup.instance.showPopUpOk("바이인", "바이인 금액이 부족합니다.", ()=>{
 
                 });
 
             } else {
-                NetworkManager.Instance().reqJoinRoom( table.id, (room, info, count)=>{
-                    this.uiLobbyLoading.show();
+                NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
+
+                    console.log(res);
 
                     Board.isPublic = true;
-                    Board.id = Number(table.id);
-                    Board.setInfo(info.info);
+                    Board.id = res.info.id;
+
+                    Board.setInfo( res.info );
                     Board.room = room;
-                    UiTable.seatMaxFromServer = count;
+                    UiTable.seatMaxFromServer = res.count;
 
-                    director.loadScene("GameScene",
-                        (error: null | Error, scene?: Scene )=>{
+                    director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
+                        console.log('Load GameScene');
 
-                        },
-                        ()=>{
+                    }, ()=>{
+                        console.log('Unload LobbyScene');
+                    })
+                }, ( err )=>{
+                    console.log('err');
 
-                        });
-
-                }, (msg, code, exitLobby)=>{
-                    if ( code == 400 ) {
-                        LobbySystemPopup.instance.showPopUpOk('로그인', '이미 참여중인 테이블 입니다.', ()=>{
-
-                        });
-                    }
-                     else {
-                        console.log('UNKNOWN_ERROR');
-                    }
                 });
             }
         }

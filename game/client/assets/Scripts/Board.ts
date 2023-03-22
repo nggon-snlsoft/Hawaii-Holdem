@@ -19,10 +19,8 @@ export class Board {
 	static info: any = null;
 
 	static setInfo( info: any ) {
-		console.log(info);
-
 		Board.info = info;
-		Board.id = 142;
+		Board.id = info.id;
 
 		Board.small = info.smallBlind;
 		Board.big = info.bigBlind;

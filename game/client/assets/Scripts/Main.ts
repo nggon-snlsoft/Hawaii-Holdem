@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Input, resources, SpriteFrame } from 'cc';
+import { _decorator, Component, Node, Input, resources, SpriteFrame, Label } from 'cc';
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
@@ -7,14 +7,18 @@ const { ccclass, property } = _decorator;
 
 @ccclass('Main')
 export class Main extends Component {
+	@property version: number = 1.0;
 	@property(UiLogin) uiLogin: UiLogin = null;
 	@property(UiJoinPlayer) uiJoinPlayer: UiLogin = null;
-	@property(LoginSystemPopup) loginSystemPopup: LoginSystemPopup = null;	
+	@property(LoginSystemPopup) loginSystemPopup: LoginSystemPopup = null;
+	@property(Label) labelVersion: Label = null;
 
     start() {
 		this.uiLogin.init( this );		
 		this.uiJoinPlayer.init( this );
 		this.loginSystemPopup.initialize();
+
+		this.labelVersion.string = 'VERSION ' + this.version.toString();
 
 		if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
 			this.onPreloadDone();

@@ -5,7 +5,6 @@ import { DealerCalculation } from "../modules/DealerCalculation";
 import * as fs from 'fs';
 import * as path from 'path';
 
-
 const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
 
@@ -69,28 +68,27 @@ export class HoldemRoom extends Room<RoomState> {
 	async onCreate( options: any ) : Promise<any> {
 
 		logger.info("[ onCreate ] options : %s", options);
-		this.tableSize = "full"; //options[ "ts" ];
+		this.tableSize = "full";
 		this._dao = options["dao"];
 
 		let confFile = await fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), {encoding : 'utf8'});
-
-		let confJson = JSON.parse(confFile.toString());
-
+		let confJson = JSON.parse( confFile.toString() );
 		this.conf = confJson[this.tableSize as keyof typeof confJson];
 
 		await this.setPrivate(options["private"]);
 
 		let onDBFinish : (err : any, res : any) => void = (err: any, res: any) => {
+			console.log('onDBFinish');
+
 			if (!!err) {
 				logger.error("[ onCreate::selectRoomByUID ] query error : %s", err);
 			} else {
 				if (res.length <= 0) {
 					logger.error("[ onCreate ] invalid room id");
 				} else {
+					let roomInfo = res;
 
-					let roomInfo = res[0];
-
-					this.conf["roomID"] = roomInfo["id"];
+					this.conf["tableID"] = roomInfo["id"];
 					this.conf["adminID"] = roomInfo["recommender"];
 					this.conf["maxClient"] = roomInfo["maxPlayers"];
 					this.conf["betTimeLimit"] = roomInfo["betTimeLimit"] * 1000;
@@ -108,9 +106,8 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
-
-					logger.info("[ onCreate ] res : %s", res[0]);
 				}
+
 				this.maxClients = this.conf["maxClient"];
 
 				for (let i = 0; i < this.maxClients; i++) {
@@ -151,13 +148,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		};
 
-		if(options["private"] == true){
-			this._dao.selectRoomByUID(options["serial"], onDBFinish);
-		}
-		else{
-			logger.info("private");
-			this._dao.selectRoom(options["serial"], onDBFinish);
-		}
+		await this._dao.selectTableInfo(options["serial"], onDBFinish);
 	}
 
 	init() {
@@ -176,8 +167,8 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
-		logger.info( "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );
-		let locPrice = this.conf[ "passPrice" ];
+		logger.info( "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );	
+
 		return new Promise( ( resolve, reject ) => {
 			let self = this;
 
@@ -255,16 +246,14 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let entity = new EntityState();
 
-		// assign entity
 		entity.assign( {
 			sid: client.sessionId,
 			id: auth.id || client.id,
 			uid: auth.phone,
 			avatar: auth.avatar,
-			name: auth.firstName || client.sessionId,
-			fullName: auth.firstName + " " + auth.lastName,
+			nickname: auth.nickname,
 			balance: auth.balance,
-			chips: this.conf["private"] ? auth.chip : auth.publicChip,
+			chips: auth.chip,
 			rake: auth.rake,
 			wait: true,
 			hasAction: true,
@@ -279,14 +268,12 @@ export class HoldemRoom extends Room<RoomState> {
 			isNew: true,
 			primaryCard: "",
 			secondaryCard: "",
-			savedRemainTime: this.conf["private"] ? auth.remainTime : auth.publicRemainTime,
-			remainTimeMS: -1,
 			cardIndex: [],
 			dealable: false,
 			missSb: false,
 			missBb: false,
 			longSitOut: false,
-			oldChips: this.conf["private"] ? auth.chip : auth.publicChip,			
+			oldChips: auth.chip,			
 			oldRake: auth.rake,			
 			reBuyCount: 0,
 			pendReBuy: 0,
@@ -298,10 +285,9 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.seat = -2;
 		entity.client = client;
 		entity.lastPingTime = Date.now();
-		entity.initRoundChips = this.conf["private"] ? auth.chip : auth.publicChip;
+		entity.initRoundChips = auth.chip;
 
 		logger.info( "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
-
 		this.state.entities.push( entity );
 		return;
 	}
@@ -406,19 +392,17 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		//add to waiting
 		this.seatWaitingList[selected] = client.sessionId;
 		this.UpdateSeatInfo();
 
 		client.send( "BUY_IN", {
 			id: auth.id,
-			name: auth.firstName,
+			nickname: auth.nickname,
 			balance: auth.balance,
 			tableSize: this.tableSize,
 			small: this.conf[ "smallBlind" ],
 			big: this.conf[ "bigBlind" ],
 			turnTimeMS: this.conf[ "betTimeLimit" ],
-			passPrice: this.conf[ "passPrice" ],
 			minStakePrice: this.conf[ "minStakePrice" ],
 			maxStakePrice: this.conf[ "maxStakePrice" ],
 			myChips : myEntity.chips,
@@ -433,12 +417,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		entity.seat = seat;
-
-		if (false === this.conf["useTimePass"]) {
-			entity.remainTimeMS = 180000;//this.conf["passTerm"];
-		} else {
-			entity.remainTimeMS = entity.savedRemainTime * 1000;
-		}
 
 		let openCards: number[] = [];
 		switch (this.centerCardState) {
@@ -485,8 +463,6 @@ export class HoldemRoom extends Room<RoomState> {
 			big: this.conf["bigBlind"],
 			minStakePrice: this.conf["minStakePrice"],
 			maxStakePrice: this.conf["maxStakePrice"],
-			passPrice: this.conf["passPrice"],
-			remainTimeMS: entity.remainTimeMS,
 			dealer: this.dealerCalc.getDealer(),
 			sb : this.dealerCalc.getSb(),
 			bb : this.dealerCalc.getBb(),
@@ -499,27 +475,16 @@ export class HoldemRoom extends Room<RoomState> {
 			chipsFraction: this.conf["chipsFraction"]
 		});
 
-		if ( true === this.conf["useTimePass"] && entity.remainTimeMS <= 0 ) {
-			client.send("BUY_PASS", {
-				balance: entity.balance,
-				passPrice: this.conf["passPrice"],
-				passTerm: this.conf["passTerm"],
-				chips: entity.chips
-			});
-		}
-		else {
-			if (eGameState.Suspend === this.state.gameState) {
-				logger.info("[ onBuyPass ] Now suspend state");
-				entity.isNew = false;
-				let isStart = this.checkStartCondition();
-				if (true === isStart) {
+		if (eGameState.Suspend === this.state.gameState) {
+			logger.info("[ onBuyPass ] Now suspend state");
+			entity.isNew = false;
+			let isStart = this.checkStartCondition();
+			if (true === isStart) {
 
-					this.changeState(eGameState.Ready);
-				}
-			} else if (eGameState.Ready === this.state.gameState) {
-				entity.isNew = false;
+				this.changeState(eGameState.Ready);
 			}
-
+		} else if (eGameState.Ready === this.state.gameState) {
+			entity.isNew = false;
 		}
 
 		this.broadcast("NEW_ENTITY", { newEntity: entity });
@@ -647,8 +612,6 @@ export class HoldemRoom extends Room<RoomState> {
 			big: this.conf[ "bigBlind" ],
 			minStakePrice: this.conf["minStakePrice"],
 			maxStakePrice: this.conf["maxStakePrice"],
-			passPrice: this.conf[ "passPrice" ],
-			remainTimeMS: entity.remainTimeMS,
 			primCard : prim,
 			secCard : sec,
 			dealer: this.dealerCalc.getDealer(),
@@ -686,7 +649,6 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			}
 			if(seatPos == -1){
-				//not selected?! fatal
 				return;
 			}
 			entity.seat = seatPos;
@@ -696,143 +658,121 @@ export class HoldemRoom extends Room<RoomState> {
 					logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
 					return;
 				}
+
+				if( res.length <= 0 ) {
+					logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
+					return;
+				}
 				else {
-					if( res.length <= 0 ) {
-						logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
-						return;
+					entity.balance = res[0]["balance"];
+
+					let oldBalance = entity.balance;
+					let oldChips = entity.chips;
+
+					let buyInAmount = msg[ "buyInAmount" ];
+					let bal = entity.balance - buyInAmount;
+					if( bal <= 0 ) {
+						buyInAmount = entity.balance;
+						bal = 0;
 					}
-					else {
-						entity.balance = res[0]["balance"];
-						let oldBalance = entity.balance;
-						let oldChips = entity.chips;
+			
+					entity.balance = bal;
+					entity.chips += buyInAmount;
+					entity.initRoundChips = entity.chips;
 
-						let buyInAmount = msg[ "buyInAmount" ];
-						let bal = entity.balance - buyInAmount;
-						if( bal <= 0 ) {
-							buyInAmount = entity.balance;
-							bal = 0;
+					entity.tableBuyInAmount += buyInAmount;
+					entity.tableBuyInCount++;
+
+					this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
+					entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
+					{
+						if( !!err ) {
+							logger.error( "[ onBuyIn ] buyIn query error : %s", err );
 						}
-				
-						entity.balance = bal;
-						entity.chips += buyInAmount;
-						entity.initRoundChips = entity.chips;
+					} );
 
-						entity.tableBuyInAmount += buyInAmount;
-						entity.tableBuyInCount++;
-
-						this._dao.buyIn( entity.id, this.conf["adminID"], this.conf["roomID"], entity.fullName, 
-							oldBalance, entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => {
-							if( !!err ) {
-								logger.error( "[ onBuyIn ] buyIn query error : %s", err );
-							}
-						} );
-
-						this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
-							if( !!err ) {
-								logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
-							}
-						} );
-
-						if(false === this.conf["useTimePass"]){
-							entity.remainTimeMS = 180000;//this.conf["passTerm"];
-						} else {
-							entity.remainTimeMS = entity.savedRemainTime * 1000;
+					this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
+						if( !!err ) {
+							logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
 						}
+					} );
 
-						logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
+					logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
 
-						let openCards: number[] = [];
-						switch( this.centerCardState ) {
-							case eCommunityCardStep.FLOP:
-								openCards = this.communityCardIndex.slice( 0, 3 );
-								break;
+					let openCards: number[] = [];
+					switch( this.centerCardState ) {
+						case eCommunityCardStep.FLOP:
+							openCards = this.communityCardIndex.slice( 0, 3 );
+							break;
 
-							case eCommunityCardStep.TURN:
-								openCards = this.communityCardIndex.slice( 0, 4 );
-								break;
+						case eCommunityCardStep.TURN:
+							openCards = this.communityCardIndex.slice( 0, 4 );
+							break;
 
-							case eCommunityCardStep.RIVER:
-							case eCommunityCardStep.SHOWDOWN:
-								openCards = this.communityCardIndex;
-								break;
-						}
-
-						this.UpdateSeatInfo();
-
-						entity.tableInitChips = oldChips;
-						entity.tableBuyInAmount = buyInAmount;
-						entity.tableBuyInCount = 1;
-
-						// send & broadcast
-						client.send("RES_BUY_IN", {
-							ret: 0,
-							amount: buyInAmount,
-							message: "SUCCEED.",
-							tableBuyInAmount: entity.tableBuyInAmount,
-							tableBuyInCount: entity.tableBuyInCount,
-						});
-
-						client.send( "JOIN", {
-							yourself: entity,
-							entities: this.state.entities,
-							gameState: this.state.gameState,
-							betSeat: this.betSeat,
-							endSeat: this.endSeat,
-							maxBet: this.state.maxBet,
-							minRaise: this.state.minRaise,
-							pot: this.state.pot - this.potCalc.rakeTotal,
-							centerCardState: this.centerCardState,
-							openCards: openCards,
-							small: this.conf[ "smallBlind" ],
-							big: this.conf[ "bigBlind" ],
-							minStakePrice: this.conf["minStakePrice"],
-							maxStakePrice: this.conf["maxStakePrice"],
-							passPrice: this.conf[ "passPrice" ],
-							remainTimeMS: entity.remainTimeMS,
-							dealer: this.dealerCalc.getDealer(),
-							sb : this.dealerCalc.getSb(),
-							bb : this.dealerCalc.getBb(),
-							tableInitChips: entity.tableInitChips,
-							tableBuyInAmount: entity.tableBuyInAmount,
-							tableBuyInCount: entity.tableBuyInCount,
-							balanceRatio: this.conf["balanceRatio"],
-							balanceFraction: this.conf["balanceFraction"],
-							chipsRatio: this.conf["chipsRatio"],
-							chipsFraction: this.conf["chipsFraction"]
-						} );
-						
-						if (true === this.conf["useTimePass"] && entity.remainTimeMS <= 0) {
-							client.send("BUY_PASS", {
-								balance: entity.balance,
-								passPrice: this.conf["passPrice"],
-								passTerm: this.conf["passTerm"],
-								chips: entity.chips
-							});
-						}
-						else {
-							if( eGameState.Suspend === this.state.gameState ) {
-								logger.info( "[ onBuyPass ] Now suspend state" );
-								entity.isNew = false;
-								let isStart = this.checkStartCondition();
-								if ( true === isStart ) {
-									logger.info( "[ onBuyPass ] GAME STATE TO READY" );
-									this.changeState( eGameState.Ready );
-								}
-							} else if (eGameState.Ready === this.state.gameState) {
-								entity.isNew = false;
-							}
-
-						}
-
-						this.broadcast( "NEW_ENTITY", { newEntity: entity } );
+						case eCommunityCardStep.RIVER:
+						case eCommunityCardStep.SHOWDOWN:
+							openCards = this.communityCardIndex;
+							break;
 					}
+
+					this.UpdateSeatInfo();
+
+					entity.tableInitChips = oldChips;
+					entity.tableBuyInAmount = buyInAmount;
+					entity.tableBuyInCount = 1;
+
+					client.send("RES_BUY_IN", {
+						ret: 0,
+						amount: buyInAmount,
+						message: "SUCCEED.",
+						tableBuyInAmount: entity.tableBuyInAmount,
+						tableBuyInCount: entity.tableBuyInCount,
+					});
+
+					client.send( "JOIN", {
+						yourself: entity,
+						entities: this.state.entities,
+						gameState: this.state.gameState,
+						betSeat: this.betSeat,
+						endSeat: this.endSeat,
+						maxBet: this.state.maxBet,
+						minRaise: this.state.minRaise,
+						pot: this.state.pot - this.potCalc.rakeTotal,
+						centerCardState: this.centerCardState,
+						openCards: openCards,
+						small: this.conf[ "smallBlind" ],
+						big: this.conf[ "bigBlind" ],
+						minStakePrice: this.conf["minStakePrice"],
+						maxStakePrice: this.conf["maxStakePrice"],
+						dealer: this.dealerCalc.getDealer(),
+						sb : this.dealerCalc.getSb(),
+						bb : this.dealerCalc.getBb(),
+						tableInitChips: entity.tableInitChips,
+						tableBuyInAmount: entity.tableBuyInAmount,
+						tableBuyInCount: entity.tableBuyInCount,
+						balanceRatio: this.conf["balanceRatio"],
+						balanceFraction: this.conf["balanceFraction"],
+						chipsRatio: this.conf["chipsRatio"],
+						chipsFraction: this.conf["chipsFraction"]
+					} );
+
+					if( eGameState.Suspend === this.state.gameState ) {
+						entity.isNew = false;
+						let isStart = this.checkStartCondition();
+						if ( true === isStart ) {
+							this.changeState( eGameState.Ready );
+						}
+					} else if (eGameState.Ready === this.state.gameState) {
+						entity.isNew = false;
+					}
+
+					this.broadcast( "NEW_ENTITY", { newEntity: entity } );
 				}
 			} );
 		} catch( e ) {
 			if( e === undefined ) {
 				e = "error";
 			}
-			logger.error( "[ onBuyIn ] catch : %s", e );
 
 			client.send("RES_BUY_IN", {
 				ret: -1,
@@ -913,7 +853,7 @@ export class HoldemRoom extends Room<RoomState> {
 						entity.remainTimeMS = this.conf["passTerm"];
 						let term = this.conf["passTerm"] * 0.001;
 
-						this._dao.timePurchase(entity.id, this.conf["adminID"], this.conf["roomID"], entity.fullName, 
+						this._dao.timePurchase(entity.id, this.conf["adminID"], this.conf["tableID"], entity.fullName, 
 							oldBalance, entity.balance, oldChips, entity.chips, this.conf["passPrice"], term, (err: any, res: any) => {
 								if (!!err) {
 									logger.error("[ onBuyPass ] timePurchase query error : %s", err);
@@ -1052,8 +992,7 @@ export class HoldemRoom extends Room<RoomState> {
 							}
 						}
 			
-						this._dao.buyIn( e.id, this.conf["adminID"], this.conf["roomID"], e.fullName,
-							oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
+						this._dao.buyIn( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
 							if( !!err ) {
 								logger.error( "[ onReBuy ] buyIn query error : %s", err );
 							}
@@ -1154,8 +1093,7 @@ export class HoldemRoom extends Room<RoomState> {
 									e.tableBuyInAmount += amount;
 									e.tableBuyInCount++;
 			
-									this._dao.buyIn(e.id, this.conf["adminID"], this.conf["roomID"], e.fullName,
-										oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
+									this._dao.buyIn(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
 										if (!!err) {
 											logger.error("[ onAddChips ] buyIn query error : %s", err);
 										}
@@ -1286,7 +1224,6 @@ export class HoldemRoom extends Room<RoomState> {
 			if(this.seatWaitingList[i] != client.sessionId){
 				continue;
 			}
-
 			this.seatWaitingList[i] = "";
 		}
 
@@ -1296,36 +1233,10 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		logger.info( "[ onLeave ] seat(%s), name(%s), balance(%s), chips(%s)", 
-			runaway.seat, runaway.fullName, runaway.balance, runaway.chips );
-
-		if (true == this.conf["private"]) {
-			this._dao.updateAccountBalanceByID({
-				id: runaway.id,
-				chip: runaway.chips
-			}, function (err: any, res: any) {
-				if (!!err) {
-					logger.error("[ processLeave ] update query error : %s", err);
-				}
-			});
-
-			if (runaway.seat >= 0) {
-				this._dao.updateRemainTime(runaway.id, runaway.remainTimeMS, (err: any, res: any) => {
-					if (!!err) {
-						logger.error("[ update ] updateRemainTime query error : %s", err.sqlMessage);
-					}
-				});
-			}
-		}
+		logger.info( "[ onLeave ] seat(%s), nickname(%s), balance(%s), chips(%s)", 
+			runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
 
 		runaway.leave = true;
-
-		if (this.conf["useTimePass"] === true) {
-			if (runaway.remainTimeMS <= 0) {
-				this.handleEscapee();
-			}
-		}
-		
 		if( eGameState.Suspend === this.state.gameState ) {
 			this.handleEscapee();
 			return;
@@ -1352,31 +1263,29 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
-		logger.info( "[ onDispose ]" );
+		logger.info( '[ onDispose ]');		
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
 
-		this.state.entities.forEach(elem => {
-			//console.error(elem.id);
-			this._dao.clearActiveSessionID(elem.id);
+		this.state.entities.forEach( (e) => {
+			this._dao.clearActiveSessionID(e.id);
 		});
 
-		if (false == this.conf["private"]) {
-			this.state.entities.forEach(element => {
-				let data = {
-					publicRoomID: -1,
-					id : element.id
+		this.state.entities.forEach( (e) => {
+			let data = {
+				tableID: -1,
+				id : e.id
+			}
+
+			this._dao.updateTableID(data, (err: any, res: boolean) => {
+				if (null != err) {
+					logger.error(err);
 				}
-				this._dao.updatePublicRoomID(data, (err: any, res: boolean) => {
-					if (null != err) {
-						logger.error(err);
-					}
-				});
-	
-				this._dao.publicChipOut(element.chips, element.id);
-				element.chips = 0;
 			});
-		}
+
+			this._dao.chipOut(e.chips, e.id);
+			e.chips = 0;
+		});
 	}
 
 	onPong( client: Client, msg: any ) {
@@ -1407,7 +1316,7 @@ export class HoldemRoom extends Room<RoomState> {
 						});
 					}
 					else {
-						this._dao.updatePublicChip(entity.id, entity.chips, (err: any, res: any) => {
+						this._dao.updateChip(entity.id, entity.chips, (err: any, res: any) => {
 							if (!!err) {
 								logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
 							}
@@ -1436,33 +1345,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		this.secondTick += dt;
-
-		if (true === this.conf["useTimePass"]) {
-			if (this.secondTick >= 1000) {
-				if (this.state.gameState !== eGameState.Suspend && this.state.gameState !== eGameState.Ready ) {
-					for (let i = 0; i < this.state.entities.length; i++) {
-						if (0 < this.state.entities[i].remainTimeMS) {
-							this.state.entities[i].remainTimeMS -= this.secondTick;
-
-							let locEntity = this.state.entities[i];
-							locEntity.client.send("REMAIN_TIME", {
-								timer: this.state.entities[i].remainTimeMS
-							});
-
-							if (this.state.entities[i].remainTimeMS <= 0) {
-								this.state.entities[i].remainTimeMS = -1;
-								logger.info("[ update ] time over. seat : %s", this.state.entities[i].seat);
-
-								if (this.state.gameState === eGameState.Suspend) {
-									this.updateEntityPass();
-								}
-							}
-						}
-					}
-				}
-				this.secondTick = 0;
-			}
-		}
 
 		if( eGameState.Bet === this.state.gameState ) {
 			this.elapsedTick += dt;
@@ -1593,26 +1475,23 @@ export class HoldemRoom extends Room<RoomState> {
 		let escapees = [];
 		for( let l = 0; l < this.state.entities.length; l++ ) {
 			if( true === this.state.entities[ l ].leave ) {
-				logger.info( "[ handleEscapee ] escapee fold" );
 				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat } );
 				escapees.push( this.state.entities[ l ].seat );
 
 				this._dao.clearActiveSessionID(this.state.entities[ l ].id);
 
-				if (false == this.conf["private"]) {
-					let data = {
-						publicRoomID: -1,
-						id : this.state.entities[ l ].id
-					}
-					this._dao.updatePublicRoomID(data, (err: any, res: boolean) => {
-						if (null != err) {
-							logger.error(err);
-						}
-					});
-
-					this._dao.publicChipOut(this.state.entities[l].chips, this.state.entities[l].id);
-					this.state.entities[l].chips = 0;
+				let data = {
+					roomID: -1,
+					id : this.state.entities[ l ].id
 				}
+				this._dao.updateTableID(data, (err: any, res: boolean) => {
+					if (null != err) {
+						logger.error(err);
+					}
+				});
+
+				this._dao.chipOut(this.state.entities[l].chips, this.state.entities[l].id);
+				this.state.entities[l].chips = 0;
 			}
 		}
 
@@ -1632,52 +1511,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	updateEntityPass() {
-
-		if(false === this.conf["useTimePass"]){
-			return;
-		}
-
-		logger.info( "[ updateEntityPass ] updateEntityPass" );
-		for( let i = 0; i < this.state.entities.length; i++ ) {
-			if( this.state.entities[ i ].remainTimeMS <= 0 && this.state.entities[i].seat >= 0) {
-				let locEntity = this.state.entities[ i ];
-				locEntity.wait = true;
-
-				logger.info( "[ updateEntityPass ] seat : %s // chip : %s // price : %s", locEntity.seat, locEntity.chips, this.conf[ "passPrice" ] );
-				let enoughChip = true;
-				if( locEntity.chips < this.conf[ "passPrice" ] ) {
-					enoughChip = false;
-				}
-
-				locEntity.client.send( "TIME_OVER", {
-					enoughChip: enoughChip,
-					chips: locEntity.chips,
-					time: locEntity.remainTimeMS,
-					balance: locEntity.balance,
-					passPrice: this.conf[ "passPrice" ],
-					passTerm: this.conf[ "passTerm" ]
-				} );
-			}
-		}
-
-		this.state.entities.forEach( e =>{
-			if ( e.seat >= 0) {
-				if (true == this.conf["private"]) {
-					this._dao.updateRemainTime(e.id, e.remainTimeMS, (err: any, res: any) => {
-						if (!!err) {
-							logger.error("[ updateRemainTime ] updateRemainTime query error : %s", err);
-						}
-					});
-				}
-				else{
-					this._dao.updatePublicRemainTime(e.id, e.remainTimeMS, (err: any, res: any) => {
-						if (!!err) {
-							logger.error("[ updateRemainTime ] updateRemainTime query error : %s", err);
-						}
-					});
-				}
-			}
-		});
+		return;
 	}
 
 	updatePlayerEligible() {
@@ -1685,8 +1519,7 @@ export class HoldemRoom extends Room<RoomState> {
 			let e = this.state.entities[ i ];
 
 			e.enoughChip = this.isEnoughChip( e.chips );
-			if ( e.enoughChip === true && e.remainTimeMS > 0 && e.isSitOut === false) {
-			//if ( e.enoughChip === true && e.remainTimeMS > 0) {
+			if ( e.enoughChip === true && e.isSitOut === false) {
 				e.wait = false;
 			} else {
 				e.wait = true;
@@ -1728,9 +1561,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	processReBuyInRequest() {
-		// const MAX_BUY_IN: number = this.conf["maxStakePrice"];
-		// const MIN_BUY_IN: number = this.conf["minStakePrice"];
-
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
 
@@ -1786,8 +1616,7 @@ export class HoldemRoom extends Room<RoomState> {
 						if (!!err) {
 							logger.error("[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
 						} else {
-							this._dao.buyIn(e.id, this.conf["adminID"], this.conf["roomID"], e.fullName,
-							beforeBalance, e.balance, beforeChips, e.chips, amount, (err: any, res : any) => {
+							this._dao.buyIn(e.id, this.conf["tableID"], beforeBalance, e.balance, beforeChips, e.chips, amount, (err: any, res : any) => {
 								if (!!err) {
 									logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
 								} else {
@@ -1858,8 +1687,7 @@ export class HoldemRoom extends Room<RoomState> {
 								tableBuyInCount: e.tableBuyInCount,
 							});
 
-							this._dao.buyIn(e.id, this.conf["adminID"], this.conf["roomID"], e.fullName,
-								oldBalance, e.balance, oldChips, e.chips, reBuyAmount, (err: any, res : any) => {
+							this._dao.buyIn(e.id, this.conf['tableID'], oldBalance, e.balance, oldChips, e.chips, reBuyAmount, (err: any, res : any) => {
 									if (!!err) {
 										logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
 									}
@@ -1887,9 +1715,8 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			e.enoughChip = this.isEnoughChip( e.chips );
-			let timePass = ( e.remainTimeMS > 0 );
 
-			if ( true == e.enoughChip && true == timePass && false == e.isSitOut ) {
+			if ( true == e.enoughChip && false == e.isSitOut ) {
 				cnt++
 			}
 		}
@@ -3137,7 +2964,7 @@ export class HoldemRoom extends Room<RoomState> {
 				winners.push( {
 					seat: entity.seat,
 					cards: entity.cardIndex,
-					name: entity.name,
+					nickname: entity.nickname,
 					chips: entity.chips,
 					winAmount: entity.winAmount,
 					fold : entity.fold
@@ -3353,7 +3180,7 @@ export class HoldemRoom extends Room<RoomState> {
 			result.push({
 				seat : element.seat,
 				chips : element.chips,
-				name : element.fullName,
+				nickname : element.nickname,
 			});
 		});
 		
@@ -3389,13 +3216,13 @@ export class HoldemRoom extends Room<RoomState> {
 				publicRoomID: -1,
 				id : entity.id
 			}
-			this._dao.updatePublicRoomID(data, (err: any, res: boolean) => {
+			this._dao.updateTableID(data, (err: any, res: boolean) => {
 				if (null != err) {
 					logger.error(err);
 				}
 			});
 
-			this._dao.publicChipOut(entity.chips, entity.id);
+			this._dao.chipOut(entity.chips, entity.id);
 			entity.chips = 0;
 		}
 

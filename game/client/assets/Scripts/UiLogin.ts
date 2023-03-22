@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, EditBox, EventHandler, Label, AudioSource, AudioClip, director, Scene, game } from 'cc';
+import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game } from 'cc';
 import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
@@ -7,69 +7,60 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UiLogin')
 export class UiLogin extends Component {
-    @property (Button) btnEnter: Button = null;
     @property (EditBox) editBoxUID: EditBox = null;
     @property (EditBox) editBoxPassword: EditBox = null;    
     @property (Label) labelLoginState: Label = null;
     @property (AudioSource) audioSource: AudioSource = null;
     @property (AudioClip) soundButtonClick: AudioClip = null;
-    @property (Button) buttonExit: Button = null;    
 
+    @property (Button) buttonLogin: Button = null;
     @property (Button) buttonJoin: Button = null;
+    @property (Button) buttonExit: Button = null;
 
     private main: Main = null;
-    
-    pinLength: number = 8;
 
     init(main: Main) {
         this.main = main;
 
-        this.btnEnter?.node.on( "click", this.onClickEnter.bind( this ), this );
-        this.buttonJoin?.node.on('click', this.onClickJoin.bind( this ), this );
+        this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
+        this.buttonJoin.node.on('click', this.onClickJoin.bind( this ), this );
         this.buttonExit.node.on('click', ()=>{
             console.log('EXIT');
             LoginSystemPopup.instance.showPopUpYesOrNo('종료', '게임을 종료하시겠습니까?', ()=>{
                 director.end();
-
                 game.end();
             }, ()=>{
                 LoginSystemPopup.instance.closePopup();
             });
-
 
         }, this);
     }
     
     onLoad()
     {
-        // //this.btnEnter.interactable = false;
-        // this.editBoxPIN.maxLength = this.pinLength;
+        this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
+            editbox.string = '';
+        }, this);
 
-        // const editBoxReturn = new EventHandler();
-		// editBoxReturn.target = this.node;
-		// editBoxReturn.component = "UiLogin";
-		// editBoxReturn.handler = "onEditBoxReturn";
-		// editBoxReturn.customEventData = "???";
-		// this.editBoxPIN?.editingReturn.push( editBoxReturn );
+        this.editBoxUID.node.on('editing-return', ( editbox, customEventData )=>{
+            this.editBoxPassword.setFocus();
+        }, this);
 
-		// const editBoxChanged = new EventHandler();
-		// editBoxChanged.target = this.node;
-		// editBoxChanged.component = "UiLogin";
-		// editBoxChanged.handler = "onEditBoxChanged";
-		// editBoxChanged.customEventData = "???";
-		// this.editBoxPIN?.textChanged.push( editBoxChanged );
 
-		// const editBoxDidBegan = new EventHandler();
-		// editBoxDidBegan.target = this.node;
-		// editBoxDidBegan.component = "UiLogin";
-		// editBoxDidBegan.handler = "onEditingDidBegan";
-		// editBoxDidBegan.customEventData = "???";
-		// this.editBoxPIN.editingDidBegan.push( editBoxDidBegan );
+        this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
+            editbox.string = '';
 
-        // this.labelLoginState.string = "Enter";
+        }, this);
+
+        this.editBoxPassword.node.on('editing-return', ( editbox, customEventData )=>{
+            this.onLogin();
+        }, this);
+
     }
 
     start() {
+        NetworkManager.Instance().logout();
+
         if (NetworkManager.Instance().isLogin() == true) {
             
         }
@@ -82,89 +73,113 @@ export class UiLogin extends Component {
         }        
     }
 
-    onClickEnter() {
+    onClickLogin(button: Button) {
         this.audioSource.playOneShot(this.soundButtonClick, 1);
+        this.onLogin();
+	}
 
-        let uid = this.editBoxUID.string;
-        let pass = this.editBoxPassword.string;
+    onLogin() {
+        let uid: string = this.editBoxUID.string;
+        let pass: string = this.editBoxPassword.string;
 
-		NetworkManager.Instance().loginHoldem( uid, pass ,(res)=>{
+        this.buttonLogin.interactable = false;
+        this.buttonJoin.interactable = false;
+
+        if ( uid.length < 4 || pass.length == 4 ) {
+            LoginSystemPopup.instance.showPopUpOk('로그인', '아이디와 패스워드를 입력해주세요.', ()=>{
+                this.buttonLogin.interactable = true;
+                this.buttonJoin.interactable = true;
+
+                LoginSystemPopup.instance.closePopup();
+            });
+            return;
+        }
+
+		NetworkManager.Instance().reqLOGIN_HOLDEM( uid, pass ,(res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
-                let id: number = res.id;
+                console.log(res);
 
-                NetworkManager.Instance().loadInitialData(id, (res)=>{
-                    console.log(res);
-                    if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
-                        if ( res.user != null && res.setting != null && res.conf != null ) {
-                            CommonUtil.setGameSetting(res.conf);
-                            director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
-                                
-                            }, ()=>{
-                
-                            });
+                let id: number = res.obj.id;
+                this.onLoadInitialData( id );
+            }
+            else {
 
-                        } else {
-                            LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
-                                LoginSystemPopup.instance.closePopup();
-                            });
-                        }
-                    } else {
-                        LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
-                            LoginSystemPopup.instance.closePopup();
-                        });
-                    }
-                }, (err)=>{
+            }
+        },
+        ( err )=>{
+            if ( err.code == ENUM_RESULT_CODE.DISCONNECT_SERVER ) {
+                LoginSystemPopup.instance.showPopUpOk('로그인', '서버에 연결할 수 없습니다.', ()=>{
+                    this.buttonLogin.interactable = true;
+                    this.buttonJoin.interactable = true;
+
+                    LoginSystemPopup.instance.closePopup();
+                });
+                return;        
+            }
+            else {
+                // let desc: string = '';
+                // switch ( res.msg ) {
+                //     case 'INVALID_UID':
+                //         desc = '잘못된 아이디 입니다.';
+                //         break;
+                //     case 'NO_EXIST_UID':
+                //         desc = '아이디가 존재하지 않습니다.';
+                //         break;
+                //     case 'NO_MATCH_PASSWORD':
+                //         desc = '비밀번호가 맞지 않습니다.';
+                //         break;
+                //     case 'DISABLE_ACCOUNT':
+                //         desc = '사용할 수 없는 계정입니다.';
+                //         break;
+                //     case 'PENDING_ACCOUNT':
+                //         desc = '가입 대기중인 계정입니다.';                        
+                //         break;
+                //     default:
+                // }
+
+                // LoginSystemPopup.instance.showPopUpOk('로그인', desc, ()=>{
+                //     LoginSystemPopup.instance.closePopup();
+                // });
+            }
+        });        
+    }
+
+    private onLoadInitialData( id: number ) {
+        console.log(id);
+        NetworkManager.Instance().reqLOAD_INITIAL_DATA(id, (res)=>{
+
+            if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                if ( res.user != null && res.setting != null && res.conf != null ) {
+                    CommonUtil.setGameSetting(res.conf);
+                    director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
+                        
+                    }, ()=>{
+        
+                    });
+
+                } else {
                     LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
                         LoginSystemPopup.instance.closePopup();
                     });
-                });
-            }
-            else{
-                let desc: string = '';
-                switch ( res.msg ) {
-                    case 'INVALID_UID':
-                        desc = '잘못된 아이디 입니다.';
-                        break;
-                    case 'NO_EXIST_UID':
-                        desc = '아이디가 존재하지 않습니다.';
-                        break;
-                    case 'NO_MATCH_PASSWORD':
-                        desc = '비밀번호가 맞지 않습니다.';
-                        break;
-                    case 'DISABLE_ACCOUNT':
-                        desc = '사용할 수 없는 계정입니다.';
-                        break;
-                    case 'PENDING_ACCOUNT':
-                        desc = '가입 대기중인 계정입니다.';                        
-                        break;
-                    default:
                 }
-
-                LoginSystemPopup.instance.showPopUpOk('로그인', desc, ()=>{
+            } else {
+                LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
                     LoginSystemPopup.instance.closePopup();
                 });
             }
 
-            
-            // let info = NetworkManager.Instance().getUserInfo();
-            // CommonUtil.setGameSetting(res.game);
+            this.buttonLogin.interactable = true;
+            this.buttonJoin.interactable = true;
 
-            // NetworkManager.Instance().setting(info.uuid, ( setting )=>{
-            //     this.labelLoginState.string = "Success";            
-            //     director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
-                    
-            //     }, ()=>{
-    
-            //     });
-            // }, ()=>{
+        }, ( err )=>{
+            LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                LoginSystemPopup.instance.closePopup();
+            });
 
-            // });            
-        },
-        ()=>{
-            this.labelLoginState.string = "FAIL";
+            this.buttonLogin.interactable = true;
+            this.buttonJoin.interactable = true;
         });
-		// this.btnEnter.interactable = false;
-	}
+    }
 
     onClickJoin() {
         this.main.onShowJoin();
@@ -178,5 +193,3 @@ export class UiLogin extends Component {
         this.node.active = false;
     }
 }
-
-

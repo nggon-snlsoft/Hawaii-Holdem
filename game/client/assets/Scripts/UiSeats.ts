@@ -73,6 +73,7 @@ export class UiSeats extends Component {
     }
 
     updateSeatInfo ( seats: any[], info: number[], bb: number, sb: number, dealer: number ) {
+        console.log(seats);
 
         for ( let i = 0 ; i < this.buttonTakeSeats.length; i++) {
             let button: Button = this.buttonTakeSeats[i];
@@ -285,12 +286,10 @@ export class UiSeats extends Component {
     }
 
     setRoomInformation() {
-        // this.labelRoomInformation.string = "THIS_ROOM_INFORMATION";
-
         let sb = CommonUtil.getNumberStringWithComma(Board.small);
         let bb = CommonUtil.getNumberStringWithComma(Board.big);
 
-        this.labelRoomInformation.string = Board.info.name + ' / ' + Board.id.toString() + ' / (SB: ' + sb + ") / (BB: " + bb + ')';
+        this.labelRoomInformation.string = Board.info.name + ' ' + Board.id.toString() + '(SB: ' + sb + ", BB: " + bb + ')';
         this.nodeRoomInformation.active = true;
     }
 }

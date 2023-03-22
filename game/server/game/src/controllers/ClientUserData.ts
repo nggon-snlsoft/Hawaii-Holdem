@@ -29,4 +29,24 @@ export class ClientUserData{
 
 		return setting;
 	}
+
+	static getClientTableData(dbRoomData: any): any {
+        let room: any = {
+			id: dbRoomData.id,
+			type: dbRoomData.type,
+			grade: dbRoomData.grade,
+			name: dbRoomData.name,
+			password: dbRoomData.password,
+			maxPlayers: dbRoomData.maxPlayers,
+			players: 0,
+			betTimeLimit: dbRoomData.betTimeLimit,
+			bigBlind: dbRoomData.bigBlind,
+			smallBlind: dbRoomData.smallBlind,
+			minBuyIn: dbRoomData.minStakePrice,
+			maxBuyIn: dbRoomData.maxStakePrice,
+			alive: dbRoomData.alive,
+			disable: dbRoomData.disable,
+        }
+        return room;
+    }
 }

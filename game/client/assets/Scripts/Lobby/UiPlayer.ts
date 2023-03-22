@@ -53,7 +53,7 @@ export class UiPlayer extends Component {
         if (user != null)
         {
             this.labelNickname.string = user.nickname;
-            this.labelChips.string = CommonUtil.geKoreanNumber(user.balance + user.chip);
+            this.labelChips.string = CommonUtil.getKoreanNumber(user.balance + user.chip);
             this.labelPoints.string = (0).toString();
 
             let s = Number(user.avatar);

@@ -19,7 +19,7 @@ export class CommonUtil {
         }
     }
 
-    static geKoreanNumber(num: number): string {
+    static getKoreanNumber(num: number): string {
         const koreanUnits = ['', '만', '억', '조'];
         let answer = '';
         let unit = 10000;
@@ -34,6 +34,11 @@ export class CommonUtil {
           }
           division = Math.pow(unit, ++index);
         }
+
+        if ( answer.length == 0) {
+            answer = '0';
+        }
+
         return answer;
       }
 

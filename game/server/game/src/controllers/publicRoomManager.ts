@@ -52,7 +52,7 @@ export class publicRoomManager{
             return;
         }
 
-        let rooms : RoomListingData<any>[] = await matchMaker.query({private : false});
+        let rooms : RoomListingData<any>[] = await matchMaker.query({ private : false });
 
         //logger.info(rooms);
 

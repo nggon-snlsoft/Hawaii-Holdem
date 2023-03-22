@@ -6,23 +6,27 @@ import { ENUM_BETTING_TYPE } from "./Game/UiBettingControl";
 const { ccclass } = cc._decorator;
 
 export enum ENUM_RESULT_CODE {
-    UNKNOWN_FAIL = -1,
+	DISCONNECT_SERVER = -2,
+	UNKNOWN_FAIL = -1,
     SUCCESS = 0,
     EXPIRED_SESSION = 1,
 }
+
+export enum HOLDEM_SERVER_TYPE {
+	API_SERVER = 0,
+	GAME_SERVER = 1,
+}
+
+const apiHost: string = '127.0.0.1';
+const apiPort: number = 2600;
+
+const gameHost: string = '127.0.0.1';
+const gamePort: number = 2568;
 
 @ccclass('NetworkManager')
 export class NetworkManager extends cc.Component {
     private static _instance : NetworkManager = null;
     private pin : string = "";
-
-    // hostname = "18.183.95.34";
-    // port = 2568;
-
-    hostname = "127.0.0.1";
-
-	port = 2568;
-    apiPort = 2600;
 
     useSSL = false;
 	client!: Colyseus.Client;
@@ -51,45 +55,85 @@ export class NetworkManager extends cc.Component {
 		this.pin = '';
 	}
 
-    async loginHoldem( uid: string, password: string, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/checkVersion', {
+			version: version,
+		} )
+		.then( (res: String)=> {
+
+		})
+		.catch( (err: any)=>{
+
+		});
+	}
+
+    public async reqLOGIN_HOLDEM( uid: string, password: string, onSuccess : (res : any) => void, onFail : (err : any) => void) {
 		let result: string = null;
 		let error: string = null;
+		let isConnect: boolean = true;
 
-		await this.HoldemHttpPost( "/users/login", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/login', {
 			uid: uid,
 			password: password,
 
 		} ).then(( res: string ) => {
+			isConnect = true;
 			result = res;
 			}
 		).catch( function( err: any ) {
+			if ( err.length == 0 ) {
+				isConnect = false;
+				return;
+			}
+
 			err = JSON.parse( err );
 			error = err.msg;
 		} );
 
-		if( null !== error ) {
-			return onFail( error );
-		}
-
-		if( null === result ) {
-			return onFail("USER_DATA_IS_INVALID" );
-		}
-
-		let obj : any = JSON.parse( result );
-
-		if(null == obj){
-			onFail("JSON_PARSE_ERROR");
+		if ( !isConnect ) {
+			onFail({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
 			return;
 		}
 
-		onSuccess(obj);
+		if( error != null ) {
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: error,
+			});
+			return;
+		}
+
+		if( result == null || result == undefined ) {
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'NO_USER',
+			});
+			return;
+		}
+
+		let obj : any = JSON.parse( result );
+		if(null == obj){
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'JSON_PARSE_ERROR',
+			});
+			return;
+		}
+
+		onSuccess( {
+			code: ENUM_RESULT_CODE.SUCCESS,
+			obj: obj,			
+		});
 	}
-	
-    async loadInitialData( id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+
+    async reqLOAD_INITIAL_DATA( id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
 		let error: string = null;
 
-		await this.HoldemHttpPost( "/users/getInitialData", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getInitialData", {
 			id: id,
 
 		} ).then(( res: string ) => {
@@ -128,13 +172,93 @@ export class NetworkManager extends cc.Component {
 		} 
 
 		onSuccess(obj);
+	}	
+
+	public async reqTABLE_LIST(onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/getTables", {
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFail({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		onSuccess(result);
 	}
+
+	public async reqENTER_TABLE( tableID: number, onSuccess : ( room: ColySeus.Room, res: any ) => void, onFail : ( err ) => void){
+		let result: any = null;
+		let reservation: string = null;
+		let error: string = null;
+
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enterTable", {
+			tableID: tableID,
+			userID: this.userInfo.id,
+
+		}).then((res: string) => {
+			result = res;
+			
+		}).catch(function (err: any) {
+			if (0 === err.length) {
+				return error = "NETWORK ERROR";
+			}
+
+			err = JSON.parse(err);
+			error = err.msg;
+		});
+
+		if ( error != null ) {
+			return onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'UNKNOWN_ERROR'
+			});
+		}
+
+		if ( result == null ) {
+			return onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'RESERVATION_DATA_IS_INVALID'
+			});
+		}
+
+		result = JSON.parse(result);
+
+		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
+			80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
+
+		this.client.consumeSeatReservation( result["seatReservation"]).then( (room) => {
+
+			this.room = room;
+			onSuccess( this.room, result );
+		}).catch(e => {
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				errorCode: e.code,
+				msg: e.msg,				
+			});
+		});
+	}		
 
 	async reqSetting( id: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.HoldemHttpPost( "/users/getSetting", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/getSetting', {
 			id: id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -171,7 +295,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.HoldemHttpPost( "/users/join", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/join", {
 			user: user,
 		}).then(( res: string ) => {
 			result = res;
@@ -204,7 +328,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.HoldemHttpPost( "/users/checkUID", {
+		await this.Post(HOLDEM_SERVER_TYPE.API_SERVER, '/users/checkUID', {
 			uid: uid,
 		}).then(( res: string ) => {
 			result = res;
@@ -238,7 +362,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.HoldemHttpPost( "/users/checkNickname", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/checkNickname", {
 			nickname: nickname,
 		}).then(( res: string ) => {
 			result = res;
@@ -298,58 +422,12 @@ export class NetworkManager extends cc.Component {
 		return this.userSetting;
 	}
 
-    httpPost( url, params ) {
-		return new Promise( ( resolve, reject ) => {
-			let xhr = cc.loader.getXMLHttpRequest();
-			xhr.onreadystatechange = function() {
-				if( xhr.readyState === 4 && ( xhr.status >= 200 && xhr.status < 300 ) ) {
-					let respone: string = xhr.responseText;
-					resolve( respone );
-				}
-
-				if( xhr.readyState === 4 && ( xhr.status != 200 ) ) {
-					let respone: string = xhr.responseText;
-					reject( respone );
-				}
-			};
-
-			let url_temp = `http://${ this.hostname }:${ this.port }` + url;
-			xhr.open( "POST", url_temp, true );
-			xhr.timeout = 5000;// 5 seconds for timeout
-			xhr.setRequestHeader( "Content-Type", "application/json" );
-			xhr.send( JSON.stringify( params ) );
-		} );
-	}
-
-	HoldemHttpPost( url, params ) {
-		return new Promise( ( resolve, reject ) => {
-			let xhr = cc.loader.getXMLHttpRequest();
-			xhr.onreadystatechange = function() {
-				if( xhr.readyState === 4 && ( xhr.status >= 200 && xhr.status < 300 ) ) {
-					let respone: string = xhr.responseText;
-					resolve( respone );
-				}
-
-				if( xhr.readyState === 4 && ( xhr.status != 200 ) ) {
-					let respone: string = xhr.responseText;
-					reject( respone );
-				}
-			};
-
-			let url_temp = `http://${ this.hostname }:${ this.apiPort }` + url;
-			xhr.open( "POST", url_temp, true );
-			xhr.timeout = 5000;
-			xhr.setRequestHeader( "Content-Type", "application/json" );
-			xhr.send( JSON.stringify( params ) );
-		} );
-	}
-
 	public async refreshUser(onSuccess: (res)=>void, onFail: (err)=>void ) {
 		let uuid = this.userInfo.uuid;
 		let resultString: string = null;
 		let errMsg: string = null;		
 
-		await this.httpPost("/users/getUserInfoByDB", {
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, '/users/getUserInfoByDB', {
 			uuid: uuid,
 			pin: this.pin
 
@@ -395,7 +473,7 @@ export class NetworkManager extends cc.Component {
 		let reservation: string = null;
 		let errMsg: string = null;
 
-		await this.httpPost("/users/joinPublicRoom", {
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinPublicRoom", {
 			pinCode: this.pin,
 			roomID : roomID
 		}).then((res: string) => {
@@ -419,8 +497,8 @@ export class NetworkManager extends cc.Component {
 
 		reservation = JSON.parse(reservation);
 
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${this.hostname}${([443,
-			80].includes(this.port) || this.useSSL) ? "" : `:${this.port}`}`);
+		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
+			80].includes( gamePort ) || this.useSSL) ? "" : `:${ gamePort }`}`);
 
 		this.client.consumeSeatReservation(reservation["seatReservation"]).then(room => {
 			this.room = room;
@@ -430,7 +508,7 @@ export class NetworkManager extends cc.Component {
 		});
 	}
 
-	public async reqJoinRoom( id: number, onSuccess : (room : Colyseus.Room, info: any, seatCount : number) => void, onFail : ( message : string, code: number, exitLobby : boolean ) => void){
+	public async reqJoinTable( id: number, onSuccess : (room : Colyseus.Room, info: any, seatCount : number) => void, onFail : ( message : string, code: number, exitLobby : boolean ) => void){
 		if (this.pin == "") {
 			onFail("user not Logined", 100001, true);
 			return;
@@ -439,7 +517,7 @@ export class NetworkManager extends cc.Component {
 		let reservation: string = null;
 		let errMsg: string = null;
 
-		await this.httpPost("/users/joinRoom", {
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinRoom", {
 			id: id,
 			pins: this.pin,
 
@@ -464,8 +542,55 @@ export class NetworkManager extends cc.Component {
 
 		reservation = JSON.parse(reservation);
 
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${this.hostname}${([443,
-			80].includes(this.port) || this.useSSL) ? "" : `:${this.port}`}`);
+		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${ gameHost}${([443,
+			80].includes( gamePort ) || this.useSSL) ? "" : `:${ gamePort }`}`);
+
+		this.client.consumeSeatReservation( reservation["seatReservation"]).then( (room) => {
+
+			this.room = room;
+			onSuccess(this.room, reservation["info"], reservation["count"]);
+		}).catch(e => {
+
+			onFail( e.message, e.code , false);
+		});
+	}
+
+	public async reqJoinRoom( id: number, onSuccess : (room : Colyseus.Room, info: any, seatCount : number) => void, onFail : ( message : string, code: number, exitLobby : boolean ) => void){
+		if (this.pin == "") {
+			onFail("user not Logined", 100001, true);
+			return;
+		}
+
+		let reservation: string = null;
+		let errMsg: string = null;
+
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinRoom", {
+			id: id,
+			pins: this.pin,
+
+		}).then((res: string) => {
+			reservation = res;
+			
+		}).catch(function (err: any) {
+			if (0 === err.length) {
+				return errMsg = "NETWORK ERROR";
+			}
+			err = JSON.parse(err);
+			errMsg = err.msg;
+		});
+
+		if (null !== errMsg) {
+			return onFail(errMsg, 100002, false);
+		}
+
+		if (null === reservation) {
+			return onFail("reservation data is invalid.", 100003, false);
+		}
+
+		reservation = JSON.parse(reservation);
+
+		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
+			80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
 
 		this.client.consumeSeatReservation( reservation["reservation"]).then( (room) => {
 
@@ -478,7 +603,7 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async reqPublicRoomList(onSuccess : (result : any[]) => void, onFail : (message : string) => void) {
-		await this.httpPost("/users/roomList", { pinCode : this.pin }).then((res : string) => {
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/roomList", { pinCode : this.pin }).then((res : string) => {
 			let jsonObject = JSON.parse(res);
 
 			if(null == jsonObject || null == jsonObject.result){
@@ -494,7 +619,7 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async reqPublicRoomInfo(roomID : number, onSuccess : (result : any) => void, onFail : (message : string) => void){
-		await this.httpPost("/users/roomInfo", {roomID : roomID}).then((res : string) => {
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/roomInfo", {roomID : roomID}).then((res : string) => {
 			let jsonObject = JSON.parse(res);
 
 			if(null == jsonObject || null == jsonObject.result){
@@ -514,7 +639,7 @@ export class NetworkManager extends cc.Component {
 		let resultString: string = null;
 		let errMsg: string = null;
 
-		await this.httpPost( "/users/auth", {
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/auth", {
 			pinCode: parseIntPinCode,
 		} ).then(( res: string ) => {
 				this.pin = pin;
@@ -554,7 +679,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.httpPost( "/users/setting", {
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/setting", {
 			uuid: uuid,
 		} ).then(( res: string ) => {
 			result = res;
@@ -587,116 +712,14 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async reqTableList(onSuccess: (tables: any)=>void, onFail: (msg: string)=>void ) {
-		let result: any = null;
-		await this.HoldemHttpPost("/tables/getTables", {
 
-		}).then((res: string)=>{
-			result = JSON.parse(res);
-
-		}).catch(function() {
-
-		});
-
-		onSuccess(result);
-	}
-
-	public async reqMakeInstanceRoom(info: any, onSuccess: (room: any )=>void, onFail: (msg: string)=>void ) {
-
-		let result: string = null;
-		await this.httpPost("/users/makeInstanceRoom", {
-			/*
-				info: {
-					name: e.name,
-					type: 0,
-					0: Pre Make Public Room
-					1: Instance Room (Made by User)
-					maxPlayer: e.maxPlayers,
-					betTimeLimit: e.betTimeLimit,
-					smallBlind: e.smallBlind,
-					bigBlind: e.bigBlind,
-					minStakePrice: e.minStakePrice,
-					maxStakePrice: e.maxStakePrice,
-					rake: e.rake,
-					useRakeCap: e.useRakeCap,
-					rakeCap1: e.rakeCap1,
-					rakeCap2: e.rakeCap2,
-					rakeCap3: e.rakeCap3,
-					useFlopRake: e.useFlopRake,
-				}			
-			*/
-			
-			name: info.name,
-			type: 1,
-			maxPlayers: info.maxPlayers,
-			betTimeLimit: info.betTimeLimit,
-			smallBlind: info.smallBlind,
-			bigBlind: info.bigBlind,
-			minStakePrice: info.minStakePrice,
-			maxStakePrice: info.maxStakePrice,
-
-		}).then((res: string )=>{
-			result = res;
-
-		}).catch(function() {
-
-		});
-
-		let resultObject: any = JSON.parse(result);
-
-		onSuccess(resultObject);
-	}
-
-	public async reqJoinInstanceRoom(roomID : number, onSuccess : (room : Colyseus.Room, seatCount : number) => void, onFail : (message : string, exitLobby : boolean) => void){
-		if (this.pin == "") {
-			onFail("user not Logined", true);
-			return;
-		}
-
-		let reservation: string = null;
-		let errMsg: string = null;
-
-		await this.httpPost("/users/joinPublicRoom", {
-			pinCode: this.pin,
-			roomID : roomID
-		}).then((res: string) => {
-			reservation = res;
-		}
-		).catch(function (err: any) {
-			if (0 === err.length) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse(err);
-			errMsg = err.msg;
-		});
-
-		if (null !== errMsg) {
-			return onFail(errMsg, false);
-		}
-
-		if (null === reservation) {
-			return onFail("reservation data is invalid.", false);
-		}
-
-		reservation = JSON.parse(reservation);
-
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${this.hostname}${([443,
-			80].includes(this.port) || this.useSSL) ? "" : `:${this.port}`}`);
-
-		this.client.consumeSeatReservation(reservation["seatReservation"]).then(room => {
-			this.room = room;
-			onSuccess(this.room, reservation["seatCount"]);
-		}).catch(e => {
-			onFail(e.message, true);
-		});
-	}
 
 	public async updateUserAvatar(avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
 		let id = Number(this.userInfo.id);
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.HoldemHttpPost( '/users/updateAvatar', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateAvatar', {
 			id: id,
 			avatar: avatar
 		} ).then(( res: string ) => {
@@ -736,7 +759,7 @@ export class NetworkManager extends cc.Component {
 		let setting: any = selected;
 		let errMessage: string = null;
 
-		await this.HoldemHttpPost( '/users/updateSetting', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateSetting', {
 			id: id,
 			setting: setting
 
@@ -770,12 +793,50 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
+	public async getUserInfoFromDB( onSuccess: (res)=> void, onFail: (err)=> void ) {
+		let id = this.userInfo.id;
+		let result: string = '';
+		let error: string = null;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/getUserInfo', {
+			id: id,
+
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return error = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			error = err.msg;
+		} );
+
+		if( null !== error ) {
+			return onFail( error );
+		}
+
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+
+		if(null == obj){
+			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		this.userInfo = obj.user;
+		onSuccess(obj);
+	}
+
 	public async getPlayerProfile(id: number, onSuccess: (res)=>void, onFail: (err)=>void ) {
 		let userId = id;
 		let result: string = '';
 		let errMessage: string = null;
 
-		await this.httpPost( '/users/getPlayerProfile', {
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, '/users/getPlayerProfile', {
 			uuid: userId,
 
 		} ).then(( res: string ) => {
@@ -805,8 +866,40 @@ export class NetworkManager extends cc.Component {
 		}
 
 		this.userSetting = obj.setting;
-		onSuccess(obj);		
+		onSuccess(obj);
+	}
 
+	private Post( type:HOLDEM_SERVER_TYPE , url, params ) {
+		return new Promise( ( resolve, reject ) => {
+			let xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if( xhr.readyState === 4 && ( xhr.status >= 200 && xhr.status < 300 ) ) {
+					let respone: string = xhr.responseText;
+					resolve( respone );
+				}
+
+				if( xhr.readyState === 4 && ( xhr.status != 200 ) ) {
+					let respone: string = xhr.responseText;
+					reject( respone );
+				}
+			};
+
+			let fullUrl: string = '';
+			switch ( type ) {
+				case HOLDEM_SERVER_TYPE.API_SERVER:
+					fullUrl = `http://${ apiHost }:${ apiPort }`;
+				break;
+				case HOLDEM_SERVER_TYPE.GAME_SERVER	:
+					fullUrl = `http://${ gameHost }:${ gamePort }`;					
+				break;
+			}
+			fullUrl += url;
+
+			xhr.open( "POST", fullUrl, true );
+			xhr.timeout = 5000;
+			xhr.setRequestHeader( "Content-Type", "application/json" );
+			xhr.send( JSON.stringify( params ) );
+		} );
 	}
 }
 

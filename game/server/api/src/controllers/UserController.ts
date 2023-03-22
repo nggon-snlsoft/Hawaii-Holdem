@@ -32,6 +32,7 @@ export class UserController {
         this.router.post( '/getInitialData', this.getInitialData.bind(this));
         this.router.post( '/updateAvatar', this.updateAvatar.bind(this));
 
+        this.router.post( '/getUserInfo', this.getUserInfo.bind(this));        
         this.router.post( '/getSetting', this.getSetting.bind(this));
         this.router.post( '/updateSetting', this.updateSetting.bind(this));        
 
@@ -325,6 +326,35 @@ export class UserController {
             affected: affected,
         });
     }
+
+    public async getUserInfo( req: any, res: any ) {
+        let id = req.body.id;
+
+        if ( id == null || id <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let user: any = await this.getUserByID( req.app.get('DAO'), id );
+        if (user == undefined) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NO_EXIST_ID'
+            });
+            return;
+        }
+
+        let _user = ClientUserData.getClientUserData(user);
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            user: _user,
+        });
+    }    
     
     public async getSetting( req: any, res: any ) {
         let id = req.body.id;

@@ -18,6 +18,11 @@ const devDBInfo: any = {
     "pw": "root"
 };
 
+const devServerInfo: any = {
+    host: '127.0.0.1',
+    port: '2568',
+};
+
 export enum ENUM_RESULT_CODE {
     UNKNOWN_FAIL = -1,
     SUCCESS = 0,
@@ -38,7 +43,7 @@ export class HoldemApiServer {
 
         this.initMiddleWares();
         this.userController = new UserController(this.sqlClient);
-        this.tableController = new TableController(this.sqlClient);
+        this.tableController = new TableController(this.sqlClient, devServerInfo);
 
         this.initRoutes();
     }
@@ -73,11 +78,12 @@ export class HoldemApiServer {
 
     public listen( port: number ) {
         this.app.listen( port, ()=>{
-            console.log(`Server is running on ${ port }`);
+            console.log(`API SERVER IS RUNNING ON ${ port }`);
         });
     }
 
     beforeListen: () => {
+
 	}
 }
 

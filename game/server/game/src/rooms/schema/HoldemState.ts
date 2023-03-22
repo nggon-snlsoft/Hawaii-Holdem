@@ -6,8 +6,7 @@ export class EntityState extends Schema {
 	@type( "number" ) id: number = 0;
 	@type( "number" ) avatar: number = 0;
 	@type( "string" ) uid: string = "";
-	@type( "string" ) name: string = "";
-	@type( "string" ) fullName: string = "";
+	@type( "string" ) nickname: string = "";
 	@type( "number" ) chips: number = 0;
 	@type( "number" ) rake: number = 0;
 	@type( "boolean" ) wait: boolean = false;
@@ -23,14 +22,13 @@ export class EntityState extends Schema {
 	secondaryCard: string = "";
 	client: Client = null;
 	eval: any = null;
+
 	@type( "boolean" ) leave : boolean = false;
 	@type( "number" ) winAmount : number = 0;
 	winHandRank : string = '';
 	@type( "boolean" ) enoughChip : boolean = true;
 	@type( "number" ) balance : number = 0;
-	@type( "number" ) savedRemainTime : number = -1;
-	@type( "number" ) remainTimeMS : number = -1;
-	// updateChip :number = 0;
+
 	waitReconnection : boolean = false;
 	lastPingTime : number = -1;
 	totalBet : number = 0;

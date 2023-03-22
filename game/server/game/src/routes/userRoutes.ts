@@ -22,7 +22,10 @@ router.post( "/", function(req,res) {
 	console.log( "post" );
 	res.send("OK");
 });
+
 router.post("/auth", authController.auth );
+router.post("/test", authController.test );
+
 router.post("/setting", authController.setting );
 router.post("/updateUserAvatar", authController.updateUserAvatar );
 router.post("/joinPrivateRoom", authController.joinPrivateRoom);

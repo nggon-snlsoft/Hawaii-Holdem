@@ -12,6 +12,12 @@ const tokenService = require( "../modules/token" );
 const TITLE = "VanillaHoldem";
 const VERSION = "0.200";
 
+export async function test( req: any, res: any ) {
+	console.log('test');
+	console.log(req.body);
+	res.status( 200 ).json('ok');
+}
+
 export async function auth( req: any, res: any ) {
 
 	if( !req.body.pinCode ) {

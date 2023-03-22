@@ -48,8 +48,8 @@ export class UiPopupProfile extends Component {
         let info = NetworkManager.Instance().getUserInfo();
 
         this.labeNickname.string = info.name;
-        this.labelChips.string = CommonUtil.getNumberStringWithComma(info.balance);
-        this.labelPoints.string = CommonUtil.getNumberStringWithComma(info.chip);
+        this.labelChips.string = CommonUtil.getKoreanNumber(info.balance);
+        this.labelPoints.string = CommonUtil.getKoreanNumber(info.chip);
 
         let url = info.avatar;
         CommonUtil.setAvatarSprite(url, this.avatar, ()=>{

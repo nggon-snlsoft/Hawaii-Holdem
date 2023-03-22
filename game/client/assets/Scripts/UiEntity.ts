@@ -292,7 +292,7 @@ export class UiEntity extends Component {
             this.spriteAvatar.node.active = true;
         });
 
-        this.setNickname(entity.name);
+        this.setNickname(entity.nickname);
         this.setUiChips(entity.chips);
 
         this.nodeNameTag.active = true;

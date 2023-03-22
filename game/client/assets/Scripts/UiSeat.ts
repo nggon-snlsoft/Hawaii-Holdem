@@ -54,7 +54,7 @@ export class UiSeat extends Component {
         this.isSet = false;
     }
 
-    setUi (entity) {        
+    setUi( entity ) {        
         this.childRegistered();
 
         if (null == entity) {
@@ -66,7 +66,7 @@ export class UiSeat extends Component {
         this.info = entity;
 
         this.clearUiPosSymbol();
-        this.setNickname(entity.name);
+        this.setNickname( entity.nickname );
         if (entity.wait == true) {
             if (entity.isSitOut == true) {
                 this.setStatus('자리비움');
