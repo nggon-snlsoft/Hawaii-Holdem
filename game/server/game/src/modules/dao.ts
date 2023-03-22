@@ -264,29 +264,26 @@ dao.updateBalance = (id: any, balance: any, cb: any)=> {
 	});
 };
 
+dao.updateRake  = function (id: any, rake: any, cb: any) {
+	let query = "UPDATE USERS SET RAKE = ?, UPDATEDATE = ? WHERE ID = ?";
+	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+	let args = [rake, now, id];
 
-/*
-
-let _client = null;
-const dao = module.exports;
-
-const logger = require("../util/logger");
-var moment = require('moment-timezone');
-const timeZone = "America/New_York";
-
-dao.init = function (sqlClient) {
-	console.log("dao.init");
-	let sql = "UPDATE user_table set activeSessionId = ?";
-	let arg = "";
-	_client = sqlClient;
-	_client.query(sql, arg, function (err, res) {
-	 	if ( !!err ) {
-	 		return;
-	 	}
-	 });
-	return  dao;
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
 };
 
+
+/*
 dao.timePurchase = function (uid, adminID, roomID, name, oldBalance, balance, oldChip, chip, amount, term, cb) {
 	let sql = "INSERT INTO time_purchase (adminID, userID, roomID, name, oldBalance, balance, oldChip, chip, amount, term, createDate) values ( ?,?,?,?,?,?,?,?,?,?,?)";
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
@@ -303,24 +300,6 @@ dao.timePurchase = function (uid, adminID, roomID, name, oldBalance, balance, ol
 		cb?.(null, res);
 	});
 }
-
-dao.selectBalanceByUID = function (uid, cb) {
-	let sql = "SELECT balance FROM user_table WHERE id = ?";
-	let args = [uid];
-
-	_client.query(sql, args, function (err, res) {
-		if (!!err) {
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, res);
-	});
-};
-
-
 
 dao.updateChip = function (uid,  chip, cb) {
 	let sql = "UPDATE user_table set chip = ?, updateDate = ? WHERE id = ?";
@@ -400,23 +379,7 @@ dao.updatePublicRemainTime = function (uid,  time, cb) {
 	});
 };
 
-dao.updateRake  = function (uid,  rake, cb) {
-	let sql = "UPDATE user_table set rake = ?, updateDate = ? WHERE id = ?";
-	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-	let args = [rake, now, uid];
 
-	_client.query(sql, args, function (err, res) {
-		if (err !== null) {
-			cb(err, null);
-		} else {
-			if (!!res && res.affectedRows > 0) {
-				cb(null, true);
-			} else {
-				cb(null, false);
-			}
-		}
-	});
-};
 
 
 

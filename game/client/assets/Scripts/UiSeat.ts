@@ -99,7 +99,7 @@ export class UiSeat extends Component {
     }
 
     setUiChips( chips: number) {
-        this.labelChips.string = chips.toString();
+        this.labelChips.string = CommonUtil.getKoreanNumber(chips);
         this.labelChips.node.active = true;
     }
 

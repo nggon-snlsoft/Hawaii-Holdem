@@ -439,9 +439,9 @@ export class UiEntity extends Component {
     setUiChips( chips: number ) {
         this.chips = chips;
         if ( this.labelChips != null ) {
-            this.labelChips.color = Color.WHITE;
+            this.labelChips.color = new Color(255, 200, 70);
 
-            this.labelChips.string = CommonUtil.getNumberStringWithComma(chips);
+            this.labelChips.string = CommonUtil.getKoreanNumber(chips);
             if ( this.isUiSitOut == true ) {
                 this.setUiSitOut();
             } else {
@@ -460,11 +460,11 @@ export class UiEntity extends Component {
 
         if ( true === isBB ) {
             this.labelChips.color = new Color(100, 150, 180);
-            this.labelChips.string = "POST BB"
+            this.labelChips.string = "빅블라인드"
         } else {
             if ( true === isSB ) {
                 this.labelChips.color = new Color(100, 150, 180);
-                this.labelChips.string = "POST SB"
+                this.labelChips.string = "스몰블라인드"
             }
         }
 
