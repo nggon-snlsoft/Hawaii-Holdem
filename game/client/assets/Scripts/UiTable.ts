@@ -72,6 +72,7 @@ export class UiTable extends Component {
     private objPotReturnChips: {} = {};
 
     private cardRes: {} = {};
+    private chipRes: {} = {};	
 
     private curPotValue: number = -1;
     private myChips: number = -1;
@@ -104,6 +105,7 @@ export class UiTable extends Component {
 
 	static seatMaxFromServer : number = 9;
     static preLoadCardRes: {} = {};
+    static preLoadChipRes: {} = {};	
 
 	private isSitOutReservation: boolean = false;
 
@@ -133,6 +135,10 @@ export class UiTable extends Component {
 
 	}
 
+	onLoad() {
+		
+	}
+
     start() {
         this.seatMax = UiTable.seatMaxFromServer;
         
@@ -146,7 +152,6 @@ export class UiTable extends Component {
 
         this.uiSeats.init(this.seatMax, this.onClickSeatSelect.bind(this));
 		this.uiBuyIn.init();
-		this.uiProfile.init(this.onClickProfileExit.bind(this));
 		this.uiGameChatting.init( this.onClickEmoticon.bind(this), this.onClickEmticonExit.bind(this));
 		this.setEmoticonButtinInteractive(true);
 		this.uiPlayerActionReservation.init();
@@ -362,35 +367,6 @@ export class UiTable extends Component {
 		this.sendMsg( "ADD_CHIPS_REQUEST", {seat: this.mySeat } );
     }
 
-    onBuyInClicked() {
-		// if( Board.balance < Board.minStakePrice ) {
-		// 	this.uiNotice.notice( "Your balance is less than the minimum stack." , 0, false);
-		// 	return;
-		// }
-
-		// if( this.myChips >= Board.minStakePrice ) {
-		// 	this.uiNotice.notice( "Please wait\nuntil your chip count falls below " +
-		// 		CommonUtils.getLocaleChipsString( Board.minStakePrice ), 0, false);
-		// 	return;
-		// }
-
-		// if( this.isFold === false ) { // || this.myWaitStatus === false ) {
-		// 	this.uiNotice.notice( "Chip purchase is only between hands and during sit out." , 0, false);
-		// 	return;
-		// }
-
-		// this.uiHandsHistory.closePopup();
-		// this.uiNotice.closePopup();
-		// this.uiBuyIn.reBuyIn( Board.balance, Board.small, Board.big, this.myChips, this.mySeat, null );
-    }
-
-    onClickHistory() {
-		// this.uiHandsHistory.ShowHandsHistory(
-		// 	this.historyManager.GetHandsHistory(),
-		// 	this.cardRes
-		// );
-    }
-
     onClickExit() {
 		if ( this.uiSeats.node.active == true ) {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
@@ -463,20 +439,16 @@ export class UiTable extends Component {
 		room.onMessage( "RE_BUY_IN", this.onRE_BUY_IN.bind( this ) );
 		room.onMessage( "RES_ADD_CHIPS_REQUEST", this.onRES_ADD_CHIPS_REQUEST.bind( this ) );
 		room.onMessage( "RES_ADD_CHIPS", this.onRES_ADD_CHIPS.bind( this ) );
+
 		// room.onMessage( "RES_ADD_CHIPS_PEND", this.onRES_ADD_CHIPS_PEND.bind( this ) );
 
-		room.onMessage( "BUY_PASS", this.onBuyPass.bind( this ) );
-		room.onMessage( "RES_BUY_PASS", this.resBuyPass.bind( this ) );
-		room.onMessage( "TIME_OVER", this.onTIME_OVER.bind( this ) );
-		room.onMessage( "REMAIN_TIME", this.onRemainTime.bind( this ) ); //??
+		room.onMessage( "SIT_OUT", this.onSitOut.bind(this));
+		room.onMessage( "SIT_BACK", this.onSitBack.bind(this));
 
-		room.onMessage("SIT_OUT", this.onSitOut.bind(this));
-		room.onMessage("SIT_BACK", this.onSitBack.bind(this));
-
-        room.onMessage("SHOW_SELECT_SEAT", this.onSHOW_SELECT_SEAT.bind(this));
-        room.onMessage("UPDATE_SELECT_SEAT", this.onUPDATE_SELECT_SEAT.bind(this));
-		room.onMessage("SELECT_SEAT_ERROR", this.onSELECT_SEAT_ERROR.bind(this));
-		room.onMessage("SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));		
+        room.onMessage( "SHOW_SELECT_SEAT", this.onSHOW_SELECT_SEAT.bind(this));
+        room.onMessage( "UPDATE_SELECT_SEAT", this.onUPDATE_SELECT_SEAT.bind(this));
+		room.onMessage( "SELECT_SEAT_ERROR", this.onSELECT_SEAT_ERROR.bind(this));
+		room.onMessage( "SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));		
         
         this.room.onMessage( "JOIN", msg => {
             this.onJOIN(room, msg);
@@ -490,12 +462,12 @@ export class UiTable extends Component {
             this.leaveRoom(code);
             this.hide();
 
+			if ( this.uiSeats.isSeatsSelectOpen() == true ) {
+				this.uiSeats.leave();
+			}
+
             NetworkManager.Instance().room.removeAllListeners();
             NetworkManager.Instance().leaveReason = code;
-
-			if ( /*this.uiSeats.isSeatsSelectOpen() == true && */this.uiSeats.unselectSeatDuringTime == true) {
-				return;
-			}
 
 			if ( code == 1005 ) {
 				director.loadScene("LobbyScene");
@@ -600,9 +572,6 @@ export class UiTable extends Component {
 
 		this.setUiCommunityCards( msg[ "openCards" ] );		
 
-		// this.historyManager.ResetHistory();
-		// this.btnHistory.node.active = false;
-
 		this.myPrimaryCardIndex = msg["primCard"];
 		this.mySecondaryCardIndex = msg["secCard"];
 
@@ -635,10 +604,6 @@ export class UiTable extends Component {
 			});
 		}
 
-		// if( msg[ "remainTimeMS" ] > 0 ) {
-		// 	this.lbRemainTime.string = this.getRemainTimeString2( msg.remainTimeMS );
-		// }
-
 		let uiDeal = this.getUiEntityFromSeat( this.dealerSeatPosition );
 		uiDeal?.setUiPosSymbol( "dealer" );
 
@@ -649,10 +614,6 @@ export class UiTable extends Component {
 		uiBB?.setUiPosSymbol( "bb" );
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-
-		// this.uiProfileCard.init( myEntity.fullName, msg["tableInitChips"], msg["tableBuyInAmount"], msg["tableBuyInCount"], myEntity.chips);
-		// UiControls.instance.initJoinTable( this.onClickAddChips.bind(this) );
-		// UiControls.instance.setInfoCallback( this.onClickTableInfo.bind(this) );
 		this.show();
     }
 
@@ -696,10 +657,6 @@ export class UiTable extends Component {
         this.countPlayers = players.length;
 
 		this.setUiCommunityCards( msg[ "openCards" ] );
-		// this.historyManager.ResetHistory();
-		// this.uiProfileCard.init( myEntity.fullName, msg["tableInitChips"], msg["tableBuyInAmount"], msg["tableBuyInCount"], myEntity.chips);        
-
-		// this.btnHistory.node.active = false;        
 
         if ( true === myEntity.isSitOut ) {
 			this.buttonSitOut.node.active = false;
@@ -764,12 +721,7 @@ export class UiTable extends Component {
 			this.uiPot.maxPotLabelRoot.active = true;
 		}
 
-        // UiControls.instance.initJoinTable( this.onClickAddChips.bind(this) );
-		// UiControls.instance.setInfoCallback( this.onClickTableInfo.bind(this) );
-    }
-
-    onClickTableInfo() {
-
+		this.uiPlayerAction.init(Board.small, Board.big);
     }
 
     leaveRoom(code: any) {
@@ -779,6 +731,8 @@ export class UiTable extends Component {
 		this.clearUiCommunityCards();
 		this.clearUiPot();
 		this.clearUiTimer();
+
+		// this.uiSeats.
 
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
@@ -980,7 +934,6 @@ export class UiTable extends Component {
 
 		this.myPrimaryCardIndex = msg[ "primaryCard" ];
 		this.mySecondaryCardIndex = msg[ "secondaryCard" ];
-		// this.historyManager.SetPlayerCards([this.myPrimaryCardIdx, this.mySecondaryCardIdx]);
 		
 		this.setAniCardDispensing();
     }
@@ -1121,7 +1074,6 @@ export class UiTable extends Component {
 			if (null != uiSB) {
 				uiSB?.setUiBetValue(sb.currBet, Color.GRAY);
 				uiSB?.setUiBlindBet(sb.chips, true, false );
-				// this.historyManager.BlindBet(uiSB.lbNickName.string, "small", sb.currBet);
 			}
 
 			if( this.mySeat == sb.seat ) {
@@ -1135,7 +1087,6 @@ export class UiTable extends Component {
 			if (null != uiBB) {
 				uiBB?.setUiBetValue(bb.currBet, Color.GRAY);
 				uiBB?.setUiBlindBet(bb.chips, false, true );
-				// this.historyManager.BlindBet(uiBB.lbNickName.string, "big", bb.currBet);
 			}
 
 			if( this.mySeat == bb.seat ) {
@@ -1151,7 +1102,6 @@ export class UiTable extends Component {
 				if (null != ui) {
 					ui?.setUiBetValue(bb.currBet, Color.GRAY);
 					ui?.setUiBlindBet(missBb[i].chips, false, true );
-					// this.historyManager.BlindBet(ui.lbNickName.string, "missBb", missBb[i].currBet);
 				}
 			}
 		}
@@ -1170,10 +1120,8 @@ export class UiTable extends Component {
 
 					if ( false === isBB ) {
 						ui?.setUiBlindBet(missSb[i].chips, true, false );
-						// this.historyManager.BlindBet(ui.lbNickName.string, "missSb", missSb[i].currBet);
 					} else {
 						ui?.setMissSmallBlindButton(false);
-						// this.historyManager.BlindBet(ui.lbNickName.string, "missSb", missSb[i].currBet);
 					}
 				}
 			}
@@ -1189,7 +1137,6 @@ export class UiTable extends Component {
 
 		this.curPotValue = msg[ "pot" ];
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-		// this.historyManager.SetLiteral("*** HOLE CARDS ***");
     }
 
     private onSUSPEND_ROUND( msg ) {
@@ -1282,8 +1229,6 @@ export class UiTable extends Component {
 		this.enableSeats = [];
 		this.isAllIn = false;
 
-		// this.historyManager.InitializeHistory(msg, this.mySeat);
-
 		for( let i = 0; i < this.seatPlayers.length; i++ ) {
 			let seat = this.seatPlayers[ i ];
 			let entity = entities.find( elem => elem.seat == seat );
@@ -1303,8 +1248,6 @@ export class UiTable extends Component {
 			let missBb = entity.missBb;
 			uiEntity.setMissSmallBlindButton(missSb);
 			uiEntity.setMissBigBlindButton(missBb);
-
-			//uiEntity.setDealable( entity.dealable );
 
 			if( true == entity.wait ) {
 				uiEntity.setUiWait();
@@ -1328,8 +1271,6 @@ export class UiTable extends Component {
 
 		let uiBB = this.getUiEntityFromSeat( this.bigBlindSeatPosition );
 		uiBB?.setUiPosSymbol( "bb" );
-
-		// this.uiProfileCard.updateChips( this.myChips );
     }
 
     private onHANDLE_ESCAPEE( msg ) {
@@ -1348,7 +1289,6 @@ export class UiTable extends Component {
 		this.setAniChipsMoveToPot( false, msg["dpPot"]);
 
 		let cards = msg[ "cards" ];
-		// this.historyManager.CommunityCards(this.roundState, null, cards);
 
 		this.uiPot.UpdatePotTotal(msg["potTotal"]);
 
@@ -1381,7 +1321,6 @@ export class UiTable extends Component {
 
 		let cards = msg[ "cards" ];
 		this.numberCommunityCards[ 3 ] = cards[ 0 ];
-		// this.historyManager.CommunityCards(this.roundState, this.numCommunityCards.slice(0, 3), cards);
 
 		setTimeout( () => {
 			this.setAniDropOpenCard( this.spriteCommunityCards[ 3 ], 100, this.getCardImage( 0 ), this.getCardImage( cards[ 0 ] + 1 ), () => {
@@ -1422,16 +1361,6 @@ export class UiTable extends Component {
 
 		this.uiPlayerActionReservation.reset();		
 		this.setAniChipsMoveToPot( true, dpPot);
-
-		switch (this.roundState) {
-			case "BLIND_BET":
-				// this.historyManager.CommunityCards("SHOW_FLOP", null, cards.slice(0, 3));
-			case "SHOW_FLOP":
-				// this.historyManager.CommunityCards("SHOW_TURN", cards.slice(0, 3), cards.slice(3, 4));
-			case "SHOW_TURN":
-				// this.historyManager.CommunityCards("SHOW_RIVER", cards.slice(0, 4), cards.slice(4, 5));
-				break;
-		}
 
 		let newCardCount = 0;
 	
@@ -1506,13 +1435,6 @@ export class UiTable extends Component {
 		this.nodeCardShuffleMessage.active = true;
 		AudioController.instance.playShufflingCard();
 
-		// this.historyManager.SaveHistory(entities);
-		// if (this.historyManager.IsPrepare() == true) {
-		// 	this.btnHistory.node.active = true;
-		// } else {
-		// 	this.btnHistory.node.active = false;
-		// }
-
 		for( let i = 0; i < this.seatPlayers.length; i++ ) {
 			let seat = this.seatPlayers[ i ];
 			let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1527,7 +1449,6 @@ export class UiTable extends Component {
 
 			if( seat == this.mySeat ) {
 				this.myChips = entity.chips;
-				// this.uiProfileCard.updateChips(this.myChips);
 			}
 		}
 
@@ -1543,8 +1464,6 @@ export class UiTable extends Component {
 
 		Board.balance = me.balance;
 		if( me.enoughChip == false ) {
-			// this.uiHandsHistory.closePopup();
-			// this.uiBuyChips.closePopup();
 
 			if( Board.balance + me.chips < Board.minStakePrice ) {
 				UiGameSystemPopup.instance.showOkPopup('리 바이인', '최소 바이인을 할 수 없습니다.\r\n테이블에서 나갑니다.', ()=>{
@@ -1584,8 +1503,6 @@ export class UiTable extends Component {
 		}
 
 		uiEntity?.setUiAction( "check" );
-
-		// this.historyManager.Check(uiEntity.lbNickName.string);
     }
 
     private onRAISE( msg ) {
@@ -1613,7 +1530,6 @@ export class UiTable extends Component {
 		else {
 			uiEntity?.setUiAction( "raise" );
 		}
-		// this.historyManager.Raise(uiEntity.lbNickName.string, msg["bet"], msg[ "allin" ]);
 
 		this.setUiPot(msg["dpPot"]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
@@ -1631,14 +1547,12 @@ export class UiTable extends Component {
 		}
 
 		uiEntity.clearUiAction();
-		// this.historyManager.Fold(seat, this.roundState);
 
 		if( this.mySeat != seat ) {
 			uiEntity.clearUiHandCards();
 		}
 		else {
 			uiEntity.setUiHandCardsFold();
-			// this.uiProfileCard.updateChips( this.myChips );
 			this.isFold = true;
 		}
 
@@ -1678,7 +1592,6 @@ export class UiTable extends Component {
 			uiEntity?.setUiAction( "call" );
 		}
 
-		// this.historyManager.Call(uiEntity.lbNickName.string, msg["bet"], msg[ "allin" ]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
 		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
@@ -1710,7 +1623,6 @@ export class UiTable extends Component {
 			uiEntity?.setUiAction( "bet" );
 		}
 
-		// this.historyManager.Bet(uiEntity.lbNickName.string, msg["bet"], msg[ "allin" ]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
 		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
@@ -1762,7 +1674,6 @@ export class UiTable extends Component {
 		if( false == this.isEnableSeat( seat) || this.mySeat == seat) {
 			if (this.mySeat == seat) {
 				let handRank = this.getHandRank( cards[0], cards[1], this.numberCommunityCards );
-				// this.historyManager.ForceShowCard(seat, msg[ "cards" ], handRank);
 			}
 			return;
 		}
@@ -1791,8 +1702,6 @@ export class UiTable extends Component {
 		uiEntity.spriteHiddenCards[ 0 ].node.active = false;
 		uiEntity.spriteHiddenCards[ 1 ].node.active = false;
 
-		// this.historyManager.ForceShowCard(seat, cards, handRank);
-
 		AudioController.instance.playShowHands();
     }
 
@@ -1807,7 +1716,6 @@ export class UiTable extends Component {
 		let keys = Object.keys( cards );
 
 		this.playersCARD = {};
-		// this.historyManager.SetLiteral("*** SHOW DOWN ***");
 
 		keys.forEach( key => {
 			let seat = Number.parseInt( key );
@@ -1840,16 +1748,9 @@ export class UiTable extends Component {
 				handRank = this.getHandRank( primaryCard, secondaryCard, this.numberCommunityCards);
 			}
 
-			// this.historyManager.ShowCards(seat, uiEntity.lbNickName.string, playerCards, handRank, show);
-
 			if( this.mySeat == seat ) {
 				return;
 			}
-
-			// if ( false == show ) {
-			// 	uiEntity.setUiMuck();
-			// 	return;
-			// }
 
 			this.setAniOpenHand( uiEntity.spriteHandCards[ 0 ], this.cardRes[ primaryCard + 1 ], () => {
 			} );
@@ -1901,8 +1802,6 @@ export class UiTable extends Component {
 			let winners: string[] = [];
 			let owners: string[] = [];
 
-			// this.historyManager.SetWinners(pot, msg["skip"]);
-
 			for (let j = 0; j < pot.players.length; j++) {
 				let uiEnt = this.getUiEntityFromSeat(pot.players[j]);
 
@@ -1918,16 +1817,9 @@ export class UiTable extends Component {
 				}
 				owners.push(uiEnt.labelNickname.string);
 			}
-			// this.historyManager.Winner(i, owners, winners, pot.total, msg.skip);
 		}
 
 		let potLength = msg["dpPot"].length;
-		if (this.isAllIn == true) {
-			// this.historyManager.SetBoard(msg["cards"], this.curPotValue, potLength, msg["skip"]);
-		} else
-		{
-			// this.historyManager.SetBoard(this.numCommunityCards, this.curPotValue, potLength, msg["skip"]);
-		}
 
 		if(false == isMyCardExist) {
 			return;
@@ -2714,98 +2606,12 @@ export class UiTable extends Component {
 		}
     }
 
-    private onBuyPass ( msg ) {
-		Board.balance = msg[ "balance" ];
-		Board.passPrice = msg[ "passPrice" ];
-		Board.passTerm = msg[ "passTerm" ];
-		let locChips = msg[ "chips" ];
-
-		// this.uiHandsHistory.closePopup();
-		// this.uiNotice.closePopup();
-		// this.uiPass.notice( this.mySeat, locChips, Board.passPrice, Board.passTerm );
-    }
-
-    private resBuyPass ( msg ) {
-		if( 0 != msg[ "resultCode" ] ) {
-			return;
-		}
-		// this.lbRemainTime.string = this.getRemainTimeString2( msg.remainTimeMS );
-
-		Board.balance = Number.parseInt( msg[ "balance" ] );
-
-		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
-		let chips = Number.parseInt( msg[ "chips" ] );
-		uiEntity.setUiChips( chips );
-		this.myChips = chips;
-		// this.uiProfileCard.updateChips(this.myChips);
-
-		// this.uiHandsHistory.closePopup();
-		// this.uiPass.closePopup();
-    }
-
-    private onTIME_OVER( msg ) {
-		Board.balance = msg[ "balance" ];
-
-		// this.uiHandsHistory.closePopup();
-		// this.uiNotice.closePopup();
-
-		let self = this;
-
-		if( !msg[ "enoughChip" ] ) {
-			// this.uiNotice.closePopup();
-			// this.uiHandsHistory.closePopup();
-			// this.uiBuyChips.closePopup();
-
-			if( Board.balance + this.myChips < Board.minStakePrice ) {
-				// this.uiNotice.notice( "You've run out of time.\r\nYour balance is less than the minimum stack.\r\nThe game will end.", 0, false, true );
-				return;
-			}
-
-			let self = this;
-			// this.uiBuyIn.reBuyIn( Board.balance, Board.small, Board.big, this.myChips, this.mySeat, function( buy ) {
-			// 	if( !buy ) {
-			// 		self.room?.leave();
-			// 		return;
-			// 	}
-			// 	self.uiPass.notice( self.mySeat, self.myChips, Board.passPrice, Board.passTerm );
-			// } );
-			return;
-		}
-
-		// this.uiPass.notice( self.mySeat, self.myChips, Board.passPrice, Board.passTerm );
-    }
-
     private onPing ( msg ) {
 		this.room.send( "pong", { seat: this.mySeat } );
     }
 
     public leave() {
 		this.room?.leave();
-    }
-
-    private getRemainTimeString2 ( deltaMS: number ): string {
-		if( deltaMS < 0)
-		  deltaMS = 0;
-
-		let rs = new Date( deltaMS + 999 );
-
-		let m = rs.getMinutes();
-		let s = rs.getSeconds();
-
-		if( 0 > m ) {
-			m = 0;
-		}
-
-		if( 0 > s ) {
-			s = 0;
-		}
-
-		return `${ ( m + "" ).padStart( 2, "0" ) }:${ ( s + "" ).padStart( 2, "0" ) }`;
-    }
-
-    private onRemainTime ( msg ) {
-		let remainTime = Number.parseInt( msg[ "timer" ] );
-		// this.lbRemainTime.string = this.getRemainTimeString2(remainTime);
     }
 
     private getAddChipsErrorMessage( code: number ) : string {
@@ -2839,11 +2645,6 @@ export class UiTable extends Component {
 
 	public openUserProfile(id :number ) {
 		this.uiProfile.open(id);
-	}
-
-	private onClickProfileExit() {
-
-
 	}
 
 	setTableInformation() {

@@ -99,6 +99,23 @@ dao.updateSettingByID = function ( id: any, setting: any, cb: any ) {
 	});
 };
 
+dao.selectStaticsByID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM STATICS WHERE USERID = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 	let sql = 'INSERT INTO USERS (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, disable, alive, pending ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
@@ -133,7 +150,26 @@ dao.insertInitialSetting = function ( id: any, cb: any ) {
 			return;
 		}
 
-        console.log( res );
+		cb?.(null, {
+            code: ENUM_RESULT_CODE.SUCCESS,
+         });
+	});
+}
+
+dao.insertUserStatics = ( id: any, cb: any )=> {
+	console.log('insertUserStatics: ', id);
+
+	let sql = "INSERT INTO STATICS(userID) VALUES (?)";
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			console.log('err');			
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
 
 		cb?.(null, {
             code: ENUM_RESULT_CODE.SUCCESS,

@@ -34,8 +34,7 @@ export class UserController {
 
         this.router.post( '/getUserInfo', this.getUserInfo.bind(this));        
         this.router.post( '/getSetting', this.getSetting.bind(this));
-        this.router.post( '/updateSetting', this.updateSetting.bind(this));        
-
+        this.router.post( '/updateSetting', this.updateSetting.bind(this));
     }
 
     private initPassport() {
@@ -169,6 +168,25 @@ export class UserController {
         }
 
         let _setting = ClientUserData.getClientSettingData(setting);
+
+        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
+        if ( statics == undefined ) {
+            console.log('statics == undefined');
+            const r: any = await this.createUserStatics( req.app.get('DAO'), id );
+
+            statics = await this.getStaticsByUserID( req.app.get('DAO'), id );
+
+            if ( setting == undefined ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'LOAD_STATICS_ERROR'
+                });
+                return;
+            }
+        }
+
+        let _statics = ClientUserData.getClientStaticsData(statics);
+
         let conf = gameConf['game'];
 
         res.status( 200 ).json({
@@ -176,6 +194,7 @@ export class UserController {
             msg: 'SUCCESS',
             user: _user,
             setting: _setting,
+            statics: _statics,
             conf: conf,
         });
     }    
@@ -499,6 +518,21 @@ export class UserController {
         });
     }
 
+    private async getStaticsByUserID( dao: any, id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.selectStaticsByID ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res[0]);
+                }
+            });
+        });
+    }
+
     private async createNewUserAccount( dao: any, user: any ) {
         return new Promise( (resolve, reject )=>{
             dao.insertAccountForPending ( user, function(err: any, res: any ) {
@@ -529,6 +563,22 @@ export class UserController {
             });
         });
     }
+
+    private async createUserStatics( dao: any, id: any ) {
+        return new Promise ( (resolve, reject ) =>{
+            dao.insertUserStatics( id, ( err: any, res: any )=> {
+                if (!!err ) {
+                    reject( {
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+
+            });
+        });
+    }    
 
     private async updateUserAvatar( dao: any, id: any, avatar: any ) {
         return new Promise ( (resolve, reject ) =>{

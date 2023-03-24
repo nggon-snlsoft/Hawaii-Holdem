@@ -4,6 +4,7 @@ import passport from 'passport';
 import session from 'express-session';
 import { sqlProxy } from './modules/sqlProxy';
 import dao from './modules/dao';
+import exitHook from './modules/hookExit';
 
 const cors = require('cors');
 
@@ -82,8 +83,15 @@ export class HoldemApiServer {
         });
     }
 
+
     beforeListen: () => {
 
 	}
 }
+
+exitHook(() => {
+    console.log("server is Closing");
+    // appObject.onClose();
+    console.error("OnExit");
+  });
 

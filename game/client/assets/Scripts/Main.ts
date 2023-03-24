@@ -35,7 +35,6 @@ export class Main extends Component {
 			resources.load<SpriteFrame>( url, ( err, res ) => {
 
 				if( null != err ) {
-					// BNFLog.error( err );
 				}
 
 				UiTable.preLoadCardRes[ res.name ] = res;

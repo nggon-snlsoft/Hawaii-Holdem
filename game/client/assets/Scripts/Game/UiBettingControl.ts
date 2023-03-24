@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math } from 'cc';
+import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math, ConeCollider } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 const { ccclass, property } = _decorator;
 
@@ -29,6 +29,8 @@ export class UiBettingControl extends Component {
     private valueRange: number = 0;
     private valueStart: number = 0;
     private CONST_BET_STEP = 0.0;
+    private sb: number = 0;
+    private bb: number = 0;
 
     private type: ENUM_BETTING_TYPE = ENUM_BETTING_TYPE.None;
 
@@ -52,25 +54,30 @@ export class UiBettingControl extends Component {
         this.buttonInputBet.node.on('click', this.onClickInputBet.bind(this));
 
         this.sliderBetting.progress = 0.0;
-        this.CONST_BET_STEP = 1.0 / 20.0;
+        this.CONST_BET_STEP = 0;
 
         this.nodeRoot.active = false;
     }
 
-    public show(type: ENUM_BETTING_TYPE, valueStart: number, valueRange: number, pot: number, chips: number , cbConfirm: ( value: number )=> void ) {
+    public show( sb: number, bb: number, type: ENUM_BETTING_TYPE, valueStart: number, valueRange: number, pot: number, chips: number , cbConfirm: ( value: number )=> void ) {
         this.type = type;
 
         this.pot = pot;
         this.chips = chips;
 
-        this.valueStart = valueStart;
+        this.sb = sb;
+        this.bb = bb;
+
+        this.CONST_BET_STEP = this.bb;
+
+        this.valueStart = Math.min(valueStart, valueRange) ;
         this.valueRange = valueRange;
 
         this.setRatio(0);
         this.nodeRoot.active = true;
     }
 
-    private setRatio( ratio: number ) {
+    private setRatio( ratio: number ) { 
 		let result: number = 0;
 		let remain: number = 0;
 
@@ -89,7 +96,7 @@ export class UiBettingControl extends Component {
             else {
                 this.buttonBetMinus.interactable = true;
                 result = Math.floor( ratio * this.valueRange );
-                remain = Math.floor( ratio * this.valueRange ) % ( this.valueStart * 0.5 );
+                remain = Math.floor( ratio * this.valueRange ) % ( this.CONST_BET_STEP );
                 result -= remain;
             }
 		}
@@ -97,35 +104,45 @@ export class UiBettingControl extends Component {
         result = Math.max( result, this.valueStart );
         this.sliderBetting.progress = result / this.valueRange;
 
-        switch ( this.type) {
-            case ENUM_BETTING_TYPE.None:
-                break;
+        this.displayValue = result;
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );        
 
-            case ENUM_BETTING_TYPE.Bet:
-                this.displayValue = result + this.valueStart;
+        // switch ( this.type) {
+        //     case ENUM_BETTING_TYPE.None:
+        //         break;
 
-                break;
+        //     case ENUM_BETTING_TYPE.Bet:
+        //         this.displayValue = result + this.valueStart;
+        //         break;
 
-            case ENUM_BETTING_TYPE.Raise:
-                this.displayValue = result + this.valueStart - this.myBet;
-                break;
-        }
+        //     case ENUM_BETTING_TYPE.Raise:
+        //         this.displayValue = result + this.valueStart - this.myBet;
+        //         break;
+        // }
 
-        this.labelDisplayValue.string = CommonUtil.getNumberStringWithComma( this.displayValue );
+        // this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );
     }
 
     private onClickBetMinus( button:Button ) {
-        this.sliderBetting.progress -= this.CONST_BET_STEP;
-        this.sliderBetting.progress = Math.min(this.sliderBetting.progress, 1.0);
+        console.log('onClickBetMinus');
+        let r = this.displayValue - this.CONST_BET_STEP;
+        this.displayValue = Math.max (r, this.valueStart);
+
+        console.log('this.displayValue: ' + this.displayValue.toString() );
+
+        let rf = Math.fround(this.displayValue / this.valueRange);
+
+        console.log((this.displayValue / this.valueRange).toString())
         
-        this.setRatio(this.sliderBetting.progress);
+
+        this.setRatio(this.displayValue / this.valueRange);
     }
 
     private onClickBetPlus( button: Button ) {
-        this.sliderBetting.progress += this.CONST_BET_STEP;
-        this.sliderBetting.progress = Math.max(this.sliderBetting.progress, 0.0);        
-
-        this.setRatio(this.sliderBetting.progress);
+        console.log('onClickBetPlus');        
+        let r = this.displayValue + this.CONST_BET_STEP;
+        this.displayValue = Math.min( r, this.valueRange);
+        this.setRatio( this.displayValue / this.valueRange );
     }
 
     private onClickBetHalf( button: Button ) {
@@ -157,8 +174,22 @@ export class UiBettingControl extends Component {
     }
 
     public getResult(): any {
+        let result = 0;
+        switch ( this.type) {
+            case ENUM_BETTING_TYPE.None:
+                break;
+
+            case ENUM_BETTING_TYPE.Bet:
+                result = this.displayValue;
+                break;
+
+            case ENUM_BETTING_TYPE.Raise:
+                result = this.displayValue;
+                break;
+        }
+
         return {
-            result: this.displayValue,
+            result: result,
             type: this.type,
         };
     }

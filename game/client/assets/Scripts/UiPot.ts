@@ -86,7 +86,6 @@ export class UiPot extends Component {
 
             const potInfo = shown[i];
 
-            // sidePot.valueLabel.string = undefined != potInfo.rake && potInfo.rake > 0 ? CommonUtils.getLocaleChipsString( potInfo.total - potInfo.rake ) : CommonUtils.getLocaleChipsString( potInfo.total );
             sidePot.valueLabel.string = undefined != potInfo.rake && potInfo.rake > 0 ? 
             ( potInfo.total - potInfo.rake ).toString() :  potInfo.total.toString();
             sidePot.showRoot.active = true;
@@ -102,7 +101,6 @@ export class UiPot extends Component {
                 }
 
                 this.potInfoTimeout = setTimeout(() => {
-                    // this.OnSelectPot(sidePot.showRoot, i, sidePot.valueLabel.string, CommonUtils.getLocaleChipsString( potInfo.rake));
                     this.OnSelectPot(sidePot.showRoot, i, sidePot.valueLabel.string, potInfo.rake.toString());                    
                 })
             }, this);
@@ -128,7 +126,7 @@ export class UiPot extends Component {
 
     public UpdatePotTotal(totalValue : number){
         this.labelMaxPot.node.active = true;
-        this.labelMaxPot.string = totalValue.toString();
+        this.labelMaxPot.string = CommonUtil.getKoreanNumber(totalValue);
         this.maxPotLabelRoot.active = true;
     }
 

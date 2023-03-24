@@ -49,4 +49,30 @@ export class ClientUserData{
         }
         return room;
     }
+
+	static getClientStaticsData(dbStaticsData: any): any {
+        let statics: any = {
+			id: dbStaticsData.id,
+			hands: dbStaticsData.hands,
+			rakes: dbStaticsData.rakes,
+			rollings: dbStaticsData.rollings,
+			maxPots: dbStaticsData.maxPots,
+			win: dbStaticsData.win,
+			fold: dbStaticsData.fold,
+			draw: dbStaticsData.draw,
+			win_preflop: dbStaticsData.win_preflop,
+			win_flop: dbStaticsData.win_flop,
+			win_turn: dbStaticsData.win_turn,
+			win_river: dbStaticsData.win_river,
+			win_dealer: dbStaticsData.win_dealer,
+			win_smallBlind: dbStaticsData.win_smallBlind,
+			win_bigBlind: dbStaticsData.win_bigBlind,
+			fold_preflop: dbStaticsData.fold_preflop,
+			fold_flop: dbStaticsData.fold_flop,
+			fold_turn: dbStaticsData.fold_turn,
+			fold_river: dbStaticsData.fold_river,
+			best_hands: dbStaticsData.best_hands,
+        }
+        return statics;
+    }
 }

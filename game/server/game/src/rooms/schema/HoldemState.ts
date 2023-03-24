@@ -51,6 +51,8 @@ export class EntityState extends Schema {
 	tableInitChips: number = 0;
 	tableBuyInAmount: number = 0;
 	tableBuyInCount: number = 0;
+	
+	statics: any = null;
 
 	@type( "boolean" ) missSb: boolean = false;
 	@type( "boolean" ) missBb: boolean = false;

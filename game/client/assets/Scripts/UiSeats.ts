@@ -233,6 +233,7 @@ export class UiSeats extends Component {
         }
 
         this.count++;
+
         if (this.count >= this.limitTime ) {
             this.clearTimer();
             // this.isOpen = false;
@@ -249,7 +250,9 @@ export class UiSeats extends Component {
 
         }
         else {
-            this.labelLimitTimer.string = '플레이할 자리를 선택해 주세요' + '(' + ( this.limitTime - this.count).toString() + ')';
+            if ( this.labelLimitTimer != null ) {
+                this.labelLimitTimer.string = '플레이할 자리를 선택해 주세요' + '(' + ( this.limitTime - this.count).toString() + ')';
+            }
         }
     }
 
@@ -278,6 +281,13 @@ export class UiSeats extends Component {
 
         this.node.active = false;
         Board.table.leave();
+    }
+
+    leave() {
+        clearInterval( this.timerId );        
+        this.isOpen = false;
+        this.timerId = -1;
+        this.node.active = false;
     }
 
     onJoinTable() {

@@ -4,6 +4,8 @@ import { PotCalculation } from "../modules/PotCalculation";
 import { DealerCalculation } from "../modules/DealerCalculation";
 import * as fs from 'fs';
 import * as path from 'path';
+import { ENUM_RESULT_CODE } from "../arena.config";
+import { ClientUserData } from "../controllers/ClientUserData";
 
 const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
@@ -43,7 +45,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 	maxClients = 10;
 	showdownTime: number = 0;
-	bufferTimerID: any = null; // 구현 편이 및 테스트를 위한 버퍼
+	bufferTimerID: any = null;
 	pingTimerID: any = null;
 	cardPickPos: number = 0;
 	elapsedTick: number = 0;
@@ -123,7 +125,6 @@ export class HoldemRoom extends Room<RoomState> {
 				// register message handlers
 				this.onMessage("ONLOAD", this.OnLoadDone.bind(this));
 				this.onMessage("BUY_IN", this.onBuyIn.bind(this));
-				this.onMessage("BUY_PASS", this.onBuyPass.bind(this));
 				this.onMessage("CHECK", this.onCheck.bind(this));
 				this.onMessage("CALL", this.onCall.bind(this));
 				this.onMessage("BET", this.onBet.bind(this));
@@ -135,7 +136,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage("ADD_CHIPS_REQUEST", this.onAddChipsRequest.bind(this));
 				this.onMessage("ADD_CHIPS", this.onAddChips.bind(this));
 
-				this.onMessage("pong", this.onPong.bind(this));
+				this.onMessage("PONG", this.onPong.bind(this));
 				this.onMessage("SHOW_CARD", this.onShowCard.bind(this));
 				this.onMessage("SIT_OUT", this.OnSitOut.bind(this));
 				this.onMessage("SIT_BACK", this.OnSitBack.bind(this));
@@ -239,17 +240,16 @@ export class HoldemRoom extends Room<RoomState> {
 		
 	}
 
-	playerJoin( client: Client, option: any, auth: any ) {
+	async playerJoin( client: Client, option: any, auth: any ) {
 		logger.info( "[ playerJoin ]" );
 		this._buyInWaiting[ client.sessionId ] = auth;
 		logger.info( "[ playerJoin ] waiting list : %s", JSON.stringify( this._buyInWaiting ) );
 
 		let entity = new EntityState();
-
 		entity.assign( {
 			sid: client.sessionId,
 			id: auth.id || client.id,
-			uid: auth.phone,
+			uid: auth.uid,
 			avatar: auth.avatar,
 			nickname: auth.nickname,
 			balance: auth.balance,
@@ -287,12 +287,18 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.lastPingTime = Date.now();
 		entity.initRoundChips = auth.chip;
 
+		let statics: any = await this.LoadStatics( entity.id );
+		if ( statics.code == ENUM_RESULT_CODE.SUCCESS ) {
+			let _statics = ClientUserData.getClientStaticsData(statics.statics);
+			entity.statics = _statics;
+		}
+
 		logger.info( "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
 		this.state.entities.push( entity );
 		return;
 	}
 
-	OnLoadDone(client : Client, msg : any){
+	OnLoadDone( client : Client, msg : any ){
 		let auth : any = this._buyInWaiting[client.sessionId];
 
 		if(null != auth && undefined != auth){
@@ -803,102 +809,6 @@ export class HoldemRoom extends Room<RoomState> {
 		this.broadcast( "SHOW_EMOTICON", { seat: msg['seat'],
 		type: msg['type'],
 		id: msg['id']} );
-	}
-
-	onBuyPass( client: Client, msg: any ) {
-		let locSeatIndex = msg[ "seat" ];
-		let entity: any = null;
-		let before = 0;
-		let after = 0;
-		const idx = this.state.entities.findIndex( function( e ) {
-			return e.seat === locSeatIndex;
-		} );
-
-		if( idx > -1 ) {
-			entity = this.state.entities[idx];
-		}
-		if( null === entity ) {
-			logger.error( "[ onBuyPass ] entity is null. seat(%s), msg(%s)", locSeatIndex, JSON.stringify( msg ) );
-			return client.send( "RES_BUY_PASS", { resultCode: -1, msg: "seat user is not existed." } );
-		} else {
-			logger.info( "[ onBuyPass ] seat : %s // sid : %s", entity.seat, client.sessionId );
-			if( entity.remainTimeMS < 0 ) {
-				entity.remainTimeMS = -1;
-			}
-
-			this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
-				if (!!err) {
-					logger.error("[ onReBuy ] selectBalanceByUID query error : %s", err);
-				} else {
-					if (res.length <= 0) {
-						logger.error("[ onReBuy ] selectBalanceByUID invalid user id");
-					} else {
-						entity.balance = res[0].balance;
-						let oldBalance = entity.balance;
-						let oldChips = entity.chips;
-
-						if (entity.chips < this.conf["passPrice"]) {
-							logger.warn("[ onBuyPass ] chips is not enough. chip : %s", entity.chips);
-							return client.send("RES_BUY_PASS", {resultCode: -1, msg: "Not enough chips."});
-						}
-
-						entity.chips -= this.conf["passPrice"];
-						if (entity.chips <= 0) {
-							entity.chips = 0;
-						}
-
-						entity.initRoundChips = entity.chips;
-						after = entity.chips;
-
-						entity.remainTimeMS = this.conf["passTerm"];
-						let term = this.conf["passTerm"] * 0.001;
-
-						this._dao.timePurchase(entity.id, this.conf["adminID"], this.conf["tableID"], entity.fullName, 
-							oldBalance, entity.balance, oldChips, entity.chips, this.conf["passPrice"], term, (err: any, res: any) => {
-								if (!!err) {
-									logger.error("[ onBuyPass ] timePurchase query error : %s", err);
-								}
-							});
-
-						client.send("RES_BUY_PASS", {
-							resultCode: 0,
-							msg: "SUCCEED",
-							balance: entity.balance,
-							chips: entity.chips,
-							remainTimeMS: entity.remainTimeMS
-						});
-
-						if (true == this.conf["private"]) 
-						{
-							this._dao.updateRemainTime(entity.id, entity.remainTimeMS, (err: any, res: any) => {
-								if (!!err) {
-									logger.error("[ onBuyPass ] updateRemainTime query error : %s", err);
-								}
-							});
-						}
-						else 
-						{
-							this._dao.updatePublicRemainTime(entity.id, entity.remainTimeMS, (err: any, res: any) => {
-								if (!!err) {
-									logger.error("[ onBuyPass ] updatePublicRemainTime query error : %s", err);
-								}
-							});
-						}
-
-						if (eGameState.Suspend === this.state.gameState) {
-							logger.error("[ checkStartCondition ]");
-							entity.isNew = false;
-							let isStart = this.checkStartCondition();
-							if (true == isStart) {
-								this.changeState(eGameState.Ready);
-							}
-						} else if (eGameState.Ready === this.state.gameState) {
-							entity.isNew = false;
-						}
-					}
-				}
-			} );
-		}
 	}
 
 	onReBuy( client: Client, msg: any ) {
@@ -2362,7 +2272,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.broadcast( "CHECK", {
 			seat: this.betSeat,
-			pot : this.state.pot - this.potCalc.rakeTotal
+			pot : this.state.pot,
 		} );
 
 		this.elapsedTick = 0;
@@ -2420,7 +2330,7 @@ export class HoldemRoom extends Room<RoomState> {
 			seat: this.betSeat,
 			chips: e.chips,
 			bet: msg[ "betAmount" ],
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,
 			allin: e.allIn,
 		} );
 
@@ -2501,7 +2411,7 @@ export class HoldemRoom extends Room<RoomState> {
 			seat: this.betSeat,
 			chips: e.chips,
 			bet: msg[ "betAmount" ],
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,
 			allin: e.allIn,
 		} );
 
@@ -2561,7 +2471,7 @@ export class HoldemRoom extends Room<RoomState> {
 			seat: this.betSeat,
 			chips: e.chips,
 			bet: msg[ "betAmount" ],
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,
 			allin: e.allIn,
 		} );
 
@@ -2642,7 +2552,7 @@ export class HoldemRoom extends Room<RoomState> {
 			seat: this.betSeat,
 			chips: e.chips,
 			bet: msg[ "betAmount" ],
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,
 			allin: e.allIn,
 		} );
 
@@ -3151,18 +3061,6 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		if (true == this.conf["private"]) {
-			this._dao.updateAccountBalanceByID({
-				id: runaway.id,
-				//balance: runaway.balance,
-				chip: runaway.chips
-			}, function (err: any, res: any) {
-				if (!!err) {
-					logger.error("[ processLeave ] update query error : %s", err);
-				}
-			});
-		}
-
 		runaway.client?.leave(returnCode);
 		runaway.leave = true;
 
@@ -3238,5 +3136,24 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		this.UpdateSeatInfo();
+	}
+
+	private async LoadStatics(id: any) {
+		return new Promise ( (resolve, reject )=>{
+			this._dao.selectStaticsByID(id, (err: any, res: any)=>{
+				if (!!err) {
+					reject( {
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'BAD_ACCESS_TOKEN',
+					});
+					return;
+				}
+
+				resolve( {
+					code: ENUM_RESULT_CODE.SUCCESS,
+					statics: res,
+				} );
+			});
+		});
 	}
 }

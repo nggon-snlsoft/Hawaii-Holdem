@@ -42,6 +42,9 @@ export class UiPlayerAction extends Component {
 	private numberBetDisplayValue: number = 0;
 	private numberRaiseDisplayValue: number = 0;
 
+	private sb: number = 0;
+	private bb: number = 0;
+
 	cbFold: () => void = null;
 	cbCall: (betValue: number) => void = null;
 	cbCheck: () => void = null;
@@ -92,7 +95,7 @@ export class UiPlayerAction extends Component {
 		this.buttonAllIn = this.nodeRoot.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
 		this.buttonAllIn?.node.on( "click", this.onClickAllin.bind( this ), this );
 
-		this.uiBettingControl = this.nodeRoot.getChildByPath('BETTING_CONTROL').getComponent(UiBettingControl);
+		this.uiBettingControl = this.nodeRoot.getChildByPath('BETTING_CONTROL').getComponent(UiBettingControl);		
 		if ( this.uiBettingControl != null ) {
 			this.uiBettingControl.init();
 		}
@@ -102,6 +105,14 @@ export class UiPlayerAction extends Component {
 
 	onLoad() {
 		this.childRegistered();
+	}
+
+	init( sb: number, bb: number ) {		
+		this.sb = sb;
+		this.bb = bb;
+
+		console.log('this.sb' + this.sb);
+		console.log('this.bb' + this.bb);
 	}
     
 	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, isLast : boolean, hasAction: boolean) {
@@ -123,7 +134,6 @@ export class UiPlayerAction extends Component {
 		this.numberRaiseRange = 0;
 
 		if( 0 != turnBet && 0 >= myChips ) {
-			// BNFLog.error( `이런 케이스가 발생한다고? [ 0 != turnBet(${ turnBet }) && 0 >= myChips(${ myChips }) ]` );
 			this.buttonFold.node.active = false;
 			this.buttonAllIn.node.active = false;
 
@@ -133,8 +143,6 @@ export class UiPlayerAction extends Component {
 
 			this.buttonBet.node.active = false;
 			this.buttonRaise.node.active = false;
-
-			// this.nodeBetControl.active = false;
 
 			this.node.active = true;
 			return;
@@ -158,11 +166,14 @@ export class UiPlayerAction extends Component {
 		this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 		this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
 
-		this.numberBetRange = myChips - this.numberBetStart + this.numberMyBet;
-		this.numberRaiseRange = myChips - this.numberRaiseStart + this.numberMyBet;
+		// this.numberBetRange = myChips - this.numberBetStart + this.numberMyBet;
+		// this.numberRaiseRange = myChips - this.numberRaiseStart + this.numberMyBet;
+
+		this.numberBetRange = myChips;
+		this.numberRaiseRange = myChips;
 
 		this.buttonRaise.node.active = (0 != turnBet && this.numberRaiseRange >= 0) && false === isLast && true == hasAction;
-		this.buttonAllIn.node.active = (0 != turnBet && 0 > this.numberBetRange );
+		this.buttonAllIn.node.active = (0 != turnBet && turnBet > this.numberBetRange );
 
 		if (isLast == true) {
 			if (this.buttonCall.node.active == true) {
@@ -229,7 +240,7 @@ export class UiPlayerAction extends Component {
 		this.buttonBet.node.active = false;
 		this.buttonConfirm.node.active = true;
 
-		this.uiBettingControl.show( ENUM_BETTING_TYPE.Bet, this.numberBetStart, this.numberBetRange, 
+		this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Bet, this.numberBetStart, this.numberBetRange, 
 			this.numberPot, this.numberMyChips, null );
 	}
 
@@ -238,13 +249,15 @@ export class UiPlayerAction extends Component {
 		this.buttonRaise.node.active = false;
 		this.buttonConfirm.node.active = true;
 
-		this.uiBettingControl.show( ENUM_BETTING_TYPE.Raise, this.numberRaiseStart, this.numberRaiseRange, 
+		this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Raise, this.numberRaiseStart, this.numberRaiseRange, 
 			this.numberPot, this.numberMyChips, null );
 	}
 
 	private onClickConfirm( button: Button ) {
 		let res = this.uiBettingControl.getResult();
 		let sendValue = res.result + this.numberMyBet;
+
+		console.log('sendValue: ' + sendValue.toString());
 
 		if ( res.type == ENUM_BETTING_TYPE.Bet ) {
 			this.cbBet( sendValue );

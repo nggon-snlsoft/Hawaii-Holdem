@@ -519,7 +519,7 @@ export class UiEntity extends Component {
     setUiBetValue( betValue: number, color?: Color ) {
         this.spriteActionValueRoot.node.active = (betValue > 0);
         // this.labelBetValue.string = CommonUtils.getLocaleChipsString(betValue);
-        this.labelBetValue.string = betValue.toString();
+        this.labelBetValue.string = CommonUtil.getKoreanNumber(betValue);
         this.labelBetValue.node.active = (betValue > 0);
         this.spriteBetChip.node.active = (betValue > 0);
     }
@@ -746,9 +746,7 @@ export class UiEntity extends Component {
         this.ResetBadges();
         
         this.nodeDrawBadge.node.active = true;
-        //this.lbDrawAmount.string = "+" + winAmount.toLocaleString().split( "." )[ 0 ];
-        // this.labelDrawAmount.string = "+" + CommonUtils.getLocaleChipsString( winAmount );
-        this.labelDrawAmount.string = "+" + winAmount.toString();
+        this.labelDrawAmount.string = "+" + CommonUtil.getKoreanNumber(winAmount);
 
         this.timeOutNumber = setTimeout(() => {
             this.ResetBadges();
@@ -759,9 +757,7 @@ export class UiEntity extends Component {
         this.ResetBadges();
 
         this.nodeReturnBadge.node.active = true;
-        // this.lbReturnAmount.string =  "+" + returnAmount.toLocaleString().split( "." )[ 0 ];
-        // this.lbReturnAmount.string =  "+" + CommonUtils.getLocaleChipsString( returnAmount );
-        this.labelReturnAmount.string =  "+" + returnAmount.toString();
+        this.labelReturnAmount.string =  "+" + CommonUtil.getKoreanNumber(returnAmount);
 
         this.timeOutNumber = setTimeout(() => {
             this.ResetBadges();
@@ -776,9 +772,7 @@ export class UiEntity extends Component {
         this.ResetBadges();
 
         this.nodeWinBadge.node.active = true;
-        //this.lbWinAmount.string =  "+" + winAmount.toLocaleString().split( "." )[ 0 ];
-        // this.labelWinAmount.string =  "+" + CommonUtils.getLocaleChipsString( winAmount );
-        this.labelWinAmount.string =  "+" + winAmount.toString();
+        this.labelWinAmount.string =  "+" + CommonUtil.getKoreanNumber(winAmount);
 
         let ani1Tween = tween(this.spriteWinAnimation1.node)
         .call( () => {
