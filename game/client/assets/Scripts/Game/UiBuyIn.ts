@@ -68,9 +68,9 @@ export class UiBuyIn extends Component {
             this.cbExit = cbExit;
         }
 
-        this.labelUserChips.string = CommonUtil.getNumberStringWithComma( Board.balance );
-        this.labelBlind.string = CommonUtil.getNumberStringWithComma( Board.small ) + ' / ' +
-            CommonUtil.getNumberStringWithComma( Board.big );
+        this.labelUserChips.string = CommonUtil.getKoreanNumber( Board.balance );
+        this.labelBlind.string = CommonUtil.getKoreanNumber( Board.small ) + ' / ' +
+            CommonUtil.getKoreanNumber( Board.big );
 
         this.minStakePrice = Number( Board.minStakePrice );
 
@@ -78,12 +78,8 @@ export class UiBuyIn extends Component {
         let m: number = Number ( Board.maxStakePrice );
         this.maxStakePrice = Math.min(b, m);
 
-        this.labelMinStakePrice.string = CommonUtil.getNumberStringWithComma( this.minStakePrice );
-        this.labelMaxStakePrice.string = CommonUtil.getNumberStringWithComma( this.maxStakePrice );
-
-        // this.sliderBuyIn.progress = 0;
-
-        // this.labelBuyIn.string = CommonUtil.getNumberStringWithComma( this.maxStakePrice );
+        this.labelMinStakePrice.string = CommonUtil.getKoreanNumber( this.minStakePrice );
+        this.labelMaxStakePrice.string = CommonUtil.getKoreanNumber( this.maxStakePrice );
 
         this.buyInRange = this.maxStakePrice - this.minStakePrice;
 
@@ -105,9 +101,9 @@ export class UiBuyIn extends Component {
             this.cbBuyIn = cbBuyIn;
         }
 
-        this.labelUserChips.string = CommonUtil.getNumberStringWithComma( Board.balance );
-        this.labelBlind.string = CommonUtil.getNumberStringWithComma( Board.small ) + ' / ' +
-            CommonUtil.getNumberStringWithComma( Board.big );
+        this.labelUserChips.string = CommonUtil.getKoreanNumber( Board.balance );
+        this.labelBlind.string = CommonUtil.getKoreanNumber( Board.small ) + ' / ' +
+            CommonUtil.getKoreanNumber( Board.big );
 
         this.minStakePrice = 0;
 
@@ -116,8 +112,8 @@ export class UiBuyIn extends Component {
 
         this.maxStakePrice = Math.min(b, m);
 
-        this.labelMinStakePrice.string = CommonUtil.getNumberStringWithComma( this.minStakePrice );
-        this.labelMaxStakePrice.string = CommonUtil.getNumberStringWithComma( this.maxStakePrice );
+        this.labelMinStakePrice.string = CommonUtil.getKoreanNumber( this.minStakePrice );
+        this.labelMaxStakePrice.string = CommonUtil.getKoreanNumber( this.maxStakePrice );
 
         this.buyInRange = this.maxStakePrice - this.minStakePrice;
 
@@ -139,9 +135,9 @@ export class UiBuyIn extends Component {
             this.cbExit = cbExit;
         }
 
-        this.labelUserChips.string = CommonUtil.getNumberStringWithComma( Board.balance );
-        this.labelBlind.string = CommonUtil.getNumberStringWithComma( Board.small ) + ' / ' +
-            CommonUtil.getNumberStringWithComma( Board.big );
+        this.labelUserChips.string = CommonUtil.getKoreanNumber( Board.balance );
+        this.labelBlind.string = CommonUtil.getKoreanNumber( Board.small ) + ' / ' +
+            CommonUtil.getKoreanNumber( Board.big );
 
         let minValue = Board.minStakePrice - chips;
         this.minStakePrice = minValue;
@@ -151,8 +147,8 @@ export class UiBuyIn extends Component {
 
         this.maxStakePrice = Math.min(b, m);
 
-        this.labelMinStakePrice.string = CommonUtil.getNumberStringWithComma( this.minStakePrice );
-        this.labelMaxStakePrice.string = CommonUtil.getNumberStringWithComma( this.maxStakePrice );
+        this.labelMinStakePrice.string = CommonUtil.getKoreanNumber( this.minStakePrice );
+        this.labelMaxStakePrice.string = CommonUtil.getKoreanNumber( this.maxStakePrice );
 
         this.buyInRange = this.maxStakePrice - this.minStakePrice;
 
@@ -178,7 +174,7 @@ export class UiBuyIn extends Component {
         }
 
         this.sliderBuyIn.progress = ratio;
-        this.labelBuyIn.string = CommonUtil.getNumberStringWithComma(this.buyInResult);
+        this.labelBuyIn.string = CommonUtil.getKoreanNumber(this.buyInResult);
     }
 
     private  onClickExit( button: Button ) {

@@ -287,11 +287,11 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.lastPingTime = Date.now();
 		entity.initRoundChips = auth.chip;
 
-		let statics: any = await this.LoadStatics( entity.id );
-		if ( statics.code == ENUM_RESULT_CODE.SUCCESS ) {
-			let _statics = ClientUserData.getClientStaticsData(statics.statics);
-			entity.statics = _statics;
-		}
+		// let statics: any = await this.LoadStatics( entity.id );
+		// if ( statics.code == ENUM_RESULT_CODE.SUCCESS ) {
+		// 	let _statics = ClientUserData.getClientStaticsData(statics.statics);
+		// 	entity.statics = _statics;
+		// }
 
 		logger.info( "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
 		this.state.entities.push( entity );

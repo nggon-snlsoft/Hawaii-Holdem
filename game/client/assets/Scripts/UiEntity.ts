@@ -4,6 +4,7 @@ import { Board } from './Board';
 
 import { CommonUtil } from './CommonUtil';
 import { AudioController } from './Game/AudioController';
+import { UiBettingChips } from './Game/UiBettingChips';
 import { EMOTICON_CHAT_MESSAGE, EMOTICON_TYPE } from './Game/UiGameChatting';
 import { NetworkManager } from './NetworkManager';
 
@@ -87,10 +88,10 @@ export class UiEntity extends Component {
     private animationChatting: Animation = null;
 
     private labelChatting: Label = null;
-
     private buttonAvatar: Button = null;
-
     private id:number = -1;
+
+    private uiBettingChips: UiBettingChips = null;
 
     callbackProfileOpen: (e: any) => void = null;
     callbackProfileClose: () => void = null;
@@ -263,12 +264,23 @@ export class UiEntity extends Component {
         this.labelChatting = this.node.getChildByPath('EMOTICON/CHATTING/LABEL_CHATTING').getComponent(Label);
         this.labelChatting.string = '';
 
+        let n = this.node.getChildByPath('BETTING_CHIPS');
+        if ( n != null ) {
+            this.uiBettingChips = n.getComponent(UiBettingChips);
+            if ( this.uiBettingChips != null ) {
+                this.uiBettingChips.init();
+            }
+        }
+
         this.isPlaying = false;
         this.node.active = false;
     }
 
     onClickAvatar( button: Button ) {
-        Board.table.openUserProfile( this.id );
+
+        this.uiBettingChips.show(75300, null );
+
+        // Board.table.openUserProfile( this.id );
     }
 
     onLoad() {
@@ -517,14 +529,18 @@ export class UiEntity extends Component {
     }
 
     setUiBetValue( betValue: number, color?: Color ) {
-        this.spriteActionValueRoot.node.active = (betValue > 0);
-        // this.labelBetValue.string = CommonUtils.getLocaleChipsString(betValue);
-        this.labelBetValue.string = CommonUtil.getKoreanNumber(betValue);
-        this.labelBetValue.node.active = (betValue > 0);
-        this.spriteBetChip.node.active = (betValue > 0);
+
+        this.uiBettingChips.show(betValue, ()=>{
+            this.spriteActionValueRoot.node.active = (betValue > 0);
+            this.labelBetValue.string = CommonUtil.getKoreanNumber(betValue);
+            this.labelBetValue.node.active = (betValue > 0);
+            this.spriteBetChip.node.active = (betValue > 0);
+        });
     }
 
     clearUiBetValue() {
+        this.uiBettingChips.hide();
+        
         this.spriteActionValueRoot.node.active = false;
         this.labelBetValue.string = '0';
         this.labelBetValue.node.active = false;
