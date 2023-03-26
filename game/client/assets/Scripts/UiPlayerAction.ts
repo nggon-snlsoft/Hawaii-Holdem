@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button, Label, Slider, EventHandler, sys } from 'cc';
+import { CommonUtil } from './CommonUtil';
 import { ENUM_BETTING_TYPE, UiBettingControl } from './Game/UiBettingControl';
 const { ccclass, property } = _decorator;
 
@@ -110,9 +111,6 @@ export class UiPlayerAction extends Component {
 	init( sb: number, bb: number ) {		
 		this.sb = sb;
 		this.bb = bb;
-
-		console.log('this.sb' + this.sb);
-		console.log('this.bb' + this.bb);
 	}
     
 	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, isLast : boolean, hasAction: boolean) {
@@ -139,7 +137,7 @@ export class UiPlayerAction extends Component {
 
 			this.buttonCheck.node.active = false;
 			this.buttonCall.node.active = true;
-			this.labelCall.string = "Call";
+			this.labelCall.string = "콜";
 
 			this.buttonBet.node.active = false;
 			this.buttonRaise.node.active = false;
@@ -157,7 +155,7 @@ export class UiPlayerAction extends Component {
 				this.buttonCall.node.active = false;
 			}
 			else{
-				this.labelCall.string = `콜\n(${ betValue.toString() /*CommonUtils.getLocaleChipsString( betValue )*/ })`;
+				this.labelCall.string = `콜\n${ CommonUtil.getKoreanNumber(betValue) }`;
 			}
 		}
 
@@ -165,9 +163,6 @@ export class UiPlayerAction extends Component {
 
 		this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 		this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
-
-		// this.numberBetRange = myChips - this.numberBetStart + this.numberMyBet;
-		// this.numberRaiseRange = myChips - this.numberRaiseStart + this.numberMyBet;
 
 		this.numberBetRange = myChips;
 		this.numberRaiseRange = myChips;

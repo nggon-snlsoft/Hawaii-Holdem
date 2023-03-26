@@ -80,7 +80,6 @@ export class HoldemRoom extends Room<RoomState> {
 		await this.setPrivate(options["private"]);
 
 		let onDBFinish : (err : any, res : any) => void = (err: any, res: any) => {
-			console.log('onDBFinish');
 
 			if (!!err) {
 				logger.error("[ onCreate::selectRoomByUID ] query error : %s", err);
@@ -144,7 +143,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage("CANCEL_BUY_IN", this.onCancelBuyIn.bind(this));
 				this.onMessage("SHOW_EMOTICON", this.onShowEmoticon.bind(this));
 
-				this.potCalc = new PotCalculation(this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"]);
+				this.potCalc = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"] );
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
 			}
 		};
@@ -287,11 +286,11 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.lastPingTime = Date.now();
 		entity.initRoundChips = auth.chip;
 
-		// let statics: any = await this.LoadStatics( entity.id );
-		// if ( statics.code == ENUM_RESULT_CODE.SUCCESS ) {
-		// 	let _statics = ClientUserData.getClientStaticsData(statics.statics);
-		// 	entity.statics = _statics;
-		// }
+		let statics: any = await this.LoadStatics( entity.id );
+		if ( statics.code == ENUM_RESULT_CODE.SUCCESS ) {
+			let _statics = ClientUserData.getClientStaticsData(statics.statics);
+			entity.statics = _statics;
+		}
 
 		logger.info( "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
 		this.state.entities.push( entity );
@@ -332,7 +331,6 @@ export class HoldemRoom extends Room<RoomState> {
 			balanceFraction: this.conf["balanceFraction"],
 			chipsRatio: this.conf["chipsRatio"],
 			chipsFraction: this.conf["chipsFraction"],
-			useTimePass : this.conf["useTimePass"],
 			useLog : this.conf["useLog"]
 		});
 
@@ -462,7 +460,8 @@ export class HoldemRoom extends Room<RoomState> {
 			endSeat: this.endSeat,
 			maxBet: this.state.maxBet,
 			minRaise: this.state.minRaise,
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			// pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,			
 			centerCardState: this.centerCardState,
 			openCards: openCards,
 			small: this.conf["smallBlind"],
@@ -611,7 +610,8 @@ export class HoldemRoom extends Room<RoomState> {
 			maxBet: this.state.maxBet,
 			minRaise: this.state.minRaise,
 			minBet: this.state.startBet,
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			// pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot,			
 			centerCardState: this.centerCardState,
 			openCards: openCards,
 			small: this.conf[ "smallBlind" ],
@@ -743,7 +743,8 @@ export class HoldemRoom extends Room<RoomState> {
 						endSeat: this.endSeat,
 						maxBet: this.state.maxBet,
 						minRaise: this.state.minRaise,
-						pot: this.state.pot - this.potCalc.rakeTotal,
+						// pot: this.state.pot - this.potCalc.rakeTotal,
+						pot: this.state.pot,						
 						centerCardState: this.centerCardState,
 						openCards: openCards,
 						small: this.conf[ "smallBlind" ],
@@ -1391,7 +1392,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this._dao.clearActiveSessionID(this.state.entities[ l ].id);
 
 				let data = {
-					roomID: -1,
+					tableID: -1,
 					id : this.state.entities[ l ].id
 				}
 				this._dao.updateTableID(data, (err: any, res: boolean) => {
@@ -3111,7 +3112,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if (false == this.conf["private"]) {
 			let data = {
-				publicRoomID: -1,
+				tableID: -1,
 				id : entity.id
 			}
 			this._dao.updateTableID(data, (err: any, res: boolean) => {

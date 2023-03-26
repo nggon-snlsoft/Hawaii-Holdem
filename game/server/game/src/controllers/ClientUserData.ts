@@ -10,7 +10,7 @@ export class ClientUserData{
 			avatar: dbUserData.avatar,
 			balance : dbUserData.balance,
 			uuid : dbUserData.id,
-			roomID : dbUserData.roomID,
+			tableID : dbUserData.tableID,
 			remainTime : dbUserData.remainTime,
 			chip: dbUserData.chip
 		}

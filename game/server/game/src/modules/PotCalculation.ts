@@ -4,25 +4,16 @@ import { eCommunityCardStep } from "../rooms/HoldemRoom";
 export class PotCalculation {
 
   private player: any[];
-
   private pots: any[];
-
   private playerCount: number = 0;
-
   private rakePercentage: number = 0;
-
   private rakeCap: number[] = [];
-
   private useRake: boolean = false;
-
   private flopRake : boolean = false;
-
   public userRakeInfo: any[] = [];
-
   public deadBlind : number = 0;
 
   private centerCardState : eCommunityCardStep = eCommunityCardStep.PREPARE;
-
   public rakeTotal : number = 0;
 
   constructor(useRake: boolean, rakePercentage: number, rakeCap: number[], flopRake : boolean) {
@@ -70,14 +61,14 @@ export class PotCalculation {
     this.CalculatePot();
   }
 
-  public CalculatePot(){
+  public CalculatePot() {
     this.pots = this.Calculate();
 
     if (this.useRake === false) {
       return;
     }
 
-    this.CalculateRake();
+    // this.CalculateRake();
   }
 
   private CalculateMinBet(players: any[]): number {
@@ -154,8 +145,6 @@ export class PotCalculation {
       }
 
       if (currentPot.winners.length < 1) {
-        //AllFold without winner
-        //logger.error("All Fold Without winner");
         let winner: any = currentPot.players.find((elem: { fold: boolean; }) => { return elem.fold === false; });
 
         if (null == winner) {

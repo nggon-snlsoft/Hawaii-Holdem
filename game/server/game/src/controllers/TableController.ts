@@ -49,13 +49,11 @@ export class TableController {
     }
 
     public async enterTable( req: any, res: any ) {
-        console.log('enterTable');
 
         let tableID = req.body.tableID;
         let userID = req.body.userID;
 
         if ( tableID == null || userID == null ) {
-            console.log('1');
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'TABLEID_OR_USER_ID_NULL',
@@ -65,7 +63,6 @@ export class TableController {
 
         let user: any = await this.getAccount( req.app.get('DAO'), userID);
         if ( user == undefined ) {
-            console.log('2');
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INCORRECT_ID',
@@ -75,15 +72,12 @@ export class TableController {
 
         let table: any = await this.getTableInfoFromDB( req.app.get('DAO'), tableID );
         if ( table == undefined ) {
-            console.log('3');            
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INCORRECT_TABLE_INFO',
             });
             return;            
         }
-
-        console.log('4');
 
         let _tables = ClientUserData.getClientTableData(table);
         let seatReservation: matchMaker.SeatReservation = null;
@@ -105,15 +99,13 @@ export class TableController {
         }
 
         seatReservation = await matchMaker.joinOrCreate( gameSize, { private: false, serial: tableID });
-        console.log(seatReservation);
 
         user.pendingSessionId = seatReservation.sessionId;
         user.pendingSessionTimestamp = Date.now();
-        user.roomID = tableID;
+        user.tableID = tableID;
 
         await this.updatePendingState( req.app.get('DAO'), user);
         await this.updateTableID( req.app.get('DAO'), user);
-        console.log('5');
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
@@ -130,7 +122,6 @@ export class TableController {
             dao.updateAccountPending( data, ( err: any, res: any )=>{
 
                 if( !!err ) {
-                    console.log('REJECT');                    
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                         msg: 'BAD_ACCESS_TOKEN'                        
@@ -145,14 +136,13 @@ export class TableController {
     private async updateTableID( dao: any, data: any ) {
         return new Promise( ( resolve, reject ) => {
             dao.updateTableID( data, function( err: any, res: any ) {
-                console.log('updateTableID');
+
                 if( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                         msg: 'BAD_ACCESS_TOKEN'                        
                     });
                 }
-                console.log('resolve( res )');
                 resolve( res );
             } );
         } );

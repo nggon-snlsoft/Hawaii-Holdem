@@ -73,7 +73,6 @@ export class UiSeats extends Component {
     }
 
     updateSeatInfo ( seats: any[], info: number[], bb: number, sb: number, dealer: number ) {
-        console.log(seats);
 
         for ( let i = 0 ; i < this.buttonTakeSeats.length; i++) {
             let button: Button = this.buttonTakeSeats[i];

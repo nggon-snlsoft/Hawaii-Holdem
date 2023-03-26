@@ -92,6 +92,7 @@ export class UiEntity extends Component {
     private id:number = -1;
 
     private uiBettingChips: UiBettingChips = null;
+    private labelWaitingTimer: Label = null;
 
     callbackProfileOpen: (e: any) => void = null;
     callbackProfileClose: () => void = null;
@@ -264,6 +265,10 @@ export class UiEntity extends Component {
         this.labelChatting = this.node.getChildByPath('EMOTICON/CHATTING/LABEL_CHATTING').getComponent(Label);
         this.labelChatting.string = '';
 
+        this.labelWaitingTimer = this.node.getChildByPath('LABEL_WAITING_TIMER').getComponent(Label);
+        this.labelWaitingTimer.string = '';
+        this.labelWaitingTimer.node.active = false;
+
         let n = this.node.getChildByPath('BETTING_CHIPS');
         if ( n != null ) {
             this.uiBettingChips = n.getComponent(UiBettingChips);
@@ -304,8 +309,8 @@ export class UiEntity extends Component {
             this.spriteAvatar.node.active = true;
         });
 
-        this.setNickname(entity.nickname);
-        this.setUiChips(entity.chips);
+        this.setNickname( entity.nickname );
+        this.setUiChips( entity.chips );
 
         this.nodeNameTag.active = true;
 
@@ -627,6 +632,7 @@ export class UiEntity extends Component {
         this.spriteTimer.node.active = false;
         this.timerDeltaTime = 0;
 
+        this.labelWaitingTimer.node.active = false;
         AudioController.instance.stopTimeLimitForSec();
     }
 
@@ -714,6 +720,18 @@ export class UiEntity extends Component {
         if( this.isMe == true && 4 >= this.timerDeltaTime && this.playTimeLimitSound ){
             this.playTimeLimitSound = false;
             AudioController.instance.playTimeLimitForSec();
+        }
+
+        if ( this.timerDeltaTime < 10 ) {
+            if ( this.timerDeltaTime <= 5 ) {
+                this.labelWaitingTimer.color = Color.RED;
+
+            } else {
+                this.labelWaitingTimer.color = Color.YELLOW;
+            }
+
+            this.labelWaitingTimer.string = Math.floor( this.timerDeltaTime ).toString();
+            this.labelWaitingTimer.node.active = true;
         }
 
         this.spriteTimer.fillRange = this.timerDeltaTime / this.turnDuration;

@@ -25,7 +25,7 @@ export class UiLogin extends Component {
         this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
         this.buttonJoin.node.on('click', this.onClickJoin.bind( this ), this );
         this.buttonExit.node.on('click', ()=>{
-            console.log('EXIT');
+
             LoginSystemPopup.instance.showPopUpYesOrNo('종료', '게임을 종료하시겠습니까?', ()=>{
                 director.end();
                 game.end();
@@ -97,7 +97,6 @@ export class UiLogin extends Component {
 
 		NetworkManager.Instance().reqLOGIN_HOLDEM( uid, pass ,(res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
-                console.log(res);
 
                 let id: number = res.obj.id;
                 this.onLoadInitialData( id );
@@ -145,7 +144,6 @@ export class UiLogin extends Component {
     }
 
     private onLoadInitialData( id: number ) {
-        console.log(id);
         NetworkManager.Instance().reqLOAD_INITIAL_DATA(id, (res)=>{
 
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {

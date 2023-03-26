@@ -153,7 +153,6 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result );
-		console.log(obj);
 
 		if(null == obj){
 			onFail("JSON_PARSE_ERROR");

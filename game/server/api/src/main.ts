@@ -91,7 +91,6 @@ export class HoldemApiServer {
 
 exitHook(() => {
     console.log("server is Closing");
-    // appObject.onClose();
     console.error("OnExit");
   });
 

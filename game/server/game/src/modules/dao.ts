@@ -96,11 +96,6 @@ dao.updateAccountPending = function ( data: any, cb: any ) {
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
 	let args = [data["pendingSessionId"], data["pendingSessionTimestamp"], now, data["id"]];
 
-	console.log(data["pendingSessionId"]);
-	console.log(data["pendingSessionTimestamp"]);
-	console.log(now);
-	console.log(data["id"]);
-
 	_client.query(sql, args, (err: any, res: any)=> {
 		if (err !== null) {
 			cb(err, null);
@@ -115,9 +110,9 @@ dao.updateAccountPending = function ( data: any, cb: any ) {
 };
 
 dao.updateTableID = function ( data: any, cb: any ){
-	let sql = 'UPDATE USERS SET ROOMID = ?, UPDATEDATE = ? WHERE ID = ?';
+	let sql = 'UPDATE USERS SET TABLEID = ?, UPDATEDATE = ? WHERE ID = ?';
 	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
-	let args = [data['roomID'], now, data['id']];
+	let args = [data['tableID'], now, data['id']];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (err !== null) {

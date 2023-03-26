@@ -732,8 +732,6 @@ export class UiTable extends Component {
 		this.clearUiPot();
 		this.clearUiTimer();
 
-		// this.uiSeats.
-
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
 		this.isAllIn = false;

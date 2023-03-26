@@ -137,9 +137,6 @@ export class UiLobby extends Component {
 
             } else {
                 NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
-
-                    console.log(res);
-
                     Board.isPublic = true;
                     Board.id = res.info.id;
 
@@ -148,13 +145,11 @@ export class UiLobby extends Component {
                     UiTable.seatMaxFromServer = res.count;
 
                     director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
-                        console.log('Load GameScene');
 
                     }, ()=>{
-                        console.log('Unload LobbyScene');
+
                     })
                 }, ( err )=>{
-                    console.log('err');
 
                 });
             }

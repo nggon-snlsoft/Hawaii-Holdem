@@ -169,23 +169,23 @@ export class UserController {
 
         let _setting = ClientUserData.getClientSettingData(setting);
 
-        // let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
-        // if ( statics == undefined ) {
-        //     console.log('statics == undefined');
-        //     const r: any = await this.createUserStatics( req.app.get('DAO'), id );
+        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
+        if ( statics == undefined ) {
+            console.log('statics == undefined');
+            const r: any = await this.createUserStatics( req.app.get('DAO'), id );
 
-        //     statics = await this.getStaticsByUserID( req.app.get('DAO'), id );
+            statics = await this.getStaticsByUserID( req.app.get('DAO'), id );
 
-        //     if ( setting == undefined ) {
-        //         res.status( 200 ).json({
-        //             code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-        //             msg: 'LOAD_STATICS_ERROR'
-        //         });
-        //         return;
-        //     }
-        // }
+            if ( setting == undefined ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'LOAD_STATICS_ERROR'
+                });
+                return;
+            }
+        }
 
-        // let _statics = ClientUserData.getClientStaticsData(statics);
+        let _statics = ClientUserData.getClientStaticsData(statics);
 
         let conf = gameConf['game'];
 
@@ -194,7 +194,7 @@ export class UserController {
             msg: 'SUCCESS',
             user: _user,
             setting: _setting,
-            // statics: _statics,
+            statics: _statics,
             conf: conf,
         });
     }    
