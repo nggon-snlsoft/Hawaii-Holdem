@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Sprite, Label, Vec3, Color, Tween, SpriteFrame, UITransform, 
-    resources, tween, Quat, bezier, Animation, Button, animation } from 'cc';
+    resources, tween, Quat, bezier, Animation, Button, animation, UIOpacity } from 'cc';
 import { Board } from './Board';
 
 import { CommonUtil } from './CommonUtil';
@@ -21,6 +21,8 @@ export class UiEntity extends Component {
     private labelSitOut: Label = null;
     public spriteHandCards: Sprite[] = [ null, null ];
     public spriteHandCardShadow: Sprite = null;
+
+    private rootHiddenCard: Node = null;
     public spriteHiddenCards: Sprite[] = [ null, null ];
     public vectorHiddenCards: Vec3[] = [ null, null ];
 
@@ -93,6 +95,9 @@ export class UiEntity extends Component {
 
     private uiBettingChips: UiBettingChips = null;
     private labelWaitingTimer: Label = null;
+    private rootCardDeck: Node = null;
+    private rootPotChips: Node = null;
+    private vecPotChips: Vec3 = null;
 
     callbackProfileOpen: (e: any) => void = null;
     callbackProfileClose: () => void = null;
@@ -132,14 +137,23 @@ export class UiEntity extends Component {
         
         this.spriteHandCardShadow = this.node.getChildByPath('SPRITE_HANDCARD_03').getComponent(Sprite);
         this.spriteHandCardShadow.node.active = false;
-        
+
+        this.rootHiddenCard = this.node.getChildByPath('HIDDEN_CARD');
+        if ( this.rootHiddenCard != null ) {
+            this.rootHiddenCard.active = false;
+        }
+
         this.spriteHiddenCards[0] = this.node.getChildByPath('HIDDEN_CARD/CARD_01').getComponent(Sprite);
-        this.vectorHiddenCards[0] = new Vec3(this.spriteHiddenCards[0].node.position);     
-        this.spriteHiddenCards[0].node.active = false;
-           
+        if ( this.spriteHiddenCards[0] != null ) {
+            this.vectorHiddenCards[0] = new Vec3(this.spriteHiddenCards[0].node.position);
+            this.spriteHiddenCards[0].node.active = false;            
+        }
+
         this.spriteHiddenCards[1] = this.node.getChildByPath('HIDDEN_CARD/CARD_02').getComponent(Sprite);
-        this.vectorHiddenCards[1] = new Vec3(this.spriteHiddenCards[1].node.position);
-        this.spriteHiddenCards[1].node.active = false;
+        if ( this.spriteHiddenCards[1] != null ) {
+            this.vectorHiddenCards[1] = new Vec3(this.spriteHiddenCards[1].node.position);
+            this.spriteHiddenCards[1].node.active = false;            
+        }
 
         this.nodeHandRankBackground = this.node.getChildByPath('SPRITE_HAND_RANK');
         this.nodeHandRankBackground.active = false;
@@ -279,12 +293,17 @@ export class UiEntity extends Component {
 
         this.isPlaying = false;
         this.node.active = false;
+
+        this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
+    }
+
+    setPotChips( target: Node ) {
+        if ( target != null ) {
+            this.uiBettingChips.setPotChips(target);
+        }
     }
 
     onClickAvatar( button: Button ) {
-
-        this.uiBettingChips.show(75300, null );
-
         // Board.table.openUserProfile( this.id );
     }
 
@@ -378,6 +397,19 @@ export class UiEntity extends Component {
         }
 
         this.setUiPlay(); 
+    }
+
+    public setShowHiddenCard( show: boolean ) {
+        this.spriteHiddenCards[0].node.active = show;
+        this.spriteHiddenCards[1].node.active = show;
+        
+        this.rootHiddenCard.active = show;
+    }
+
+    public setChipsMoveToPot() {
+        if ( this.uiBettingChips != null ) {
+            this.uiBettingChips.moveChipsToPot();
+        }
     }
 
     setEscapee() {
@@ -645,6 +677,43 @@ export class UiEntity extends Component {
         this.spriteSelected.node.active = false;
         this.timerDeltaTime = 0;
         this.actionFold.node.active = true;
+
+    }
+
+    public setUiFoldCardAnimation() {
+
+        let from: Node = this.rootHiddenCard;
+        let to: Node = this.rootCardDeck;
+
+        let original:Vec3 = new Vec3(from.position);
+
+        let op: UIOpacity = from.getComponent(UIOpacity);
+        if ( op != null ) {
+            op.opacity = 255;
+        }
+        
+        let duration = 0.2;
+        let tw = tween( from )
+        .set ({
+            position: from.position,
+
+        }).to ( duration, {
+            position: to.position,
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+                let o = 255 - 255 * ratio;
+                op.opacity = o;
+            },
+        });
+
+        tw.call( ()=>{
+            from.active = false;
+            from.position = new Vec3(original);
+
+            op.opacity = 255;
+        } );
+        tw.start();
     }
 
     setUiAllIn() {
@@ -952,6 +1021,87 @@ export class UiEntity extends Component {
 
     }
 
+    prepareCardDispense() {
+        this.rootHiddenCard.active = true;
+        this.spriteHiddenCards[0].node.active = false;
+        this.spriteHiddenCards[1].node.active = false;
+    }
+
+    moveDeckToHiddenCard( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
+        let target = this.spriteHiddenCards[card].node;
+
+        let from = new Vec3(this.rootCardDeck.position);
+        let to = new Vec3(this.spriteHiddenCards[card].node.position);
+
+        target.active = false;
+
+        if ( from == null || to == null ) {
+            return;
+        }
+
+        AudioController.instance.playCardDispensing();                
+        
+        let tw = tween( target )
+        .delay(delay)
+        .set ({
+            position: from,
+            active: true,
+
+        }).to ( duration, {
+            position: to,
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+
+            },
+        });
+
+        tw.call( ()=>{
+            if (cb != null ) {
+                cb( index );
+            }
+        } );
+        tw.start();
+    }
+
+    showPlayerCard() {
+        this.hiddenCardFadeOut( this.spriteHiddenCards[0].node, 0.5, 1.0 );
+        this.hiddenCardFadeOut( this.spriteHiddenCards[1].node, 0.5, 1.0 );
+    }
+
+    hiddenCardFadeOut( target: Node, duration: number, delay: number ) {
+        if ( target == null ) {
+            return;
+        }
+
+        let sprite: Sprite = target.getComponent(Sprite);
+        sprite.color = new Color( 255, 255, 255, 255);
+        
+        let tw = tween( target )
+        .delay(delay)
+        .set ({
+
+        }).to ( duration, {
+
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+                let a = 255 - ratio * 255;
+                sprite.color = new Color(255, 255, 255, a);
+            },
+        });
+
+        tw.call( ()=>{
+            target.active = false;
+            sprite.color = new Color( 255, 255, 255, 255);
+
+            // if (cb != null ) {
+            //     cb( index );
+            // }
+        } );
+        tw.start();
+    }
+
     easeOutBack(x: number ): number {
         const c1 = 1.70158;
         const c3 = c1 + 1;
@@ -962,6 +1112,7 @@ export class UiEntity extends Component {
     easeOutQuad( x: number ): number {
         return 1 - (1 - x) * (1 - x);
     }
+
 }
 
 

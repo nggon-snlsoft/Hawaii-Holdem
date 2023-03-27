@@ -62,11 +62,7 @@ export class UiTable extends Component {
     private nodeCardDispensingRoot: Node = null;
 
     private timerRoot: Node = null;
-    private labelRemainTime: Label = null;
     private labelReadyMessage: Label = null;
-    private datePassEnd: Date = null;
-    private startTime: number = 0;
-    private deltaTime: number = 0;
 
     private objPotMoveToWinnerChips: {} = {};
     private objPotReturnChips: {} = {};
@@ -76,7 +72,6 @@ export class UiTable extends Component {
 
     private curPotValue: number = -1;
     private myChips: number = -1;
-    private myBet: number = -1;
     private mySeat: number = -1;
     private myWaitStatus: boolean = false;
 
@@ -108,6 +103,10 @@ export class UiTable extends Component {
     static preLoadChipRes: {} = {};	
 
 	private isSitOutReservation: boolean = false;
+	private labelCurrentPot: Label = null;
+	private labelPotTitle: Label = null;
+
+	private rootPotChips: Node = null;
 
 	onClickShowEmoticon(button: Button) {
 		this.uiGameChatting.show();
@@ -205,9 +204,12 @@ export class UiTable extends Component {
 			this.entityUiElements.push( elem );
 		}
 
+		this.rootPotChips = this.node.getChildByPath('NODE_BETTING_CHIPS');
+
 		for ( let i = 1; i < this.entityUiElements.length; i++ ) {
 			let entity = this.entityUiElements[i];
 			if (entity != null) {
+				entity.setPotChips( this.rootPotChips );
 				entity.setEscapee();
 			}
 		}
@@ -313,10 +315,14 @@ export class UiTable extends Component {
 		this.buttonSitBack.node.on('click', this.onClickSitBack.bind(this));
 		this.buttonSitBack.node.active = false;
 
-		// this.btnHistory.node.off("click");
-		// this.btnHistory.node.on("click", this.onClickHistory.bind(this), this);
-
 		this.nodeCardShuffleMessage.active = false;
+
+		this.labelCurrentPot = this.node.getChildByPath('LABEL_CURRENT_POT').getComponent(Label);
+		this.labelCurrentPot.string = '0';
+		this.labelCurrentPot.node.active = false;
+
+		this.labelPotTitle = this.node.getChildByPath('LABEL_POT_TITLE').getComponent(Label);
+		this.labelPotTitle.node.active = false;
     }
 
     private onClickSeatSelect(no: number)
@@ -416,10 +422,13 @@ export class UiTable extends Component {
 		room.onMessage( "PREPARE_ROUND", this.onPREPARE_ROUND.bind( this ) );        
         room.onMessage( "CARD_DISPENSING", this.onCARD_DISPENSING.bind( this ) );
 		room.onMessage( "BLIND_BET", this.onBLIND_BET.bind( this ) );
+		room.onMessage( "PRE_FLOP_END", this.onPRE_FLOP_END.bind( this ) );
+
 		room.onMessage( "SHOW_FLOP", this.onSHOW_FLOP.bind( this ) );
 		room.onMessage( "SHOW_TURN", this.onSHOW_TURN.bind( this ) );
 		room.onMessage( "SHOW_RIVER", this.onSHOW_RIVER.bind( this ) );
-		room.onMessage( "CLEAR_ROUND", this.onCLEAR_ROUND.bind( this ) );		        
+		room.onMessage( "CLEAR_ROUND", this.onCLEAR_ROUND.bind( this ) );
+		
         
         //PLAYER ACTION
 		room.onMessage( "YOUR_TURN", this.onYOUR_TURN.bind( this ) );
@@ -551,7 +560,6 @@ export class UiTable extends Component {
 		}
 
 		this.buttonShowCard.node.active = false;
-		this.clearUiTimer();
 		let players: any = msg[ "entities" ];
 		this.setUiEntities( players );
 		this.countPlayers = players.length;
@@ -599,8 +607,7 @@ export class UiTable extends Component {
 					return;
 				}
 
-				entity.spriteHiddenCards[0].node.active = true;
-				entity.spriteHiddenCards[1].node.active = true;
+				entity.setShowHiddenCard( true );
 			});
 		}
 
@@ -650,8 +657,6 @@ export class UiTable extends Component {
             this.seatPlayers.push( seat % this.seatMax );
         }
 
-		this.clearUiTimer();
-
         let players: any = msg["entities"];
         this.setUiEntities( players );
         this.countPlayers = players.length;
@@ -688,9 +693,7 @@ export class UiTable extends Component {
 					return;
 				}
 
-				entity.spriteHiddenCards[0].node.active = true;
-				entity.spriteHiddenCards[1].node.active = true;
-
+				entity.setShowHiddenCard( true );
 				if(element.fold === false){
 					return;
 				}
@@ -716,9 +719,9 @@ export class UiTable extends Component {
 		}
 
 		if ( msg['gameState'] == 0 ) {
-			this.uiPot.maxPotLabelRoot.active = false;
+			this.uiPot.maxPotRoot.active = false;
 		} else {
-			this.uiPot.maxPotLabelRoot.active = true;
+			this.uiPot.maxPotRoot.active = true;
 		}
 
 		this.uiPlayerAction.init(Board.small, Board.big);
@@ -730,7 +733,6 @@ export class UiTable extends Component {
 
 		this.clearUiCommunityCards();
 		this.clearUiPot();
-		this.clearUiTimer();
 
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
@@ -774,15 +776,9 @@ export class UiTable extends Component {
 
     private clearUiPot() {
 		this.spritePotRoot.node.active = false;
-		// this.spritePotChips.node.active = false;
+		this.labelPotTitle.node.active = false;
+		this.labelCurrentPot.node.active = false;
 		this.uiPot.Hide();
-    }
-
-    private clearUiTimer() {
-		// this.labelRemainTime.string = "00:00";
-		this.datePassEnd = null;
-		this.startTime = 0;
-		this.deltaTime = 0;
     }
 
     private clearPosSymbol() {
@@ -884,8 +880,7 @@ export class UiTable extends Component {
 		} );
 
 		let rs = array.join();
-		console.log('getHandsEval');
-		console.log(rs);
+
 		let handRank = globalThis.lib[ "Hand" ].solve( rs.split( "," ) );
 
 		return handRank;
@@ -932,8 +927,8 @@ export class UiTable extends Component {
 
 		this.myPrimaryCardIndex = msg[ "primaryCard" ];
 		this.mySecondaryCardIndex = msg[ "secondaryCard" ];
-		
-		this.setAniCardDispensing();
+
+		this.startCardDispensing();
     }
 
     private onYOUR_TURN( msg ) {
@@ -1134,13 +1129,17 @@ export class UiTable extends Component {
 		}
 
 		this.curPotValue = msg[ "pot" ];
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
+		this.labelCurrentPot.node.active = true;
+
+		this.labelPotTitle.node.active = true;
 		this.uiPot.UpdatePotTotal(this.curPotValue);
     }
 
     private onSUSPEND_ROUND( msg ) {
-		this.roundState = "SUSPEND_ROUND";
-		console.log(this.roundState);
+		console.log('onSUSPEND_ROUND');
 
+		this.roundState = "SUSPEND_ROUND";
 		this.labelReadyMessage.node.active = false;
 
 		let entities = msg[ "entities" ];
@@ -1156,6 +1155,8 @@ export class UiTable extends Component {
 		this.nodeCardShuffleMessage.active = false;
 
 		this.uiPot.Hide();
+		this.labelCurrentPot.node.active = false;
+		this.labelPotTitle.node.active = false;
 
 		for( let i = 0; i < this.seatPlayers.length; i++ ) {
 			let seat = this.seatPlayers[ i ];
@@ -1181,9 +1182,8 @@ export class UiTable extends Component {
     }
 
     private onREADY_ROUND( msg ) {
+		console.log('onREADY_ROUND');		
 		this.roundState = "READY_ROUND";
-
-		console.log(this.roundState);
 
 		let timeMs = msg[ "timeMS" ] / 1000;
 		let lb:string = "새로운 게임이 " + timeMs + " 초 후에 시작합니다";
@@ -1203,10 +1203,8 @@ export class UiTable extends Component {
     }
 
     private onPREPARE_ROUND( msg ) {
-
+		console.log('onPREPARE_ROUND');
 		this.roundState = "PREPARE_ROUND";
-
-		console.log(this.roundState);
 
 		this.nodeCardShuffleMessage.active = false;
 		this.labelReadyMessage.node.active = false;
@@ -1277,6 +1275,22 @@ export class UiTable extends Component {
 		uiEntity?.setEscapee();
     }
 
+	private onPRE_FLOP_END( msg ) {
+		console.log('onPRE_FLOP_END');
+		let potValue = msg['pot'];
+
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				let uiEntity = this.entityUiElements[i];
+				if ( uiEntity != null ) {
+					uiEntity.setChipsMoveToPot();
+				}
+			}
+		}
+    }
+
     private onSHOW_FLOP( msg ) {
 		this.roundState = "SHOW_FLOP";
 		console.log(this.roundState);
@@ -1284,7 +1298,7 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();
 
 		this.clearUiEntitiesAction();
-		this.setAniChipsMoveToPot( false, msg["dpPot"]);
+		// this.setAniChipsMoveToPot( false, msg["dpPot"]);
 
 		let cards = msg[ "cards" ];
 
@@ -1315,7 +1329,7 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();		
 
 		this.clearUiEntitiesAction();
-		this.setAniChipsMoveToPot( false, msg["dpPot"]);
+		// this.setAniChipsMoveToPot( false, msg["dpPot"]);
 
 		let cards = msg[ "cards" ];
 		this.numberCommunityCards[ 3 ] = cards[ 0 ];
@@ -1419,7 +1433,6 @@ export class UiTable extends Component {
 		console.log('onCLEAR_ROUND');
 
 		this.labelReadyMessage.node.active = false;
-
 		this.nodeCardShuffleMessage.active = false;
 
 		this.uiWinEffect.hide();
@@ -1489,6 +1502,7 @@ export class UiTable extends Component {
 		console.log('onCHECK');
 
 		this.curPotValue = msg[ "pot" ];
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
 		AudioController.instance.playCheck();
@@ -1507,6 +1521,7 @@ export class UiTable extends Component {
 
 		this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );		
 
 		AudioController.instance.playRaise();
 
@@ -1562,12 +1577,14 @@ export class UiTable extends Component {
 
 		uiEntity.spriteHiddenCards[0].color = Color.GRAY;
 		uiEntity.spriteHiddenCards[1].color = Color.GRAY;
+		uiEntity.setUiFoldCardAnimation();
     }
 
     private onCALL ( msg ) {
 		AudioController.instance.playCall();
 
 		this.curPotValue = msg[ "pot" ];
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1600,6 +1617,7 @@ export class UiTable extends Component {
 
 		this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1697,8 +1715,7 @@ export class UiTable extends Component {
 		let handRank = this.getHandRank( primaryCard, secondaryCard, this.numberCommunityCards );
 		uiEntity.setUiHandRank( handRank );
 
-		uiEntity.spriteHiddenCards[ 0 ].node.active = false;
-		uiEntity.spriteHiddenCards[ 1 ].node.active = false;
+		uiEntity.setShowHiddenCard( false );
 
 		AudioController.instance.playShowHands();
     }
@@ -1749,6 +1766,8 @@ export class UiTable extends Component {
 			if( this.mySeat == seat ) {
 				return;
 			}
+
+			//uiEntity.setShowHiddenCard( true );
 
 			this.setAniOpenHand( uiEntity.spriteHandCards[ 0 ], this.cardRes[ primaryCard + 1 ], () => {
 			} );
@@ -1885,11 +1904,14 @@ export class UiTable extends Component {
 			let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
 			stopPos.y -= 30;
 			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 0 ], stopPos, 0.1, () => {
+				uiEntity.spriteHiddenCards[ 0 ].node.active = false;
+
 			} );
 
 			stopPos = new Vec3( uiEntity.vectorHiddenCards[ 1 ] );
 			stopPos.y -= 30;
 			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 1 ], stopPos, 0.1, () => {
+				uiEntity.spriteHiddenCards[ 1 ].node.active = false;				
 			} );
 		} );
     }
@@ -1938,7 +1960,7 @@ export class UiTable extends Component {
 					uiEntity?.setAniWinner(winner.winAmount);
 				}
 
-				this.setAniPotMoveToWinner(this.uiPot.maxPotLabelRoot, winner.seat, i, winner.chips, true , isReturn);
+				this.setAniPotMoveToWinner(this.uiPot.maxPotRoot, winner.seat, i, winner.chips, true , isReturn);
 			}
 			
 			uiPots.forEach(element => {
@@ -2080,9 +2102,66 @@ export class UiTable extends Component {
 				return;
 			}
 	
-			onFinished();			
-
+			onFinished();
     }
+
+	private startCardDispensing() {
+
+		let seats: number[] = [];
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				seats.push(i);
+				let uiEntity = this.entityUiElements[i];
+				if ( uiEntity != null ) {
+					uiEntity.prepareCardDispense();
+				}
+			}
+		}
+
+		this.setHiddenCardAnimation( seats, 0, ()=>{
+			this.setHiddenCardAnimation( seats, 1, ()=>{
+
+				this.showPlayerCards();
+			});
+		});
+	}
+
+	private setHiddenCardAnimation( seats: any, card: number, cb: ()=>void ) {
+		let interval = 0.05;
+		let duration = 0.2;
+
+		for ( let i: number = 0 ; i < seats.length; i++ ) {
+
+			let uiEntity = this.entityUiElements[ seats[i] ];
+
+			if (uiEntity != null ) {
+				uiEntity.moveDeckToHiddenCard( card, i, duration, i * interval, (idx)=>{
+					if ( (seats.length - 1 ) == idx ) {
+						if ( cb != null ) {
+							cb();
+						}
+					}
+				});
+			}
+		}
+	}
+
+	private showPlayerCards() {
+
+		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
+		if ( uiEntity != null ) {
+
+			uiEntity.spriteHandCards[0].spriteFrame = this.cardRes[ this.myPrimaryCardIndex + 1 ];
+			uiEntity.spriteHandCards[1].spriteFrame = this.cardRes[ this.mySecondaryCardIndex + 1];
+			
+			uiEntity.spriteHandCards[0].node.active = true;
+			uiEntity.spriteHandCards[1].node.active = true;
+
+			uiEntity.showPlayerCard();
+		}
+	}
 
     private setAniCardDispensing(): void {
 		let enableIdx = 0;
@@ -2103,7 +2182,6 @@ export class UiTable extends Component {
 
 			enableIdx++;
 			let uiEntity = this.entityUiElements[ i ];
-
 			setTimeout( () => {
 
 				let uiCard = uiEntity.spriteHiddenCards[ 0 ];
@@ -2146,7 +2224,6 @@ export class UiTable extends Component {
 			}, enableIdx * dispensingInterval );
 		}
 
-		// MY_CARD_OPEN
 		setTimeout( () => {
 			if( -1 == this.myPrimaryCardIndex ) {
 				return;
@@ -2158,6 +2235,7 @@ export class UiTable extends Component {
 			}
 
 			AudioController.instance.playHideHiddenCard();
+			uiEntity.setShowHiddenCard( true );
 
 			let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
 			stopPos.y -= 30;
@@ -2201,7 +2279,7 @@ export class UiTable extends Component {
 					position: stopPosition,
 					scale: scale,
 				}, {
-					// easing: 'expoOut',
+
 					onUpdate: ( target: Node, ratio: number ) => {
 						Quat.fromEuler( sprite.node.rotation, 0, 0, euler.z * ratio );
 						let a = 255 * ratio * 3;
@@ -2251,7 +2329,7 @@ export class UiTable extends Component {
     private setAniChipsMoveToPot( isShowAll, pots ) {
 		let aniDuration: number = -1;
 		this.entityUiElements.forEach( element => {
-			aniDuration = element.setAnimationChipsMoveToPot(this.uiPot.maxPotLabelRoot);
+			aniDuration = element.setAnimationChipsMoveToPot(this.uiPot.maxPotRoot);
 		} );
 
 		if( -1 != aniDuration ) {
@@ -2279,7 +2357,7 @@ export class UiTable extends Component {
 					let moveTarget = obj.sprChips[i];
 					let delay = i * 0.05;
 	
-					let fromNode = null === startNode || undefined === startNode ? this.uiPot.maxPotLabelRoot : startNode;
+					let fromNode = null === startNode || undefined === startNode ? this.uiPot.maxPotRoot : startNode;
 	
 					let pos = fromNode.parent.getComponent(UITransform).convertToWorldSpaceAR(fromNode.position);
 					pos = moveTarget.node.parent.getComponent(UITransform).convertToNodeSpaceAR(pos);
@@ -2313,7 +2391,7 @@ export class UiTable extends Component {
 			}
 	
 			let bezierPathNodes: Node[] = [];
-			bezierPathNodes.push( null=== startNode || undefined === startNode ? this.uiPot.maxPotLabelRoot : startNode);
+			bezierPathNodes.push( null=== startNode || undefined === startNode ? this.uiPot.maxPotRoot : startNode);
 	
 			uiEntity.bezierPoints.forEach(elem => bezierPathNodes.push(elem));
 	

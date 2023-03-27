@@ -20,9 +20,9 @@ export class UiPot extends Component {
     @property(Label) public labelPotCount : Label = null;
     @property(Label) public labelPotInfo : Label = null;
 
-    @property(Node) public maxPotLabelRoot : Node = null;
+    @property(Node) public maxPotRoot : Node = null;
     @property(Node) public potCountRoot : Node = null;
-    @property(Node) public potInfoRoot : Node = null;    
+    @property(Node) public potInfoRoot : Node = null;
 
     @property(Pot) private potUi : Pot[] = [];
 
@@ -127,7 +127,7 @@ export class UiPot extends Component {
     public UpdatePotTotal(totalValue : number){
         this.labelMaxPot.node.active = true;
         this.labelMaxPot.string = CommonUtil.getKoreanNumber(totalValue);
-        this.maxPotLabelRoot.active = true;
+        // this.maxPotRoot.active = true;
     }
 
     public GetPots() : Pot[]{
@@ -157,7 +157,7 @@ export class UiPot extends Component {
         this.ClearPotCount();
 
         this.svPots = null;
-        this.maxPotLabelRoot.active = false;
+        this.maxPotRoot.active = false;
         this.labelMaxPot.node.active = false;
         this.labelMaxPot.string =  "0";//totalValue.toLocaleString().split( "." )[ 0 ];
     }

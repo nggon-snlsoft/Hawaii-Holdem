@@ -105,7 +105,7 @@ export class UiBettingControl extends Component {
         this.sliderBetting.progress = result / this.valueRange;
 
         this.displayValue = result;
-        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );        
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );
 
         // switch ( this.type) {
         //     case ENUM_BETTING_TYPE.None:

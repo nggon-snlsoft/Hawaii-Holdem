@@ -337,11 +337,6 @@ export class HoldemRoom extends Room<RoomState> {
 		this.UpdateSeatInfo();
 	}
 
-	public getPlayer() {
-
-	}
-
-
 	OnSelectSeat(client : Client, msg : any){
 		// selected : number
 		let auth = this._buyInWaiting[client.sessionId];
@@ -1421,10 +1416,6 @@ export class HoldemRoom extends Room<RoomState> {
 		this.UpdateSeatInfo();
 	}
 
-	updateEntityPass() {
-		return;
-	}
-
 	updatePlayerEligible() {
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
@@ -1665,7 +1656,6 @@ export class HoldemRoom extends Room<RoomState> {
 			case eGameState.Prepare: // reset room, set dealer pos, card shuffle, pick community cards
 				logger.info( "[ changeState ] PREPARE" );
 
-				//Check Sit out Player
 				this.potCalc.Clear();
 				this.prepareRound();
 				this.cardDispensing();
@@ -1677,7 +1667,6 @@ export class HoldemRoom extends Room<RoomState> {
 				this.centerCardState = eCommunityCardStep.PRE_FLOP;
 				this.potCalc.UpdateCenterCard(this.centerCardState);
 
-				// this.cardDispensing();
 				this.blindBet();
 
 				this.bufferTimerID = setTimeout( () => {
@@ -1692,13 +1681,10 @@ export class HoldemRoom extends Room<RoomState> {
 					this.bufferTimerID = null;
 				}
 
-				// pre-flop 상태에서는 maxBet, entity`s currBet 을 초기화 하면 안 된다.
 				if( eCommunityCardStep.PRE_FLOP !== this.centerCardState ) {
 					this.setTurnBet();
 				}
 
-				// 베팅은 SB 부터 시작 된다. 단, pre-flop bet 은 bb + 1 부터 시작 된다.
-				// broadTurn 에서 betSeat 를 +1 해서 찾기때문에,,,
 				if( eCommunityCardStep.PRE_FLOP === this.centerCardState ) {
 					this.betSeat = this.state.bbSeat;
 					this.endSeat = this.state.bbSeat;
@@ -1710,7 +1696,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.broadTurn();
 				this.updateEndSeat( this.betSeat, false );
-				// logger.info( "[ changeState ] BET. START SEAT : %s // END SEAT : %s", this.betSeat, this.endSeat );
 				break;
 
 			case eGameState.Flop:
@@ -1800,7 +1785,6 @@ export class HoldemRoom extends Room<RoomState> {
 					msg: "CLEAR_ROUND", timeMS: this.conf[ "clearTerm" ] * 1000, entities: this.state.entities
 				} );
 
-				this.updateEntityPass();
 				this.UpdateSeatInfo();
 				break;
 		}
@@ -1811,11 +1795,18 @@ export class HoldemRoom extends Room<RoomState> {
 	changeCenterCardState() {
 		switch( this.centerCardState ) {
 			case eCommunityCardStep.PRE_FLOP: // 0
-				logger.info( "[ changeCenterCardState ] Card state from [ PRE_FLOP ] to [ FLOP ]" );
-				this.centerCardState = eCommunityCardStep.FLOP;
-				this.potCalc.UpdateCenterCard(this.centerCardState);
-				this.potCalc.CalculatePot();
-				this.changeState( eGameState.Flop );
+				this.broadcast( "PRE_FLOP_END", {
+					msg: "PRE_FLOP_END",
+					pot: this.state.pot,					
+				} );
+
+				this.bufferTimerID = setTimeout( () => {
+					this.centerCardState = eCommunityCardStep.FLOP;
+					this.potCalc.UpdateCenterCard(this.centerCardState);
+					this.potCalc.CalculatePot();					
+					this.changeState( eGameState.Flop );
+				}, 1000 );
+
 				break;
 			case eCommunityCardStep.FLOP:	// 3
 				logger.info( "[ changeCenterCardState ] Card state from [ FLOP ] to [ TURN ]" );
@@ -2742,9 +2733,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( true === this.isLastTurn( seat ) ) {
-			// logger.info( "[ funcFold ] this is last turn" );
-			// this.changeCenterCardState();
-			// return false;
 
 			if( this.checkCount() <= 1 ) {
 				logger.info( "[ funcFold ] this is last turn" );
@@ -2839,20 +2827,6 @@ export class HoldemRoom extends Room<RoomState> {
 				ent.rake += element.rake;
 			}
 		}
-		// if(pot.rakeInfo != undefined){
-		// 	//Rake Exist
-		// 	//logger.error("pot.RakeInfo Found : " + pot.rakeInfo.length);
-
-		// 	for(let j = 0; j < pot.rakeInfo.length; j++){
-		// 		let rakeInfo = pot.rakeInfo[j];
-
-		// 		if(null == rakeInfo){
-		// 			continue;
-		// 		}
-
-		// 		logger.error(rakeInfo.seat + "  :  " + rakeInfo.rake);
-		// 	}
-		// }
 
 		for(let i = 0; i < pots.length; i++){
 			let pot : any = pots[i];
@@ -2947,7 +2921,6 @@ export class HoldemRoom extends Room<RoomState> {
 				locBetSeat = this.maxClients;// - 1;
 			}
 
-			// logger.info( "[ updateEndSeat ] loc. seat : %s ", locBetSeat );
 			if( locBetSeat === this.betSeat ) {
 				logger.error( "[ updateEndSeat ] what happening?!" );
 				this.changeState(eGameState.ShowDown);
@@ -2960,8 +2933,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 			if( idx > -1 ) {
 				let entity = this.state.entities[ idx ];
-				// logger.info( "[ updateEndSeat ] loc. seat : %s // entity seat : %s", locBetSeat, entity.seat );
-				// logger.info( "[ updateEndSeat ] fold : %s // all-in : %s // wait : %s", entity.fold, entity.allIn, entity.wait );
 				if( false === entity.fold &&
 					0 === entity.allIn &&
 					false === entity.wait ) {
@@ -2969,7 +2940,7 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			}
 			else {
-				// logger.error( "[ updateEndSeat ] why??. seat : %s", locBetSeat );
+
 			}
 		}
 
@@ -2978,8 +2949,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	isLastTurn( seat: number ) {
-		// logger.info( "[ isLastTurn ] is %s. curr turn : %s // end turn : %s.", seat === this.endSeat,
-		// 	seat, this.endSeat );
 		return seat === this.endSeat;
 	}
 

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, SpriteFrame, Sprite, Color, Tween, tween, easing, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Component, Node, SpriteFrame, Sprite, Color, Tween, tween, easing, UIOpacity, Vec3, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiBettingChips')
@@ -10,6 +10,8 @@ export class UiBettingChips extends Component {
     private value: number = 0;
     private positions: Vec3[] = [];
     private numbers: number[] = [];
+    private rootPotChips: Node = null;
+    private vecPotChips: Vec3 = null;
 
     private cb: ()=>void = null;
 
@@ -32,6 +34,10 @@ export class UiBettingChips extends Component {
         this.node.active = false;
     }
 
+    public setPotChips( pot: Node ) {
+        this.rootPotChips = pot;
+    }
+
     public show( num: number, cb: ()=>void ) {
         this.value = num;
         if ( cb != null ) {
@@ -47,6 +53,16 @@ export class UiBettingChips extends Component {
         }
 
         this.node.active = true;
+    }
+
+    public moveChipsToPot() {
+        let idx: number = 0;
+        for ( let i: number = 0 ; i < this.digits.length; i++ ) {
+            if ( this.digits[i] != null ) {
+                idx++;
+                this.moveToPot(i, this.digits[i], this.rootPotChips, idx * 0.1 );
+            }
+        }
     }
 
     private setNumbers() {
@@ -116,6 +132,48 @@ export class UiBettingChips extends Component {
             onUpdate: ( target: Node, ratio: number )=> {
                 let o = 255 * ratio;
                 op.opacity = o;
+            },
+        });
+
+        tw.call( ()=>{
+            if ( (index + 1) == this.numbers.length ) {
+                if ( this.cb != null ) {
+                    this.cb();
+                }
+            }
+        } );
+        tw.start();
+    }
+
+    private moveToPot( index: number, from: Node, to: Node, delay: number ) {
+        if ( from == null || to == null ) {
+            console.log('null, null??');
+            return;
+        }
+
+        // let op: UIOpacity = from.getComponent(UIOpacity);
+        // if ( op != null ) {
+        //     op.opacity = 0;
+        // }
+        
+        // from.active = true;
+
+        let vecTo = to.parent.getComponent(UITransform).convertToWorldSpaceAR(to.position);
+        vecTo = from.parent.getComponent(UITransform).convertToNodeSpaceAR( vecTo );
+
+        let duration = 0.2;
+        let tw = tween( from )
+        .delay(delay)
+        .set ({
+            position: from.position,
+
+        }).to ( duration, {
+            position: vecTo,
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+                // let o = 255 * ratio;
+                // op.opacity = o;
             },
         });
 
