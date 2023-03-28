@@ -144,11 +144,13 @@ export class UiLobby extends Component {
                     Board.room = room;
                     UiTable.seatMaxFromServer = res.count;
 
-                    director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
+                    this.uiLobbyLoading.show();
 
-                    }, ()=>{
+                    // director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
 
-                    })
+                    // }, ()=>{
+
+                    // })
                 }, ( err )=>{
 
                 });

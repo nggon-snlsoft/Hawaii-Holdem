@@ -297,12 +297,6 @@ export class UiEntity extends Component {
         this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
     }
 
-    setPotChips( target: Node ) {
-        if ( target != null ) {
-            this.uiBettingChips.setPotChips(target);
-        }
-    }
-
     onClickAvatar( button: Button ) {
         // Board.table.openUserProfile( this.id );
     }
@@ -406,9 +400,13 @@ export class UiEntity extends Component {
         this.rootHiddenCard.active = show;
     }
 
-    public setChipsMoveToPot() {
+    public setChipsMoveToPot(index: number, pot: Node, cb: (idx: number)=>void) {
         if ( this.uiBettingChips != null ) {
-            this.uiBettingChips.moveChipsToPot();
+            this.uiBettingChips.moveChipsToPot(pot, ()=>{
+                if (cb != null ) {
+                    cb(index);
+                }
+            });
         }
     }
 

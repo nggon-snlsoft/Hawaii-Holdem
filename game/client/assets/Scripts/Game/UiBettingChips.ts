@@ -1,4 +1,6 @@
 import { _decorator, Component, Node, SpriteFrame, Sprite, Color, Tween, tween, easing, UIOpacity, Vec3, UITransform } from 'cc';
+import { Board } from '../Board';
+import { UiTable } from '../UiTable';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiBettingChips')
@@ -9,7 +11,7 @@ export class UiBettingChips extends Component {
     private sprites: any[] = [];
     private value: number = 0;
     private positions: Vec3[] = [];
-    private numbers: number[] = [];
+    private numbers: any[] = [];
     private rootPotChips: Node = null;
     private vecPotChips: Vec3 = null;
 
@@ -34,10 +36,6 @@ export class UiBettingChips extends Component {
         this.node.active = false;
     }
 
-    public setPotChips( pot: Node ) {
-        this.rootPotChips = pot;
-    }
-
     public show( num: number, cb: ()=>void ) {
         this.value = num;
         if ( cb != null ) {
@@ -55,12 +53,14 @@ export class UiBettingChips extends Component {
         this.node.active = true;
     }
 
-    public moveChipsToPot() {
+    public moveChipsToPot( to: Node, cb:()=>void ) {
         let idx: number = 0;
         for ( let i: number = 0 ; i < this.digits.length; i++ ) {
             if ( this.digits[i] != null ) {
                 idx++;
-                this.moveToPot(i, this.digits[i], this.rootPotChips, idx * 0.1 );
+                this.moveToPot(i, this.digits[i], to, idx * 0.1, ()=>{
+                    cb();
+                });
             }
         }
     }
@@ -71,7 +71,10 @@ export class UiBettingChips extends Component {
         let cnt: number = 0;
         for ( let i = 0 ; i < s.length; i ++ ) {
             let n: number = parseInt( s[i] );
-            this.numbers.push( n );
+            this.numbers.push( {
+                number: n,
+                digit: s.length - i,
+            } );
             cnt++;
             if ( cnt >= this.digits.length ) {
                 break;
@@ -84,7 +87,8 @@ export class UiBettingChips extends Component {
 
             let s: any = this.sprites[i];
             for ( let j: number = 0 ; j < 9; j++ ) {
-                if ( j < this.numbers[i] ) {
+                s[j].spriteFrame = Board.table.getChipImage( this.numbers[i].digit );
+                if ( j < this.numbers[i].number ) {
                     s[j].node.active = true;
                 } else {
                     s[j].node.active = false;
@@ -145,18 +149,7 @@ export class UiBettingChips extends Component {
         tw.start();
     }
 
-    private moveToPot( index: number, from: Node, to: Node, delay: number ) {
-        if ( from == null || to == null ) {
-            console.log('null, null??');
-            return;
-        }
-
-        // let op: UIOpacity = from.getComponent(UIOpacity);
-        // if ( op != null ) {
-        //     op.opacity = 0;
-        // }
-        
-        // from.active = true;
+    private moveToPot( index: number, from: Node, to: Node, delay: number, cb:()=>void ) {
 
         let vecTo = to.parent.getComponent(UITransform).convertToWorldSpaceAR(to.position);
         vecTo = from.parent.getComponent(UITransform).convertToNodeSpaceAR( vecTo );
@@ -178,14 +171,13 @@ export class UiBettingChips extends Component {
         });
 
         tw.call( ()=>{
-            console.log('move');
             if ( (index + 1) == this.numbers.length ) {
-                if ( this.cb != null ) {
-                    console.log('move complete');
-                    this.cb();
+                if ( cb != null ) {
+                    cb();
                 }
             }
         } );
+
         tw.start();
     }
 

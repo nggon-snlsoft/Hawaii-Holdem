@@ -24981,7 +24981,7 @@
         "__id__": 676
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 679
@@ -25108,13 +25108,13 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 156,
+      "g": 156,
+      "b": 156,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "29567331-a85e-4076-8bb1-a58dfc96fe6b@f9941",
+      "__uuid__": "771672cb-46c4-495e-8560-3e06ea99adbb@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -25184,7 +25184,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -601.457,
       "z": 0
     },
     "_lrot": {
@@ -25221,8 +25221,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 546.42,
-      "height": 126
+      "width": 301.04,
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -25253,14 +25253,14 @@
     "_string": "NOW LOADING...",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 70,
-    "_fontSize": 70,
+    "_actualFontSize": 40,
+    "_fontSize": 40,
     "_fontFamily": "Arial",
-    "_lineHeight": 100,
+    "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "cce79119-752c-47fe-b020-ecf6521d9456",
+      "__uuid__": "df47c1b7-1cd1-4a6c-b894-fdb84dc01285",
       "__expectedType__": "cc.TTFFont"
     },
     "_isSystemFontUsed": false,
@@ -33293,7 +33293,8 @@
     "lightProbeInfo": {
       "__id__": 908
     },
-    "bakedWithStationaryMainLight": false
+    "bakedWithStationaryMainLight": false,
+    "bakedWithHighpLightmap": false
   },
   {
     "__type__": "cc.AmbientInfo",

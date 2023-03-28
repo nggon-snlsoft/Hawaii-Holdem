@@ -146,6 +146,7 @@ export class UiTable extends Component {
 
         Board.table = this;
         this.cardRes = UiTable.preLoadCardRes;
+		this.chipRes = UiTable.preLoadChipRes;
         
         this.childRegistered();
 
@@ -198,6 +199,7 @@ export class UiTable extends Component {
 
 		playerMe.isMe = true;
 		this.entityUiElements.push( playerMe );
+
 		for( let i = 1; i < this.seatMax; i++ ) {
 			let elem = this.node.getChildByPath( `${ entitiesRootPath }/ENTITY_${ i }` ).getComponent( UiEntity );
 			elem.isMe = false;
@@ -209,7 +211,6 @@ export class UiTable extends Component {
 		for ( let i = 1; i < this.entityUiElements.length; i++ ) {
 			let entity = this.entityUiElements[i];
 			if (entity != null) {
-				entity.setPotChips( this.rootPotChips );
 				entity.setEscapee();
 			}
 		}
@@ -908,6 +909,10 @@ export class UiTable extends Component {
 		return this.cardRes[ num ];
     }
 
+	public getChipImage( num: number ): SpriteFrame {
+		return this.chipRes[ num ];
+	}
+
     private isEnableSeat( seat: number ): boolean {
 		return null != this.enableSeats.find( elem => elem == seat );
     }
@@ -1279,13 +1284,23 @@ export class UiTable extends Component {
 		console.log('onPRE_FLOP_END');
 		let potValue = msg['pot'];
 
+		let cnt = 0;
+
 		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
 			let seat = this.seatPlayers[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
-				let uiEntity = this.entityUiElements[i];
+				let uiEntity = this.getUiEntityFromSeat(seat);
 				if ( uiEntity != null ) {
-					uiEntity.setChipsMoveToPot();
+					cnt++;
+					uiEntity.setChipsMoveToPot( cnt, this.rootPotChips, ( idx: number )=>{
+						console.log( uiEntity.labelNickname.string + ' bet value is clear!');
+						uiEntity.clearUiBetValue();
+
+						if ( (cnt) == idx) {
+
+						}
+					});
 				}
 			}
 		}
