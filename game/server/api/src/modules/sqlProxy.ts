@@ -61,8 +61,6 @@ export class sqlProxy{
 
     public query(sql : string, args : any, callback : (err : mysql.MysqlError, result : any)=>void){
 
-        console.log("request Query " + sql);
-
         this.databasePool.getConnection((error : mysql.MysqlError, connection : mysql.PoolConnection) => {
             if(error != null){
                 callback(error, null);
@@ -76,8 +74,6 @@ export class sqlProxy{
     }
 
     public async queryAsync(sql : string, args : any, callback : (err : mysql.MysqlError, result : any) => void) : Promise<boolean>{
-
-        console.log("request Query Async" + sql);
 
         let promise = new Promise<boolean>((resolve, reject) => {
             this.databasePool.getConnection((error : mysql.MysqlError, connection : mysql.PoolConnection) => {

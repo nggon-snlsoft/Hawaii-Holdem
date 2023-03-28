@@ -1805,29 +1805,49 @@ export class HoldemRoom extends Room<RoomState> {
 					this.potCalc.UpdateCenterCard(this.centerCardState);
 					this.potCalc.CalculatePot();					
 					this.changeState( eGameState.Flop );
-				}, 1000 );
+				}, 2000 );
 
 				break;
-			case eCommunityCardStep.FLOP:	// 3
-				logger.info( "[ changeCenterCardState ] Card state from [ FLOP ] to [ TURN ]" );
-				this.centerCardState = eCommunityCardStep.TURN;
-				this.potCalc.UpdateCenterCard(this.centerCardState);
-				this.potCalc.CalculatePot();
-				this.changeState( eGameState.Turn );
+			case eCommunityCardStep.FLOP:
+				this.broadcast( "FLOP_END", {
+					msg: "FLOP_END",
+					pot: this.state.pot,					
+				} );
+
+				this.bufferTimerID = setTimeout( () => {
+					this.centerCardState = eCommunityCardStep.TURN;
+					this.potCalc.UpdateCenterCard(this.centerCardState);
+					this.potCalc.CalculatePot();
+					this.changeState( eGameState.Turn );
+				}, 2000 );
+
 				break;
-			case eCommunityCardStep.TURN:	// 4
-				logger.info( "[ changeCenterCardState ] Card state from [ TURN ] to [ RIVER ]" );
-				this.centerCardState = eCommunityCardStep.RIVER;
-				this.potCalc.UpdateCenterCard(this.centerCardState);
-				this.potCalc.CalculatePot();
-				this.changeState( eGameState.River );
+			case eCommunityCardStep.TURN:
+				this.broadcast( "TURN_END", {
+					msg: "TURN_END",
+					pot: this.state.pot,					
+				} );
+
+				this.bufferTimerID = setTimeout( () => {
+					this.centerCardState = eCommunityCardStep.RIVER;
+					this.potCalc.UpdateCenterCard(this.centerCardState);
+					this.potCalc.CalculatePot();
+					this.changeState( eGameState.River );	
+				}, 2000 );
+
 				break;
-			case eCommunityCardStep.RIVER:	// 5
-				logger.info( "[ changeCenterCardState ] Card state from [ RIVER ] to [ SHOWDOWN ]" );
-				this.centerCardState = eCommunityCardStep.SHOWDOWN;
-				this.potCalc.UpdateCenterCard(this.centerCardState);
-				this.potCalc.CalculatePot();
-				this.changeState( eGameState.ShowDown );
+			case eCommunityCardStep.RIVER:
+				this.broadcast( "RIVER_END", {
+					msg: "RIVER_END",
+					pot: this.state.pot,					
+				} );
+
+				this.bufferTimerID = setTimeout( () => {
+					this.centerCardState = eCommunityCardStep.SHOWDOWN;
+					this.potCalc.UpdateCenterCard(this.centerCardState);
+					this.potCalc.CalculatePot();
+					this.changeState( eGameState.ShowDown );
+				}, 2000 );
 				break;
 			default:
 				logger.error( "[ changeCenterCardState ] invalid state : %s", this.centerCardState );
@@ -2286,10 +2306,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 		logger.info( "[ onCall ] player index : %s // send msg : %s", msg[ "seat" ], msg );
 
-		// if( msg[ "betAmount" ] !== this.state.maxBet ) {
-		// 	logger.error( "[ onCall ] HOW??" );
-		// }
-
 		let amount = msg["betAmount"];
 		let e = this.getEntity( msg[ "seat" ] );
 
@@ -2329,8 +2345,6 @@ export class HoldemRoom extends Room<RoomState> {
 		this.elapsedTick = 0;
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onCall ] this is last turn" );
-
 			if( this.checkCount() <= 1 ) {
 				logger.info( "[ onCall ] round finished." );
 				this.bufferTimerID = setTimeout( () => {

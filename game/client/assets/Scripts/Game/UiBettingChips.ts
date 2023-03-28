@@ -12,8 +12,6 @@ export class UiBettingChips extends Component {
     private value: number = 0;
     private positions: Vec3[] = [];
     private numbers: any[] = [];
-    private rootPotChips: Node = null;
-    private vecPotChips: Vec3 = null;
 
     private cb: ()=>void = null;
 
@@ -58,7 +56,8 @@ export class UiBettingChips extends Component {
         for ( let i: number = 0 ; i < this.digits.length; i++ ) {
             if ( this.digits[i] != null ) {
                 idx++;
-                this.moveToPot(i, this.digits[i], to, idx * 0.1, ()=>{
+                this.moveToPot(i, this.digits[i], to, 0.5 + idx * 0.1, ()=>{
+                    this.reset();
                     cb();
                 });
             }

@@ -17,6 +17,7 @@ import { AudioController } from './Game/AudioController';
 import { UiPlayerActionReservation } from './Game/UiPlayerActionReservation';
 import { EMOTICON_TYPE, UiGameChatting } from './Game/UiGameChatting';
 import { UiWinEffect } from './Game/UiWinEffect';
+import { UiPotChips } from './Game/UiPotChips';
 
 const { ccclass, property } = _decorator;
 
@@ -48,6 +49,7 @@ export class UiTable extends Component {
 
 	@property(UiGameChatting) uiGameChatting: UiGameChatting = null;
 	@property(UiWinEffect) uiWinEffect: UiWinEffect = null;	
+	@property(UiPotChips) uiPotChips: UiPotChips = null;
 
     private roundState: string = "";
     private spritePotRoot: Sprite = null;
@@ -156,6 +158,7 @@ export class UiTable extends Component {
 		this.setEmoticonButtinInteractive(true);
 		this.uiPlayerActionReservation.init();
 		this.uiWinEffect.init();
+		this.uiPotChips.init();
 
         if (null == NetworkManager.Instance().room) {
             return;
@@ -206,7 +209,7 @@ export class UiTable extends Component {
 			this.entityUiElements.push( elem );
 		}
 
-		this.rootPotChips = this.node.getChildByPath('NODE_BETTING_CHIPS');
+		this.rootPotChips = this.node.getChildByPath('NODE_POT_CHIPS');
 
 		for ( let i = 1; i < this.entityUiElements.length; i++ ) {
 			let entity = this.entityUiElements[i];
@@ -426,8 +429,13 @@ export class UiTable extends Component {
 		room.onMessage( "PRE_FLOP_END", this.onPRE_FLOP_END.bind( this ) );
 
 		room.onMessage( "SHOW_FLOP", this.onSHOW_FLOP.bind( this ) );
+		room.onMessage( "FLOP_END", this.onFLOP_END.bind( this ) );
+
 		room.onMessage( "SHOW_TURN", this.onSHOW_TURN.bind( this ) );
+		room.onMessage( "TURN_END", this.onTURN_END.bind( this ) );
+
 		room.onMessage( "SHOW_RIVER", this.onSHOW_RIVER.bind( this ) );
+		room.onMessage( "RIVER_END", this.onRIVER_END.bind( this ) );		
 		room.onMessage( "CLEAR_ROUND", this.onCLEAR_ROUND.bind( this ) );
 		
         
@@ -1298,7 +1306,7 @@ export class UiTable extends Component {
 						uiEntity.clearUiBetValue();
 
 						if ( (cnt) == idx) {
-
+							this.uiPotChips.show( potValue );
 						}
 					});
 				}
@@ -1337,6 +1345,32 @@ export class UiTable extends Component {
 		}
     }
 
+	private onFLOP_END( msg ) {
+		console.log('onFLOP_END');
+		let potValue = msg['pot'];
+
+		let cnt = 0;
+
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				let uiEntity = this.getUiEntityFromSeat(seat);
+				if ( uiEntity != null ) {
+					cnt++;
+					uiEntity.setChipsMoveToPot( cnt, this.rootPotChips, ( idx: number )=>{
+						console.log( uiEntity.labelNickname.string + ' bet value is clear!');
+						uiEntity.clearUiBetValue();
+
+						if ( (cnt) == idx) {
+							this.uiPotChips.show( potValue );
+						}
+					});
+				}
+			}
+		}
+    }
+
     private onSHOW_TURN( msg ) {
 		this.roundState = "SHOW_TURN";
 		console.log(this.roundState);		
@@ -1358,6 +1392,32 @@ export class UiTable extends Component {
 			} );
 		}, 1000);
     }
+
+	private onTURN_END( msg ) {
+		console.log('onTURN_END');
+		let potValue = msg['pot'];
+
+		let cnt = 0;
+
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				let uiEntity = this.getUiEntityFromSeat(seat);
+				if ( uiEntity != null ) {
+					cnt++;
+					uiEntity.setChipsMoveToPot( cnt, this.rootPotChips, ( idx: number )=>{
+						console.log( uiEntity.labelNickname.string + ' bet value is clear!');
+						uiEntity.clearUiBetValue();
+
+						if ( (cnt) == idx) {
+							this.uiPotChips.show( potValue );
+						}
+					});
+				}
+			}
+		}
+    }	
 
     private onSHOW_RIVER( msg ) {
 		this.roundState = "SHOW_RIVER";
@@ -1381,6 +1441,32 @@ export class UiTable extends Component {
 			});
 		}, 1000 );
     }
+
+	private onRIVER_END( msg ) {
+		console.log('onRIVER_END');
+		let potValue = msg['pot'];
+
+		let cnt = 0;
+
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				let uiEntity = this.getUiEntityFromSeat(seat);
+				if ( uiEntity != null ) {
+					cnt++;
+					uiEntity.setChipsMoveToPot( cnt, this.rootPotChips, ( idx: number )=>{
+						console.log( uiEntity.labelNickname.string + ' bet value is clear!');
+						uiEntity.clearUiBetValue();
+
+						if ( (cnt) == idx) {
+							this.uiPotChips.show( potValue );
+						}
+					});
+				}
+			}
+		}
+    }		
 
     private async ShowAll (cards: number[], dpPot: any ) {
 
