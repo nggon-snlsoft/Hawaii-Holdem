@@ -5,62 +5,41 @@ import { Board } from './Board';
 import { CommonUtil } from './CommonUtil';
 import { AudioController } from './Game/AudioController';
 import { UiBettingChips } from './Game/UiBettingChips';
+import { UiEntityAvatar } from './Game/UiEntityAvatar';
 import { EMOTICON_CHAT_MESSAGE, EMOTICON_TYPE } from './Game/UiGameChatting';
 import { NetworkManager } from './NetworkManager';
+import { ResourceManager } from './ResourceManager';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('UiEntity')
 export class UiEntity extends Component {
+    private uiEntityAvatar: UiEntityAvatar = null;
 
     private isChildRegistered: boolean = false;
-    private spriteAvatar: Sprite = null;
-    private nodeNameTag: Node = null;
-    public labelNickname: Label = null;
-    private labelChips: Label = null;
-    private labelSitOut: Label = null;
+
+    private rootCards: Node = null;
+
     public spriteHandCards: Sprite[] = [ null, null ];
-    public spriteHandCardShadow: Sprite = null;
+    public spriteHandCardsBackground: Sprite[] = [ null, null ];
 
     private rootHiddenCard: Node = null;
     public spriteHiddenCards: Sprite[] = [ null, null ];
     public vectorHiddenCards: Vec3[] = [ null, null ];
-
-    private spriteSelected: Sprite = null;
-    private spriteTimer: Sprite = null;
-
-    private timerBeginColor: Color = Color.YELLOW;
-    private timerEndColor: Color = Color.RED;
+    
     private timerDeltaTime: number = 0;
     private turnDuration: number = 20;
     private playTimeLimitSound: boolean = false;
 
     private posSymbols: {} = {};
-    private dealable: Sprite = null;
-    private spriteMissSmallBlind: Sprite = null;
-    private spriteMissBigBlind: Sprite = null;
-    private actions: {} = {};
-    private actionFold: Sprite = null;
-    private actionAllIn: Sprite = null;
 
-    private spriteActionValueRoot: Sprite = null;
-    private originalBetChipRootColor: Color = new Color( Color.WHITE );
-    private originalBetChipRootPos: Vec3 = new Vec3( Vec3.ZERO );
-    private spriteBetValueBackground: Sprite = null;
-    private labelBetValue: Label = null;
-    private spriteBetChip: Sprite = null;
-    private spriteMuck: Sprite = null;
-    private originalBetChipPostition: Vec3 = new Vec3( Vec3.ZERO );
-    private spriteBetChipAniGoToPotUi: Sprite = null;
-
+    private rootHandRank: Node = null;
     private labelHandRank: Label = null;
-    private nodeHandRankBackground: Node = null;
+    // private nodeHandRankBackground: Node = null;
 
     public isFold: boolean = false;
     public isMe: boolean = false;
     public isUiSitOut: boolean = false;
-
-    private spriteFoldCover: Node = null;
 
     public bezierPoints: Node[] = [];
 
@@ -81,8 +60,6 @@ export class UiEntity extends Component {
     private winTweens: Tween<Node>[] = [];
     private timeOutNumber: number = -1;
 
-    private chips: number = 0;
-
     private nodeEmoticon: Node = null;
     private spriteEmoticon: Sprite = null;
     private nodeChatting: Node = null;
@@ -94,7 +71,6 @@ export class UiEntity extends Component {
     private id:number = -1;
 
     private uiBettingChips: UiBettingChips = null;
-    private labelWaitingTimer: Label = null;
     private rootCardDeck: Node = null;
     private rootPotChips: Node = null;
     private vecPotChips: Vec3 = null;
@@ -110,156 +86,93 @@ export class UiEntity extends Component {
         }
 
         this.isChildRegistered = true;
-
-        this.nodeNameTag = this.node.getChildByPath('NAME_TAG');
-        this.nodeNameTag.active = false;
-
-        this.labelNickname = this.node.getChildByPath('NAME_TAG/LABEL_NAME').getComponent(Label);
-        this.labelNickname.string = 'EMPTY';
-        this.labelChips = this.node.getChildByPath('NAME_TAG/LABEL_CHIPS').getComponent(Label);
-        this.labelChips.node.active = false;
-        this.labelSitOut = this.node.getChildByPath('NAME_TAG/LABEL_SIT_OUT').getComponent(Label);
-        this.labelSitOut.node.active = false;
-        this.spriteTimer = this.node.getChildByPath('SPRITE_TIMER').getComponent(Sprite);
-        this.spriteTimer.node.active = false;
-        this.spriteSelected = this.node.getChildByPath('SPRITE_SELECTED').getComponent(Sprite);
-        this.spriteSelected.node.active = false;
-        this.spriteAvatar = this.node.getChildByPath('AVATAR/SPRITE/SPRITE_AVATAR').getComponent(Sprite);
-        this.buttonAvatar = this.node.getChildByPath('AVATAR').getComponent(Button);
-        this.buttonAvatar.node.on('click', this.onClickAvatar.bind(this), this );
-        this.spriteAvatar.node.active = false;
-        this.chips = 0;
-
-        this.spriteHandCards[0] = this.node.getChildByPath('SPRITE_HANDCARD_01').getComponent(Sprite);
-        this.spriteHandCards[0].node.active = false;
-        this.spriteHandCards[1] = this.node.getChildByPath('SPRITE_HANDCARD_02').getComponent(Sprite);
-        this.spriteHandCards[1].node.active = false;
-        
-        this.spriteHandCardShadow = this.node.getChildByPath('SPRITE_HANDCARD_03').getComponent(Sprite);
-        this.spriteHandCardShadow.node.active = false;
-
-        this.rootHiddenCard = this.node.getChildByPath('HIDDEN_CARD');
-        if ( this.rootHiddenCard != null ) {
-            this.rootHiddenCard.active = false;
+        this.uiEntityAvatar = this.node.getChildByPath('AVATAR').getComponent(UiEntityAvatar);
+        if ( this.uiEntityAvatar != null ) {
+            this.uiEntityAvatar.init();
         }
 
-        this.spriteHiddenCards[0] = this.node.getChildByPath('HIDDEN_CARD/CARD_01').getComponent(Sprite);
-        if ( this.spriteHiddenCards[0] != null ) {
-            this.vectorHiddenCards[0] = new Vec3(this.spriteHiddenCards[0].node.position);
-            this.spriteHiddenCards[0].node.active = false;            
+        let n = this.node.getChildByPath('BETTING_CHIPS');
+        if ( n != null ) {
+            this.uiBettingChips = n.getComponent(UiBettingChips);
+            if ( this.uiBettingChips != null ) {
+                this.uiBettingChips.init();
+            }
         }
 
-        this.spriteHiddenCards[1] = this.node.getChildByPath('HIDDEN_CARD/CARD_02').getComponent(Sprite);
-        if ( this.spriteHiddenCards[1] != null ) {
-            this.vectorHiddenCards[1] = new Vec3(this.spriteHiddenCards[1].node.position);
-            this.spriteHiddenCards[1].node.active = false;            
+        this.rootCards = this.node.getChildByPath('CARDS');
+        if ( this.rootCards != null ) {
+            this.spriteHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(Sprite);
+            if ( this.spriteHiddenCards[0] != null ) {
+                this.spriteHandCards[0].node.active = false;
+            }
+
+            this.spriteHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(Sprite);
+            if ( this.spriteHiddenCards[1] != null ) {
+                this.spriteHandCards[1].node.active = false;
+            }
+
+            this.spriteHandCardsBackground[0] = this.rootCards.getChildByPath('CARD_0_BACKGROUND').getComponent(Sprite);
+            if ( this.spriteHandCardsBackground[0] != null ) {
+                this.spriteHandCardsBackground[0].node.active = false;
+            }
+
+            this.spriteHandCardsBackground[1] = this.rootCards.getChildByPath('CARD_1_BACKGROUND').getComponent(Sprite);
+            if ( this.spriteHandCardsBackground[1] != null ) {
+                this.spriteHandCardsBackground[1].node.active = false;
+            }
+
+            this.rootHiddenCard = this.rootCards.getChildByPath('HIDDEN_CARD');
+            if ( this.rootHiddenCard != null ) {
+                this.spriteHiddenCards[0] = this.rootHiddenCard.getChildByPath('CARD_0').getComponent(Sprite);
+                if ( this.spriteHiddenCards[0] != null ) {
+                    let sf = ResourceManager.Instance().getCardImage(0);
+                    this.spriteHiddenCards[0].spriteFrame = sf;
+
+                    this.vectorHiddenCards[0] = new Vec3( this.spriteHiddenCards[0].node.position );
+                    this.spriteHiddenCards[0].node.active = false;            
+                }
+
+                this.spriteHiddenCards[1] = this.rootHiddenCard.getChildByPath('CARD_1').getComponent(Sprite);
+                if ( this.spriteHiddenCards[1] != null ) {
+                    let sf = ResourceManager.Instance().getCardImage(0);
+                    this.spriteHiddenCards[0].spriteFrame = sf;
+                    
+                    this.vectorHiddenCards[1] = new Vec3( this.spriteHiddenCards[1].node.position );
+                    this.spriteHiddenCards[1].node.active = false;            
+                }
+                this.rootHiddenCard.active = false;
+            }
+            this.rootCards.active = false;
         }
 
-        this.nodeHandRankBackground = this.node.getChildByPath('SPRITE_HAND_RANK');
-        this.nodeHandRankBackground.active = false;
+        this.rootHandRank = this.node.getChildByPath('HAND_RANK');
+        if ( this.rootHandRank != null ) {
+            this.labelHandRank = this.rootHandRank.getChildByPath('LABEL_HAND_RANK').getComponent(Label);
+            if ( this.labelHandRank != null ) {
+                this.labelHandRank.node.on( Node.EventType.SIZE_CHANGED, ()=>{
+                    let uiTransLB = this.labelHandRank.node.getComponent(UITransform);
+                    let uiTransSpr = this.rootHandRank.getComponent(UITransform);
+                    uiTransSpr.setContentSize(uiTransLB.contentSize.width + 40, uiTransSpr.height);        
+                }, this);
+                this.labelHandRank.node.active = false;
+            }
+            this.rootHandRank.active = false;
+        }
 
-        this.labelHandRank = this.node.getChildByPath('SPRITE_HAND_RANK/LABEL_HAND_RANK').getComponent(Label);
-        this.labelHandRank.node.on(Node.EventType.SIZE_CHANGED, () => {
-            let uiTransLB = this.labelHandRank.node.getComponent(UITransform);
-            let uiTransSpr = this.nodeHandRankBackground.getComponent(UITransform);
-            uiTransSpr.setContentSize(uiTransLB.contentSize.width + 40, uiTransSpr.height);
-        }, this);
-        this.labelHandRank.node.active = false;
-        
-        this.spriteFoldCover = this.node.getChildByPath('AVATAR/SPRITE/SPRITE_FOLD');
-        this.spriteFoldCover.active = false;
-
-        this.actionFold = this.node.getChildByPath('ACTION_FOLD').getComponent(Sprite);
-        this.actionFold.node.active = false;
-        this.actionAllIn = this.node.getChildByPath('ACTION_ALLIN').getComponent(Sprite);
-        this.actionAllIn.node.active = false;
-
-        this.actions['call'] = this.node.getChildByPath('ACTION_CALL').getComponent(Sprite);
-        this.actions['call'].node.active = false;
-        this.actions['check'] = this.node.getChildByPath('ACTION_CHECK').getComponent(Sprite);
-        this.actions['check'].node.active = false;
-        this.actions['bet'] = this.node.getChildByPath('ACTION_BET').getComponent(Sprite);
-        this.actions['bet'].node.active = false;
-        this.actions['raise'] = this.node.getChildByPath('ACTION_RAISE').getComponent(Sprite);
-        this.actions['raise'].node.active = false;
-        
-        this.posSymbols['dealer'] = this.node.getChildByPath('DEALER_BUTTON').getComponent(Sprite);
+        this.posSymbols['dealer'] = this.node.getChildByPath('BUTTONS/DEALER').getComponent(Sprite);
         this.posSymbols['dealer'].node.active = false;
         
-        this.posSymbols['sb'] = this.node.getChildByPath('BLIND_SMALL').getComponent(Sprite);
+        this.posSymbols['sb'] = this.node.getChildByPath('BUTTONS/SB').getComponent(Sprite);
         this.posSymbols['sb'].node.active = false;
         
-        this.posSymbols['bb'] = this.node.getChildByPath('BLIND_BIG').getComponent(Sprite);
+        this.posSymbols['bb'] = this.node.getChildByPath('BUTTONS/BB').getComponent(Sprite);
         this.posSymbols['bb'].node.active = false;
-
-        this.dealable = this.node.getChildByPath('DEALABLE').getComponent(Sprite);
-        this.dealable.node.active = false;
-
-        this.spriteMissSmallBlind = this.node.getChildByPath('BLIND_SMALL_MISS').getComponent(Sprite);
-        this.spriteMissSmallBlind.node.active = false;
-
-        this.spriteMissBigBlind = this.node.getChildByPath('BLIND_BIG_MISS').getComponent(Sprite);
-        this.spriteMissBigBlind.node.active = false;
-
-        this.spriteActionValueRoot = this.node.getChildByPath('SPRITE_ACTION_VALUE').getComponent(Sprite);
-        this.spriteActionValueRoot.node.active = false;
-        
-        this.spriteBetValueBackground = this.node.getChildByPath('SPRITE_ACTION_VALUE').getComponent(Sprite);
-        this.spriteBetValueBackground.node.active = false;
-
-        this.labelBetValue = this.node.getChildByPath('SPRITE_ACTION_VALUE/Label').getComponent(Label);
-        this.labelBetValue.node.active = false;
-
-        this.spriteBetChip = this.node.getChildByPath('SPRITE_ACTION_VALUE/SPRITE_CHIP').getComponent(Sprite);
-        this.spriteBetChip.node.active = false;
-
-        this.spriteMuck = this.node.getChildByPath('SPRITE_MUCK').getComponent(Sprite);
-        this.spriteMuck.node.active = false;
-
-        this.spriteBetChipAniGoToPotUi = this.node.getChildByPath('SPRITE_BET_CHIP_ANI_GOTO_POT').getComponent(Sprite);
-        this.spriteBetChipAniGoToPotUi.node.active = false;
-
-        this.originalBetChipPostition = new Vec3(this.spriteBetChip.node.position);
-
-        this.originalBetChipRootColor = new Color( this.spriteActionValueRoot.color);
-        this.originalBetChipRootPos = new Vec3(this.spriteActionValueRoot.node.position);
 
         this.bezierPoints = [];
         for(let i=0; i<2; i++){
             let point = this.node.getChildByPath(`BEZIER_POINT${i+1}`);
             this.bezierPoints.push(point);
         }
-
-        this.spriteWinAnimation1 = this.node.getChildByPath('SPRITE_WIN_ANI1').getComponent(Sprite);
-        this.spriteWinAnimation1.node.active = true;
-        this.spriteWinAnimation1.color = new Color(255,255,255,1);
-
-        this.spriteWinAnimation2 = this.node.getChildByPath('SPRITE_WIN_ANI2').getComponent(Sprite);
-        this.spriteWinAnimation2.node.active = true;
-        this.spriteWinAnimation2.color = new Color(255,255,255,1);
-
-        this.spriteWinAnimation3 = this.node.getChildByPath('SPRITE_WIN_ANI3').getComponent(Sprite);
-        this.spriteWinAnimation3.node.active = true;
-        this.spriteWinAnimation3.color = new Color(255,255,255,1);
-        this.vectorWinAnimation3 = new Vec3(this.spriteWinAnimation3.node.position);
-
-        this.nodeWinBadge = this.node.getChildByPath('SPRITE_WIN').getComponent(Sprite);
-        this.nodeWinBadge.node.active = false;
-
-        this.labelWinAmount = this.node.getChildByPath('SPRITE_WIN/LABEL_VALUE').getComponent(Label);
-        this.labelWinAmount.node.active = true;
-
-        this.nodeDrawBadge = this.node.getChildByPath('SPRITE_DRAW').getComponent(Sprite);
-        this.nodeDrawBadge.node.active = false;
-
-        this.labelDrawAmount = this.node.getChildByPath('SPRITE_DRAW/LABEL_VALUE').getComponent(Label);
-        this.labelDrawAmount.node.active = true;
-
-        this.nodeReturnBadge = this.node.getChildByPath('SPRITE_RETURN').getComponent(Sprite);
-        this.nodeReturnBadge.node.active = false;
-
-        this.labelReturnAmount = this.node.getChildByPath('SPRITE_RETURN/LABEL_VALUE').getComponent(Label);
-        this.labelReturnAmount.node.active = true;
 
         this.nodeEmoticon = this.node.getChildByPath('EMOTICON');
         this.nodeEmoticon.active = false;
@@ -279,22 +192,57 @@ export class UiEntity extends Component {
         this.labelChatting = this.node.getChildByPath('EMOTICON/CHATTING/LABEL_CHATTING').getComponent(Label);
         this.labelChatting.string = '';
 
-        this.labelWaitingTimer = this.node.getChildByPath('LABEL_WAITING_TIMER').getComponent(Label);
-        this.labelWaitingTimer.string = '';
-        this.labelWaitingTimer.node.active = false;
-
-        let n = this.node.getChildByPath('BETTING_CHIPS');
-        if ( n != null ) {
-            this.uiBettingChips = n.getComponent(UiBettingChips);
-            if ( this.uiBettingChips != null ) {
-                this.uiBettingChips.init();
-            }
-        }
-
         this.isPlaying = false;
         this.node.active = false;
 
         this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
+
+        // this.buttonAvatar = this.node.getChildByPath('AVATAR').getComponent(Button);
+        // this.buttonAvatar.node.on('click', this.onClickAvatar.bind(this), this );
+
+        // this.spriteBetValueBackground = this.node.getChildByPath('SPRITE_ACTION_VALUE').getComponent(Sprite);
+        // this.spriteBetValueBackground.node.active = false;
+
+        // this.labelBetValue = this.node.getChildByPath('SPRITE_ACTION_VALUE/Label').getComponent(Label);
+        // this.labelBetValue.node.active = false;
+
+        // this.spriteBetChip = this.node.getChildByPath('SPRITE_ACTION_VALUE/SPRITE_CHIP').getComponent(Sprite);
+        // this.spriteBetChip.node.active = false;
+
+        // this.spriteBetChipAniGoToPotUi = this.node.getChildByPath('SPRITE_BET_CHIP_ANI_GOTO_POT').getComponent(Sprite);
+        // this.spriteBetChipAniGoToPotUi.node.active = false;
+
+
+        // this.spriteWinAnimation1 = this.node.getChildByPath('SPRITE_WIN_ANI1').getComponent(Sprite);
+        // this.spriteWinAnimation1.node.active = true;
+        // this.spriteWinAnimation1.color = new Color(255,255,255,1);
+
+        // this.spriteWinAnimation2 = this.node.getChildByPath('SPRITE_WIN_ANI2').getComponent(Sprite);
+        // this.spriteWinAnimation2.node.active = true;
+        // this.spriteWinAnimation2.color = new Color(255,255,255,1);
+
+        // this.spriteWinAnimation3 = this.node.getChildByPath('SPRITE_WIN_ANI3').getComponent(Sprite);
+        // this.spriteWinAnimation3.node.active = true;
+        // this.spriteWinAnimation3.color = new Color(255,255,255,1);
+        // this.vectorWinAnimation3 = new Vec3(this.spriteWinAnimation3.node.position);
+
+        // this.nodeWinBadge = this.node.getChildByPath('SPRITE_WIN').getComponent(Sprite);
+        // this.nodeWinBadge.node.active = false;
+
+        // this.labelWinAmount = this.node.getChildByPath('SPRITE_WIN/LABEL_VALUE').getComponent(Label);
+        // this.labelWinAmount.node.active = true;
+
+        // this.nodeDrawBadge = this.node.getChildByPath('SPRITE_DRAW').getComponent(Sprite);
+        // this.nodeDrawBadge.node.active = false;
+
+        // this.labelDrawAmount = this.node.getChildByPath('SPRITE_DRAW/LABEL_VALUE').getComponent(Label);
+        // this.labelDrawAmount.node.active = true;
+
+        // this.nodeReturnBadge = this.node.getChildByPath('SPRITE_RETURN').getComponent(Sprite);
+        // this.nodeReturnBadge.node.active = false;
+
+        // this.labelReturnAmount = this.node.getChildByPath('SPRITE_RETURN/LABEL_VALUE').getComponent(Label);
+        // this.labelReturnAmount.node.active = true;
     }
 
     onClickAvatar( button: Button ) {
@@ -317,25 +265,12 @@ export class UiEntity extends Component {
             this.id = entity.id;
         }
 
-        let s = Number(entity.avatar);
-        CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
-            this.spriteAvatar.node.active = true;
-        });
-
-        this.setNickname( entity.nickname );
-        this.setUiChips( entity.chips );
-
-        this.nodeNameTag.active = true;
-
-        this.endTurn();
+        this.uiEntityAvatar.setAvatar( entity );
+        this.endTurn();        
         this.clearUiAction();
-        this.clearUiBetValue();
-    
+        this.clearUiBetValue();    
         this.clearUiHandCards();
         this.clearUiHandRank();
-        this.clearMissButton();
-
-        this.clearUiMuck();
 
         this.isPlaying = true;
 
@@ -347,7 +282,7 @@ export class UiEntity extends Component {
             return;
         }
         else {
-            this.spriteFoldCover.active = false;            
+            this.uiEntityAvatar.setUiFold( false );
         }
 
         if( true == entity.wait ){
@@ -355,7 +290,7 @@ export class UiEntity extends Component {
             return;
         }
         else {
-            this.spriteFoldCover.active = false;                        
+            this.uiEntityAvatar.setUiFold( false );
         }
 
         this.setUiPlay();
@@ -373,8 +308,7 @@ export class UiEntity extends Component {
         this.setUiChips(entity.chips);
 
         this.isFold = false;
-        this.actionAllIn.node.active = false;
-        this.actionFold.node.active = false;
+        this.uiEntityAvatar.clearUiAction();
 
         this.endTurn();
 
@@ -383,7 +317,6 @@ export class UiEntity extends Component {
 
         this.clearUiHandCards();
         this.clearUiHandRank();
-        this.clearUiMuck();
 
         if( true == entity.wait ){
             this.setUiWait();
@@ -411,90 +344,63 @@ export class UiEntity extends Component {
     }
 
     setEscapee() {
-        this.labelNickname.string = 'empty';
-        this.labelChips.node.active = false;
-        this.labelSitOut.node.active = false;
-        this.spriteTimer.node.active = false;
-        this.spriteSelected.node.active = false;
-        this.spriteAvatar.node.active = false;
+        this.uiEntityAvatar.setEscape();
+
+        // this.labelSitOut.node.active = false;
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].node.active = false;
-        this.spriteHandCardShadow.node.active = false;
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].node.active = false;
-        this.nodeHandRankBackground.active = false;
         this.labelHandRank.node.active = false;
-        this.spriteFoldCover.active = true;
-        this.actionFold.node.active = false;
-        this.actionAllIn.node.active = false;
-        this.actions['call'].node.active = false;
-        this.actions['check'].node.active = false;
-        this.actions['bet'].node.active = false;
-        this.actions['raise'].node.active = false;
         this.posSymbols['dealer'].node.active = false;
         this.posSymbols['sb'].node.active = false;
         this.posSymbols['bb'].node.active = false;
-        this.dealable.node.active = false;
-        this.clearMissButton();
-        //this.lbWinAmount.node.active = false;
-        this.spriteActionValueRoot.node.active = false;
-        this.spriteBetValueBackground.node.active = false;
-        this.labelBetValue.node.active = false;
-        this.spriteBetChip.node.active = false;
-        this.spriteMuck.node.active = false;
+        // this.spriteActionValueRoot.node.active = false;
+
+        this.uiBettingChips.hide();
+
         this.callbackProfileOpen = null;
         this.callbackProfileClose = null;
-        this.chips = 0;
 
         this.isPlaying = false;
 
         this.node.active = false;
 
-        this.ResetBadges();
+        // this.ResetBadges();
     }
 
     setUiWait() {
-        this.spriteFoldCover.active = false;
-        this.spriteTimer.node.active = false;
-        this.spriteTimer.color = Color.GRAY;
-        this.spriteTimer.fillRange = 1;
-        this.spriteTimer.node.active = false;
+        this.uiEntityAvatar.setUiWait();
 
         this.clearUiAction();
         this.clearUiBetValue();
     }
 
     setUiPlay() {
-        this.actionAllIn.node.active = false;
-        this.actionFold.node.active = false;
+        this.uiEntityAvatar.setUiPlay();
 
-        this.spriteFoldCover.active = false;
-        this.spriteSelected.node.active = false;
-        this.spriteTimer.node.active = true;
-        this.spriteTimer.color = Color.GRAY;
-        this.spriteTimer.fillRange = 1;
-        this.spriteTimer.node.active = false;
 
         this.clearUiAction();
         this.clearUiBetValue();
     }
 
     setNickname ( name: string ) {
-        this.labelNickname.string = name;
+        this.uiEntityAvatar.setNickname( name );
     }
 
     setUiChips( chips: number ) {
-        this.chips = chips;
-        if ( this.labelChips != null ) {
-            this.labelChips.color = new Color(255, 200, 70);
+        // this.chips = chips;
+        // if ( this.labelChips != null ) {
+        //     this.labelChips.color = new Color(255, 200, 70);
 
-            this.labelChips.string = CommonUtil.getKoreanNumber(chips);
-            if ( this.isUiSitOut == true ) {
-                this.setUiSitOut();
-            } else {
-                this.setUiSitBack();
-            }
-        }
+        //     this.labelChips.string = CommonUtil.getKoreanNumber(chips);
+        //     if ( this.isUiSitOut == true ) {
+        //         this.setUiSitOut();
+        //     } else {
+        //         this.setUiSitBack();
+        //     }
+        // }
+        this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
     }
 
     setUiBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
@@ -505,23 +411,19 @@ export class UiEntity extends Component {
             this.setUiSitBack();
         }
 
-        if ( true === isBB ) {
-            this.labelChips.color = new Color(100, 150, 180);
-            this.labelChips.string = "빅블라인드"
+        if ( true == isBB ) {
+            this.uiEntityAvatar.setBigBlind();
         } else {
-            if ( true === isSB ) {
-                this.labelChips.color = new Color(100, 150, 180);
-                this.labelChips.string = "스몰블라인드"
-            }
+            this.uiEntityAvatar.setSmallBlind();
         }
 
-        if ( true === isBB || true === isSB ) {
+        if ( true == isBB || true == isSB ) {
             timeOutId = setTimeout(() => {
                 clearTimeout(timeOutId);
-                this.setUiChips(chips);
+                this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
             }, 2000);
         } else {
-            this.setUiChips(chips);
+            this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
         }
     }
 
@@ -535,10 +437,6 @@ export class UiEntity extends Component {
         });
     }
 
-    setDealable( show: boolean ) {
-        this.dealable.node.active = show;
-    }
-
     clearUiPositionSymbol() {
         let keys = Object.keys(this.posSymbols);
         keys.forEach(element => {
@@ -548,46 +446,22 @@ export class UiEntity extends Component {
     }
 
     setUiAction( action: string ) {
-        let keys = Object.keys(this.actions);
-        keys.forEach(element => {
-            let v: Sprite = this.actions[element];
-            v.node.active = (element == action);
-        });
+        this.uiEntityAvatar.setUiAction( action );
     }
 
     clearUiAction() {
-        let keys = Object.keys(this.actions);
-        keys.forEach(element => {
-            let v: Sprite = this.actions[element];
-            v.node.active = false;
-        });
+        this.uiEntityAvatar.clearUiAction();
     }
 
     setUiBetValue( betValue: number, color?: Color ) {
 
         this.uiBettingChips.show(betValue, ()=>{
-            this.spriteActionValueRoot.node.active = (betValue > 0);
-            this.labelBetValue.string = CommonUtil.getKoreanNumber(betValue);
-            this.labelBetValue.node.active = (betValue > 0);
-            this.spriteBetChip.node.active = (betValue > 0);
+
         });
     }
 
     clearUiBetValue() {
         this.uiBettingChips.hide();
-        
-        this.spriteActionValueRoot.node.active = false;
-        this.labelBetValue.string = '0';
-        this.labelBetValue.node.active = false;
-        this.spriteBetChip.node.active = false;
-    }
-
-    setUiMuck() {
-        this.spriteMuck.node.active = true;
-    }
-
-    clearUiMuck() {
-        this.spriteMuck.node.active = false;
     }
 
     clearUiHandCards() {
@@ -595,7 +469,6 @@ export class UiEntity extends Component {
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].spriteFrame = null;   
         this.spriteHandCards[1].node.active = false;
-        this.spriteHandCardShadow.node.active = false;
 
         this.spriteHandCards[0].color = Color.WHITE;
         this.spriteHandCards[1].color = Color.WHITE;
@@ -610,72 +483,35 @@ export class UiEntity extends Component {
         if(rankName === "" || rankName === null){
             return;
         }
-        this.nodeHandRankBackground.active = true;
+        this.rootHandRank.active = true;
         this.labelHandRank.string = rankName;
         this.labelHandRank.node.active = true;
     }
 
     clearUiHandRank() {
-        this.nodeHandRankBackground.active = false;
+        this.rootHandRank.active = false;
         this.labelHandRank.node.active = false;
         this.labelHandRank.string = '';
     }
 
-    setAvatarImage( avatar: SpriteFrame ) {
-        this.spriteAvatar.spriteFrame = avatar;
-        this.spriteAvatar.node.active = null != avatar ;
-    }
-
-    clearAvatarImage() {
-        this.spriteAvatar.spriteFrame = null;
-        this.spriteAvatar.node.active = false;
-    }
-
-    setMissSmallBlindButton( sb: boolean) {
-        this.spriteMissSmallBlind.node.active = sb;
-    }
-
-    setMissBigBlindButton( bb: boolean ) {
-        this.spriteMissBigBlind.node.active = bb;
-    }
-
-    clearMissButton() {
-        this.spriteMissSmallBlind.node.active = false;
-        this.spriteMissBigBlind.node.active = false;
-    }
-
     startTurn( duration: number ) {
         this.turnDuration = duration / 1000;
-        this.spriteSelected.node.active = true;
-        this.spriteTimer.node.active = true;
-        this.spriteTimer.fillRange = 1;
-        this.spriteTimer.color = this.timerBeginColor;
-        this.spriteTimer.node.active = true;
+        this.uiEntityAvatar.startTurn();
         this.timerDeltaTime = this.turnDuration;
         this.playTimeLimitSound = true;
     }
 
     endTurn() {
-        this.spriteSelected.node.active = false;
-        this.spriteTimer.node.active = false;
-        this.spriteTimer.fillRange = 0;
-        this.spriteTimer.node.active = false;
-        this.timerDeltaTime = 0;
+        this.uiEntityAvatar.endTurn();
 
-        this.labelWaitingTimer.node.active = false;
+        this.timerDeltaTime = 0;
         AudioController.instance.stopTimeLimitForSec();
     }
 
     setUiFold() {
-        this.clearUiAction();
-        this.isFold = true;
-        this.spriteTimer.fillRange = 0;
-        this.spriteTimer.node.active = false;
-        this.spriteFoldCover.active = true;
-        this.spriteSelected.node.active = false;
+        this.isFold = true;        
+        this.uiEntityAvatar.setUiFold( true );
         this.timerDeltaTime = 0;
-        this.actionFold.node.active = true;
-
     }
 
     public setUiFoldCardAnimation() {
@@ -715,19 +551,13 @@ export class UiEntity extends Component {
     }
 
     setUiAllIn() {
-        this.clearUiAction();
-        this.spriteTimer.fillRange = 0;
-        this.spriteTimer.node.active = false;
-        this.spriteSelected.node.active = false;
-        
+        this.uiEntityAvatar.setUiAllin();        
         this.timerDeltaTime = 0;
-        this.actionAllIn.node.active = true;
     }
 
     setUiSitOut() {
         this.isUiSitOut = true;
-        this.labelChips.node.active = false;
-        this.labelSitOut.node.active = true;
+        this.uiEntityAvatar.setUiSitout();
     }
 
     public getIsUiSitOut(): boolean {
@@ -736,8 +566,7 @@ export class UiEntity extends Component {
 
     setUiSitBack() {
         this.isUiSitOut = false;
-        this.labelChips.node.active = true;
-        this.labelSitOut.node.active = false;
+        this.uiEntityAvatar.setUiSitback();
     }
 
     setEmoticon( type: EMOTICON_TYPE, id: number ) {
@@ -781,7 +610,7 @@ export class UiEntity extends Component {
         this.timerDeltaTime -= dt;
         if( 0 > this.timerDeltaTime){
             this.timerDeltaTime = 0;
-            this.spriteTimer.node.active = false;
+            this.uiEntityAvatar.setShowTimer( false );
         }
 
         if( this.isMe == true && 4 >= this.timerDeltaTime && this.playTimeLimitSound ){
@@ -791,44 +620,44 @@ export class UiEntity extends Component {
 
         if ( this.timerDeltaTime < 10 ) {
             if ( this.timerDeltaTime <= 5 ) {
-                this.labelWaitingTimer.color = Color.RED;
-
+                this.uiEntityAvatar.setWaitingTimerColor(Color.RED);
             } else {
-                this.labelWaitingTimer.color = Color.YELLOW;
+                this.uiEntityAvatar.setWaitingTimerColor(Color.YELLOW);
             }
 
-            this.labelWaitingTimer.string = Math.floor( this.timerDeltaTime ).toString();
-            this.labelWaitingTimer.node.active = true;
+            this.uiEntityAvatar.setWaitingTimer(this.timerDeltaTime);
         }
 
-        this.spriteTimer.fillRange = this.timerDeltaTime / this.turnDuration;
-
-        Color.lerp(this.spriteTimer.color, this.timerEndColor, this.timerBeginColor,this.timerDeltaTime / this.turnDuration);
+        this.uiEntityAvatar.setWaitingTimerProgress( this.timerDeltaTime / this.turnDuration );
     }
 
-    setAnimationChipsMoveToPot( potChipUiNode: Node ): number {
-        if( false == this.spriteActionValueRoot.node.active){
-            return -1;
-        }
-
-        let target: Sprite = this.spriteBetChipAniGoToPotUi;
-
-        let from = this.spriteBetChip.node.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.originalBetChipPostition );
-        from = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( from );
-
-        let to = potChipUiNode.parent.getComponent( UITransform ).convertToWorldSpaceAR( potChipUiNode.position );
-        to = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( to );
-
-        let duration: number = 0.3;
-
-        this.clearUiBetValue();
-
-        this.setTweenFadeInFromToMove(target, new Color(Color.WHITE), from, to, duration, 1.5, this.easeOutQuad, ()=>{
-            this.spriteBetChipAniGoToPotUi.node.active = false;            
-        });
-
-        return duration;
+    public getNickname(): string {
+        return this.uiEntityAvatar.getNickname();
     }
+
+    // setAnimationChipsMoveToPot( potChipUiNode: Node ): number {
+    //     if( false == this.spriteActionValueRoot.node.active){
+    //         return -1;
+    //     }
+
+    //     let target: Sprite = this.spriteBetChipAniGoToPotUi;
+
+    //     let from = this.spriteBetChip.node.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.originalBetChipPostition );
+    //     from = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( from );
+
+    //     let to = potChipUiNode.parent.getComponent( UITransform ).convertToWorldSpaceAR( potChipUiNode.position );
+    //     to = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( to );
+
+    //     let duration: number = 0.3;
+
+    //     this.clearUiBetValue();
+
+    //     this.setTweenFadeInFromToMove(target, new Color(Color.WHITE), from, to, duration, 1.5, this.easeOutQuad, ()=>{
+    //         this.spriteBetChipAniGoToPotUi.node.active = false;            
+    //     });
+
+    //     return duration;
+    // }
 
     public ResetBadges() {
         clearTimeout(this.timeOutNumber);
@@ -1020,9 +849,14 @@ export class UiEntity extends Component {
     }
 
     prepareCardDispense() {
-        this.rootHiddenCard.active = true;
         this.spriteHiddenCards[0].node.active = false;
         this.spriteHiddenCards[1].node.active = false;
+
+        this.spriteHandCardsBackground[0].node.active = false;
+        this.spriteHandCardsBackground[1].node.active = false;
+
+        this.rootHiddenCard.active = true;
+        this.rootCards.active = true;
     }
 
     moveDeckToHiddenCard( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {

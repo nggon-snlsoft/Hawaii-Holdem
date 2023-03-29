@@ -20,12 +20,14 @@ export class Main extends Component {
 
 		this.labelVersion.string = 'VERSION ' + this.version.toString();
 
-		if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
-			this.onPreloadDone();
-			return;
-		}
+		this.uiLogin.show();
 
-        this.preLoadCardRes( this.onPreloadDone.bind( this ));
+		// if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
+		// 	this.onPreloadDone();
+		// 	return;
+		// }
+
+        // this.preLoadCardRes( this.onPreloadDone.bind( this ));
     }
 
     preLoadCardRes( cbPreloadDone: ()=> void ) {
@@ -37,11 +39,11 @@ export class Main extends Component {
 				if( null != err ) {
 				}
 
-				UiTable.preLoadCardRes[ res.name ] = res;
+				// UiTable.preLoadCardRes[ res.name ] = res;
 
-				if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
-					cbPreloadDone();
-				}
+				// if( 52 == Object.keys( UiTable.preLoadCardRes ).length ) {
+				// 	cbPreloadDone();
+				// }
 			} );
 		}
     }

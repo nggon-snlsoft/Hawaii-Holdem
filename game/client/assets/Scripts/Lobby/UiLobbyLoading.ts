@@ -1,44 +1,47 @@
 import { _decorator, Component, Node, director, Scene, resources, SpriteFrame } from 'cc';
+import { ResourceManager } from '../ResourceManager';
 import { UiTable } from '../UiTable';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyLoading')
 export class UiLobbyLoading extends Component {
+    private progress: number = 0.0;
 
     public init() {
         this.node.active = false;
     }
 
     public show() {
-        this.preLoadResource ( this.launch.bind(this));
+        this.preLoadResource ();
         this.node.active = true;
     }
 
-    private preLoadResource( cb: ()=> void ) {
+    private preLoadResource() {
+        this.loadCards();
+    }
 
-		for( let i = 0; i < 12; i++ ) {
-			const url = `BettingChips/${ i }/spriteFrame`;
+    private loadCards() {
+        ResourceManager.Instance().loadCards(()=>{
+            console.log('preload cards complete');
+            this.progress = 0.2;
+            this.loadChips();
+        });
+    }
 
-			resources.load<SpriteFrame>( url, ( err, res ) => {
+    private loadChips() {
+        ResourceManager.Instance().loadChips(()=>{
+            console.log('preload chips complete');
+            this.progress = 0.4;
 
-				if( null != err ) {
-                    console.log('err');
-				}
-
-                UiTable.preLoadChipRes[ res.name ] = res;
-				if( 11 == Object.keys( UiTable.preLoadChipRes ).length ) {
-					cb();
-				}
-			} );
-		}
+            this.launch();
+        });
     }
 
     private launch() {
-        director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
-
-        }, ()=>{
-
+        director.preloadScene('GameScene', ()=>{
+            console.log('preload scene complete');
+            director.loadScene('GameScene');
         });
     }
 

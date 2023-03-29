@@ -1,5 +1,7 @@
-import { _decorator, Component, Node, SpriteFrame, Sprite, Color, Tween, tween, easing, UIOpacity, Vec3, UITransform } from 'cc';
+import { _decorator, Component, Node, SpriteFrame, Sprite, Color, Tween, tween, easing, UIOpacity, Vec3, UITransform, Label } from 'cc';
 import { Board } from '../Board';
+import { CommonUtil } from '../CommonUtil';
+import { ResourceManager } from '../ResourceManager';
 import { UiTable } from '../UiTable';
 const { ccclass, property } = _decorator;
 
@@ -7,6 +9,8 @@ const { ccclass, property } = _decorator;
 export class UiBettingChips extends Component {
     @property(Node) digits: Node[] = [];
     @property(Node) targets: Node[] = [];
+    @property(Node) rootBettingValue: Node = null;
+    @property(Label) labelBettingValue: Label = null;
 
     private sprites: any[] = [];
     private value: number = 0;
@@ -29,6 +33,14 @@ export class UiBettingChips extends Component {
             this.sprites.push( ss );
             this.positions.push( new Vec3(this.digits[i].position) );
             this.digits[i].active = false;
+        }
+
+        if ( this.rootBettingValue != null ) {
+            this.rootBettingValue.active = false;
+        }
+
+        if ( this.labelBettingValue != null ) {
+            this.labelBettingValue.string = '';
         }
 
         this.node.active = false;
@@ -86,7 +98,8 @@ export class UiBettingChips extends Component {
 
             let s: any = this.sprites[i];
             for ( let j: number = 0 ; j < 9; j++ ) {
-                s[j].spriteFrame = Board.table.getChipImage( this.numbers[i].digit );
+                let sf: SpriteFrame = ResourceManager.Instance().getChipImage(this.numbers[i].digit);
+                s[j].spriteFrame = sf;
                 if ( j < this.numbers[i].number ) {
                     s[j].node.active = true;
                 } else {
@@ -107,6 +120,11 @@ export class UiBettingChips extends Component {
 
     public hide() {
         this.reset();
+
+        this.rootBettingValue.active = false;
+        this.labelBettingValue.string = '';
+        this.labelBettingValue.node.active = false;
+
         this.node.active = false;
     }
 
@@ -141,6 +159,11 @@ export class UiBettingChips extends Component {
         tw.call( ()=>{
             if ( (index + 1) == this.numbers.length ) {
                 if ( this.cb != null ) {
+
+                    this.rootBettingValue.active = ( this.value > 0);
+                    this.labelBettingValue.string = CommonUtil.getKoreanNumber( this.value );
+                    this.labelBettingValue.node.active = ( this.value > 0);
+
                     this.cb();
                 }
             }
