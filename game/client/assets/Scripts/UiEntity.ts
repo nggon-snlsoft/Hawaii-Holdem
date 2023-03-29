@@ -43,23 +43,6 @@ export class UiEntity extends Component {
 
     public bezierPoints: Node[] = [];
 
-    private spriteWinAnimation1: Sprite = null;
-    private spriteWinAnimation2: Sprite = null;
-    private spriteWinAnimation3: Sprite = null;
-    private vectorWinAnimation3: Vec3 = new Vec3();
-
-    private nodeWinBadge: Sprite = null;
-    private labelWinAmount: Label = null;
-
-    private nodeDrawBadge: Sprite = null;
-    private labelDrawAmount: Label = null;
-
-    private nodeReturnBadge: Sprite = null;
-    private labelReturnAmount: Label = null;
-
-    private winTweens: Tween<Node>[] = [];
-    private timeOutNumber: number = -1;
-
     private nodeEmoticon: Node = null;
     private spriteEmoticon: Sprite = null;
     private nodeChatting: Node = null;
@@ -346,7 +329,6 @@ export class UiEntity extends Component {
     setEscapee() {
         this.uiEntityAvatar.setEscape();
 
-        // this.labelSitOut.node.active = false;
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].node.active = false;
         this.spriteHandCards[0].node.active = false;
@@ -355,7 +337,6 @@ export class UiEntity extends Component {
         this.posSymbols['dealer'].node.active = false;
         this.posSymbols['sb'].node.active = false;
         this.posSymbols['bb'].node.active = false;
-        // this.spriteActionValueRoot.node.active = false;
 
         this.uiBettingChips.hide();
 
@@ -363,10 +344,9 @@ export class UiEntity extends Component {
         this.callbackProfileClose = null;
 
         this.isPlaying = false;
-
         this.node.active = false;
 
-        // this.ResetBadges();
+        this.ResetResultEffect();
     }
 
     setUiWait() {
@@ -635,185 +615,20 @@ export class UiEntity extends Component {
         return this.uiEntityAvatar.getNickname();
     }
 
-    // setAnimationChipsMoveToPot( potChipUiNode: Node ): number {
-    //     if( false == this.spriteActionValueRoot.node.active){
-    //         return -1;
-    //     }
-
-    //     let target: Sprite = this.spriteBetChipAniGoToPotUi;
-
-    //     let from = this.spriteBetChip.node.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.originalBetChipPostition );
-    //     from = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( from );
-
-    //     let to = potChipUiNode.parent.getComponent( UITransform ).convertToWorldSpaceAR( potChipUiNode.position );
-    //     to = target.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( to );
-
-    //     let duration: number = 0.3;
-
-    //     this.clearUiBetValue();
-
-    //     this.setTweenFadeInFromToMove(target, new Color(Color.WHITE), from, to, duration, 1.5, this.easeOutQuad, ()=>{
-    //         this.spriteBetChipAniGoToPotUi.node.active = false;            
-    //     });
-
-    //     return duration;
-    // }
-
-    public ResetBadges() {
-        clearTimeout(this.timeOutNumber);
-
-        this.nodeWinBadge.node.active = false;
-        this.nodeDrawBadge.node.active = false;
-        this.nodeReturnBadge.node.active = false;
-
-        this.labelDrawAmount.string = "";
-        this.labelWinAmount.string = "";
-        this.labelReturnAmount.string = "";
+    public ResetResultEffect() {
+        this.uiEntityAvatar.resetResultEffect();
     }
 
-    public SetDraw( winAmount: number ) {
-
-        this.ResetBadges();
-        
-        this.nodeDrawBadge.node.active = true;
-        this.labelDrawAmount.string = "+" + CommonUtil.getKoreanNumber(winAmount);
-
-        this.timeOutNumber = setTimeout(() => {
-            this.ResetBadges();
-        }, 2000);
+    public SetDraw( value: number ) {
+        this.uiEntityAvatar.SetDrawEffect( value );
     }
 
-    public SetReturn( returnAmount: number ) {
-        this.ResetBadges();
-
-        this.nodeReturnBadge.node.active = true;
-        this.labelReturnAmount.string =  "+" + CommonUtil.getKoreanNumber(returnAmount);
-
-        this.timeOutNumber = setTimeout(() => {
-            this.ResetBadges();
-        }, 1200);
+    public SetReturn( value: number ) {
+        this.uiEntityAvatar.SetReturnEffect( value );
     }
 
-    setAniWinner( winAmount: number ) {
-        this.winTweens.forEach( elem => elem.stop() );
-
-        this.winTweens = [];
-
-        this.ResetBadges();
-
-        this.nodeWinBadge.node.active = true;
-        this.labelWinAmount.string =  "+" + CommonUtil.getKoreanNumber(winAmount);
-
-        let ani1Tween = tween(this.spriteWinAnimation1.node)
-        .call( () => {
-            this.spriteWinAnimation1.color = new Color(255,255,255,1);
-        })
-        .to( 0.5, {}, {
-            onUpdate: (target?: object, ratio?: number) => 
-            {
-                let a = 255 * ratio;
-                if( a > 255 ) {
-                    a = 255;
-                }
-
-                if( 1 > a ){
-                    a = 1;
-                }
-
-                this.spriteWinAnimation1.color = new Color(255,255,255,a);
-            },
-        }).union();
-
-        let ani3Tween = tween(this.spriteWinAnimation3.node)
-        .call( () => {
-            this.spriteWinAnimation3.color = new Color(255,255,255,1);
-            this.spriteWinAnimation3.node.position = new Vec3(this.vectorWinAnimation3);
-        })
-        .set( { 
-            position: new Vec3(this.vectorWinAnimation3),
-            scale: new Vec3(0.5, 0.5, 0.5)
-        } )
-        .to( 0.5, {
-            scale: new Vec3(1,1,1)
-        }, {
-            easing: 'backOut',
-            onUpdate: (target?: object, ratio?: number) =>
-            {
-                let a = 255 * ratio;
-                if( a > 255 ) {
-                    a = 255;
-                }
-
-                if( 1 > a ){
-                    a = 1;
-                }
-
-                this.spriteWinAnimation3.color = new Color(255,255,255,a);
-            }
-        })
-        .to(3, {
-            // position: new Vec3(this.vecWinAni3.x+20,this.vecWinAni3.y,this.vecWinAni3.z),
-        }, {
-            easing: "linear",
-            onUpdate: (target?: object, ratio?: number) => 
-            {
-                let a = 255 * (1 - ratio);
-                if( a > 255 ) {
-                    a = 255;
-                }
-
-                if( 1 > a ){
-                    a = 1;
-                }
-
-                this.spriteWinAnimation3.color = new Color(255,255,255,a);
-                this.spriteWinAnimation1.color = new Color(255,255,255,a);
-            },
-        }).union();
-
-        let dest: Quat = Quat.IDENTITY.clone();
-
-        let ani2Tween = tween( this.spriteWinAnimation2.node)
-        .call( () => {
-            this.spriteWinAnimation2.color = new Color(255,255,255,1);
-            // this.sprWinAni2.node.scale = new Vec3( 0.5, 0.5, 0.5);
-            this.spriteWinAnimation2.node.scale = new Vec3(1.15,1.15,1.15);
-            this.spriteWinAnimation2.node.setRotation(dest);
-        })
-        .to( 2, {
-            scale: new Vec3(0.7,0.7,0.7)
-        }, {
-            // easing: 'backOut',
-            onUpdate: (target?: object, ratio?: number) =>
-            {
-                Quat.fromEuler( dest, 0, 0, 360 * 12 * ratio);
-                this.spriteWinAnimation2.node.setRotation(dest);
-            
-                let a = bezier(0,500,255,0,ratio);
-                let max: number = 255 * 0.7;
-                if( a > max ){
-                    a = max;
-                }
-
-                if( 1 > a ){
-                    a = 1;
-                }
-
-                this.spriteWinAnimation2.color = new Color( 255,255,255, a); 
-            },
-        }).union();
-
-        ani1Tween.start();
-        ani3Tween.start();
-        ani2Tween.start();
-
-        this.winTweens.push(ani1Tween);
-        this.winTweens.push(ani2Tween);
-        this.winTweens.push(ani3Tween);
-
-        this.timeOutNumber = setTimeout(() => {
-            this.ResetBadges();
-        }, 2000);
+    setAniWinner( value: number ) {
+        this.uiEntityAvatar.SetWinEffect( value );
     }
 
     setTweenFadeInFromToMove( sprite: Sprite, originalColor: Color, from: Vec3, to: Vec3, duration: number, 
@@ -926,10 +741,6 @@ export class UiEntity extends Component {
         tw.call( ()=>{
             target.active = false;
             sprite.color = new Color( 255, 255, 255, 255);
-
-            // if (cb != null ) {
-            //     cb( index );
-            // }
         } );
         tw.start();
     }

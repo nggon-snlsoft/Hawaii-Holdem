@@ -1,5 +1,6 @@
-import { _decorator, Component, Node, Sprite } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame } from 'cc';
 import { Board } from '../Board';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiPotChips')
@@ -59,7 +60,8 @@ export class UiPotChips extends Component {
             let s: any = this.sprites[i];
 
             for ( let j: number = 0 ; j < 9 ; j++ ) {
-                s[j].spriteFrame = Board.table.getChipImage( this.numbers[i].digit );
+                let sf: SpriteFrame = ResourceManager.Instance().getChipImage(this.numbers[i].digit);
+                s[j].spriteFrame = sf;
                 if ( j < this.numbers[i].number ) {
                     s[j].node.active = true;
                 } else {
