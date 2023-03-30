@@ -20,6 +20,8 @@ import { UiWinEffect } from './Game/UiWinEffect';
 import { UiPotChips } from './Game/UiPotChips';
 import { UiRoundPotValue } from './Game/UiRoundPotValue';
 import { ResourceManager } from './ResourceManager';
+import { UiCard } from './Game/UiCard';
+import { UiShowDownEffect } from './Game/UiShowDownEffect';
 
 const { ccclass, property } = _decorator;
 
@@ -53,6 +55,7 @@ export class UiTable extends Component {
 	@property(UiWinEffect) uiWinEffect: UiWinEffect = null;	
 	@property(UiPotChips) uiPotChips: UiPotChips = null;
 	@property(UiRoundPotValue) uiRoundPotValue: UiRoundPotValue = null;
+	@property(UiShowDownEffect) uiShowDownEffect: UiShowDownEffect = null;
 
     private roundState: string = "";
     private spritePotRoot: Sprite = null;
@@ -60,7 +63,7 @@ export class UiTable extends Component {
 
     private entityUiElements: UiEntity[] = [];
 
-    private spriteCommunityCards: Sprite[] = [ null, null, null, null, null ];
+    private uiCommunityCards: UiCard[] = [ null, null, null, null, null ];
     private vectorCommunityCards: Vec3[] = [ null, null, null, null, null ];
     private numberCommunityCards: number[] = [ -1, -1, -1, -1, -1 ];
     private uiPlayerAction: UiPlayerAction = null;
@@ -163,6 +166,7 @@ export class UiTable extends Component {
 		this.uiWinEffect.init();
 		this.uiPotChips.init();
 		this.uiRoundPotValue.init();
+		this.uiShowDownEffect.Init();
 
         if (null == NetworkManager.Instance().room) {
             return;
@@ -222,10 +226,11 @@ export class UiTable extends Component {
 			}
 		}
 
-		for( let i = 0; i < this.spriteCommunityCards.length; i++ ) {
-			let uiCard = this.node.getChildByPath( `COMMUNITY_CARDS/${ i + 1 }` ).getComponent( Sprite );
+		for( let i = 0; i < this.uiCommunityCards.length; i++ ) {
+			let uiCard = this.node.getChildByPath( `COMMUNITY_CARDS/${ i + 1 }` ).getComponent( UiCard );
 
-			this.spriteCommunityCards[ i ] = uiCard;
+			this.uiCommunityCards[i] = uiCard;
+			this.uiCommunityCards[i].init();
 			this.vectorCommunityCards[ i ] = uiCard.node.position;
 		}
 
@@ -441,7 +446,6 @@ export class UiTable extends Component {
 		room.onMessage( "SHOW_RIVER", this.onSHOW_RIVER.bind( this ) );
 		room.onMessage( "RIVER_END", this.onRIVER_END.bind( this ) );		
 		room.onMessage( "CLEAR_ROUND", this.onCLEAR_ROUND.bind( this ) );
-		
         
         //PLAYER ACTION
 		room.onMessage( "YOUR_TURN", this.onYOUR_TURN.bind( this ) );
@@ -804,41 +808,27 @@ export class UiTable extends Component {
 
     private setUiCommunityCards( cards: number[] ) {
 
-		for( let i = 0; i < this.spriteCommunityCards.length; i++ ) {
-			let uiCard = this.spriteCommunityCards[ i ];
-			if( i >= cards.length ) {
-				UiTable.setUiCard( uiCard, null );
+		for ( let i: number = 0 ; i < this.uiCommunityCards.length; i++ ) {
+			let uiCard = this.uiCommunityCards[ i ];
+			if ( cards.length <= i ) {
+				uiCard.hide();
 				this.numberCommunityCards[ i ] = -1;
 				continue;
 			}
 
-			let sf: SpriteFrame = ResourceManager.Instance().getCardImage(cards[ i ] + 1);
-
-			UiTable.setUiCard( uiCard, sf );
-			this.numberCommunityCards[ i ] = cards[ i ];
+			this.uiCommunityCards[i].show(cards[i] + 1, null, 0);
+			this.numberCommunityCards[i] = cards[i];
 		}
     }
 
     private clearUiCommunityCards() {
-		this.spriteCommunityCards.forEach( element => {
-			element.spriteFrame = null;
+		this.uiCommunityCards.forEach( element => {
+			element.hide();
 		} );
 
 		for( let i = 0; i < this.numberCommunityCards.length; i++ ) {
 			this.numberCommunityCards[ i ] = -1;
 		}
-    }
-
-    private static setUiCard( uiCard: Sprite, cardImg: SpriteFrame ) {
-		let uiTransform = uiCard.getComponent( UITransform );
-		let w = uiTransform.width;
-		let h = uiTransform.height;
-
-		uiCard.spriteFrame = cardImg;
-		uiCard.node.active = true;
-
-		uiTransform.width = w;
-		uiTransform.height = h;
     }
 
     private getUiEntityFromSeat( seat: number ) {
@@ -922,14 +912,6 @@ export class UiTable extends Component {
 			element.clearUiBetValue();
 		} );
     }
-
-    // private getCardImage( num: number): SpriteFrame {
-	// 	return this.cardRes[ num ];
-    // }
-
-	// public getChipImage( num: number ): SpriteFrame {
-	// 	return this.chipRes[ num ];
-	// }
 
     private isEnableSeat( seat: number ): boolean {
 		return null != this.enableSeats.find( elem => elem == seat );
@@ -1192,8 +1174,6 @@ export class UiTable extends Component {
 			}
 
 			uiEntity?.setUiPrepareRound( entity );
-			// uiEntity?.setMissSmallBlindButton(false);
-			// uiEntity?.setMissBigBlindButton(false);
 
 			if( seat == this.mySeat ) {
 				this.myWaitStatus = entity.wait;
@@ -1262,11 +1242,6 @@ export class UiTable extends Component {
 				this.myWaitStatus = entity.wait;
 				this.isFold = false;
 			}
-
-			let missSb = entity.missSb;
-			let missBb = entity.missBb;
-			// uiEntity.setMissSmallBlindButton(missSb);
-			// uiEntity.setMissBigBlindButton(missBb);
 
 			if( true == entity.wait ) {
 				uiEntity.setUiWait();
@@ -1340,21 +1315,12 @@ export class UiTable extends Component {
 		for( let i = 0; i < 3; i++ ) {
 
 			let cardNumber = cards[ i ];
-			let uiCard = this.spriteCommunityCards[ i ];
-
+			let uiCard = this.uiCommunityCards[ i ];			
 			this.numberCommunityCards[ i ] = cardNumber;
 
-			setTimeout( () => {
-				let sf1 = ResourceManager.Instance().getCardImage(0);
-				let sf2 = ResourceManager.Instance().getCardImage(cardNumber + 1);
-
-				this.setAniDropOpenCard( uiCard, 100, sf1, sf2 , i == 2 ? () => {
-					if( false == this.isEnableSeat( this.mySeat ) ) {
-						return;
-					}
-					this.setUiMyHandRank();
-				} : null );
-			}, 1000 + (i * 50) );
+			uiCard.show( cardNumber + 1, ()=>{
+				this.setUiMyHandRank();
+			}, 0 );
 		}
     }
 
@@ -1391,22 +1357,14 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();		
 
 		this.clearUiEntitiesAction();
-		// this.setAniChipsMoveToPot( false, msg["dpPot"]);
 
 		let cards = msg[ "cards" ];
 		this.numberCommunityCards[ 3 ] = cards[ 0 ];
+		let uiCard = this.uiCommunityCards[ 3 ];			
 
-		setTimeout( () => {
-			let sf1 = ResourceManager.Instance().getCardImage(0);
-			let sf2 = ResourceManager.Instance().getCardImage( cards[ 0 ] + 1);
-
-			this.setAniDropOpenCard( this.spriteCommunityCards[ 3 ], 100, sf1, sf2, () => {
-				if( false == this.isEnableSeat( this.mySeat ) ) {
-					return;
-				}
-				this.setUiMyHandRank();
-			} );
-		}, 1000);
+		uiCard.show(cards[ 0 ] + 1, ()=>{
+			this.setUiMyHandRank();
+		}, 0);
     }
 
 	private onTURN_END( msg ) {
@@ -1443,20 +1401,13 @@ export class UiTable extends Component {
 		this.clearUiEntitiesAction();
 		this.setAniChipsMoveToPot( false, msg["dpPot"] );
 
-
 		let cards = msg[ "cards" ];
 		this.numberCommunityCards[ 4 ] = cards[ 0 ];
+		let uiCard = this.uiCommunityCards[4];
 
-		setTimeout( () => {
-			let sf1 = ResourceManager.Instance().getCardImage(0);
-			let sf2 = ResourceManager.Instance().getCardImage( cards[ 0 ] + 1);			
-			this.setAniDropOpenCard( this.spriteCommunityCards[ 4 ], 100, sf1, sf2, () => {
-				if (false == this.isEnableSeat(this.mySeat)) {
-					return;
-				}
-				this.setUiMyHandRank();
-			});
-		}, 1000 );
+		uiCard.show( cards[ 0 ] + 1, ()=>{
+
+		}, 0 );
     }
 
 	private onRIVER_END( msg ) {
@@ -1483,72 +1434,242 @@ export class UiTable extends Component {
 				}
 			}
 		}
-    }		
+    }
+	
+	private ChipsMoveToPot( value, cbDone: ()=>void ) {
+		let cnt = 0;
 
-    private async ShowAll (cards: number[], dpPot: any ) {
+		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+			let seat = this.seatPlayers[ i ];
+
+			if( this.isEnableSeat( seat ) == true ) {
+				let uiEntity = this.getUiEntityFromSeat(seat);
+				if ( uiEntity != null ) {
+					cnt++;
+					uiEntity.setChipsMoveToPot( cnt, this.rootPotChips, ( idx: number )=>{
+						uiEntity.clearUiBetValue();
+
+						if ( (cnt) == idx) {
+							this.uiPotChips.show( value );
+							this.uiRoundPotValue.updatePotVaule( value );
+
+							if ( cbDone != null ) {
+								cbDone();
+							}
+						}
+					});
+				}
+			}
+		}		
+	}
+
+	private ShowAllPlayersHands( cards: any, done: ()=>void ) {
+		console.log('ShowAllPlayersHands');
+		console.log(cards);
+		let keys = Object.keys( cards );
+
+		let cnt: number = 0;
+		let idx: number = 0;
+		let end: boolean = false;
+
+		keys.forEach( key => {
+			let seat = Number.parseInt( key );
+
+			if( false == this.isEnableSeat( seat ) ) {
+				console.log(' false == this.isEnableSeat( seat ) ');
+				return;
+			}
+
+			let uiEntity = this.getUiEntityFromSeat( seat );
+			if( null == uiEntity ) {
+				console.log(' null == uiEntity ');				
+				return;
+			}
+
+			if( this.mySeat == seat ) {
+				console.log(' this.mySeat == seat ');								
+				return;
+			}
+
+			cnt++;
+			uiEntity.ShowdownPlayerCards({
+				primary: cards[ key ][ 0 ] + 1,
+				secondary: cards[ key ][ 1 ] + 1,
+			}, ()=>{
+				idx++;
+
+				if ( idx == cnt && end == false ) {
+					console.log('ShowdownPlayerCards');
+					end = true;
+					done();
+				}
+			});
+		} );
+	}
+
+    private async ShowAll ( cards: number[], dpPot: any, playerCards: any[] ) {
 
 		this.isAllIn = true
+		this.uiPlayerActionReservation.reset();
+		this.uiPlayerAction.hide();
 
-		this.uiPlayerActionReservation.reset();		
-		this.setAniChipsMoveToPot( true, dpPot);
+		this.ChipsMoveToPot( dpPot[0].total, ()=>{
+			this.uiRoundPotValue.show(dpPot[0].total);
+			this.uiShowDownEffect.Show(()=>{
 
-		let newCardCount = 0;
-	
-		await new Promise(ret => setTimeout(ret, 1500));
+				this.ShowAllPlayersHands( playerCards, ()=>{
+					this.OpenCommunityCard( cards );
+				} );
+			});
+		});
+    }
 
-		for( let idx = 0; idx < this.numberCommunityCards.length; idx++ ) {
-			let cardNumber = this.numberCommunityCards[ idx ];
-
-			if( cards[ idx ] == cardNumber ) {
+	private OpenCommunityCard( cards: any ) {
+		for ( let i: number = 0; i < this.numberCommunityCards.length; i++ ) {
+			let card = this.numberCommunityCards[i];
+			if ( cards[i] == card ) {
 				continue;
 			}
 
-			newCardCount++;
-
-			let delay = 0;
-
-			if(idx < 3){
-				//Flop
-				delay = 50;
-			}
-			else if(idx < 4){
-				delay = 1000;
-			}
-			else{
-				delay = 2000;
-			}
-
-			await new Promise(ret => setTimeout(ret, delay));
-
-			let sf1 = ResourceManager.Instance().getCardImage(0);
-			let sf2 = ResourceManager.Instance().getCardImage( cards[idx] + 1 );
-
-			this.setAniDropOpenCard(this.spriteCommunityCards[idx], 100, sf1, sf2, () => {
-				if (false == this.isEnableSeat(this.mySeat)) {
-					return;
-				}
-
-				this.numberCommunityCards[idx] = cards[idx];
-
-				this.enableSeats.forEach(seat => {
-					let uiEntity = this.getUiEntityFromSeat(seat);
-
-					if (true == uiEntity.isFold) {
-						return;
-					}
-
-					let getPlayerCard = this.playersCARD[seat];
-
-					let handRank = this.getHandRank(getPlayerCard.primaryCard, getPlayerCard.secondaryCard, this.numberCommunityCards);
-					uiEntity.setUiHandRank(handRank);
+			if ( i < 3) {
+				this.OpenFlopCard(cards, ()=>{
+					this.OpenTurnCard( cards, ()=> {
+						this.OpenRiverCard( cards, ()=>{
+							this.onSHOWDOWN_END();
+						})
+					})
 				});
-			});
+				break;
+			} else if ( i < 4) {
+				this.OpenTurnCard( cards, ()=> {
+					this.OpenRiverCard( cards, ()=>{
+						this.onSHOWDOWN_END();
+					});
+				});
+				break;				
+			} else {
+				this.OpenRiverCard( cards, ()=>{
+					this.onSHOWDOWN_END();
+				});
+				break;				
+			}
 		}
 
-		this.entityUiElements.forEach(element => element.endTurn());
-		this.setUiWinners();
-		this.uiPlayerAction.hide();
-    }
+		// let newCardCount = 0;
+	
+		// await new Promise(ret => setTimeout(ret, 1500));
+
+		// for( let idx = 0; idx < this.numberCommunityCards.length; idx++ ) {
+		// 	let cardNumber = this.numberCommunityCards[ idx ];
+
+		// 	if( cards[ idx ] == cardNumber ) {
+		// 		continue;
+		// 	}
+
+		// 	newCardCount++;
+
+		// 	let delay = 0;
+
+		// 	if(idx < 3){
+		// 		//Flop
+		// 		delay = 50;
+		// 	}
+		// 	else if(idx < 4){
+		// 		delay = 1000;
+		// 	}
+		// 	else{
+		// 		delay = 2000;
+		// 	}
+
+		// 	await new Promise(ret => setTimeout(ret, delay));
+
+		// 	let sf1 = ResourceManager.Instance().getCardImage(0);
+		// 	let sf2 = ResourceManager.Instance().getCardImage( cards[idx] + 1 );
+
+		// 	// this.setAniDropOpenCard( this.uiCommunityCards[idx], 100, sf1, sf2, () => {
+		// 	// 	if (false == this.isEnableSeat(this.mySeat)) {
+		// 	// 		return;
+		// 	// 	}
+
+		// 	// 	this.numberCommunityCards[idx] = cards[idx];
+
+		// 	// 	this.enableSeats.forEach(seat => {
+		// 	// 		let uiEntity = this.getUiEntityFromSeat(seat);
+
+		// 	// 		if (true == uiEntity.isFold) {
+		// 	// 			return;
+		// 	// 		}
+
+		// 	// 		let getPlayerCard = this.playersCARD[seat];
+
+		// 	// 		let handRank = this.getHandRank(getPlayerCard.primaryCard, getPlayerCard.secondaryCard, this.numberCommunityCards);
+		// 	// 		uiEntity.setUiHandRank(handRank);
+		// 	// 	});
+		// 	// });
+		// }
+
+		// this.entityUiElements.forEach(element => element.endTurn());
+		// this.setUiWinners();
+		// this.uiPlayerAction.hide();
+
+		// for( let i = 0; i < 3; i++ ) {
+
+		// 	let cardNumber = cards[ i ];
+		// 	let uiCard = this.uiCommunityCards[ i ];			
+		// 	this.numberCommunityCards[ i ] = cardNumber;
+
+		// 	uiCard.show( cardNumber + 1, ()=>{
+		// 		this.setUiMyHandRank();
+		// 	}, 0 );
+		// }
+	}
+
+	private OpenFlopCard( cards: any, cbNext: ()=>void ) {
+		for( let i = 0; i < 3; i++ ) {
+
+			let cardNumber = cards[ i ];
+			let uiCard = this.uiCommunityCards[ i ];			
+			this.numberCommunityCards[ i ] = cardNumber;
+
+			uiCard.show( cardNumber + 1, ()=>{
+				this.setUiMyHandRank();
+
+				if ( cbNext != null ) {
+					cbNext();
+				}
+			}, 1.5 );
+		}		
+	}
+
+	private OpenTurnCard( cards: any, cbNext: ()=>void ) {
+		let cardNumber = cards[ 3 ];
+		this.numberCommunityCards[ 3 ] = cards[ 3 ];
+		let uiCard = this.uiCommunityCards[ 3 ];
+		uiCard.show( cardNumber + 1, ()=>{
+			this.setUiMyHandRank();
+
+			if ( cbNext != null ) {
+				cbNext();
+			}
+		}, 1 );
+	}
+
+	private OpenRiverCard( cards: any, cbNext: ()=>void ) {
+		let cardNumber = cards[ 4 ];
+		this.numberCommunityCards[ 4 ] = cards[ 4 ];
+		let uiCard = this.uiCommunityCards[ 4 ];
+		uiCard.show( cardNumber + 1, ()=>{
+			this.setUiMyHandRank();
+
+			if ( cbNext != null ) {
+				cbNext();
+			}
+		}, 2 );	
+	}
+
+	private onSHOWDOWN_END() {
+		console.log('ShowdownEnd');
+	}
 
     private onCLEAR_ROUND( msg ) {
 		console.log('onCLEAR_ROUND');
@@ -1852,6 +1973,10 @@ export class UiTable extends Component {
 		let winners = msg[ "winners" ];
 		let allin = msg[ "allin" ];
 
+		if ( allin == true ) {
+			return;
+		}
+
 		let keys = Object.keys( cards );
 
 		this.playersCARD = {};
@@ -1922,11 +2047,13 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
+		console.log(msg);
 
 		this.msgWINNERS = msg;
 		let isMyCardExist = this.myPrimaryCardIndex != -1 && this.mySecondaryCardIndex != -1
 
 		this.uiPlayerActionReservation.reset();
+		this.uiPlayerAction.hide();
 
 		if (msg["isAllInMatch"] === false)
 		{
@@ -1934,10 +2061,10 @@ export class UiTable extends Component {
 		}
 		else 
 		{
-			this.ShowAll(msg["cards"], msg["dpPot"]);
+			console.log('SHOW DOWN');
+			this.ShowAll(msg["cards"], msg["dpPot"], msg['playerCards']);
+			return;
 		}
-
-		this.uiPlayerAction.hide();
 
 		for (let i = 0; i < msg["dpPot"].length; i++) {
 			let pot = msg["dpPot"][i];
@@ -2238,7 +2365,6 @@ export class UiTable extends Component {
 
 			if( this.isEnableSeat( seat ) == true ) {
 				seats.push(i);
-				console.log( seats );
 
 				let uiEntity = this.entityUiElements[i];
 				if ( uiEntity != null ) {
@@ -2280,13 +2406,17 @@ export class UiTable extends Component {
 		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
 		if ( uiEntity != null ) {
 
-			uiEntity.spriteHandCards[0].spriteFrame = ResourceManager.Instance().getCardImage(this.myPrimaryCardIndex + 1);
-			uiEntity.spriteHandCards[1].spriteFrame = ResourceManager.Instance().getCardImage(this.mySecondaryCardIndex + 1);
+			// uiEntity.spriteHandCards[0].spriteFrame = ResourceManager.Instance().getCardImage(this.myPrimaryCardIndex + 1);
+			// uiEntity.spriteHandCards[1].spriteFrame = ResourceManager.Instance().getCardImage(this.mySecondaryCardIndex + 1);
 			
-			uiEntity.spriteHandCards[0].node.active = true;
-			uiEntity.spriteHandCards[1].node.active = true;
+			// uiEntity.spriteHandCards[0].node.active = true;
+			// uiEntity.spriteHandCards[1].node.active = true;
+			// uiEntity.showPlayerCard();
 
-			uiEntity.showPlayerCard();
+			uiEntity.ShowPlayerCards({
+				primary: this.myPrimaryCardIndex + 1,
+				secondary: this.mySecondaryCardIndex + 1,
+			});
 		}
 	}
 

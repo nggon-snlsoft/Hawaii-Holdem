@@ -5,8 +5,10 @@ import { Board } from './Board';
 import { CommonUtil } from './CommonUtil';
 import { AudioController } from './Game/AudioController';
 import { UiBettingChips } from './Game/UiBettingChips';
+import { UiCard } from './Game/UiCard';
 import { UiEntityAvatar } from './Game/UiEntityAvatar';
 import { EMOTICON_CHAT_MESSAGE, EMOTICON_TYPE } from './Game/UiGameChatting';
+import { UiResultEffect } from './Game/UiResultEffect';
 import { NetworkManager } from './NetworkManager';
 import { ResourceManager } from './ResourceManager';
 
@@ -21,6 +23,7 @@ export class UiEntity extends Component {
     private rootCards: Node = null;
 
     public spriteHandCards: Sprite[] = [ null, null ];
+    public uiHandCards: UiCard[] = [null, null];
     public spriteHandCardsBackground: Sprite[] = [ null, null ];
 
     private rootHiddenCard: Node = null;
@@ -54,6 +57,8 @@ export class UiEntity extends Component {
     private id:number = -1;
 
     private uiBettingChips: UiBettingChips = null;
+    private uiResultEffect: UiResultEffect = null;
+
     private rootCardDeck: Node = null;
     private rootPotChips: Node = null;
     private vecPotChips: Vec3 = null;
@@ -82,6 +87,14 @@ export class UiEntity extends Component {
             }
         }
 
+        let r = this.node.getChildByPath('RESULT_EFFECT');
+        if ( r != null ) {
+            this.uiResultEffect = r.getComponent(UiResultEffect);
+            if ( this.uiResultEffect != null ) {
+                this.uiResultEffect.Init();
+            }
+        }
+
         this.rootCards = this.node.getChildByPath('CARDS');
         if ( this.rootCards != null ) {
             this.spriteHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(Sprite);
@@ -89,11 +102,22 @@ export class UiEntity extends Component {
                 this.spriteHandCards[0].node.active = false;
             }
 
+            this.uiHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(UiCard);
+            if ( this.uiHandCards[0] != null ) {
+                this.uiHandCards[0].init();
+                this.uiHandCards[0].node.active = false;
+            }
+
             this.spriteHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(Sprite);
             if ( this.spriteHiddenCards[1] != null ) {
                 this.spriteHandCards[1].node.active = false;
             }
 
+            this.uiHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(UiCard);
+            if ( this.uiHandCards[1] != null ) {
+                this.uiHandCards[1].init();                
+                this.uiHandCards[1].node.active = false;
+            }
             this.spriteHandCardsBackground[0] = this.rootCards.getChildByPath('CARD_0_BACKGROUND').getComponent(Sprite);
             if ( this.spriteHandCardsBackground[0] != null ) {
                 this.spriteHandCardsBackground[0].node.active = false;
@@ -179,53 +203,6 @@ export class UiEntity extends Component {
         this.node.active = false;
 
         this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
-
-        // this.buttonAvatar = this.node.getChildByPath('AVATAR').getComponent(Button);
-        // this.buttonAvatar.node.on('click', this.onClickAvatar.bind(this), this );
-
-        // this.spriteBetValueBackground = this.node.getChildByPath('SPRITE_ACTION_VALUE').getComponent(Sprite);
-        // this.spriteBetValueBackground.node.active = false;
-
-        // this.labelBetValue = this.node.getChildByPath('SPRITE_ACTION_VALUE/Label').getComponent(Label);
-        // this.labelBetValue.node.active = false;
-
-        // this.spriteBetChip = this.node.getChildByPath('SPRITE_ACTION_VALUE/SPRITE_CHIP').getComponent(Sprite);
-        // this.spriteBetChip.node.active = false;
-
-        // this.spriteBetChipAniGoToPotUi = this.node.getChildByPath('SPRITE_BET_CHIP_ANI_GOTO_POT').getComponent(Sprite);
-        // this.spriteBetChipAniGoToPotUi.node.active = false;
-
-
-        // this.spriteWinAnimation1 = this.node.getChildByPath('SPRITE_WIN_ANI1').getComponent(Sprite);
-        // this.spriteWinAnimation1.node.active = true;
-        // this.spriteWinAnimation1.color = new Color(255,255,255,1);
-
-        // this.spriteWinAnimation2 = this.node.getChildByPath('SPRITE_WIN_ANI2').getComponent(Sprite);
-        // this.spriteWinAnimation2.node.active = true;
-        // this.spriteWinAnimation2.color = new Color(255,255,255,1);
-
-        // this.spriteWinAnimation3 = this.node.getChildByPath('SPRITE_WIN_ANI3').getComponent(Sprite);
-        // this.spriteWinAnimation3.node.active = true;
-        // this.spriteWinAnimation3.color = new Color(255,255,255,1);
-        // this.vectorWinAnimation3 = new Vec3(this.spriteWinAnimation3.node.position);
-
-        // this.nodeWinBadge = this.node.getChildByPath('SPRITE_WIN').getComponent(Sprite);
-        // this.nodeWinBadge.node.active = false;
-
-        // this.labelWinAmount = this.node.getChildByPath('SPRITE_WIN/LABEL_VALUE').getComponent(Label);
-        // this.labelWinAmount.node.active = true;
-
-        // this.nodeDrawBadge = this.node.getChildByPath('SPRITE_DRAW').getComponent(Sprite);
-        // this.nodeDrawBadge.node.active = false;
-
-        // this.labelDrawAmount = this.node.getChildByPath('SPRITE_DRAW/LABEL_VALUE').getComponent(Label);
-        // this.labelDrawAmount.node.active = true;
-
-        // this.nodeReturnBadge = this.node.getChildByPath('SPRITE_RETURN').getComponent(Sprite);
-        // this.nodeReturnBadge.node.active = false;
-
-        // this.labelReturnAmount = this.node.getChildByPath('SPRITE_RETURN/LABEL_VALUE').getComponent(Label);
-        // this.labelReturnAmount.node.active = true;
     }
 
     onClickAvatar( button: Button ) {
@@ -333,6 +310,10 @@ export class UiEntity extends Component {
         this.spriteHandCards[1].node.active = false;
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].node.active = false;
+
+        this.uiHandCards[0].node.active = false;
+        this.uiHandCards[1].node.active = false;
+
         this.labelHandRank.node.active = false;
         this.posSymbols['dealer'].node.active = false;
         this.posSymbols['sb'].node.active = false;
@@ -616,19 +597,19 @@ export class UiEntity extends Component {
     }
 
     public ResetResultEffect() {
-        this.uiEntityAvatar.resetResultEffect();
+        this.uiResultEffect.ResetResultEffect();
     }
 
     public SetDraw( value: number ) {
-        this.uiEntityAvatar.SetDrawEffect( value );
+        this.uiResultEffect.SetDrawEffect( value );
     }
 
     public SetReturn( value: number ) {
-        this.uiEntityAvatar.SetReturnEffect( value );
+        this.uiResultEffect.SetReturnEffect( value );
     }
 
     setAniWinner( value: number ) {
-        this.uiEntityAvatar.SetWinEffect( value );
+        this.uiResultEffect.SetWinEffect( value );
     }
 
     setTweenFadeInFromToMove( sprite: Sprite, originalColor: Color, from: Vec3, to: Vec3, duration: number, 
@@ -666,6 +647,9 @@ export class UiEntity extends Component {
     prepareCardDispense() {
         this.spriteHiddenCards[0].node.active = false;
         this.spriteHiddenCards[1].node.active = false;
+
+        this.uiHandCards[0].node.active = false;
+        this.uiHandCards[1].node.active = false;        
 
         this.spriteHandCardsBackground[0].node.active = false;
         this.spriteHandCardsBackground[1].node.active = false;
@@ -712,9 +696,56 @@ export class UiEntity extends Component {
     }
 
     showPlayerCard() {
-        this.hiddenCardFadeOut( this.spriteHiddenCards[0].node, 0.5, 1.0 );
-        this.hiddenCardFadeOut( this.spriteHiddenCards[1].node, 0.5, 1.0 );
+        this.spriteHiddenCards[0].node.active = false;
+        this.spriteHiddenCards[1].node.active = false;
+
+
+        // this.flipPlayerCard( this.spriteHandCards[0].node, 0.5, 1.0);
+        // this.flipPlayerCard( this.spriteHandCards[1].node, 0.5, 1.0);
+
+        // this.hiddenCardFadeOut( this.spriteHiddenCards[0].node, 0.5, 1.0 );
+        // this.hiddenCardFadeOut( this.spriteHiddenCards[1].node, 0.5, 1.0 );
     }
+
+    ShowPlayerCards( card: any ) {
+        this.spriteHiddenCards[0].node.active = false;
+        this.spriteHiddenCards[1].node.active = false;
+        
+        this.uiHandCards[0].show( card.primary, null, 0.3 );
+        this.uiHandCards[1].show( card.secondary, null, 0.5 );
+
+        this.rootCards.active = true;
+    }
+
+    ShowdownPlayerCards( card: any, cb:()=>void ) {
+        this.spriteHiddenCards[0].node.active = false;
+        this.spriteHiddenCards[1].node.active = false;
+
+        let cnt: number = 0;
+        let end: boolean = false;
+        
+        this.uiHandCards[0].show( card.primary, ()=>{
+            cnt++;
+
+            if ( cnt >= 2 && end == false ) {
+                end = true;
+                cb();
+            }
+
+        }, 0.1 );
+
+        this.uiHandCards[1].show( card.secondary, ()=>{
+            cnt++;
+
+            if ( cnt >= 2 && end == false ) {
+                end = true;
+                cb();
+            }
+        }, 0.1 );
+
+        this.rootCards.active = true;
+    }
+
 
     hiddenCardFadeOut( target: Node, duration: number, delay: number ) {
         if ( target == null ) {
@@ -741,6 +772,45 @@ export class UiEntity extends Component {
         tw.call( ()=>{
             target.active = false;
             sprite.color = new Color( 255, 255, 255, 255);
+        } );
+        tw.start();
+    }
+
+    flipPlayerCard( target: Node, duration: number, delay: number ) {
+        if ( target == null ) {
+            return;
+        }
+
+        let s:Vec3 = new Vec3(); 
+        let d:Vec3 = new Vec3(0.0, s.y, s.z);
+
+        target.getScale(s);
+
+        // let sprite: Sprite = target.getComponent(Sprite);
+        // sprite.color = new Color( 255, 255, 255, 255);
+        
+        let tw = tween( target )
+        // .delay(delay)
+        .set ({
+            scale: s
+
+        }).to ( duration, {
+            scale: d
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+                // let x: number = ratio * s.x;
+                // let n: Vec3 = new Vec3(x, s.y, s.z);
+                // target.setScale(n);
+
+                // let a = 255 - ratio * 255;
+                // sprite.color = new Color(255, 255, 255, a);
+            },
+        });
+
+        tw.call( ()=>{
+            // target.active = false;
+            // sprite.color = new Color( 255, 255, 255, 255);
         } );
         tw.start();
     }

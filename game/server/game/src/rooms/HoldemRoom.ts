@@ -1706,7 +1706,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
-				}, 1000 );
+				}, 500 );
 				break;
 
 			case eGameState.Turn:
@@ -1715,7 +1715,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
-				}, 1000 );
+				}, 500 );
 				break;
 
 			case eGameState.River:
@@ -1724,7 +1724,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
-				}, 1000 );
+				}, 500 );
 				break;
 			case eGameState.ShowDown:
 				logger.info( "[ changeState ] SHOWDOWN" );
@@ -1805,7 +1805,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.potCalc.UpdateCenterCard(this.centerCardState);
 					this.potCalc.CalculatePot();					
 					this.changeState( eGameState.Flop );
-				}, 2000 );
+				}, 1000 );
 
 				break;
 			case eCommunityCardStep.FLOP:
@@ -1819,7 +1819,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.potCalc.UpdateCenterCard(this.centerCardState);
 					this.potCalc.CalculatePot();
 					this.changeState( eGameState.Turn );
-				}, 2000 );
+				}, 1000 );
 
 				break;
 			case eCommunityCardStep.TURN:
@@ -1833,7 +1833,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.potCalc.UpdateCenterCard(this.centerCardState);
 					this.potCalc.CalculatePot();
 					this.changeState( eGameState.River );	
-				}, 2000 );
+				}, 1000 );
 
 				break;
 			case eCommunityCardStep.RIVER:
@@ -1847,7 +1847,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.potCalc.UpdateCenterCard(this.centerCardState);
 					this.potCalc.CalculatePot();
 					this.changeState( eGameState.ShowDown );
-				}, 2000 );
+				}, 1000 );
 				break;
 			default:
 				logger.error( "[ changeCenterCardState ] invalid state : %s", this.centerCardState );
@@ -2881,12 +2881,26 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
+		let playerCards: any = {};
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				continue;
+			}
+
+			playerCards[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
+		}		
+
 		logger.debug("WINNERS");
 		this.broadcast( "WINNERS", {
 			skip: skip,
 			winners: winners,
 			dpPot : pots,
 			cards: this.communityCardIndex,
+			playerCards: playerCards,
 			folders: folders,
 			isAllInMatch : isAllIn
 		} );

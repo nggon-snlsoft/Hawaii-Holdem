@@ -13,13 +13,9 @@ const CARDS_NAME: string[] = [
 export class ResourceManager extends Component {
     private static _instance: ResourceManager = null;
 
-    private cards: {} = {};
-    private chips: {} = {};
-    private avatars: {} = {};        
-
     private preloadCardsResource: {} = {};
     private preloadChipsResource: {} = {};
-    private preloadAvatarResouce: {} = {};	    	
+    private preloadAvatarResouce: {} = {};
 
     public static Instance(): ResourceManager {
         if ( this._instance == null ) {
