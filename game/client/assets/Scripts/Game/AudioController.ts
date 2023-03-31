@@ -28,6 +28,8 @@ export class AudioController extends Component {
     @property(AudioClip) clipChipMoveStart: AudioClip = null;
     @property(AudioClip) clipChipMoveEnd: AudioClip = null;    
 
+    @property(AudioClip) clipShowDown: AudioClip = null;    
+
     @property(AudioSource) audioSource: AudioSource = null;
     @property(AudioSource) audioSourceTimeLimitFourSec: AudioSource = null;
 
@@ -102,7 +104,6 @@ export class AudioController extends Component {
 
     public playFlipHandCard() {
         this.audioSource.playOneShot( this.clipFlipHands );
-
     }
 
     public playHideHiddenCard() {
@@ -123,6 +124,10 @@ export class AudioController extends Component {
 
     public playShowHands() {
         this.audioSource.playOneShot( this.clipShowHands );
+    }
+
+    public playShowDown() {
+        this.audioSource.playOneShot( this.clipShowDown );
     }
 
     public playTimeLimitForSec() {

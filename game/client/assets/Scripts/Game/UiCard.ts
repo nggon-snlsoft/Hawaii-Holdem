@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Animation, AnimationClip, animation, Sprite, SpriteFrame } from 'cc';
 import { ResourceManager } from '../ResourceManager';
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiCard')
@@ -38,6 +39,14 @@ export class UiCard extends Component {
         }, delay );
     }
 
+    ShowImmediate( card: number ) {
+        this.card = card;
+        this.sprite.spriteFrame = ResourceManager.Instance().getCardImage(this.card);
+        this.node.active = true;
+    }    
+
+
+
     onCardFlipFinished() {
         if ( this.cb != null ) {
             this.cb();
@@ -46,6 +55,7 @@ export class UiCard extends Component {
 
     onCardFlippCenter() {
         let sf: SpriteFrame = ResourceManager.Instance().getCardImage(this.card);
+
         if ( sf != null ) {
             this.sprite.spriteFrame = sf;
         }

@@ -49,8 +49,7 @@ export class UiResultEffect extends Component {
         this.node.active = true;
 
         this.AnimationWinEffect.play();
-
-        this.WinTweenEffect();        
+        this.WinTweenEffect();
     }
 
     public SetDrawEffect( value: number ) {
@@ -84,7 +83,6 @@ export class UiResultEffect extends Component {
         this.spriteWinAnimation1.node.active = true;
         this.spriteWinAnimation2.node.active = true;
         this.spriteWinAnimation3.node.active = true;
-        
         this.node.active = true;
 
         let ani1Tween = tween(this.spriteWinAnimation1.node)
@@ -165,7 +163,6 @@ export class UiResultEffect extends Component {
         let ani2Tween = tween( this.spriteWinAnimation2.node)
         .call( () => {
             this.spriteWinAnimation2.color = new Color(255,255,255,1);
-            // this.sprWinAni2.node.scale = new Vec3( 0.5, 0.5, 0.5);
             this.spriteWinAnimation2.node.scale = new Vec3(1.15,1.15,1.15);
             this.spriteWinAnimation2.node.setRotation(dest);
             this.spriteWinAnimation2.node.active = false;

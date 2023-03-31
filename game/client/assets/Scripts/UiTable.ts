@@ -22,6 +22,7 @@ import { UiRoundPotValue } from './Game/UiRoundPotValue';
 import { ResourceManager } from './ResourceManager';
 import { UiCard } from './Game/UiCard';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
+import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 
 const { ccclass, property } = _decorator;
 
@@ -56,10 +57,10 @@ export class UiTable extends Component {
 	@property(UiPotChips) uiPotChips: UiPotChips = null;
 	@property(UiRoundPotValue) uiRoundPotValue: UiRoundPotValue = null;
 	@property(UiShowDownEffect) uiShowDownEffect: UiShowDownEffect = null;
+	@property(UiEffectShowRiver) uiEffectShowRiver: UiEffectShowRiver = null;
 
     private roundState: string = "";
     private spritePotRoot: Sprite = null;
-    // private spritePotChips: Sprite = null;
 
     private entityUiElements: UiEntity[] = [];
 
@@ -74,9 +75,6 @@ export class UiTable extends Component {
 
     private objPotMoveToWinnerChips: {} = {};
     private objPotReturnChips: {} = {};
-
-    // private cardRes: {} = {};
-    // private chipRes: {} = {};	
 
     private curPotValue: number = -1;
     private myChips: number = -1;
@@ -107,8 +105,6 @@ export class UiTable extends Component {
     private countPlayers: number = -1;
 
 	static seatMaxFromServer : number = 9;
-    // static preLoadCardRes: {} = {};
-    // static preLoadChipRes: {} = {};	
 
 	private isSitOutReservation: boolean = false;
 	private labelCurrentPot: Label = null;
@@ -153,8 +149,6 @@ export class UiTable extends Component {
         PokerEvaluator.exportToGlobal(globalThis.lib);
 
         Board.table = this;
-        // this.cardRes = UiTable.preLoadCardRes;
-		// this.chipRes = UiTable.preLoadChipRes;
         
         this.childRegistered();
 
@@ -167,6 +161,7 @@ export class UiTable extends Component {
 		this.uiPotChips.init();
 		this.uiRoundPotValue.init();
 		this.uiShowDownEffect.Init();
+		this.uiEffectShowRiver.Init();
 
         if (null == NetworkManager.Instance().room) {
             return;
@@ -1134,10 +1129,10 @@ export class UiTable extends Component {
 		}
 
 		this.curPotValue = msg[ "pot" ];
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
-		this.labelCurrentPot.node.active = true;
+		// this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
+		// this.labelCurrentPot.node.active = true;
 
-		this.labelPotTitle.node.active = true;
+		// this.labelPotTitle.node.active = true;
 		this.uiPot.UpdatePotTotal(this.curPotValue);
     }
 
@@ -1499,7 +1494,7 @@ export class UiTable extends Component {
 				idx++;
 
 				if ( idx == cnt && end == false ) {
-					console.log('ShowdownPlayerCards');
+					AudioController.instance.playFlipHandCard();					
 					end = true;
 					done();
 				}
@@ -1515,9 +1510,11 @@ export class UiTable extends Component {
 
 		this.ChipsMoveToPot( dpPot[0].total, ()=>{
 			this.uiRoundPotValue.show(dpPot[0].total);
+
 			this.uiShowDownEffect.Show(()=>{
 
 				this.ShowAllPlayersHands( playerCards, ()=>{
+
 					this.OpenCommunityCard( cards );
 				} );
 			});
@@ -1534,79 +1531,43 @@ export class UiTable extends Component {
 			if ( i < 3) {
 				this.OpenFlopCard(cards, ()=>{
 					this.OpenTurnCard( cards, ()=> {
+						let card = cards[ 4 ];
+						this.uiEffectShowRiver.Show(card + 1, ()=>{
+
 						this.OpenRiverCard( cards, ()=>{
 							this.onSHOWDOWN_END();
-						})
+						});
+
+						});
 					})
 				});
 				break;
 			} else if ( i < 4) {
 				this.OpenTurnCard( cards, ()=> {
+					let card = cards[ 4 ];
+					this.uiEffectShowRiver.Show( card + 1, ()=>{
+
 					this.OpenRiverCard( cards, ()=>{
 						this.onSHOWDOWN_END();
 					});
+
+					});
 				});
-				break;				
+				break;
 			} else {
+				let card = cards[4];
+				this.uiEffectShowRiver.Show( card + 1, ()=> {
+
 				this.OpenRiverCard( cards, ()=>{
 					this.onSHOWDOWN_END();
 				});
-				break;				
+
+				});
+
+				break;
 			}
 		}
 
-		// let newCardCount = 0;
-	
-		// await new Promise(ret => setTimeout(ret, 1500));
-
-		// for( let idx = 0; idx < this.numberCommunityCards.length; idx++ ) {
-		// 	let cardNumber = this.numberCommunityCards[ idx ];
-
-		// 	if( cards[ idx ] == cardNumber ) {
-		// 		continue;
-		// 	}
-
-		// 	newCardCount++;
-
-		// 	let delay = 0;
-
-		// 	if(idx < 3){
-		// 		//Flop
-		// 		delay = 50;
-		// 	}
-		// 	else if(idx < 4){
-		// 		delay = 1000;
-		// 	}
-		// 	else{
-		// 		delay = 2000;
-		// 	}
-
-		// 	await new Promise(ret => setTimeout(ret, delay));
-
-		// 	let sf1 = ResourceManager.Instance().getCardImage(0);
-		// 	let sf2 = ResourceManager.Instance().getCardImage( cards[idx] + 1 );
-
-		// 	// this.setAniDropOpenCard( this.uiCommunityCards[idx], 100, sf1, sf2, () => {
-		// 	// 	if (false == this.isEnableSeat(this.mySeat)) {
-		// 	// 		return;
-		// 	// 	}
-
-		// 	// 	this.numberCommunityCards[idx] = cards[idx];
-
-		// 	// 	this.enableSeats.forEach(seat => {
-		// 	// 		let uiEntity = this.getUiEntityFromSeat(seat);
-
-		// 	// 		if (true == uiEntity.isFold) {
-		// 	// 			return;
-		// 	// 		}
-
-		// 	// 		let getPlayerCard = this.playersCARD[seat];
-
-		// 	// 		let handRank = this.getHandRank(getPlayerCard.primaryCard, getPlayerCard.secondaryCard, this.numberCommunityCards);
-		// 	// 		uiEntity.setUiHandRank(handRank);
-		// 	// 	});
-		// 	// });
-		// }
 
 		// this.entityUiElements.forEach(element => element.endTurn());
 		// this.setUiWinners();
@@ -1633,11 +1594,11 @@ export class UiTable extends Component {
 
 			uiCard.show( cardNumber + 1, ()=>{
 				this.setUiMyHandRank();
-
+				AudioController.instance.playFlipHandCard();
 				if ( cbNext != null ) {
 					cbNext();
 				}
-			}, 1.5 );
+			}, 1 );
 		}		
 	}
 
@@ -1647,7 +1608,7 @@ export class UiTable extends Component {
 		let uiCard = this.uiCommunityCards[ 3 ];
 		uiCard.show( cardNumber + 1, ()=>{
 			this.setUiMyHandRank();
-
+			AudioController.instance.playFlipHandCard();
 			if ( cbNext != null ) {
 				cbNext();
 			}
@@ -1658,17 +1619,14 @@ export class UiTable extends Component {
 		let cardNumber = cards[ 4 ];
 		this.numberCommunityCards[ 4 ] = cards[ 4 ];
 		let uiCard = this.uiCommunityCards[ 4 ];
-		uiCard.show( cardNumber + 1, ()=>{
-			this.setUiMyHandRank();
-
-			if ( cbNext != null ) {
-				cbNext();
-			}
-		}, 2 );	
+		uiCard.ShowImmediate( cardNumber + 1 );
+		
+		cbNext();
 	}
 
 	private onSHOWDOWN_END() {
-		console.log('ShowdownEnd');
+		this.entityUiElements.forEach(element => element.endTurn());
+		this.setUiWinners();			
 	}
 
     private onCLEAR_ROUND( msg ) {
@@ -2061,7 +2019,6 @@ export class UiTable extends Component {
 		}
 		else 
 		{
-			console.log('SHOW DOWN');
 			this.ShowAll(msg["cards"], msg["dpPot"], msg['playerCards']);
 			return;
 		}

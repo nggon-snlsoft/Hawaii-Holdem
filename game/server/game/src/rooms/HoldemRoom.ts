@@ -1740,16 +1740,16 @@ export class HoldemRoom extends Room<RoomState> {
 						isAllIn = true;
 						
 						if( eCommunityCardStep.PRE_FLOP === this.centerCardState ) {
-							this.showdownTime += 5500;	//1500 + 3 * 50 + 1000 + 2000
+							this.showdownTime += 7000;	//1500 + 3 * 50 + 1000 + 2000
 						}
 						else if(eCommunityCardStep.FLOP === this.centerCardState){
-							this.showdownTime += 5000;	//1500 + 1000 + 2000
+							this.showdownTime += 6500;	//1500 + 1000 + 2000
 						}
 						else if( eCommunityCardStep.TURN === this.centerCardState ) {
-							this.showdownTime += 4000;	//1500 + 2000
+							this.showdownTime += 5500;	//1500 + 2000
 						}
 						else if( eCommunityCardStep.RIVER === this.centerCardState ) {
-							this.showdownTime += 2000;	//1500
+							this.showdownTime += 4500;	//1500
 						}
 
 						this.showdownTime += pots.length * 2000;

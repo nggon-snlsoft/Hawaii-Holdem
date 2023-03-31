@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Sprite, Animation, AnimationState } from 'cc';
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiShowDownEffect')
@@ -24,8 +25,11 @@ export class UiShowDownEffect extends Component {
             this.cbDone = cbDone;
         }
 
-        this.node.active = true;
-        this.animation.play();
+        this.scheduleOnce(()=>{
+            AudioController.instance.playShowDown();
+            this.node.active = true;
+            this.animation.play();
+        }, 1);
     }
 
     Hide() {

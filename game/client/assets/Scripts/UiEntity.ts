@@ -433,6 +433,9 @@ export class UiEntity extends Component {
 
         this.spriteHandCards[0].color = Color.WHITE;
         this.spriteHandCards[1].color = Color.WHITE;
+
+        this.spriteHiddenCards[0].color = Color.WHITE;
+        this.spriteHiddenCards[1].color = Color.WHITE;
     }
 
     setUiHandCardsFold() {
