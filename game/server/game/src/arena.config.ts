@@ -67,7 +67,7 @@ export default Arena( {
 		tableController = new TableController();
 
 		app.set( "DAO", dao );
-		app.use( "/users", userRoutes );
+		// app.use( "/users", userRoutes );
 		app.use( "/tables", tableController.router );
 
 		app.get( "/", ( req, res ) => {

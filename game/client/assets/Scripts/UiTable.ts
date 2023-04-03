@@ -23,8 +23,10 @@ import { ResourceManager } from './ResourceManager';
 import { UiCard } from './Game/UiCard';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
+import { HoldemCalculator } from './Lib/HoldemCalculator';
 
 const { ccclass, property } = _decorator;
+
 
 let totalCards: string[] = [
 	"Ac", "Kc", "Qc", "Jc", "Tc", "9c", "8c", "7c", "6c", "5c", 
@@ -111,6 +113,7 @@ export class UiTable extends Component {
 	private labelPotTitle: Label = null;
 
 	private rootPotChips: Node = null;
+	private holdemCalculator: HoldemCalculator = null;
 
 	onClickShowEmoticon(button: Button) {
 		this.uiGameChatting.show();
@@ -146,6 +149,7 @@ export class UiTable extends Component {
         this.seatMax = UiTable.seatMaxFromServer;
         
         globalThis.lib = {};
+
         PokerEvaluator.exportToGlobal(globalThis.lib);
 
         Board.table = this;
@@ -172,6 +176,16 @@ export class UiTable extends Component {
 		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
 		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
 		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
+
+		this.holdemCalculator = new HoldemCalculator();
+		this.holdemCalculator.addPlayer(['Qs', 'Ks'])
+		.addPlayer(['Qd', 'Kd'])
+		.setBoard(['Js', 'Ts', '5h', 'Td']);
+
+		let result = this.holdemCalculator.calculate();
+		result.getPlayers().forEach( (player)=>{
+			console.log(`${player.getName()} - ${player.getHand()} - Wins: ${player.getWinsPercentageString()} - Ties: ${player.getTiesPercentageString()}`);
+		});
 
         this.hide();
         this.sendMsg("ONLOAD", {
@@ -212,7 +226,7 @@ export class UiTable extends Component {
 			this.entityUiElements.push( elem );
 		}
 
-		this.rootPotChips = this.node.getChildByPath('NODE_POT_CHIPS');
+		this.rootPotChips = this.node.getChildByPath('ROUND_POT/POT_CHIPS');
 
 		for ( let i = 1; i < this.entityUiElements.length; i++ ) {
 			let entity = this.entityUiElements[i];
@@ -1129,10 +1143,6 @@ export class UiTable extends Component {
 		}
 
 		this.curPotValue = msg[ "pot" ];
-		// this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
-		// this.labelCurrentPot.node.active = true;
-
-		// this.labelPotTitle.node.active = true;
 		this.uiPot.UpdatePotTotal(this.curPotValue);
     }
 
@@ -1460,7 +1470,6 @@ export class UiTable extends Component {
 
 	private ShowAllPlayersHands( cards: any, done: ()=>void ) {
 		console.log('ShowAllPlayersHands');
-		console.log(cards);
 		let keys = Object.keys( cards );
 
 		let cnt: number = 0;
@@ -1508,33 +1517,38 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();
 		this.uiPlayerAction.hide();
 
+		console.log( playerCards );
+
 		this.ChipsMoveToPot( dpPot[0].total, ()=>{
 			this.uiRoundPotValue.show(dpPot[0].total);
 
 			this.uiShowDownEffect.Show(()=>{
 
 				this.ShowAllPlayersHands( playerCards, ()=>{
-
-					this.OpenCommunityCard( cards );
+					if ( this.numberCommunityCards.length < 5 ) {
+						this.OpenCommunityCard( cards, null );
+					} else {
+						this.onSHOWDOWN_END();						
+					}
 				} );
 			});
 		});
     }
 
-	private OpenCommunityCard( cards: any ) {
+	private OpenCommunityCard( tableCards: any, playerCards: any ) {
 		for ( let i: number = 0; i < this.numberCommunityCards.length; i++ ) {
 			let card = this.numberCommunityCards[i];
-			if ( cards[i] == card ) {
+			if ( tableCards[i] == card ) {
 				continue;
 			}
 
 			if ( i < 3) {
-				this.OpenFlopCard(cards, ()=>{
-					this.OpenTurnCard( cards, ()=> {
-						let card = cards[ 4 ];
+				this.OpenFlopCard(tableCards, ()=>{
+					this.OpenTurnCard( tableCards, ()=> {
+						let card = tableCards[ 4 ];
 						this.uiEffectShowRiver.Show(card + 1, ()=>{
 
-						this.OpenRiverCard( cards, ()=>{
+						this.OpenRiverCard( tableCards, ()=>{
 							this.onSHOWDOWN_END();
 						});
 
@@ -1543,11 +1557,11 @@ export class UiTable extends Component {
 				});
 				break;
 			} else if ( i < 4) {
-				this.OpenTurnCard( cards, ()=> {
-					let card = cards[ 4 ];
+				this.OpenTurnCard( tableCards, ()=> {
+					let card = tableCards[ 4 ];
 					this.uiEffectShowRiver.Show( card + 1, ()=>{
 
-					this.OpenRiverCard( cards, ()=>{
+					this.OpenRiverCard( tableCards, ()=>{
 						this.onSHOWDOWN_END();
 					});
 
@@ -1555,10 +1569,10 @@ export class UiTable extends Component {
 				});
 				break;
 			} else {
-				let card = cards[4];
+				let card = tableCards[4];
 				this.uiEffectShowRiver.Show( card + 1, ()=> {
 
-				this.OpenRiverCard( cards, ()=>{
+				this.OpenRiverCard( tableCards, ()=>{
 					this.onSHOWDOWN_END();
 				});
 
@@ -1567,22 +1581,6 @@ export class UiTable extends Component {
 				break;
 			}
 		}
-
-
-		// this.entityUiElements.forEach(element => element.endTurn());
-		// this.setUiWinners();
-		// this.uiPlayerAction.hide();
-
-		// for( let i = 0; i < 3; i++ ) {
-
-		// 	let cardNumber = cards[ i ];
-		// 	let uiCard = this.uiCommunityCards[ i ];			
-		// 	this.numberCommunityCards[ i ] = cardNumber;
-
-		// 	uiCard.show( cardNumber + 1, ()=>{
-		// 		this.setUiMyHandRank();
-		// 	}, 0 );
-		// }
 	}
 
 	private OpenFlopCard( cards: any, cbNext: ()=>void ) {

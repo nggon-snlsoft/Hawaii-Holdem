@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Vec3, Label, Tween, tween, Color, Quat, bezier, Animation } from 'cc';
+import { _decorator, Component, Node, Sprite, Vec3, Label, Tween, tween, Color, Quat, bezier, Animation, color } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 const { ccclass, property } = _decorator;
 
@@ -77,130 +77,119 @@ export class UiResultEffect extends Component {
     }
 
     private WinTweenEffect() {
-        this.winTweens.forEach( elem => elem.stop() );
-        this.winTweens = [];
+        console.log('WinTweenEffect');
+
+        // this.winTweens.forEach( elem => elem.stop() );
+        // this.winTweens = [];
 
         this.spriteWinAnimation1.node.active = true;
-        this.spriteWinAnimation2.node.active = true;
-        this.spriteWinAnimation3.node.active = true;
-        this.node.active = true;
-
-        let ani1Tween = tween(this.spriteWinAnimation1.node)
+        let tw1 = tween( this.spriteWinAnimation1.node )
         .set( {
 
         })
-        .call( () => {
-            this.spriteWinAnimation1.color = new Color(255,255,255,1);
-            this.spriteWinAnimation1.node.active = false;
-        })
-        .to( 0.5, {}, {
-            onUpdate: (target?: object, ratio?: number) => 
-            {
+        .to( 1, {}, {
+            onUpdate: ( target: any, ratio: number )=>{
                 let a = 255 * ratio;
-                if( a > 255 ) {
+                if ( a > 255 ) {
                     a = 255;
                 }
 
-                if( 1 > a ){
-                    a = 1;
+                if ( a <= 0) {
+                    a = 0;
                 }
+                this.spriteWinAnimation1.color = new Color( 255, 255, 255, a);
+            }
+        });
 
-                this.spriteWinAnimation1.color = new Color(255,255,255,a);
-            },
-        }).union();
+        tw1.call(()=>{
+            this.spriteWinAnimation1.color = new Color( 255, 255, 255, 0 );
+        });
 
-        let ani3Tween = tween(this.spriteWinAnimation3.node)
-        .call( () => {
-            this.spriteWinAnimation3.color = new Color(255,255,255,1);
-            this.spriteWinAnimation3.node.position = new Vec3(this.vecWinAnimation3);
+        tw1.union();
+        tw1.start();
 
-            this.spriteWinAnimation3.node.active = false;
+        this.spriteWinAnimation3.node.active = true;
+        let tw3 = tween( this.spriteWinAnimation3.node )
+        .set({
+            position: new Vec3 ( this.vecWinAnimation3 ),
+            scale: new Vec3( 0.5, 0.5, 0.5 )
         })
-        .set( { 
-            position: new Vec3(this.vecWinAnimation3),
-            scale: new Vec3(0.5, 0.5, 0.5)
-        } )
-        .to( 0.5, {
-            scale: new Vec3(1,1,1)
+        .to(0.5, {
+            scale: new Vec3(1.0, 1.0, 1.0)
         }, {
             easing: 'backOut',
-            onUpdate: (target?: object, ratio?: number) =>
-            {
+            onUpdate: ( target: any, ratio: number )=>{
                 let a = 255 * ratio;
-                if( a > 255 ) {
-                    a = 255;
-                }
-
-                if( 1 > a ){
-                    a = 1;
-                }
-
-                this.spriteWinAnimation3.color = new Color(255,255,255,a);
+                this.spriteWinAnimation3.color = new Color( 255, 255, 255, a);
             }
         })
-        .to (3, {
-            // position: new Vec3(this.vecWinAni3.x+20,this.vecWinAni3.y,this.vecWinAni3.z),
+        .to(3, {
+
         }, {
-            easing: "linear",
-            onUpdate: (target?: object, ratio?: number) => 
-            {
-                let a = 255 * (1 - ratio);
-                if( a > 255 ) {
-                    a = 255;
-                }
+            easing: 'linear',
+            onUpdate: ( target: any, ratio: number )=>{
+                let a = 255 - 255 * ratio;
+                this.spriteWinAnimation3.color = new Color( 255, 255, 255, a );
+                this.spriteWinAnimation1.color = new Color( 255, 255, 255, a );
+            }
+        });
 
-                if( 1 > a ){
-                    a = 1;
-                }
+        tw3.call(()=>{
+            this.spriteWinAnimation3.color = new Color(255, 255, 255, 0);
+            this.spriteWinAnimation3.node.position = new Vec3 ( this.vecWinAnimation3 );
 
-                this.spriteWinAnimation3.color = new Color(255,255,255,a);
-                this.spriteWinAnimation1.color = new Color(255,255,255,a);
-            },
-        }).union();
+            this.spriteWinAnimation3.node.active = false;
+        });
 
+        tw3.union();
+        tw3.start();
+
+        this.spriteWinAnimation2.node.active = true;        
         let dest: Quat = Quat.IDENTITY.clone();
 
-        let ani2Tween = tween( this.spriteWinAnimation2.node)
-        .call( () => {
-            this.spriteWinAnimation2.color = new Color(255,255,255,1);
-            this.spriteWinAnimation2.node.scale = new Vec3(1.15,1.15,1.15);
-            this.spriteWinAnimation2.node.setRotation(dest);
-            this.spriteWinAnimation2.node.active = false;
-        })
+        let tw2 = tween( this.spriteWinAnimation2.node )        
         .to( 2, {
-            scale: new Vec3(0.7,0.7,0.7)
+            scale: new Vec3( 0.7, 0.7, 0.7 )
         }, {
-            // easing: 'backOut',
-            onUpdate: (target?: object, ratio?: number) =>
-            {
-                Quat.fromEuler( dest, 0, 0, 360 * 12 * ratio);
-                this.spriteWinAnimation2.node.setRotation(dest);
-            
-                let a = bezier(0,500,255,0,ratio);
+            onUpdate: ( target: any, ratio: number )=>{
+                Quat.fromEuler( dest, 0, 0, 360 * 12 * ratio );
+                this.spriteWinAnimation2.node.setRotation( dest );
+
+                let a = bezier( 0, 500, 255, 0, ratio );
                 let max: number = 255 * 0.7;
-                if( a > max ){
+                if ( a > max ) {
                     a = max;
                 }
 
-                if( 1 > a ){
-                    a = 1;
-                }
+                this.spriteWinAnimation2.color = new Color( 255, 255, 255, a);
+            }
+        });
 
-                this.spriteWinAnimation2.color = new Color( 255,255,255, a); 
-            },
-        }).union();
+        tw2.call( ()=>{
+            this.spriteWinAnimation2.color = new Color(255,255,255,0);
+            this.spriteWinAnimation2.node.scale = new Vec3(1.15,1.15,1.15);
+            this.spriteWinAnimation2.node.setRotation(dest);
+            this.spriteWinAnimation2.node.active = false;
+        });
 
-        ani1Tween.start();
-        ani3Tween.start();
-        ani2Tween.start();
-
-        this.winTweens.push(ani1Tween);
-        this.winTweens.push(ani2Tween);
-        this.winTweens.push(ani3Tween);
+        tw2.union();
+        tw2.start();
     }
 
-    private onFinishedResultEffect() {
-        this.ResetResultEffect();
+    private onFinishedResultWin() {
+        this.AnimationWinEffect.node.active = false;
+
+        // this.ResetResultEffect();
+    }
+
+    private onFinishedResultDraw() {
+        this.AnimationDrawEffect.node.active = false;
+        // this.ResetResultEffect();
+    }
+
+    private onFinishedResultReturn() {
+        this.AnimationReturnEffect.node.active = false;
+        // this.ResetResultEffect();
     }
 
     childedRegisted() {
@@ -221,7 +210,6 @@ export class UiResultEffect extends Component {
         this.spriteWinAnimation3 = this.node.getChildByPath('SPRITE_WIN_ANI3').getComponent(Sprite);
         if ( this.spriteWinAnimation3 != null ) {
             this.spriteWinAnimation3.node.active = false;
-
             this.vecWinAnimation3 = new Vec3( this.spriteWinAnimation3.node.position );
         }
 
@@ -248,17 +236,17 @@ export class UiResultEffect extends Component {
 
         this.AnimationWinEffect = this.node.getChildByPath('SPRITE_WIN').getComponent( Animation );
         if ( this.AnimationWinEffect != null ) {
-            this.AnimationWinEffect.on('finished', this.onFinishedResultEffect.bind(this), this );
+            this.AnimationWinEffect.on('finished', this.onFinishedResultWin.bind(this), this );
         }
 
         this.AnimationDrawEffect = this.node.getChildByPath('SPRITE_DRAW').getComponent( Animation );
         if ( this.AnimationDrawEffect != null ) {
-            this.AnimationDrawEffect.on('finished', this.onFinishedResultEffect.bind(this), this );
+            this.AnimationDrawEffect.on('finished', this.onFinishedResultDraw.bind(this), this );
         }
 
         this.AnimationReturnEffect = this.node.getChildByPath('SPRITE_RETURN').getComponent( Animation );
         if ( this.AnimationReturnEffect != null ) {
-            this.AnimationReturnEffect.on('finished', this.onFinishedResultEffect.bind(this), this );
+            this.AnimationReturnEffect.on('finished', this.onFinishedResultReturn.bind(this), this );
         }
     }
 }

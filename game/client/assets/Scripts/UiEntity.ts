@@ -283,6 +283,7 @@ export class UiEntity extends Component {
             return;
         }
 
+        this.ResetResultEffect();
         this.setUiPlay(); 
     }
 

@@ -24,11 +24,19 @@ export class ResourceManager extends Component {
         return this._instance;
     }
 
-    public loadChips( cbDone: ()=>void ) {
-		for( let i = 0; i < 12; i++ ) {
+    public loadChips( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
+		let cnt: number = 0;
+		let l: number = 12;
+		for( let i = 0; i < l; i++ ) {
 			const url = `BettingChips/${ i }/spriteFrame`;
 
-			resources.load<SpriteFrame>( url, ( err, res ) => {
+			resources.load<SpriteFrame>( url, ( finished, total, item )=>{
+				if ( item.ext == '.png' ) {
+					cnt++;
+					let p: number = cnt / CARDS_NAME.length;
+					cbProgress(p);
+				}
+			}, ( err, res ) => {
 
 				if( null != err ) {
                     console.log('err');
@@ -42,11 +50,17 @@ export class ResourceManager extends Component {
 		}
     }
 
-    public loadCards( cbDone: ()=>void ) {
-		for( let i = 0; i < 53; i++ ) {
+    public loadCards( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
+		let cnt = 0;
+		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
 			const url = `PlayingCards/${ i }/spriteFrame`;
-
-			resources.load<SpriteFrame>( url, ( err, res ) => {
+			resources.load<SpriteFrame>( url, (finished, total, item )=>{
+				if ( item.ext == '.png' ) {
+					cnt++;
+					let p: number = cnt / CARDS_NAME.length;
+					cbProgress(p);
+				}
+			}, ( err, res ) => {
 
 				if( null != err ) {
 				}
