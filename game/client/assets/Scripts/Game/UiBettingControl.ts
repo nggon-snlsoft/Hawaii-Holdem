@@ -12,24 +12,19 @@ export enum ENUM_BETTING_TYPE {
 export class UiBettingControl extends Component {
     @property(Button) buttonBetMinus: Button = null;
     @property(Button) buttonBetPlus: Button = null;
-    @property(Button) buttonBetHalf: Button = null;
-    @property(Button) buttonBetTwoThird: Button = null;
     @property(Button) buttonBetPot: Button = null;
+    @property(Button) buttonBetHalf: Button = null;
+    @property(Button) buttonBetQuater: Button = null;
     @property(Button) buttonBetMax: Button = null;
-    @property(Button) buttonInputBet: Button = null;
     @property(Slider) sliderBetting: Slider = null;
     @property(Label) labelDisplayValue: Label = null;
     @property(Node) nodeRoot: Node = null;
 
-    private valueTurn: number = 0;
-    private myBet: number = 0;
-    private chips: number = 0;
     private pot: number = 0;
     private displayValue: number = 0;    
     private valueRange: number = 0;
     private valueStart: number = 0;
     private CONST_BET_STEP = 0.0;
-    private sb: number = 0;
     private bb: number = 0;
 
     private type: ENUM_BETTING_TYPE = ENUM_BETTING_TYPE.None;
@@ -48,10 +43,9 @@ export class UiBettingControl extends Component {
         this.buttonBetMinus.node.on('click', this.onClickBetMinus.bind(this));
         this.buttonBetPlus.node.on('click', this.onClickBetPlus.bind(this));
         this.buttonBetHalf.node.on('click', this.onClickBetHalf.bind(this));
-        this.buttonBetTwoThird.node.on('click', this.onClickBetTwoThird.bind(this));
+        this.buttonBetQuater.node.on('click', this.onClickBetQuater.bind(this));
         this.buttonBetPot.node.on('click', this.onClickBetPot.bind(this));
         this.buttonBetMax.node.on('click', this.onClickBetMax.bind(this));
-        this.buttonInputBet.node.on('click', this.onClickInputBet.bind(this));
 
         this.sliderBetting.progress = 0.0;
         this.CONST_BET_STEP = 0;
@@ -63,9 +57,6 @@ export class UiBettingControl extends Component {
         this.type = type;
 
         this.pot = pot;
-        this.chips = chips;
-
-        this.sb = sb;
         this.bb = bb;
 
         this.CONST_BET_STEP = this.bb;
@@ -77,80 +68,64 @@ export class UiBettingControl extends Component {
         this.nodeRoot.active = true;
     }
 
-    private setRatio( ratio: number ) { 
+    private setRatio( ratio: number ) {
 		let result: number = 0;
 		let remain: number = 0;
 
 		if ( ratio >= 1) {
 			ratio = 1;
             result = Math.floor( ratio * this.valueRange );
-            this.buttonBetPlus.interactable = false;
-            this.buttonBetMinus.interactable = true;            
 		} else {
-            this.buttonBetPlus.interactable = true;
 
-            if ( ratio <= 0) {
+            if ( ratio <= 0 ) {
                 result = this.valueStart;
-                this.buttonBetMinus.interactable = false;
             }
             else {
-                this.buttonBetMinus.interactable = true;
                 result = Math.floor( ratio * this.valueRange );
-                remain = Math.floor( ratio * this.valueRange ) % ( this.CONST_BET_STEP );
+                remain = result % ( this.CONST_BET_STEP );
                 result -= remain;
             }
 		}
 
         result = Math.max( result, this.valueStart );
+
         this.sliderBetting.progress = result / this.valueRange;
 
         this.displayValue = result;
         this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );
-
-        // switch ( this.type) {
-        //     case ENUM_BETTING_TYPE.None:
-        //         break;
-
-        //     case ENUM_BETTING_TYPE.Bet:
-        //         this.displayValue = result + this.valueStart;
-        //         break;
-
-        //     case ENUM_BETTING_TYPE.Raise:
-        //         this.displayValue = result + this.valueStart - this.myBet;
-        //         break;
-        // }
-
-        // this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );
     }
 
     private onClickBetMinus( button:Button ) {
-        console.log('onClickBetMinus');
         let r = this.displayValue - this.CONST_BET_STEP;
-        this.displayValue = Math.max (r, this.valueStart);
+        this.setValue( r );
+    }
 
-        console.log('this.displayValue: ' + this.displayValue.toString() );
+    private setValue( value ) {
+		let result: number = 0;
+		let remain: number = 0;
 
-        let rf = Math.fround(this.displayValue / this.valueRange);
+        result = value;
+        remain = result % ( this.CONST_BET_STEP );
+        result -= remain;
+        result = Math.max( result, this.valueStart );
 
-        console.log((this.displayValue / this.valueRange).toString())
-        
+        this.sliderBetting.progress = result / this.valueRange;
+        this.displayValue = Math.min( result, this.valueRange);
 
-        this.setRatio(this.displayValue / this.valueRange);
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );        
     }
 
     private onClickBetPlus( button: Button ) {
-        console.log('onClickBetPlus');        
         let r = this.displayValue + this.CONST_BET_STEP;
-        this.displayValue = Math.min( r, this.valueRange);
-        this.setRatio( this.displayValue / this.valueRange );
+        this.setValue( r );
     }
 
     private onClickBetHalf( button: Button ) {
         this.setRatio (( this.pot * 0.5 ) / this.valueRange);
     }
 
-    private onClickBetTwoThird( button: Button ) {
-        this.setRatio (( this.pot * 2 / 3 ) / this.valueRange);
+    private onClickBetQuater( button: Button ) {
+        this.setRatio (( this.pot * 0.25 ) / this.valueRange);
     }
 
     private onClickBetPot( button: Button ) {
@@ -159,10 +134,6 @@ export class UiBettingControl extends Component {
 
     private onClickBetMax( button: Button ) {
         this.setRatio(1);
-    }
-
-    private onClickInputBet( button: Button ) {
-
     }
 
     private onSliderChangeBetValue( slider: Slider ) {

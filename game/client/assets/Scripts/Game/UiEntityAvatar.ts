@@ -249,7 +249,6 @@ export class UiEntityAvatar extends Component {
 
         this.rootActions = this.node.getChildByPath('ACTIONS');
         if ( this.rootActions != null ) {
-            console.log('this.rootActions is not null');
             this.actions['call'] = this.rootActions.getChildByPath('CALL');
             this.actions['call'].active = false;
 

@@ -31,10 +31,10 @@ export class UiEffectShowRiver extends Component {
             this.done = done;
         }
 
-        let sf: SpriteFrame = ResourceManager.Instance().getCardImage( this.value );
+        let sf: SpriteFrame = ResourceManager.Instance().getCardImage( 0 );
         if ( sf != null ) {
             this.sprite.spriteFrame = sf;
-        }        
+        }
 
         this.value = value;
         this.scheduleOnce(()=>{

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, Vec3, UITransform, tween, Tween, UIOpacity } from 'cc';
 import { Board } from '../Board';
 import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
@@ -10,6 +10,7 @@ export class UiPotChips extends Component {
     private sprites: any[] = [];
     private value: number = 0;
     private numbers: any[] = [];
+    private vecOriginal: Vec3 = null;
 
     init() {
         for ( let i: number = 0 ; i < this.digits.length ; i++ ) {
@@ -24,6 +25,7 @@ export class UiPotChips extends Component {
             this.digits[i].active = false;
         }
 
+        this.vecOriginal = new Vec3( this.node.position.x, this.node.position.y, this.node.position.z );
         this.node.active = false;
     }
 
@@ -77,12 +79,66 @@ export class UiPotChips extends Component {
         for ( let i: number = 0; i < this.digits.length; i++ ) {
             this.digits[i].active = false;
         }
+        this.value = 0;
+    }
 
+    public MovePotToEntity( from: Node, to: Node, value: number  ) {
+        this.value = value;
+
+        this.setNumbers();
+        this.setDigits();
+
+        let vecFrom = from.parent.getComponent( UITransform ).convertToWorldSpaceAR( from.position );
+        vecFrom = this.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( vecFrom );
+
+        let vecTo = this.node.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.vecOriginal );
+        vecTo = this.node.getComponent( UITransform ).convertToNodeSpaceAR( vecTo );
+
+        // this.node.position = new Vec3( vecFrom.x, vecFrom.y, vecFrom.z );
+        this.node.active = true;
+
+        let op: UIOpacity = this.node.getComponent( UIOpacity );
+        if ( op != null ) {
+            op.opacity = 255;
+        }
+
+        let tw = tween ( this.node )
+        .set ({
+            position: vecFrom,
+        }).to ( 0.5 , {
+            position: vecTo,
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate(target, ratio) {
+                let o = 255 - ( 255 * ratio);
+                if ( op != null ) {
+                    op.opacity = o;
+                }
+            },
+        })
+
+        tw.call(()=>{
+            this.node.position = new Vec3( this.vecOriginal.x, this.vecOriginal.y, this.vecOriginal.z);
+            this.node.active = false;
+        });
+
+        tw.start();
     }
 
     hide() {
         this.reset();
         this.node.active = false;
+    }
+
+    easeOutBack(x: number ): number {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        
+        return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    }
+
+    easeOutQuad( x: number ): number {
+        return 1 - (1 - x) * (1 - x);
     }
 }
 

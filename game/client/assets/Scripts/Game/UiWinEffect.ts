@@ -45,6 +45,8 @@ export class UiWinEffect extends Component {
         let cards = winner.cards;
         
         this.eval = Board.table.getHandsEval(cards, communities);
+        console.log('this.eval');        
+        console.log(this.eval);
         this.rank = this.eval['rank'];
 
         if ( this.rank - 1 >= 0) {

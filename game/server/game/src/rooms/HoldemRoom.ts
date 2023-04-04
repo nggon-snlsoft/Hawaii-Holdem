@@ -2864,6 +2864,7 @@ export class HoldemRoom extends Room<RoomState> {
 					seat: entity.seat,
 					cards: entity.cardIndex,
 					nickname: entity.nickname,
+					eval: entity.eval,
 					chips: entity.chips,
 					winAmount: entity.winAmount,
 					fold : entity.fold
@@ -2898,6 +2899,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.broadcast( "WINNERS", {
 			skip: skip,
 			winners: winners,
+			pot: this.state.pot,
 			dpPot : pots,
 			cards: this.communityCardIndex,
 			playerCards: playerCards,

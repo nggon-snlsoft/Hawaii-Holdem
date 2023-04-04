@@ -23,7 +23,6 @@ import { ResourceManager } from './ResourceManager';
 import { UiCard } from './Game/UiCard';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
-import { HoldemCalculator } from './Lib/HoldemCalculator';
 
 const { ccclass, property } = _decorator;
 
@@ -113,7 +112,6 @@ export class UiTable extends Component {
 	private labelPotTitle: Label = null;
 
 	private rootPotChips: Node = null;
-	private holdemCalculator: HoldemCalculator = null;
 
 	onClickShowEmoticon(button: Button) {
 		this.uiGameChatting.show();
@@ -177,17 +175,7 @@ export class UiTable extends Component {
 		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
 		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
 
-		this.holdemCalculator = new HoldemCalculator();
-		this.holdemCalculator.addPlayer(['Qs', 'Ks'])
-		.addPlayer(['Qd', 'Kd'])
-		.setBoard(['Js', 'Ts', '5h', 'Td']);
-
-		let result = this.holdemCalculator.calculate();
-		result.getPlayers().forEach( (player)=>{
-			console.log(`${player.getName()} - ${player.getHand()} - Wins: ${player.getWinsPercentageString()} - Ties: ${player.getTiesPercentageString()}`);
-		});
-
-        this.hide();
+		this.hide();
         this.sendMsg("ONLOAD", {
 
         });
@@ -245,6 +233,8 @@ export class UiTable extends Component {
 
 		this.spritePotRoot = this.node.getChildByPath( "POT" ).getComponent( Sprite );
 		this.spritePotRoot.node.active = false;
+
+		//////////////////
 
 		let winnerChips = this.node.getChildByPath( "WINNER_CHIPS" );
 		let keys = Object.keys( this.objPotMoveToWinnerChips );
@@ -318,6 +308,7 @@ export class UiTable extends Component {
 
 			this.objPotReturnChips[ i ] = {sprChips : clone};
 		}
+		/////////////////////////
 
 		this.labelReadyMessage = this.node.getChildByPath("LABLE_READY_MESSAGE").getComponent( Label );
 		this.labelReadyMessage.string = "";
@@ -777,11 +768,11 @@ export class UiTable extends Component {
             uiEntity?.setUi( entity );
             if (null !== uiEntity && undefined !== uiEntity ) {
                 uiEntity.callbackProfileOpen = ( e ) => {
-                    // this.uiProfileCard.show( e, seat );
+
                 }
 
                 uiEntity.callbackProfileClose = () => {
-                    // this.uiProfileCard.hide();
+
                 }
             }
         }
@@ -800,7 +791,6 @@ export class UiTable extends Component {
 		this.spritePotRoot.node.active = true;
 		if (null !== pots || undefined !== pots) {
 			this.uiPot.Show(pots);
-			// this.spritePotChips.node.active = false;
 		}
     }
 
@@ -900,7 +890,6 @@ export class UiTable extends Component {
 		let rs = array.join();
 
 		let handRank = globalThis.lib[ "Hand" ].solve( rs.split( "," ) );
-
 		return handRank;
 	}
 
@@ -1311,7 +1300,6 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();
 
 		this.clearUiEntitiesAction();
-		// this.setAniChipsMoveToPot( false, msg["dpPot"]);
 
 		let cards = msg[ "cards" ];
 
@@ -1404,7 +1392,6 @@ export class UiTable extends Component {
 
 		this.uiPlayerActionReservation.reset();		
 		this.clearUiEntitiesAction();
-		this.setAniChipsMoveToPot( false, msg["dpPot"] );
 
 		let cards = msg[ "cards" ];
 		this.numberCommunityCards[ 4 ] = cards[ 0 ];
@@ -1469,7 +1456,6 @@ export class UiTable extends Component {
 	}
 
 	private ShowAllPlayersHands( cards: any, done: ()=>void ) {
-		console.log('ShowAllPlayersHands');
 		let keys = Object.keys( cards );
 
 		let cnt: number = 0;
@@ -1511,7 +1497,11 @@ export class UiTable extends Component {
 		} );
 	}
 
-    private async ShowAll ( cards: number[], dpPot: any, playerCards: any[] ) {
+    private async ShowAll ( msg: any ) {
+
+		let cards: number[] = msg["cards"];
+		let dpPot: any = msg['dpPot'];
+		let playerCards: any[] = msg['playerCards'];
 
 		this.isAllIn = true
 		this.uiPlayerActionReservation.reset();
@@ -1525,17 +1515,28 @@ export class UiTable extends Component {
 			this.uiShowDownEffect.Show(()=>{
 
 				this.ShowAllPlayersHands( playerCards, ()=>{
-					if ( this.numberCommunityCards.length < 5 ) {
-						this.OpenCommunityCard( cards, null );
-					} else {
-						this.onSHOWDOWN_END();						
-					}
+					this.OpenCommunityCard( cards, null );
 				} );
 			});
 		});
     }
 
 	private OpenCommunityCard( tableCards: any, playerCards: any ) {
+		let isCardOpen: boolean = false;
+		for ( let i: number = 0 ; i < this.numberCommunityCards.length; i++ ) {
+			let card = this.numberCommunityCards[i];			
+			if ( tableCards[i] == card ) {
+				continue;
+			}
+			isCardOpen = true;
+			break;			
+		}
+
+		if ( isCardOpen != true ) {
+			this.onSHOWDOWN_END();
+			return;
+		}
+
 		for ( let i: number = 0; i < this.numberCommunityCards.length; i++ ) {
 			let card = this.numberCommunityCards[i];
 			if ( tableCards[i] == card ) {
@@ -1579,7 +1580,7 @@ export class UiTable extends Component {
 				});
 
 				break;
-			}
+			} 
 		}
 	}
 
@@ -1623,8 +1624,10 @@ export class UiTable extends Component {
 	}
 
 	private onSHOWDOWN_END() {
+		console.log('onSHOWDOWN_END');
 		this.entityUiElements.forEach(element => element.endTurn());
-		this.setUiWinners();			
+
+		this.setUiWinners();
 	}
 
     private onCLEAR_ROUND( msg ) {
@@ -1723,7 +1726,7 @@ export class UiTable extends Component {
 		this.curPotValue = msg[ "pot" ];
 		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );		
 
-		AudioController.instance.playRaise();
+
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1740,9 +1743,11 @@ export class UiTable extends Component {
 
 		if( true == msg[ "allin" ] ) {
 			uiEntity?.setUiAllIn();
+			AudioController.instance.playAllIn();			
 		}
 		else {
 			uiEntity?.setUiAction( "raise" );
+			AudioController.instance.playRaise();			
 		}
 
 		this.setUiPot(msg["dpPot"]);
@@ -1782,7 +1787,6 @@ export class UiTable extends Component {
     }
 
     private onCALL ( msg ) {
-		AudioController.instance.playCall();
 
 		this.curPotValue = msg[ "pot" ];
 		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
@@ -1803,9 +1807,11 @@ export class UiTable extends Component {
 
 		if( true == msg[ "allin" ] ) {
 			uiEntity?.setUiAllIn();
+			AudioController.instance.playAllIn();			
 		}
 		else {
 			uiEntity?.setUiAction( "call" );
+			AudioController.instance.playCall();			
 		}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
@@ -1814,8 +1820,6 @@ export class UiTable extends Component {
     }
 
     private onBET ( msg ) {
-		AudioController.instance.playBet();
-
 		this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
 		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
@@ -1835,9 +1839,12 @@ export class UiTable extends Component {
 
 		if( true == msg[ "allin" ] ) {
 			uiEntity?.setUiAllIn();
+			AudioController.instance.playAllIn();			
 		}
 		else {
 			uiEntity?.setUiAction( "bet" );
+			AudioController.instance.playBet();
+
 		}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
@@ -1911,7 +1918,6 @@ export class UiTable extends Component {
 
 		uiEntity.spriteHandCards[ 0 ].node.active = true;
 		uiEntity.spriteHandCards[ 1 ].node.active = true;
-		// uiEntity.spriteHandCardShadow.node.active = false;
 
 		let handRank = this.getHandRank( primaryCard, secondaryCard, this.numberCommunityCards );
 		uiEntity.setUiHandRank( handRank );
@@ -1984,15 +1990,8 @@ export class UiTable extends Component {
 				uiEntity.setUiHandRank( handRank );
 			} );
 
-			let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 0 ], stopPos, 0.1, () => {
-			} );
-
-			stopPos = new Vec3( uiEntity.vectorHiddenCards[ 1 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 1 ], stopPos, 0.1, () => {
-			} );
+			uiEntity.spriteHiddenCards[ 0 ].node.active = false;
+			uiEntity.spriteHiddenCards[ 1 ].node.active = false;
 		} );
 
 		this.entityUiElements.forEach( element => element.endTurn() );
@@ -2011,16 +2010,12 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();
 		this.uiPlayerAction.hide();
 
-		if (msg["isAllInMatch"] === false)
-		{
-			this.setUiWinners();
-		}
-		else 
-		{
-			this.ShowAll(msg["cards"], msg["dpPot"], msg['playerCards']);
+		if ( msg['isAllInMatch'] == true ) {
+			this.ShowAll( msg );
 			return;
 		}
 
+		this.setUiWinners();		
 		for (let i = 0; i < msg["dpPot"].length; i++) {
 			let pot = msg["dpPot"][i];
 			let winners: string[] = [];
@@ -2051,7 +2046,7 @@ export class UiTable extends Component {
 
 		let me = msg.winners.find((elem) => {return elem.seat === this.mySeat});
 
-		if(false == msg.skip){
+		if( msg.skip == true ){
 			if ( this.buttonShowCard == null ) {
 				return;
 			}
@@ -2073,12 +2068,13 @@ export class UiTable extends Component {
 					clearTimeout(timer);
 				}, 1500 );
 			}
-
 			return;
 		} else {
+
 			//msg.skip == true;
 		}
 
+		//조건을 플레이어 카드가 오픈되어 있지 않는다로 수정		
 		this.buttonShowCard.node.active = true;
     }
 
@@ -2108,22 +2104,14 @@ export class UiTable extends Component {
 				return;
 			}
 
-			let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 0 ], stopPos, 0.1, () => {
-				uiEntity.spriteHiddenCards[ 0 ].node.active = false;
-
-			} );
-
-			stopPos = new Vec3( uiEntity.vectorHiddenCards[ 1 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 1 ], stopPos, 0.1, () => {
-				uiEntity.spriteHiddenCards[ 1 ].node.active = false;				
-			} );
+			uiEntity.spriteHiddenCards[ 0 ].node.active = false;
+			uiEntity.spriteHiddenCards[ 1 ].node.active = false;
 		} );
     }
 
     private setUiWinners() {
+		console.log('setUiWinners');
+		console.log( this.msgWINNERS );
 
 		this.myPrimaryCardIndex = -1;
 		this.mySecondaryCardIndex = -1;
@@ -2134,52 +2122,72 @@ export class UiTable extends Component {
 
 		this.entityUiElements.forEach( element => element.endTurn() );
 
-		this.ResultPotAnimation(entities, this.msgWINNERS["dpPot"]).then(() =>{
+		if ( this.msgWINNERS['skip'] == true ) {
+			console.log( 'this.msgWINNERS[skip] == true');
+			let cnt: number = 0;
+			let potValue = this.msgWINNERS['pot'];
+
+			for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
+				let seat = this.seatPlayers[ i ];
+
+				if( this.isEnableSeat( seat ) == true ) {
+					let uiEntity = this.getUiEntityFromSeat(seat);
+					if ( uiEntity != null ) {
+						cnt++;
+						uiEntity.setChipsMoveToPot( cnt, this.uiRoundPotValue.node , ( idx: number )=>{
+							uiEntity.clearUiBetValue();
+
+							if ( (cnt) == idx) {
+								this.uiPotChips.show( potValue );
+								this.uiRoundPotValue.show( potValue );
+
+								this.scheduleOnce(()=>{
+									this.ResultSkipAnimation( entities, this.msgWINNERS["dpPot"] );
+								}, 1.0 );
+							}
+						});
+					}
+				}
+			}
+
+			return;
+		}
+
+		this.ResultPotAnimation( entities, this.msgWINNERS["dpPot"]).then(() =>{
 			this.setAniPotUiFadeOut();
+
+		});
+		this.uiWinEffect.show();
+    }
+
+	private async ResultSkipAnimation ( winners: any[], pot: any[] ) {
+		let uiPots : Pot[] = this.uiPot.GetPots();		
+		for(let i = 0; i < winners.length; i++){
+			let winner = winners[i];
+
+			let uiEntity = this.getUiEntityFromSeat( winner.seat );
+
+			uiEntity?.setUiPlay();
+			this.uiPot.UpdatePotTotal( winner.winAmount );
+
+			let isReturn : boolean = winner.fold;
+			if ( isReturn == false ) {
+				uiEntity.SetWinner( this.uiRoundPotValue.node , winner.winAmount );
+				AudioController.instance.playWin();
+			}
+		}
+		
+		uiPots.forEach(element => {
+			element.ClearCallback();
 		});
 
-		this.uiWinEffect.show();
-		AudioController.instance.playWin();
-    }
+		this.uiPot.UpdatePotTotal(0);
+		this.uiPot.HidePotInfo();
+		await new Promise(ret => setTimeout(ret, 2000));
+	}
 
     private async ResultPotAnimation( winners: any[], pot: any[] ) {
 		let uiPots : Pot[] = this.uiPot.GetPots();
-
-		if(this.msgWINNERS["skip"] === true){
-			
-			for(let i = 0; i < winners.length; i++){
-				let winner = winners[i];
-
-				let uiEntity = this.getUiEntityFromSeat( winner.seat );
-
-				if(null == uiEntity){
-				}
-
-				uiEntity?.setUiPlay();
-				this.uiPot.UpdatePotTotal( winner.winAmount );
-
-				let isReturn : boolean = winner.fold;
-				if (isReturn === true) {
-					uiEntity?.SetReturn(winner.winAmount);
-				}
-				else {
-
-					uiEntity?.setAniWinner(winner.winAmount);
-				}
-
-				this.setAniPotMoveToWinner(this.uiPot.maxPotRoot, winner.seat, i, winner.chips, true , isReturn);
-			}
-			
-			uiPots.forEach(element => {
-				element.ClearCallback();
-			});
-
-			this.uiPot.UpdatePotTotal(0);
-			this.uiPot.HidePotInfo();
-
-			await new Promise(ret => setTimeout(ret, 2000));
-			return;
-		}
 		
 		this.setUiPot(pot);
 
@@ -2225,13 +2233,13 @@ export class UiTable extends Component {
 
 			let uiEntity = this.getUiEntityFromSeat(pot.players[0]);
 
-			uiEntity?.setUiPlay();
-	
-			uiEntity?.SetReturn(pot.total);
+			uiEntity?.setUiPlay();	
+			uiEntity?.SetReturn( pot.total );
+
 			
 			let winnerInfo = winners.find((elem) => { return elem.seat == pot.players[0]; });
 
-			this.setAniPotMoveToWinner(this.uiPot.labelMaxPot.node, pot.players[0], retAnimCount, winnerInfo == null ? pot.total : winnerInfo.chips, retAnimCount == 0, true, 0.8);
+			// this.setAniPotMoveToWinner(this.uiPot.labelMaxPot.node, pot.players[0], retAnimCount, winnerInfo == null ? pot.total : winnerInfo.chips, retAnimCount == 0, true, 0.8);
 			retAnimCount++;
 		}
 
@@ -2250,16 +2258,18 @@ export class UiTable extends Component {
 
 				uiEntity?.setUiPlay();
 
-				if (pot.winner.length > 1) {
-					uiEntity?.SetDraw(chip);
-				} else {
-					uiEntity?.setAniWinner(chip);
-				}
+				// if (pot.winner.length > 1) {
+				// 	uiEntity?.SetDraw(chip);
+				// } else {
+				// 	uiEntity?.setAniWinner(chip);
+				// }
+				uiEntity.SetWinner( this.uiRoundPotValue.node , chip );
+
 
 				let winnerInfo = winners.find((elem) => {return elem.seat ==pot.winner[j];});
-
-				this.setAniPotMoveToWinner(uiPots[0].showRoot, pot.winner[j], j, winnerInfo == null ? pot.total : winnerInfo.chips, j == 0 , false);
+				// this.setAniPotMoveToWinner(uiPots[0].showRoot, pot.winner[j], j, winnerInfo == null ? pot.total : winnerInfo.chips, j == 0 , false);
 			}
+			AudioController.instance.playWin();
 
 			potCount--;
 			this.uiPot.SetPotCount(potCount);
@@ -2282,7 +2292,7 @@ export class UiTable extends Component {
 				let potInfo = showPot[count];
 
 				ui.showRoot.active = true;
-				ui.valueLabel.string = undefined == potInfo.rake ? CommonUtil.getNumberStringWithComma(potInfo.total) : CommonUtil.getNumberStringWithComma(potInfo.total - potInfo.rake) + " / " + CommonUtil.getNumberStringWithComma(potInfo.rake);
+				ui.valueLabel.string = undefined == potInfo.rake ? CommonUtil.getKoreanNumber(potInfo.total) : CommonUtil.getKoreanNumber(potInfo.total - potInfo.rake) + " / " + CommonUtil.getKoreanNumber(potInfo.rake);
 				ui.valueLabel.string = undefined == potInfo.rake ? potInfo.total.toString() : 
 				(potInfo.total - potInfo.rake).toString() + " / " + (potInfo.rake).toString();
 				count++;
@@ -2294,23 +2304,23 @@ export class UiTable extends Component {
 		}
     }
 
-    private setAniDropOpenCard( sprite: Sprite, dropDistance: number, hiddenCard: SpriteFrame, openCard: SpriteFrame,
-        onFinished: ()=> void ) {
-			let uiTransform = sprite.getComponent( UITransform );
-			let w = uiTransform.width;
-			let h = uiTransform.height;
+    // private setAniDropOpenCard( sprite: Sprite, dropDistance: number, hiddenCard: SpriteFrame, openCard: SpriteFrame,
+    //     onFinished: ()=> void ) {
+	// 		let uiTransform = sprite.getComponent( UITransform );
+	// 		let w = uiTransform.width;
+	// 		let h = uiTransform.height;
 
-			AudioController.instance.playShowCommunityCards();
-			AudioController.instance.playFlipCommnityCards();
+	// 		AudioController.instance.playShowCommunityCards();
+	// 		AudioController.instance.playFlipCommnityCards();
 	
-			sprite.spriteFrame = openCard;
+	// 		sprite.spriteFrame = openCard;
 	
-			if(null == onFinished){
-				return;
-			}
+	// 		if(null == onFinished){
+	// 			return;
+	// 		}
 	
-			onFinished();
-    }
+	// 		onFinished();
+    // }
 
 	private startCardDispensing() {
 
@@ -2361,13 +2371,6 @@ export class UiTable extends Component {
 		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
 		if ( uiEntity != null ) {
 
-			// uiEntity.spriteHandCards[0].spriteFrame = ResourceManager.Instance().getCardImage(this.myPrimaryCardIndex + 1);
-			// uiEntity.spriteHandCards[1].spriteFrame = ResourceManager.Instance().getCardImage(this.mySecondaryCardIndex + 1);
-			
-			// uiEntity.spriteHandCards[0].node.active = true;
-			// uiEntity.spriteHandCards[1].node.active = true;
-			// uiEntity.showPlayerCard();
-
 			uiEntity.ShowPlayerCards({
 				primary: this.myPrimaryCardIndex + 1,
 				secondary: this.mySecondaryCardIndex + 1,
@@ -2375,146 +2378,146 @@ export class UiTable extends Component {
 		}
 	}
 
-    private setAniCardDispensing(): void {
-		let enableIdx = 0;
+    // private setAniCardDispensing(): void {
+	// 	let enableIdx = 0;
 
-		if( null == this.nodeCardDispensingRoot ) {
-			return;
-		}
+	// 	if( null == this.nodeCardDispensingRoot ) {
+	// 		return;
+	// 	}
 
-		let dispensingInterval: number = 100;
-		let moveDuration = 0.2;
+	// 	let dispensingInterval: number = 100;
+	// 	let moveDuration = 0.2;
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+	// 	for( let i = 0; i < this.seatPlayers.length; i++ ) {
+	// 		let seat = this.seatPlayers[ i ];
 
-			if( false == this.isEnableSeat( seat ) ) {
-				continue;
-			}
+	// 		if( false == this.isEnableSeat( seat ) ) {
+	// 			continue;
+	// 		}
 
-			enableIdx++;
-			let uiEntity = this.entityUiElements[ i ];
-			setTimeout( () => {
+	// 		enableIdx++;
+	// 		let uiEntity = this.entityUiElements[ i ];
+	// 		setTimeout( () => {
 
-				let uiCard = uiEntity.spriteHiddenCards[ 0 ];
-				let startPos = this.nodeCardDispensingRoot.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.nodeCardDispensingRoot.position );
-				startPos = uiCard.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( startPos );
+	// 			let uiCard = uiEntity.spriteHiddenCards[ 0 ];
+	// 			let startPos = this.nodeCardDispensingRoot.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.nodeCardDispensingRoot.position );
+	// 			startPos = uiCard.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( startPos );
 
-				AudioController.instance.playCardDispensing();
+	// 			AudioController.instance.playCardDispensing();
 
-				let sf = ResourceManager.Instance().getCardImage(0);
-				this.setAniMoveToPos( uiCard, startPos, uiEntity.vectorHiddenCards[ 0 ], moveDuration, sf,
-					seat == this.mySeat ? () => {
-						AudioController.instance.playPutHandCard();
-					} : null );
+	// 			let sf = ResourceManager.Instance().getCardImage(0);
+	// 			this.setAniMoveToPos( uiCard, startPos, uiEntity.vectorHiddenCards[ 0 ], moveDuration, sf,
+	// 				seat == this.mySeat ? () => {
+	// 					AudioController.instance.playPutHandCard();
+	// 				} : null );
 
-			}, enableIdx * dispensingInterval );
-		}
+	// 		}, enableIdx * dispensingInterval );
+	// 	}
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+	// 	for( let i = 0; i < this.seatPlayers.length; i++ ) {
+	// 		let seat = this.seatPlayers[ i ];
 
-			if( false == this.isEnableSeat( seat ) ) {
-				continue;
-			}
+	// 		if( false == this.isEnableSeat( seat ) ) {
+	// 			continue;
+	// 		}
 
-			enableIdx++;
-			let uiEntity = this.entityUiElements[ i ];
+	// 		enableIdx++;
+	// 		let uiEntity = this.entityUiElements[ i ];
 
-			setTimeout( () => {
+	// 		setTimeout( () => {
 
-				let uiCard = uiEntity.spriteHiddenCards[ 1 ];
-				let startPos = this.nodeCardDispensingRoot.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.nodeCardDispensingRoot.position );
-				startPos = uiCard.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( startPos );
+	// 			let uiCard = uiEntity.spriteHiddenCards[ 1 ];
+	// 			let startPos = this.nodeCardDispensingRoot.parent.getComponent( UITransform ).convertToWorldSpaceAR( this.nodeCardDispensingRoot.position );
+	// 			startPos = uiCard.node.parent.getComponent( UITransform ).convertToNodeSpaceAR( startPos );
 
-				AudioController.instance.playCardDispensing();
-				let sf = ResourceManager.Instance().getCardImage(0);
+	// 			AudioController.instance.playCardDispensing();
+	// 			let sf = ResourceManager.Instance().getCardImage(0);
 
-				this.setAniMoveToPos( uiCard, startPos, uiEntity.vectorHiddenCards[ 1 ], moveDuration, sf,
-					seat == this.mySeat ? () => {
-						AudioController.instance.playPutHandCard();
-					} : null );
+	// 			this.setAniMoveToPos( uiCard, startPos, uiEntity.vectorHiddenCards[ 1 ], moveDuration, sf,
+	// 				seat == this.mySeat ? () => {
+	// 					AudioController.instance.playPutHandCard();
+	// 				} : null );
 
-			}, enableIdx * dispensingInterval );
-		}
+	// 		}, enableIdx * dispensingInterval );
+	// 	}
 
-		setTimeout( () => {
-			if( -1 == this.myPrimaryCardIndex ) {
-				return;
-			}
+	// 	setTimeout( () => {
+	// 		if( -1 == this.myPrimaryCardIndex ) {
+	// 			return;
+	// 		}
 
-			let uiEntity = this.getUiEntityFromSeat( this.mySeat );
-			if( null == uiEntity ) {
-				return;
-			}
+	// 		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
+	// 		if( null == uiEntity ) {
+	// 			return;
+	// 		}
 
-			AudioController.instance.playHideHiddenCard();
-			uiEntity.setShowHiddenCard( true );
+	// 		AudioController.instance.playHideHiddenCard();
+	// 		uiEntity.setShowHiddenCard( true );
 
-			let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 0 ], stopPos, 0.1, () => {
-			} );
+	// 		let stopPos = new Vec3( uiEntity.vectorHiddenCards[ 0 ] );
+	// 		stopPos.y -= 30;
+	// 		this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 0 ], stopPos, 0.1, () => {
+	// 		} );
 
-			stopPos = new Vec3( uiEntity.vectorHiddenCards[ 1 ] );
-			stopPos.y -= 30;
-			this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 1 ], stopPos, 0.1, () => {
-				AudioController.instance.playFlipHandCard();
-			} );
+	// 		stopPos = new Vec3( uiEntity.vectorHiddenCards[ 1 ] );
+	// 		stopPos.y -= 30;
+	// 		this.setAniHideHiddenCard( uiEntity.spriteHiddenCards[ 1 ], stopPos, 0.1, () => {
+	// 			AudioController.instance.playFlipHandCard();
+	// 		} );
 
-			let sf1 = ResourceManager.Instance().getCardImage(this.myPrimaryCardIndex + 1);
-			let sf2 = ResourceManager.Instance().getCardImage(this.mySecondaryCardIndex + 2);
+	// 		let sf1 = ResourceManager.Instance().getCardImage(this.myPrimaryCardIndex + 1);
+	// 		let sf2 = ResourceManager.Instance().getCardImage(this.mySecondaryCardIndex + 2);
 
-			this.setAniOpenHand( uiEntity.spriteHandCards[ 0 ], sf1, () => {
-			} );
+	// 		this.setAniOpenHand( uiEntity.spriteHandCards[ 0 ], sf1, () => {
+	// 		} );
 
-			this.setAniOpenHand( uiEntity.spriteHandCards[ 1 ], sf2, () => {
-				// uiEntity.spriteHandCardShadow.node.active = true;
-				let handRank = this.getHandRank( this.myPrimaryCardIndex, this.mySecondaryCardIndex, this.numberCommunityCards );
-				uiEntity.setUiHandRank( handRank );
-			} );
+	// 		this.setAniOpenHand( uiEntity.spriteHandCards[ 1 ], sf2, () => {
+	// 			// uiEntity.spriteHandCardShadow.node.active = true;
+	// 			let handRank = this.getHandRank( this.myPrimaryCardIndex, this.mySecondaryCardIndex, this.numberCommunityCards );
+	// 			uiEntity.setUiHandRank( handRank );
+	// 		} );
 
-		}, 1000 );
-    }
+	// 	}, 1000 );
+    // }
 
-    private setAniMoveToPos( sprite: Sprite, startPosition: Vec3, stopPosition: Vec3, duration: number, 
-        hiddenCard: SpriteFrame, onFinished: ()=>void ) {
+    // private setAniMoveToPos( sprite: Sprite, startPosition: Vec3, stopPosition: Vec3, duration: number, 
+    //     hiddenCard: SpriteFrame, onFinished: ()=>void ) {
 
-			sprite.node.active = true;
+	// 		sprite.node.active = true;
 
-			sprite.spriteFrame = hiddenCard;
-			sprite.color = new Color( 255, 255, 255, 0 );
-			let euler = { x: 0, y: 0, z: 0 };
-			Quat.toEuler( euler, sprite.node.rotation );
+	// 		sprite.spriteFrame = hiddenCard;
+	// 		sprite.color = new Color( 255, 255, 255, 0 );
+	// 		let euler = { x: 0, y: 0, z: 0 };
+	// 		Quat.toEuler( euler, sprite.node.rotation );
 	
-			let scale = new Vec3( sprite.node.scale );
-			let tw = tween( sprite.node )
-				.set( {
-					position: new Vec3( startPosition ),
-					scale: new Vec3( 0.2, 0.2, 1 )
-				} )
-				.to( duration, {
-					position: stopPosition,
-					scale: scale,
-				}, {
+	// 		let scale = new Vec3( sprite.node.scale );
+	// 		let tw = tween( sprite.node )
+	// 			.set( {
+	// 				position: new Vec3( startPosition ),
+	// 				scale: new Vec3( 0.2, 0.2, 1 )
+	// 			} )
+	// 			.to( duration, {
+	// 				position: stopPosition,
+	// 				scale: scale,
+	// 			}, {
 
-					onUpdate: ( target: Node, ratio: number ) => {
-						Quat.fromEuler( sprite.node.rotation, 0, 0, euler.z * ratio );
-						let a = 255 * ratio * 3;
-						if( a > 255 ) {
-							a = 255;
-						}
-						sprite.color = new Color( 255, 255, 255, a );
-					}
-				} );
+	// 				onUpdate: ( target: Node, ratio: number ) => {
+	// 					Quat.fromEuler( sprite.node.rotation, 0, 0, euler.z * ratio );
+	// 					let a = 255 * ratio * 3;
+	// 					if( a > 255 ) {
+	// 						a = 255;
+	// 					}
+	// 					sprite.color = new Color( 255, 255, 255, a );
+	// 				}
+	// 			} );
 	
-			if( null != onFinished ) {
-				tw.call( onFinished );
-			}
+	// 		if( null != onFinished ) {
+	// 			tw.call( onFinished );
+	// 		}
 	
-			tw.union();
-			tw.start();
-    }
+	// 		tw.union();
+	// 		tw.start();
+    // }
     
     private setAniOpenHand( sprite: Sprite, openCard: SpriteFrame, onFinished: ()=>void ) {
 		sprite.node.active = true;
@@ -2528,36 +2531,36 @@ export class UiTable extends Component {
 		onFinished();
     }
 
-    private setAniHideHiddenCard( sprite: Sprite, stopPos: Vec3, duration: number, onFinished: ()=>void ) {
-		if( false == sprite.node.active ) {
-			return;
-		}
+    // private setAniHideHiddenCard( sprite: Sprite, stopPos: Vec3, duration: number, onFinished: ()=>void ) {
+	// 	if( false == sprite.node.active ) {
+	// 		return;
+	// 	}
 
-		tween( sprite.node )
-			.to( duration, { position: stopPos }, )
-			.call( () => {
-				sprite.node.active = false;
-				if( null != onFinished ) {
-					onFinished();
-				}
-			} ).union()
-			.start();		
-    }
+	// 	tween( sprite.node )
+	// 		.to( duration, { position: stopPos }, )
+	// 		.call( () => {
+	// 			sprite.node.active = false;
+	// 			if( null != onFinished ) {
+	// 				onFinished();
+	// 			}
+	// 		} ).union()
+	// 		.start();		
+    // }
 
-    private setAniChipsMoveToPot( isShowAll, pots ) {
-		let aniDuration: number = -1;
-		this.entityUiElements.forEach( element => {
-			// aniDuration = element.setAnimationChipsMoveToPot(this.uiPot.maxPotRoot);
-		} );
+    // private setAniChipsMoveToPot( isShowAll, pots ) {
+	// 	let aniDuration: number = -1;
+	// 	this.entityUiElements.forEach( element => {
+	// 		// aniDuration = element.setAnimationChipsMoveToPot(this.uiPot.maxPotRoot);
+	// 	} );
 
-		if( -1 != aniDuration ) {
-			AudioController.instance.playChipMoveStart();
-		}
+	// 	if( -1 != aniDuration ) {
+	// 		AudioController.instance.playChipMoveStart();
+	// 	}
 
-		setTimeout( () => {
-			this.setUiPot( pots );
-		}, aniDuration * 1000 );
-    }
+	// 	setTimeout( () => {
+	// 		this.setUiPot( pots );
+	// 	}, aniDuration * 1000 );
+    // }
 
     private setAniPotMoveToWinner( startNode: Node, seat: number, movingChipsIdx: number, chips: number, 
         isPlaySound: boolean, isReturn: boolean, duration: number = 1) {
@@ -2582,7 +2585,6 @@ export class UiTable extends Component {
 	
 					let to = uiEntity.node.parent.getComponent(UITransform).convertToWorldSpaceAR(uiEntity.node.position);
 					to = uiEntity.node.parent.getComponent(UITransform).convertToNodeSpaceAR(to);
-	
 	
 					let isLast = i == obj.sprChips.length - 1;
 					let dur = 0.8;

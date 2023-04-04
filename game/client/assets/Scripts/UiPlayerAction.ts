@@ -131,7 +131,7 @@ export class UiPlayerAction extends Component {
 		this.numberBetRange = 0;
 		this.numberRaiseRange = 0;
 
-		if( 0 != turnBet && 0 >= myChips ) {
+		if( turnBet != 0 && myChips <= 0 ) {
 			this.buttonFold.node.active = false;
 			this.buttonAllIn.node.active = false;
 
@@ -149,7 +149,7 @@ export class UiPlayerAction extends Component {
 		this.buttonFold.node.active = true;
 		this.buttonCheck.node.active = ( turnBet == myBet ) && ( true == hasAction );
 		this.buttonCall.node.active = ( turnBet > myBet );
-		if( true == this.buttonCall.node.active ) {
+		if( this.buttonCall.node.active == true ) {
 			let betValue = turnBet - myBet;
 			if( betValue >= this.numberMyChips ){
 				this.buttonCall.node.active = false;
@@ -168,7 +168,7 @@ export class UiPlayerAction extends Component {
 		this.numberRaiseRange = myChips;
 
 		this.buttonRaise.node.active = (0 != turnBet && this.numberRaiseRange >= 0) && false === isLast && true == hasAction;
-		this.buttonAllIn.node.active = (0 != turnBet && turnBet > this.numberBetRange );
+		this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
 
 		if (isLast == true) {
 			if (this.buttonCall.node.active == true) {
@@ -177,7 +177,7 @@ export class UiPlayerAction extends Component {
 		}
 
 		if (hasAction == false) {
-			if (this.buttonCall.node.active == true) {
+			if ( this.buttonCall.node.active == true ) {
 				this.buttonAllIn.node.active = false;
 			}
 		}

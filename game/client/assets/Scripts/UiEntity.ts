@@ -11,6 +11,7 @@ import { EMOTICON_CHAT_MESSAGE, EMOTICON_TYPE } from './Game/UiGameChatting';
 import { UiResultEffect } from './Game/UiResultEffect';
 import { NetworkManager } from './NetworkManager';
 import { ResourceManager } from './ResourceManager';
+import { UiPotChips } from './Game/UiPotChips';
 
 const { ccclass, property } = _decorator;
 
@@ -62,6 +63,8 @@ export class UiEntity extends Component {
     private rootCardDeck: Node = null;
     private rootPotChips: Node = null;
     private vecPotChips: Vec3 = null;
+    private timeOutId = -1;
+    private uiPotChips: UiPotChips = null;
 
     callbackProfileOpen: (e: any) => void = null;
     callbackProfileClose: () => void = null;
@@ -202,6 +205,13 @@ export class UiEntity extends Component {
         this.isPlaying = false;
         this.node.active = false;
 
+        this.uiPotChips = this.node.getChildByPath('POT_CHIPS').getComponent( UiPotChips );
+        if ( this.uiPotChips != null ) {
+            this.uiPotChips.init();
+            this.uiPotChips.node.active = false;
+        }
+
+
         this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
     }
 
@@ -328,6 +338,8 @@ export class UiEntity extends Component {
         this.isPlaying = false;
         this.node.active = false;
 
+        clearTimeout(this.timeOutId);
+
         this.ResetResultEffect();
     }
 
@@ -340,8 +352,6 @@ export class UiEntity extends Component {
 
     setUiPlay() {
         this.uiEntityAvatar.setUiPlay();
-
-
         this.clearUiAction();
         this.clearUiBetValue();
     }
@@ -366,7 +376,6 @@ export class UiEntity extends Component {
     }
 
     setUiBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
-        let timeOutId: number = -1;
         if ( this.isUiSitOut == true ) {
             this.setUiSitOut();
         } else {
@@ -380,12 +389,17 @@ export class UiEntity extends Component {
         }
 
         if ( true == isBB || true == isSB ) {
-            timeOutId = setTimeout(() => {
-                clearTimeout(timeOutId);
-                this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+            this.timeOutId = setTimeout(() => {
+                clearTimeout( this.timeOutId);
+                if ( this.uiEntityAvatar != null ) {
+                    this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+                }
+
             }, 2000);
         } else {
-            this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+            if ( this.uiEntityAvatar != null ) {
+                this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+            }
         }
     }
 
@@ -612,6 +626,11 @@ export class UiEntity extends Component {
         this.uiResultEffect.SetReturnEffect( value );
     }
 
+    public SetWinner( from: Node, value: number) {
+        this.uiPotChips.MovePotToEntity( from, this.node, value );
+        this.uiResultEffect.SetWinEffect( value );
+    }
+
     setAniWinner( value: number ) {
         this.uiResultEffect.SetWinEffect( value );
     }
@@ -702,13 +721,6 @@ export class UiEntity extends Component {
     showPlayerCard() {
         this.spriteHiddenCards[0].node.active = false;
         this.spriteHiddenCards[1].node.active = false;
-
-
-        // this.flipPlayerCard( this.spriteHandCards[0].node, 0.5, 1.0);
-        // this.flipPlayerCard( this.spriteHandCards[1].node, 0.5, 1.0);
-
-        // this.hiddenCardFadeOut( this.spriteHiddenCards[0].node, 0.5, 1.0 );
-        // this.hiddenCardFadeOut( this.spriteHiddenCards[1].node, 0.5, 1.0 );
     }
 
     ShowPlayerCards( card: any ) {
@@ -776,45 +788,6 @@ export class UiEntity extends Component {
         tw.call( ()=>{
             target.active = false;
             sprite.color = new Color( 255, 255, 255, 255);
-        } );
-        tw.start();
-    }
-
-    flipPlayerCard( target: Node, duration: number, delay: number ) {
-        if ( target == null ) {
-            return;
-        }
-
-        let s:Vec3 = new Vec3(); 
-        let d:Vec3 = new Vec3(0.0, s.y, s.z);
-
-        target.getScale(s);
-
-        // let sprite: Sprite = target.getComponent(Sprite);
-        // sprite.color = new Color( 255, 255, 255, 255);
-        
-        let tw = tween( target )
-        // .delay(delay)
-        .set ({
-            scale: s
-
-        }).to ( duration, {
-            scale: d
-        }, {
-            easing: this.easeOutQuad,
-            onUpdate: ( target: Node, ratio: number )=> {
-                // let x: number = ratio * s.x;
-                // let n: Vec3 = new Vec3(x, s.y, s.z);
-                // target.setScale(n);
-
-                // let a = 255 - ratio * 255;
-                // sprite.color = new Color(255, 255, 255, a);
-            },
-        });
-
-        tw.call( ()=>{
-            // target.active = false;
-            // sprite.color = new Color( 255, 255, 255, 255);
         } );
         tw.start();
     }
