@@ -9,42 +9,74 @@ export class UiLobbyLoading extends Component {
     @property(Node) rootFadeIn: Node = null;
     @property(ProgressBar) progressBar: ProgressBar = null;
 
-    private progress: number = 0.2;
+    private progress: number = 0.0;
 
     public init() {
         this.rootFadeIn.active = false;
-        this.progressBar.progress = 0.2;
+        this.progressBar.progress = 0.0;
         this.node.active = false;
     }
 
     public show() {
-        this.progressBar.progress = 0.2;
+        this.progressBar.progress = 0.0;
         this.FadeIn( this.rootFadeIn, 1.0, ()=>{
             this.preLoadResource ();
         });
     }
 
     private preLoadResource() {
-        this.loadCards();
+        this.loadSounds();
+        // this.loadCards();
+    }
+
+    private loadSounds() {
+        if ( ResourceManager.Instance().getSoundsPreloadState() == true ) {
+            console.log('loadSounds complete');
+            this.progressBar.progress = 0.2;
+            this.loadChips();
+            return;
+        }
+
+        ResourceManager.Instance().loadSounds( ( progress: number )=>{
+            this.progressBar.progress = (progress * 0.2) ;
+
+        }, ()=>{
+            this.progressBar.progress = 0.2 ;
+            this.loadCards();
+        });
     }
 
     private loadCards() {
+        if ( ResourceManager.Instance().getCardPreloadState() == true ) {
+            console.log('loadCards complete');
+            this.progressBar.progress = 0.4;
+            this.loadChips();
+            return;
+        }
+
         ResourceManager.Instance().loadCards(( progress: number )=>{
             this.progressBar.progress = 0.2 + (progress * 0.2) ;
 
         }, ()=>{
             this.progressBar.progress = 0.4;
-            this.progress = 0.2;
+            this.progress = 0.4;
             this.loadChips();
         });
     }
 
     private loadChips() {
+        if ( ResourceManager.Instance().getChipPreloadState() == true ) {
+            console.log('loadChips complete');            
+            this.progressBar.progress = 0.6;
+            this.launch();
+            return;
+        }
+
         ResourceManager.Instance().loadChips(( progress: number )=>{
             this.progressBar.progress = 0.4 + (progress * 0.2) ;            
         }, ()=>{
             this.progressBar.progress = 0.6;
-            this.progress = 0.4;
+            this.progress = 0.6;
 
             this.launch();
         });

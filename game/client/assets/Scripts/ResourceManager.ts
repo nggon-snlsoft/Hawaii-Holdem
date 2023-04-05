@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, resources, SpriteFrame } from 'cc';
+import { _decorator, AudioClip, Component, Node, resources, SpriteFrame, url } from 'cc';
 const { ccclass, property } = _decorator;
 
 const CARDS_NAME: string[] = [
@@ -9,12 +9,38 @@ const CARDS_NAME: string[] = [
 	"Ks", "Qs", "Js", "Ts", "9s", "8s", "7s", "6s", "5s", "4s",
 	"3s", "2s" ];
 
+const SOUNDS_NAME: any = [
+	{ name: 'VOICE_GOOD_LUCK',		url: 'voice_goodluck' },
+	{ name: 'VOICE_START', 			url: 'voice_start' },
+
+	{ name: 'VOICE_ACTION_ALLIN', 	url: 'voice_action_allin' },	
+	{ name: 'VOICE_ACTION_CALL',	url: 'voice_action_call' },	
+	{ name: 'VOICE_ACTION_CHECK',	url: 'voice_action_check' },	
+	{ name: 'VOICE_ACTION_DIE',		url: 'voice_action_die'	},
+
+	{ name: 'VOICE_BETTING_FULL',	url: 'voice_betting_full' },	
+	{ name: 'VOICE_BETTING_HALF',	url: 'voice_betting_half' },	
+	{ name: 'VOICE_BETTING_QUATER',	url: 'voice_betting_quater' },
+
+	{ name: 'VOICE_RANK_TOP',		url: 'voice_rank_top' },	
+	{ name: 'VOICE_RANK_ONEPAIR',	url: 'voice_rank_onepair' },	
+	{ name: 'VOICE_RANK_TWOPAIR',	url: 'voice_rank_twopair' },
+	{ name: 'VOICE_RANK_TRIPLE',	url: 'voice_rank_triple' },	
+	{ name: 'VOICE_RANK_STRAIGHT',	url: 'voice_rank_straight' },	
+	{ name: 'VOICE_RANK_FLUSH',		url: 'voice_rank_flush' },
+	{ name: 'VOICE_RANK_FULL_HOUSE',url: 'voice_rank_fullhouse' },	
+	{ name: 'VOICE_RANK_STRAIGHT_FLUSH',	url: 'voice_rank_straightflush' },	
+	{ name: 'VOICE_RANK_FOURCARD',	url: 'voice_rank_fourcard' },
+	{ name: 'VOICE_RANK_RSFLUSH',	url: 'voice_rank_rsflush' },
+];
+
 @ccclass('ResourceManager')
 export class ResourceManager extends Component {
     private static _instance: ResourceManager = null;
 
     private preloadCardsResource: {} = {};
     private preloadChipsResource: {} = {};
+    private preloadSoundsResouce: {} = {};	
     private preloadAvatarResouce: {} = {};
 
     public static Instance(): ResourceManager {
@@ -27,6 +53,7 @@ export class ResourceManager extends Component {
     public loadChips( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt: number = 0;
 		let l: number = 12;
+		this.preloadChipsResource = {};
 		for( let i = 0; i < l; i++ ) {
 			const url = `BettingChips/${ i }/spriteFrame`;
 
@@ -52,6 +79,7 @@ export class ResourceManager extends Component {
 
     public loadCards( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt = 0;
+		this.preloadCardsResource = {};
 		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
 			const url = `PlayingCards/${ i }/spriteFrame`;
 			resources.load<SpriteFrame>( url, (finished, total, item )=>{
@@ -72,7 +100,35 @@ export class ResourceManager extends Component {
 				}
 			} );
 		}
-    }    
+    }
+
+    public loadSounds( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
+		let cnt = 0;
+		this.preloadCardsResource = {};
+
+		let keys = Object.keys( SOUNDS_NAME );
+		let values = Object.values ( SOUNDS_NAME );
+
+		for ( let i: number = 0 ; i < SOUNDS_NAME.length; i++ ) {
+			let item = values.at(i);
+			console.log(item['url']);
+			const url = `Sounds/${ item['url'] }`;
+			resources.load<AudioClip> ( url, ( err, res )=>{
+				if ( null != err ) {
+
+				}
+
+				cnt++;
+				let p: number = cnt / SOUNDS_NAME.length;
+				cbProgress(p);
+
+				this.preloadSoundsResouce[ item['name'] ] = res;
+				if ( Object.keys( this.preloadSoundsResouce ).length >= SOUNDS_NAME.length ) {
+					cbDone();
+				}
+			})
+		}
+    }
 
     public getCardImage( num: number ): SpriteFrame {
 		return this.preloadCardsResource[ num ];
@@ -80,6 +136,44 @@ export class ResourceManager extends Component {
 
     public getChipImage( num: number ): SpriteFrame {
 		return this.preloadChipsResource[ num ];
+	}
+
+	public getCardPreloadState(): boolean {		
+		if ( Object.keys( this.preloadCardsResource ).length >= 53 ) {
+			return true;
+		}
+		return false;
+	}
+
+	public getChipPreloadState(): boolean {
+		if ( Object.keys( this.preloadChipsResource ).length >= 11 ) {
+			return true;
+		}
+		return false;
+	}
+
+	public getSoundsPreloadState(): boolean {
+		if ( Object.keys( this.preloadSoundsResouce ).length >= SOUNDS_NAME.length ) {
+			return true;
+		}
+		return false;
+	}
+
+	public getSoundSource( name: string ): AudioClip {
+		let values = Object.values ( SOUNDS_NAME );
+		let clipName = values.find((e)=>{
+			return e['name'] == name;
+		})['name'];
+
+		return this.preloadSoundsResouce[ clipName ];
+	}
+
+	public resetCardsPreload() {
+		this.preloadCardsResource = {};
+	}
+
+	public resetChipsPreload() {
+		this.preloadChipsResource = {};
 	}
 }
 

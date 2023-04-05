@@ -476,6 +476,11 @@ export class UiEntity extends Component {
     startTurn( duration: number ) {
         this.turnDuration = duration / 1000;
         this.uiEntityAvatar.startTurn();
+        // this.timerDeltaTime = this.turnDuration;
+        // this.playTimeLimitSound = true;
+    }
+
+    public StartActionTimer() {
         this.timerDeltaTime = this.turnDuration;
         this.playTimeLimitSound = true;
     }
@@ -530,7 +535,7 @@ export class UiEntity extends Component {
     }
 
     setUiAllIn() {
-        this.uiEntityAvatar.setUiAllin();        
+        this.uiEntityAvatar.setUiAllin();
         this.timerDeltaTime = 0;
     }
 
@@ -582,7 +587,7 @@ export class UiEntity extends Component {
     }
 
     updateTimer( dt: number ) {
-        if( 0 >= this.timerDeltaTime){
+        if( 0 >= this.timerDeltaTime ){
             return;
         }
 
@@ -597,15 +602,14 @@ export class UiEntity extends Component {
             AudioController.instance.playTimeLimitForSec();
         }
 
-        if ( this.timerDeltaTime < 10 ) {
+        // if ( this.timerDeltaTime < 10 ) {
             if ( this.timerDeltaTime <= 5 ) {
                 this.uiEntityAvatar.setWaitingTimerColor(Color.RED);
             } else {
                 this.uiEntityAvatar.setWaitingTimerColor(Color.YELLOW);
             }
-
             this.uiEntityAvatar.setWaitingTimer(this.timerDeltaTime);
-        }
+        // }
 
         this.uiEntityAvatar.setWaitingTimerProgress( this.timerDeltaTime / this.turnDuration );
     }

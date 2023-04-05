@@ -1,20 +1,25 @@
 import { _decorator, Component, Node, Sprite, resources, SpriteFrame } from 'cc';
 import { Board } from '../Board';
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
-const gradeSpriteFileName: string[] = ['hand_grade_1',
-'hand_grade_2',
-'hand_grade_3'];
+const gradeSpriteFileName: string[] = [
+    'hand_grade_1',
+    'hand_grade_2',
+    'hand_grade_3'
+];
 
-const rankSpriteFileName: string[] = ['hand_high_card',
-'hand_one_pair',
-'hand_two_pair',
-'hand_three_of_a kind', 
-'hand_straight', 
-'hand_flush', 
-'hand_full_house', 
-'hand_four_of_a_kind', 
-'hand_straight_flush'];    
+const rankSpriteFileName: string[] = [
+    'hand_high_card',       //0
+    'hand_one_pair',        //1
+    'hand_two_pair',        //2
+    'hand_three_of_a kind', //3
+    'hand_straight',        //4
+    'hand_flush',           //5
+    'hand_full_house',      //6
+    'hand_four_of_a_kind',  //7
+    'hand_straight_flush'   //8
+];    
 
 @ccclass('UiWinEffect')
 export class UiWinEffect extends Component {
@@ -45,8 +50,6 @@ export class UiWinEffect extends Component {
         let cards = winner.cards;
         
         this.eval = Board.table.getHandsEval(cards, communities);
-        console.log('this.eval');        
-        console.log(this.eval);
         this.rank = this.eval['rank'];
 
         if ( this.rank - 1 >= 0) {
@@ -70,7 +73,35 @@ export class UiWinEffect extends Component {
             this.spriteWinEffectRank.node.active = true;
         });
 
-        console.log();
+        switch ( this.rank - 1) {
+            case 0:
+                AudioController.instance.PlaySound('VOICE_RANK_TOP');
+                break;
+            case 1:
+                AudioController.instance.PlaySound('VOICE_RANK_ONEPAIR');                
+                break;
+            case 2:
+                AudioController.instance.PlaySound('VOICE_RANK_TWOPAIR');                
+                break;
+            case 3:
+                AudioController.instance.PlaySound('VOICE_RANK_TRIPLE');                
+                break;
+            case 4:
+                AudioController.instance.PlaySound('VOICE_RANK_STRAIGHT');                
+                break;
+            case 5:
+                AudioController.instance.PlaySound('VOICE_RANK_FLUSH');                
+                break;
+            case 6:
+                AudioController.instance.PlaySound('VOICE_RANK_FULL_HOUSE');                
+                break;
+            case 7:
+                AudioController.instance.PlaySound('VOICE_RANK_STRAIGHT_FLUSH');                
+                break;                
+            case 8:
+                AudioController.instance.PlaySound('VOICE_RANK_FOURCARD');                
+                break;
+       }
         this.node.active = true;
     }
 

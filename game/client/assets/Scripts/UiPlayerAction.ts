@@ -181,6 +181,12 @@ export class UiPlayerAction extends Component {
 				this.buttonAllIn.node.active = false;
 			}
 		}
+
+		if ( this.buttonAllIn.node.active == true ) {
+			this.buttonRaise.node.active = false;
+			this.buttonBet.node.active = false;
+		}
+
 		this.node.active = true;
 	}
 
@@ -236,7 +242,13 @@ export class UiPlayerAction extends Component {
 		this.buttonConfirm.node.active = true;
 
 		this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Bet, this.numberBetStart, this.numberBetRange, 
-			this.numberPot, this.numberMyChips, null );
+			this.numberPot, this.numberMyChips, ( result: any )=>{
+
+				let sendValue = result.value + this.numberMyBet;
+				this.cbBet( sendValue );
+
+
+			} );
 	}
 
 
@@ -245,14 +257,17 @@ export class UiPlayerAction extends Component {
 		this.buttonConfirm.node.active = true;
 
 		this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Raise, this.numberRaiseStart, this.numberRaiseRange, 
-			this.numberPot, this.numberMyChips, null );
+			this.numberPot, this.numberMyChips, (result: any )=>{
+
+				let sendValue = result.value + this.numberMyBet;
+				this.cbRaise( sendValue );
+
+			} );
 	}
 
 	private onClickConfirm( button: Button ) {
 		let res = this.uiBettingControl.getResult();
 		let sendValue = res.result + this.numberMyBet;
-
-		console.log('sendValue: ' + sendValue.toString());
 
 		if ( res.type == ENUM_BETTING_TYPE.Bet ) {
 			this.cbBet( sendValue );

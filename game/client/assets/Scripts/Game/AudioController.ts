@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, AudioSource, AudioClip } from 'cc';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('AudioController')
@@ -140,6 +141,15 @@ export class AudioController extends Component {
 
     playMyTurn() {
         this.audioSource.playOneShot( this.clipMyTurn );
+    }
+
+    PlaySound( name: string ) {
+        let source: AudioClip = null;
+        source = ResourceManager.Instance().getSoundSource(name);
+        if ( source != null ) {
+            console.log('PlaySound');
+            this.audioSource.playOneShot(source);
+        }
     }
 
 
