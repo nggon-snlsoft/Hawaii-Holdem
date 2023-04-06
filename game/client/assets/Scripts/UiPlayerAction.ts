@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Button, Label, Slider, EventHandler, sys } from 'cc';
 import { CommonUtil } from './CommonUtil';
 import { ENUM_BETTING_TYPE, UiBettingControl } from './Game/UiBettingControl';
+import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiPlayerAction')
@@ -42,6 +43,17 @@ export class UiPlayerAction extends Component {
 	private numberRaiseRange: number = 0;
 	private numberBetDisplayValue: number = 0;
 	private numberRaiseDisplayValue: number = 0;
+
+	private buttonQuater: Button = null;
+	private buttonHalf: Button = null;
+	private buttonFull: Button = null;
+	private buttonMax: Button = null;
+
+	private labelQuaterValue: Label = null;
+	private labelHalfValue: Label = null;
+	private labelFullValue: Label = null;
+	private labelMaxValue: Label = null;
+
 
 	private sb: number = 0;
 	private bb: number = 0;
@@ -95,6 +107,57 @@ export class UiPlayerAction extends Component {
 
 		this.buttonAllIn = this.nodeRoot.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
 		this.buttonAllIn?.node.on( "click", this.onClickAllin.bind( this ), this );
+
+		let info = GameManager.Instance().GetInfo();
+		if ( info.device == ENUM_DEVICE_TYPE.PC_LANDSCAPE ) {
+			this.buttonQuater = this.nodeRoot.getChildByPath('BUTTON_QUATER').getComponent( Button );
+			if ( this.buttonQuater != null ) {
+				this.buttonQuater.node.on( 'click', null, this );
+				this.buttonQuater.node.active = false;
+			}
+
+			this.buttonHalf = this.nodeRoot.getChildByPath('BUTTON_HALF').getComponent( Button );
+			if ( this.buttonHalf != null ) {
+				this.buttonHalf.node.on( 'click', null, this );
+				this.buttonHalf.node.active = false;
+			}
+
+			this.buttonFull = this.nodeRoot.getChildByPath('BUTTON_FULL').getComponent( Button );
+			if ( this.buttonFull != null ) {
+				this.buttonFull.node.on( 'click', null, this );
+				this.buttonFull.node.active = false;
+			}
+
+			this.buttonMax = this.nodeRoot.getChildByPath('BUTTON_MAX').getComponent( Button );
+			if ( this.buttonMax != null ) {
+				this.buttonMax.node.on( 'click', null, this );
+				this.buttonMax.node.active = false;
+			}			
+
+			this.labelQuaterValue = this.nodeRoot.getChildByPath('BUTTON_QUATER/LABLE_VALUE').getComponent( Label );
+			if ( this.labelQuaterValue != null ) {
+				this.labelQuaterValue.string = '';
+				this.labelQuaterValue.node.active = false;
+			}
+
+			this.labelHalfValue = this.nodeRoot.getChildByPath('BUTTON_HALF/LABLE_VALUE').getComponent( Label );
+			if ( this.labelHalfValue != null ) {
+				this.labelHalfValue.string = '';
+				this.labelHalfValue.node.active = false;
+			}
+
+			this.labelFullValue = this.nodeRoot.getChildByPath('BUTTON_FULL/LABLE_VALUE').getComponent( Label );
+			if ( this.labelFullValue != null ) {
+				this.labelFullValue.string = '';
+				this.labelFullValue.node.active = false;
+			}
+
+			this.labelMaxValue = this.nodeRoot.getChildByPath('BUTTON_MAX/LABLE_VALUE').getComponent( Label );
+			if ( this.labelMaxValue != null ) {
+				this.labelMaxValue.string = '';
+				this.labelMaxValue.node.active = false;
+			}
+		}
 
 		this.uiBettingControl = this.nodeRoot.getChildByPath('BETTING_CONTROL').getComponent(UiBettingControl);		
 		if ( this.uiBettingControl != null ) {
@@ -250,7 +313,6 @@ export class UiPlayerAction extends Component {
 
 			} );
 	}
-
 
     private onClickRaise() {
 		this.buttonRaise.node.active = false;

@@ -26,7 +26,6 @@ import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 
 const { ccclass, property } = _decorator;
 
-
 let totalCards: string[] = [
 	"Ac", "Kc", "Qc", "Jc", "Tc", "9c", "8c", "7c", "6c", "5c", 
 	"4c", "3c", "2c", "Ad", "Kd", "Qd", "Jd", "Td", "9d", "8d", 
@@ -113,6 +112,45 @@ export class UiTable extends Component {
 
 	private rootPotChips: Node = null;
 
+    init() {
+        this.seatMax = UiTable.seatMaxFromServer;        
+        globalThis.lib = {};
+
+        PokerEvaluator.exportToGlobal(globalThis.lib);
+
+        Board.table = this;
+        
+        this.childRegistered();
+
+        this.uiSeats.init(this.seatMax, this.onClickSeatSelect.bind(this));
+		this.uiBuyIn.init();
+		this.uiGameChatting.init( this.onClickEmoticon.bind(this), this.onClickEmticonExit.bind(this));
+		this.setEmoticonButtinInteractive(true);
+		this.uiPlayerActionReservation.init();
+		this.uiWinEffect.init();
+		this.uiPotChips.init();
+		this.uiRoundPotValue.init();
+		this.uiShowDownEffect.Init();
+		this.uiEffectShowRiver.Init();
+
+        if ( null == NetworkManager.Instance().room ) {
+			console.log('NetworkManager.Instance().room == null');
+            return;
+        }
+
+        this.registRoomEvent(NetworkManager.Instance().room);
+
+		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
+		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
+		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
+
+		this.hide();
+        this.sendMsg("ONLOAD", {
+
+        });
+    }
+
+
 	onClickShowEmoticon(button: Button) {
 		this.uiGameChatting.show();
 	}
@@ -139,47 +177,6 @@ export class UiTable extends Component {
 
 	}
 
-	onLoad() {
-		
-	}
-
-    start() {
-        this.seatMax = UiTable.seatMaxFromServer;
-        
-        globalThis.lib = {};
-
-        PokerEvaluator.exportToGlobal(globalThis.lib);
-
-        Board.table = this;
-        
-        this.childRegistered();
-
-        this.uiSeats.init(this.seatMax, this.onClickSeatSelect.bind(this));
-		this.uiBuyIn.init();
-		this.uiGameChatting.init( this.onClickEmoticon.bind(this), this.onClickEmticonExit.bind(this));
-		this.setEmoticonButtinInteractive(true);
-		this.uiPlayerActionReservation.init();
-		this.uiWinEffect.init();
-		this.uiPotChips.init();
-		this.uiRoundPotValue.init();
-		this.uiShowDownEffect.Init();
-		this.uiEffectShowRiver.Init();
-
-        if (null == NetworkManager.Instance().room) {
-            return;
-        }
-
-        this.registRoomEvent(NetworkManager.Instance().room);
-
-		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
-		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
-		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
-
-		this.hide();
-        this.sendMsg("ONLOAD", {
-
-        });
-    }
 
     private childRegistered() {
 		this.uiPlayerAction = this.node.getChildByPath( "PLAYER_ACTION" ).getComponent( UiPlayerAction );
@@ -191,7 +188,7 @@ export class UiTable extends Component {
 		// let entitiesRoot6 = this.node.getChildByPath( `entities_6p` );
 
 		//let entitiesRootPath = `ENTITIES(${ this.seatMax })`;
-		let entitiesRootPath = `ENTITIES_9`;		
+		let entitiesRootPath = `ENTITIES_9`;
 
 		if( entitiesRoot9.name === entitiesRootPath ) {
 			entitiesRoot9.active = true;
@@ -204,14 +201,19 @@ export class UiTable extends Component {
 
 		this.entityUiElements = [];
 		let playerMe = this.node.getChildByPath( `${ entitiesRootPath }/ENTITY_ME` ).getComponent( UiEntity );
-
-		playerMe.isMe = true;
-		this.entityUiElements.push( playerMe );
+		if ( playerMe != null ) {
+			playerMe.isMe = true;
+			playerMe.Init();
+			this.entityUiElements.push( playerMe );
+		}
 
 		for( let i = 1; i < this.seatMax; i++ ) {
 			let elem = this.node.getChildByPath( `${ entitiesRootPath }/ENTITY_${ i }` ).getComponent( UiEntity );
-			elem.isMe = false;
-			this.entityUiElements.push( elem );
+			if ( elem != null ) {
+				elem.isMe = false;
+				elem.Init();
+				this.entityUiElements.push( elem );				
+			}
 		}
 
 		this.rootPotChips = this.node.getChildByPath('ROUND_POT/POT_CHIPS');
@@ -348,6 +350,8 @@ export class UiTable extends Component {
     private onSHOW_SELECT_SEAT(msg: any) {
         let limitTime = msg["limitTime"];
         this.uiSeats.startSeatsSelect(limitTime);
+
+		this.node.active = false;
     }
 
     private onSELECT_SEAT_ERROR(msg: any) {
@@ -407,11 +411,11 @@ export class UiTable extends Component {
 		}
     }
 
-    private show() {
+    public show() {
         this.node.active = true;
     }
 
-    private hide() {
+    public hide() {
 		clearInterval(this.readyMessageHandler);        
         this.node.active = false;
     }

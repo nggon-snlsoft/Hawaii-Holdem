@@ -22,22 +22,11 @@ export class UiLogin extends Component {
     init(main: Main) {
         this.main = main;
 
-        this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
-        this.buttonJoin.node.on('click', this.onClickJoin.bind( this ), this );
-        this.buttonExit.node.on('click', ()=>{
+        NetworkManager.Instance().logout();
+        if (NetworkManager.Instance().isLogin() == true) {
+            
+        }
 
-            LoginSystemPopup.instance.showPopUpYesOrNo('종료', '게임을 종료하시겠습니까?', ()=>{
-                director.end();
-                game.end();
-            }, ()=>{
-                LoginSystemPopup.instance.closePopup();
-            });
-
-        }, this);
-    }
-    
-    onLoad()
-    {
         this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
             editbox.string = '';
         }, this);
@@ -56,23 +45,20 @@ export class UiLogin extends Component {
             this.onLogin();
         }, this);
 
+        this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
+        this.buttonJoin.node.on('click', this.onClickJoin.bind( this ), this );
+        this.buttonExit.node.on('click', ()=>{
+
+            LoginSystemPopup.instance.showPopUpYesOrNo('종료', '게임을 종료하시겠습니까?', ()=>{
+                director.end();
+                game.end();
+            }, ()=>{
+                LoginSystemPopup.instance.closePopup();
+            });
+
+        }, this);
     }
-
-    start() {
-        NetworkManager.Instance().logout();
-
-        if (NetworkManager.Instance().isLogin() == true) {
-            
-        }
-
-        let leaveReason: number = NetworkManager.Instance().leaveReason;
-        NetworkManager.Instance().leaveReason = -1;
-
-        if ( -1 == leaveReason ) {
-            return;
-        }        
-    }
-
+    
     onClickLogin(button: Button) {
         this.audioSource.playOneShot(this.soundButtonClick, 1);
         this.onLogin();
@@ -97,6 +83,7 @@ export class UiLogin extends Component {
 
 		NetworkManager.Instance().reqLOGIN_HOLDEM( uid, pass ,(res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                console.log( res );
 
                 let id: number = res.obj.id;
                 this.onLoadInitialData( id );
@@ -180,7 +167,9 @@ export class UiLogin extends Component {
     }
 
     onClickJoin() {
-        this.main.onShowJoin();
+        console.log('onClickJoin');
+
+        this.main.onShowJoinMember();
     }
 
     show() {

@@ -11,12 +11,8 @@ export class UiShowDownEffect extends Component {
     Init() {
         this.animation = this.node.getComponent(Animation);
         if ( this.animation != null ) {
-            this.animState = this.animation.getState('ShowDown');
-            this.animState.speed = 1.0;
-
             this.animation.on('finished', this.onFinished.bind(this), this);
         }
-
         this.node.active = false;
     }
 

@@ -131,7 +131,7 @@ export class NetworkManager extends cc.Component {
 
 		onSuccess( {
 			code: ENUM_RESULT_CODE.SUCCESS,
-			obj: obj,			
+			obj: obj,
 		});
 	}
 

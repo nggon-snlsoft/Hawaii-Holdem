@@ -219,7 +219,7 @@ export class UiEntity extends Component {
         // Board.table.openUserProfile( this.id );
     }
 
-    onLoad() {
+    public Init() {
         this.childRegistered();
     }
 

@@ -7,6 +7,9 @@ import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
 import { resolve } from 'path';
 import { rejects } from 'assert';
+
+const requestIp = require('request-ip');
+
 const LocalStrategy = passportLocal.Strategy;
 const gameConf = require('../config/gameConf.json');
 
@@ -35,6 +38,11 @@ export class UserController {
         this.router.post( '/getUserInfo', this.getUserInfo.bind(this));        
         this.router.post( '/getSetting', this.getSetting.bind(this));
         this.router.post( '/updateSetting', this.updateSetting.bind(this));
+    }
+
+    private async getIp( req: any, next: (ip: string )=>void ) {
+        let ip: string = await requestIp.getClientIp( req );
+        next( ip );
     }
 
     private initPassport() {
@@ -82,6 +90,7 @@ export class UserController {
     public async login( req: any, res: any ) {
         let uid = req.body.uid;
         let pass = req.body.password;
+        // let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
         if ( uid == null || uid.length < 4 ) {
             res.status( 200 ).json({
@@ -90,6 +99,12 @@ export class UserController {
             });
             return;
         }
+
+        let clientIp: string = '';
+
+        await this.getIp( req, ( ip: string )=>{
+            clientIp = ip;
+        });
 
         let data: any = await this.getUserByUID( req.app.get('DAO'), uid );
         if (data == undefined) {
@@ -128,6 +143,7 @@ export class UserController {
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
             id: data.id,
+            ip: clientIp,
         });
     }
 
