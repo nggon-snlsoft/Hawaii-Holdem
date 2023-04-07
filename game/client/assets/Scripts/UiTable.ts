@@ -141,6 +141,8 @@ export class UiTable extends Component {
         this.registRoomEvent(NetworkManager.Instance().room);
 
 		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
+		UiControls.instance.show();
+
 		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
 		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
 
@@ -499,12 +501,14 @@ export class UiTable extends Component {
             NetworkManager.Instance().room.removeAllListeners();
             NetworkManager.Instance().leaveReason = code;
 
-			if ( code == 1005 ) {
-				director.loadScene("LobbyScene");
-			}
-			else {
-				director.loadScene("LoginScene");
-			}
+			director.loadScene("LobbyScene");
+
+			// if ( code == 1005 ) {				
+			// 	director.loadScene("LobbyScene");
+			// }
+			// else {
+			// 	director.loadScene("LoginScene");
+			// }
         });
 
         room.onMessage( "ping", this.onPING.bind( this ) );
@@ -942,6 +946,7 @@ export class UiTable extends Component {
 
     private onYOUR_TURN( msg ) {
 		console.log('onYOUR_TURN');
+		console.log( msg );
 
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
@@ -987,20 +992,27 @@ export class UiTable extends Component {
 
 				this.entityUiElements.forEach( element => element.endTurn() );					
 				if ( reservation == ENUM_RESERVATION_TYPE.RESERVATION_FOLD ) {
-					console.log('ENUM_RESERVATION_TYPE.RESERVATION_FOLD');
+
 					let obj = {
 						seat: this.mySeat
 					};
-					this.sendMsg( "FOLD", obj );
+
+					this.scheduleOnce(()=>{
+						this.sendMsg( "FOLD", obj );
+					}, 1);
 					
 				} else if ( reservation == ENUM_RESERVATION_TYPE.RESERVATION_CHECK ) {
-					console.log('ENUM_RESERVATION_TYPE.RESERVATION_CHECK');						
+
 					let obj = {
 						seat: this.mySeat,
 					};
-					this.sendMsg( "CHECK", obj );
+
+					this.scheduleOnce(()=>{
+						this.sendMsg( "CHECK", obj );
+					}, 1);
 				}				
 				return;
+
 			} else {
 				uiEntity.StartActionTimer();
 			}
@@ -1070,10 +1082,18 @@ export class UiTable extends Component {
 				this.sendMsg( "FOLD", obj );
 				this.uiPlayerAction.hide();
 			};
+
+			this.uiPlayerAction.cbBetAnnounce = ( kind )=> {
+				let obj = {
+					seat: this.mySeat,
+					kind: kind,
+				};
+
+				// this.sendMsg('BET_ANNOUNCE', obj);
+			};
 		}
 		else {
 			this.uiPlayerAction.hide();
-
 			let isSitOutStatus: boolean = false;
 
 			let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
@@ -1081,14 +1101,14 @@ export class UiTable extends Component {
 				if ( uiEntity.getIsUiSitOut() == true ) {
 					isSitOutStatus = true;
 				}
-			}
 
-			if ( uiEntity.isFold != true) {
-				if ( /* this.uiPlayerActionReservation.isOpenReservation() == false && */  isSitOutStatus == false ) {
-					let curBet = msg[ "maxBet" ];
-					let myBet = msg[ "currBet" ];
-					this.uiPlayerActionReservation.show( myBet, curBet);
-				}
+				if ( uiEntity.isFold != true) {
+					if ( /* this.uiPlayerActionReservation.isOpenReservation() == false && */  isSitOutStatus == false ) {
+						let curBet = msg[ "maxBet" ];
+						let myBet = msg[ "currBet" ];
+						this.uiPlayerActionReservation.show( myBet, curBet);
+					}
+				}	
 			}
 		}
     }
@@ -2102,7 +2122,10 @@ export class UiTable extends Component {
 			} else {
 				let timer:number = 0;
 				timer = setTimeout( () => {
-					this.buttonShowCard.node.active = true;
+					if ( this.buttonShowCard.node != null ) {
+						this.buttonShowCard.node.active = true;
+					}
+
 					clearTimeout(timer);
 				}, 1500 );
 			}

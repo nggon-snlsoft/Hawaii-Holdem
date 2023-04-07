@@ -90,8 +90,9 @@ export class UiJoinPlayer extends Component {
 
                     if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                         LoginSystemPopup.instance.showPopUpOk('회원가입', '가입신청이 완료되었습니다.', ()=>{
-                            LoginSystemPopup.instance.closePopup();                    
-                            this.main.onJoinCancel();
+                            LoginSystemPopup.instance.closePopup();
+
+                            this.main.onShowLogin();
                         });
         
                     } else {
@@ -132,8 +133,8 @@ export class UiJoinPlayer extends Component {
         }
     }
 
-    onClickCancel( button: Button ) {
-        this.main.onJoinCancel();
+    onClickCancel( button: Button ) {        
+        this.main.onShowLogin();
     }
 
     onClickIDCheck( button: Button ) {

@@ -33,7 +33,7 @@ export class UiLobbyLoading extends Component {
         if ( ResourceManager.Instance().getSoundsPreloadState() == true ) {
             console.log('loadSounds complete');
             this.progressBar.progress = 0.2;
-            this.loadChips();
+            this.loadCards();
             return;
         }
 

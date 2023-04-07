@@ -63,7 +63,7 @@ export class LobbyEntry extends Component {
             this._lobby.node.active = false;
         }
 
-        this._popup = this._root.getChildByPath('POPUP').getComponent(LobbySystemPopup);
+        this._popup = this._root.getChildByPath('SYSTEM_POPUP').getComponent(LobbySystemPopup);
         if ( this._popup != null ) {
             this._popup.node.active = false;
         }

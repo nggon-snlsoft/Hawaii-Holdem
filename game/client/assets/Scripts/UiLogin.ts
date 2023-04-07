@@ -1,8 +1,9 @@
-import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game } from 'cc';
+import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite } from 'cc';
 import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
+import { ResourceManager } from './ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLogin')
@@ -17,6 +18,8 @@ export class UiLogin extends Component {
     @property (Button) buttonJoin: Button = null;
     @property (Button) buttonExit: Button = null;
 
+    @property (Sprite) spriteEventBlocker: Sprite = null;
+
     private main: Main = null;
 
     init(main: Main) {
@@ -27,23 +30,35 @@ export class UiLogin extends Component {
             
         }
 
-        this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
-            editbox.string = '';
-        }, this);
+        // this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
+        //     editbox.string = '';
+        // }, this);
 
-        this.editBoxUID.node.on('editing-return', ( editbox, customEventData )=>{
-            this.editBoxPassword.setFocus();
-        }, this);
+        // this.editBoxUID.node.on('editing-did-end', ( editbox, customEventData )=>{
+        //     this.editBoxPassword.setFocus();            
+        //     editbox.string = '';
+        // }, this);        
+
+        // this.editBoxUID.node.on('editing-return', ( editbox, customEventData )=>{
+        //     this.editBoxPassword.setFocus();
+        // }, this);
 
 
-        this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
-            editbox.string = '';
+        // this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
+        //     editbox.string = '';
 
-        }, this);
+        // }, this);
 
-        this.editBoxPassword.node.on('editing-return', ( editbox, customEventData )=>{
-            this.onLogin();
-        }, this);
+        // this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
+        //     this.onLogin();
+
+        // }, this);
+
+        // this.editBoxPassword.node.on('editing-return', ( editbox, customEventData )=>{
+        //     this.onLogin();
+        // }, this);
+
+        this.spriteEventBlocker.node.active = false;
 
         this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
         this.buttonJoin.node.on('click', this.onClickJoin.bind( this ), this );
@@ -71,11 +86,13 @@ export class UiLogin extends Component {
         this.buttonLogin.interactable = false;
         this.buttonJoin.interactable = false;
 
+        this.spriteEventBlocker.node.active = true;
+
         if ( uid.length < 4 || pass.length == 4 ) {
             LoginSystemPopup.instance.showPopUpOk('로그인', '아이디와 패스워드를 입력해주세요.', ()=>{
                 this.buttonLogin.interactable = true;
                 this.buttonJoin.interactable = true;
-
+                this.spriteEventBlocker.node.active = false;
                 LoginSystemPopup.instance.closePopup();
             });
             return;
@@ -83,7 +100,6 @@ export class UiLogin extends Component {
 
 		NetworkManager.Instance().reqLOGIN_HOLDEM( uid, pass ,(res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
-                console.log( res );
 
                 let id: number = res.obj.id;
                 this.onLoadInitialData( id );
@@ -98,11 +114,14 @@ export class UiLogin extends Component {
                     this.buttonLogin.interactable = true;
                     this.buttonJoin.interactable = true;
 
+                    this.spriteEventBlocker.node.active = false;
                     LoginSystemPopup.instance.closePopup();
                 });
                 return;        
             }
             else {
+                this.spriteEventBlocker.node.active = false;
+
                 // let desc: string = '';
                 // switch ( res.msg ) {
                 //     case 'INVALID_UID':
@@ -135,20 +154,27 @@ export class UiLogin extends Component {
 
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 if ( res.user != null && res.setting != null && res.conf != null ) {
-                    CommonUtil.setGameSetting(res.conf);
-                    director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
-                        
-                    }, ()=>{
-        
-                    });
+                    CommonUtil.setGameSetting( res.conf );
 
+                    ResourceManager.Instance().loadAvatars( res.conf.avatars, ()=>{}, ()=>{
+                        director.loadScene("LobbyScene", (error: null | Error, scene?: Scene)=>{
+                        
+                        }, ()=>{
+            
+                        });
+    
+                    });
                 } else {
                     LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                        this.spriteEventBlocker.node.active = false;
+
                         LoginSystemPopup.instance.closePopup();
                     });
                 }
             } else {
                 LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                    this.spriteEventBlocker.node.active = false;
+
                     LoginSystemPopup.instance.closePopup();
                 });
             }
@@ -158,6 +184,8 @@ export class UiLogin extends Component {
 
         }, ( err )=>{
             LoginSystemPopup.instance.showPopUpOk('로그인', '게임 정보를 불러올 수 없습니다.', ()=>{
+                this.spriteEventBlocker.node.active = false;
+
                 LoginSystemPopup.instance.closePopup();
             });
 

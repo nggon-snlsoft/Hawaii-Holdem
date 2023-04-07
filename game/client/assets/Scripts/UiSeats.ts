@@ -23,6 +23,7 @@ export class UiSeats extends Component {
     private joinPlayer: number = -1;
     private playingPlayer: number = -1;
     public unselectSeatDuringTime = false;
+    private labelBlind: Label = null;
 
 
     public init (maxSeat: number, onClickCallback: (seatNumber: number)=>void) {
@@ -64,6 +65,11 @@ export class UiSeats extends Component {
 
         for (let i = 0 ; i < this.uiSeats.length; i++) {
             this.buttonTakeSeats[i] = this.uiSeats[i].getTakeButton();
+        }
+
+        this.labelBlind = this.node.getChildByPath('ROOM_INFORMATION/BLIND/Label').getComponent(Label);
+        if ( this.labelBlind != null ) {
+            this.labelBlind.string = '';
         }
 
         this.unselectSeatDuringTime = false;
@@ -298,7 +304,11 @@ export class UiSeats extends Component {
         let sb = CommonUtil.getNumberStringWithComma(Board.small);
         let bb = CommonUtil.getNumberStringWithComma(Board.big);
 
+        this.labelBlind.string = CommonUtil.getKoreanNumber( Board.small ) + ' / ' + CommonUtil.getKoreanNumber( Board.big );
+
         this.labelRoomInformation.string = Board.info.name + ' ' + Board.id.toString() + '(SB: ' + sb + ", BB: " + bb + ')';
+        this.labelRoomInformation.node.active = false;
+        
         this.nodeRoomInformation.active = true;
     }
 }

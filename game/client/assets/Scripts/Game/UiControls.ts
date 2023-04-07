@@ -14,6 +14,14 @@ export class UiControls extends Component {
         this.buttonExit.node.on('click', this.onClickExit.bind(this));
     }
 
+    show() {
+        this.node.active = true;
+    }
+
+    hide() {
+        this.node.active = false;
+    }
+
     public setExitCallback( cbExit: ()=>void ) {
         if ( cbExit != null ) {
             this.cbExit = cbExit;
@@ -26,8 +34,6 @@ export class UiControls extends Component {
 
         }
     }
-
-
 }
 
 

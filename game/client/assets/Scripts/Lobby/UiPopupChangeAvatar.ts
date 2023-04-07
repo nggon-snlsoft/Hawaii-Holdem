@@ -3,6 +3,7 @@ import { CommonUtil } from '../CommonUtil';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
 import { TableListUiElement } from './UiTableList';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerAvatarElement')
@@ -40,10 +41,14 @@ export class PlayerAvatarElement {
 
         let s = this.nodeRoot.getComponent(Sprite);
         if ( s != null) {
-            CommonUtil.setAvatarSprite( id, s, ()=>{
-                this.nodeRoot.active = true;
-                let t = this.nodeRoot.getComponent(UITransform);
-            });
+            let sf = ResourceManager.Instance().getAvatarImage( id );
+            s.spriteFrame = sf;
+            this.nodeRoot.active = true;
+
+            // CommonUtil.setAvatarSprite( id, s, ()=>{
+            //     this.nodeRoot.active = true;
+            //     let t = this.nodeRoot.getComponent(UITransform);
+            // });
         }
 
         if ( currentId == id) {

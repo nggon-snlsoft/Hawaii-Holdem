@@ -1,4 +1,5 @@
 import { _decorator, Component, resources, SpriteFrame, Sprite } from 'cc';
+import { ResourceManager } from './ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('CommonUtil')
@@ -43,6 +44,7 @@ export class CommonUtil {
       }
 
     static setAvatarSprite( type: number, sf: Sprite, cb: ()=>void = null ) {
+
         let url = `Avatar/avata_${type.toString()}/spriteFrame`;
 
         resources.load<SpriteFrame>( url, ( err, res ) => {

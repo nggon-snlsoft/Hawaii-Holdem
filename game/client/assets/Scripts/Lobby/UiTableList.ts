@@ -37,6 +37,10 @@ export class TableListUiElement {
         this.labelTableName.string = "";
         this.labelBlind.string = "";
         this.labelBuyIn.string = "";
+
+        if ( this.cbJoinTable != null ) {
+            this.cbJoinTable = null;
+        }
     }
 
     public setTable( table: any, cb: ( button:Button, table: any )=>void ) {
@@ -48,8 +52,10 @@ export class TableListUiElement {
         this.labelBuyIn.string = CommonUtil.getNumberStringWithComma( this.table.minBuyIn );
         this.labelPlayers.string = table.players;
 
+        this.cbJoinTable = null;
         this.cbJoinTable = cb;
 
+        this.buttonJoin.node.off("click");        
         this.buttonJoin.node.on("click", this.onClickJoinTable.bind(this), this);
     }
 
@@ -133,7 +139,11 @@ export class UiTableList extends Component {
         }
 
         this.clearList();
+        this.tables = [];
         this.tables = tables;
+
+        this.elementOnList = [];
+        this.elementPool = [];
 
         if ( this.tables.length < this.elementOnList.length ) {
             let toPool: TableListUiElement[] = this.elementOnList.splice( this.tables.length - 1 );
@@ -184,11 +194,20 @@ export class UiTableList extends Component {
     }
 
     public show() {
-        this.getTableList();
         this.node.active = true;
+        this.getTableList();        
+
+        this.schedule( ()=>{
+            this.getTableList();
+        }, 10 );
+    }
+
+    public end() {
+        this.unscheduleAllCallbacks();
     }
 
     public getTableList() {
+        console.log('UPDATE_TABLE_LIST');
         NetworkManager.Instance().reqTABLE_LIST((res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 this.showTableList(res.tables);
@@ -196,10 +215,12 @@ export class UiTableList extends Component {
 
             }
         }, (err)=>{
-
             if ( err.code == ENUM_RESULT_CODE.DISCONNECT_SERVER ) {
                 LobbySystemPopup.instance.showPopUpOk('로비', '게임서버에 연결할 수 없습니다.', ()=>{
-                    LobbySystemPopup.instance.closePopup();                    
+                    LobbySystemPopup.instance.closePopup();
+
+                    this.end();
+
                     director.loadScene('LoginScene', ()=>{
 
                     }, ()=>{

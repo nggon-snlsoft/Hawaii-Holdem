@@ -50,6 +50,33 @@ export class ResourceManager extends Component {
         return this._instance;
     }
 
+    public loadAvatars( count: number, cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
+		let cnt: number = 0;
+		let l: number = count;
+		this.preloadAvatarResouce = {};
+		for( let i = 0; i < l; i++ ) {
+			const url = `Avatars/${ i }/spriteFrame`;
+
+			resources.load<SpriteFrame>( url, ( finished, total, item )=>{
+				if ( item.ext == '.png' ) {
+					cnt++;
+					let p: number = cnt / l;
+					cbProgress(p);
+				}
+			}, ( err, res ) => {
+
+				if( null != err ) {
+                    console.log('err');
+				}
+
+                this.preloadAvatarResouce[ res.name ] = res;
+				if( count == Object.keys( this.preloadAvatarResouce ).length ) {
+					cbDone();
+				}
+			} );
+		}
+    }	
+
     public loadChips( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt: number = 0;
 		let l: number = 12;
@@ -70,7 +97,7 @@ export class ResourceManager extends Component {
 				}
 
                 this.preloadChipsResource[ res.name ] = res;
-				if( 11 == Object.keys( this.preloadChipsResource ).length ) {
+				if( l == Object.keys( this.preloadChipsResource ).length ) {
 					cbDone();
 				}
 			} );
@@ -95,7 +122,7 @@ export class ResourceManager extends Component {
 
                 this.preloadCardsResource[ res.name ] = res;
 
-				if( 52 == Object.keys( this.preloadCardsResource ).length ) {
+				if( 52 <= Object.keys( this.preloadCardsResource ).length ) {
                     cbDone();
 				}
 			} );
@@ -110,7 +137,7 @@ export class ResourceManager extends Component {
 		let values = Object.values ( SOUNDS_NAME );
 
 		for ( let i: number = 0 ; i < SOUNDS_NAME.length; i++ ) {
-			let item = values.at(i);
+			let item = values[i];
 			console.log(item['url']);
 			const url = `Sounds/${ item['url'] }`;
 			resources.load<AudioClip> ( url, ( err, res )=>{
@@ -136,6 +163,10 @@ export class ResourceManager extends Component {
 
     public getChipImage( num: number ): SpriteFrame {
 		return this.preloadChipsResource[ num ];
+	}
+
+	public getAvatarImage( num: number ): SpriteFrame {
+		return this.preloadAvatarResouce[ num ];
 	}
 
 	public getCardPreloadState(): boolean {		

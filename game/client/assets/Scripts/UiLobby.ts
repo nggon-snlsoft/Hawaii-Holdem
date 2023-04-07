@@ -81,6 +81,8 @@ export class UiLobby extends Component {
         LobbyAudioContoller.instance.playButtonClick();
 
         LobbySystemPopup.instance.showPopUpYesOrNo('로그아웃', '로그아웃 하시겠습니까?', ()=>{
+            this.uiTableList.end();
+
             NetworkManager.Instance().logout();
             director.loadScene("LoginScene",
             (error: null | Error, scene?: Scene )=>{
@@ -137,6 +139,8 @@ export class UiLobby extends Component {
 
             } else {
                 NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
+                    this.uiTableList.end();
+                    
                     Board.isPublic = true;
                     Board.id = res.info.id;
 

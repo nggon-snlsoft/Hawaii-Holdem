@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Sprite, Label, profiler, Button, resources
 import { CommonUtil } from '../CommonUtil';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiPlayer')
@@ -56,12 +57,18 @@ export class UiPlayer extends Component {
             this.labelChips.string = CommonUtil.getKoreanNumber(user.balance + user.chip);
             this.labelPoints.string = (0).toString();
 
-            let s = Number(user.avatar);
-            CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
-                this.spriteAvatar.node.active = true;
-            });
+            let s = Number( user.avatar );
+            let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage( s );
+            this.spriteAvatar.spriteFrame = sf;
+
+            this.spriteAvatar.node.active = true;
+
+
+            // CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
+            //     this.spriteAvatar.node.active = true;
+            // });
         }
-        this.node.active = true;        
+        this.node.active = true;
     }
 }
 
