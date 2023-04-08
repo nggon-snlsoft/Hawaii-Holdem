@@ -31,31 +31,40 @@ export class UiPlayerActionReservation extends Component {
     }
 
     show( myBet: number, turnBet: number ) {
-        if ( this.isOpen == false ) {
-            this.toggleFoldReservation.isChecked = false;
-            this.toggleCheckReservation.isChecked = false;
-        }
 
-        if ( turnBet == myBet ) {
-            this.toggleFoldReservation.node.active = true;
-            this.toggleCheckReservation.node.active = true;
+        // if ( this.isOpen == false ) {
+        //     this.toggleFoldReservation.isChecked = false;
+        //     this.toggleCheckReservation.isChecked = false;
+        // }
 
-        } else {
-            this.toggleFoldReservation.node.active = true;
-            this.toggleCheckReservation.node.active = false;
-        }
+        // if ( turnBet == myBet ) {
+        //     this.toggleFoldReservation.node.active = true;
+        //     this.toggleCheckReservation.node.active = true;
+
+        // } else {
+        //     this.toggleFoldReservation.node.active = true;
+        //     this.toggleCheckReservation.node.active = false;
+        // }
+
+        this.toggleFoldReservation.node.active = true;
 
         this.isOpen = true;
         this.node.active = true;
     }
 
-    reset() {
+    reset( resetCheck: boolean = false) {
         this.reservationType = ENUM_RESERVATION_TYPE.RESERVATION_NONE;
         this.isOpen = false;
-        this.node.active = false;
+
+        // if ( resetCheck == true ) {
+        //     this.toggleFoldReservation.isChecked = false;
+        //     this.toggleCheckReservation.isChecked = false;
+        // }
 
         this.toggleFoldReservation.isChecked = false;
         this.toggleCheckReservation.isChecked = false;
+
+        this.node.active = false;
     }
 
     hide() {
@@ -65,6 +74,15 @@ export class UiPlayerActionReservation extends Component {
 
     public isOpenReservation(): boolean {
         return this.isOpen;
+    }
+
+    public resetCheck() {
+        this.toggleFoldReservation.node.active = true;
+        this.toggleCheckReservation.node.active = true;
+    }
+
+    public showCheck( show: boolean ) {
+        this.toggleCheckReservation.node.active = show;
     }
 
     public checkReservation( myBet: number, turnBet: number ): ENUM_RESERVATION_TYPE {

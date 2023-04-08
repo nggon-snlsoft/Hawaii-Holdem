@@ -26,7 +26,7 @@ export class GameManager extends cc.Component {
 
     public Init() {
         this.version = 1.0;
-        this.deviceType = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
+        this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;
     }
 
     public GetInfo(): any {

@@ -217,6 +217,7 @@ export class UiEntity extends Component {
 
     onClickAvatar( button: Button ) {
         // Board.table.openUserProfile( this.id );
+    
     }
 
     public Init() {
@@ -476,6 +477,7 @@ export class UiEntity extends Component {
     startTurn( duration: number ) {
         this.turnDuration = duration / 1000;
         this.uiEntityAvatar.startTurn();
+
         // this.timerDeltaTime = this.turnDuration;
         // this.playTimeLimitSound = true;
     }
@@ -483,6 +485,8 @@ export class UiEntity extends Component {
     public StartActionTimer() {
         this.timerDeltaTime = this.turnDuration;
         this.playTimeLimitSound = true;
+
+        
     }
 
     endTurn() {

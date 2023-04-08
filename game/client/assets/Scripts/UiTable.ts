@@ -955,6 +955,7 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 			if( seat == this.seatPlayers[ i ] ) {
 				uiEntity?.startTurn(duration);
+				uiEntity?.StartActionTimer();				
 				continue;
 			}
 			uiEntity?.endTurn();
@@ -997,6 +998,7 @@ export class UiTable extends Component {
 						seat: this.mySeat
 					};
 
+					this.uiPlayerActionReservation.reset( true );
 					this.scheduleOnce(()=>{
 						this.sendMsg( "FOLD", obj );
 					}, 1);
@@ -1007,6 +1009,7 @@ export class UiTable extends Component {
 						seat: this.mySeat,
 					};
 
+					this.uiPlayerActionReservation.reset( true );
 					this.scheduleOnce(()=>{
 						this.sendMsg( "CHECK", obj );
 					}, 1);
@@ -1106,6 +1109,7 @@ export class UiTable extends Component {
 					if ( /* this.uiPlayerActionReservation.isOpenReservation() == false && */  isSitOutStatus == false ) {
 						let curBet = msg[ "maxBet" ];
 						let myBet = msg[ "currBet" ];
+
 						this.uiPlayerActionReservation.show( myBet, curBet);
 					}
 				}	
@@ -1120,6 +1124,9 @@ export class UiTable extends Component {
 
 		this.clearUiEntitiesAction();
 		this.clearUiEntitiesBetValue();
+
+		this.uiPlayerActionReservation.reset();
+		this.uiPlayerActionReservation.showCheck( false );
 
 		let sb = msg[ "smallBlind" ];
 		if ( sb != null ) {
@@ -1144,6 +1151,8 @@ export class UiTable extends Component {
 
 			if( this.mySeat == bb.seat ) {
 				this.myChips = bb.chips;
+				this.uiPlayerActionReservation.showCheck( true );
+
 			}
 		}
 
@@ -1354,7 +1363,7 @@ export class UiTable extends Component {
 		this.roundState = "SHOW_FLOP";
 		console.log(this.roundState);
 
-		this.uiPlayerActionReservation.reset();
+		this.uiPlayerActionReservation.resetCheck();
 
 		this.clearUiEntitiesAction();
 
@@ -1404,8 +1413,7 @@ export class UiTable extends Component {
 		this.roundState = "SHOW_TURN";
 		console.log(this.roundState);		
 
-		this.uiPlayerActionReservation.reset();		
-
+		this.uiPlayerActionReservation.resetCheck();
 		this.clearUiEntitiesAction();
 
 		let cards = msg[ "cards" ];
@@ -1447,7 +1455,7 @@ export class UiTable extends Component {
 		this.roundState = "SHOW_RIVER";
 		console.log(this.roundState);
 
-		this.uiPlayerActionReservation.reset();		
+		this.uiPlayerActionReservation.resetCheck();
 		this.clearUiEntitiesAction();
 
 		let cards = msg[ "cards" ];
@@ -1766,6 +1774,7 @@ export class UiTable extends Component {
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
 		AudioController.instance.playCheck();
+		this.uiPlayerActionReservation.showCheck( true );
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1781,9 +1790,8 @@ export class UiTable extends Component {
 
 		this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );		
-
-
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
+		this.uiPlayerActionReservation.showCheck( false );
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1881,6 +1889,7 @@ export class UiTable extends Component {
 		this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
 		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
+		this.uiPlayerActionReservation.showCheck( false );
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
@@ -1971,7 +1980,7 @@ export class UiTable extends Component {
 		this.playersCARD[ seat ] = { primaryCard: primaryCard, secondaryCard: secondaryCard };
 
 		uiEntity.spriteHandCards[ 0 ].spriteFrame = ResourceManager.Instance().getCardImage(primaryCard + 1);
-		uiEntity.spriteHandCards[ 1 ].spriteFrame = ResourceManager.Instance().getCardImage(primaryCard + 1);
+		uiEntity.spriteHandCards[ 1 ].spriteFrame = ResourceManager.Instance().getCardImage(secondaryCard + 1);
 
 		uiEntity.spriteHandCards[ 0 ].node.active = true;
 		uiEntity.spriteHandCards[ 1 ].node.active = true;
@@ -2037,7 +2046,6 @@ export class UiTable extends Component {
 
 			let sf1: SpriteFrame = ResourceManager.Instance().getCardImage(primaryCard + 1);
 			let sf2: SpriteFrame = ResourceManager.Instance().getCardImage(secondaryCard + 1);
-
 
 			this.setAniOpenHand( uiEntity.spriteHandCards[ 0 ], sf1, () => {
 			} );

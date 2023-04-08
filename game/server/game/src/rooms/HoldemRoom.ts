@@ -2106,7 +2106,7 @@ export class HoldemRoom extends Room<RoomState> {
 			smallBlind: smallBlind, // this.state.startBet / 2,
 			bigBlind: bigBlind,// this.state.startBet,
 			maxBet: this.state.maxBet,
-			pot: this.state.pot - this.potCalc.rakeTotal,
+			pot: this.state.pot /*- this.potCalc.rakeTotal*/,
 			missSb: missSb,
 			missBb: missBb,
 			player: player,
