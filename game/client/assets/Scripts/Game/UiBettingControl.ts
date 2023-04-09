@@ -86,7 +86,7 @@ export class UiBettingControl extends Component {
         this.CONST_BET_STEP = this.bb;
 
         this.valueStart = Math.min(valueStart, valueRange) ;
-        this.valueRange = valueRange;
+        this.valueRange = chips;
 
         this.labelMaxValue.string = CommonUtil.getKoreanNumber( valueRange );
 

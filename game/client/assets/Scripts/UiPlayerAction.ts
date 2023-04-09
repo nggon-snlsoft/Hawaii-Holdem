@@ -263,8 +263,8 @@ export class UiPlayerAction extends Component {
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 			this.numberRaiseStart = 0 == turnBet ? this.numberRaiseMin : minRaise * 2;
 	
-			this.numberBetRange = myChips - this.numberBetStart + this.numberMyBet;
-			this.numberRaiseRange = myChips - this.numberRaiseStart + this.numberMyBet;
+			this.numberBetRange = myChips;
+			this.numberRaiseRange = myChips;
 
 			this.buttonRaise.node.active = (0 != turnBet && this.numberRaiseRange >= 0) && false === isLast && true == hasAction;
 			this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
@@ -294,8 +294,8 @@ export class UiPlayerAction extends Component {
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 			this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
 	
-			this.numberBetRange = myChips + this.numberMyBet;
-			this.numberRaiseRange = myChips + this.numberMyBet;
+			this.numberBetRange = myChips;
+			this.numberRaiseRange = myChips;
 	
 			this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
 
@@ -505,7 +505,7 @@ export class UiPlayerAction extends Component {
 	}
 
 	private onClickFull( button: Button ) {
-		let fullValue = this.fullValue + this.numberMyBet;				
+		let fullValue = this.fullValue + + this.numberMyBet;
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
 			this.cbBet( fullValue );
 
@@ -517,14 +517,13 @@ export class UiPlayerAction extends Component {
 	}
 
 	private onClickMax( button: Button ) {
-		let maxValue = this.numberMyChips+ this.numberMyBet;
 
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
-			let value = this.numberBetRange - this.numberMyBet;
+			let value = this.numberBetRange + this.numberMyBet;
 			this.cbBet( value );
 
 		} else {
-			let value = this.numberRaiseRange - this.numberMyBet;			
+			let value = this.numberRaiseRange  + this.numberMyBet;
 			this.cbRaise( value );
 		}
 		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
