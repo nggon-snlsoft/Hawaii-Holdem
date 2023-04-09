@@ -41,7 +41,7 @@ export class UiCard extends Component {
 
     ShowImmediate( card: number ) {
         this.card = card;
-        this.sprite.spriteFrame = ResourceManager.Instance().getCardImage(this.card);
+        this.sprite.spriteFrame = ResourceManager.Instance().getCardImage(this.card + 1);
         this.node.active = true;
     }    
 
@@ -54,7 +54,7 @@ export class UiCard extends Component {
     }
 
     onCardFlippCenter() {
-        let sf: SpriteFrame = ResourceManager.Instance().getCardImage(this.card);
+        let sf: SpriteFrame = ResourceManager.Instance().getCardImage(this.card + 1);
 
         if ( sf != null ) {
             this.sprite.spriteFrame = sf;

@@ -191,6 +191,13 @@ export class UiPlayerAction extends Component {
 	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, isLast : boolean, hasAction: boolean) {
 		this.childRegistered();
 
+		console.log('minBet: ' + minBet.toString());
+		console.log('turnBet: ' + turnBet.toString());
+		console.log('minRaise: ' + minRaise.toString());
+		console.log('pot: ' + pot.toString());
+		console.log('myBet: ' + myBet.toString());
+		console.log('myChips: ' + myChips.toString());
+
 		this.quaterValue  = 0;
 		this.halfValue = 0;
 		this.fullValue = 0;
@@ -254,10 +261,10 @@ export class UiPlayerAction extends Component {
 			this.buttonBet.node.active = ( 0 == turnBet );
 
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
-			this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
+			this.numberRaiseStart = 0 == turnBet ? this.numberRaiseMin : minRaise * 2;
 	
-			this.numberBetRange = myChips;
-			this.numberRaiseRange = myChips;
+			this.numberBetRange = myChips - this.numberBetStart + this.numberMyBet;
+			this.numberRaiseRange = myChips - this.numberRaiseStart + this.numberMyBet;
 
 			this.buttonRaise.node.active = (0 != turnBet && this.numberRaiseRange >= 0) && false === isLast && true == hasAction;
 			this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
@@ -287,8 +294,8 @@ export class UiPlayerAction extends Component {
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 			this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
 	
-			this.numberBetRange = myChips;
-			this.numberRaiseRange = myChips;
+			this.numberBetRange = myChips + this.numberMyBet;
+			this.numberRaiseRange = myChips + this.numberMyBet;
 	
 			this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
 
@@ -323,11 +330,11 @@ export class UiPlayerAction extends Component {
 					quater = Math.max( quater, this.numberBetStart);
 					quater = Math.min( quater, this.numberBetRange);
 
-					half = pot * 0.5;
+					half = pot * 0.5; 
 					half = Math.max( half, this.numberBetStart);
 					half = Math.min( half, this.numberBetRange);
 
-					full = pot * 0.5;
+					full = pot * 1;
 					full = Math.max( full, this.numberBetStart);
 					full = Math.min( full, this.numberBetRange);
 
@@ -342,7 +349,7 @@ export class UiPlayerAction extends Component {
 					half = Math.max( half, this.numberRaiseStart);
 					half = Math.min( half, this.numberRaiseRange);
 
-					full = pot * 0.5;
+					full = pot * 1;
 					full = Math.max( full, this.numberRaiseStart);
 					full = Math.min( full, this.numberRaiseRange);
 
@@ -410,6 +417,7 @@ export class UiPlayerAction extends Component {
 		}
 
 		if ( this.buttonCall.node.active == false ) {
+
 			let betValue = this.numberTurnBet - this.numberMyBet;
 			if( betValue > this.numberMyChips ){
 				betValue = this.numberMyChips;
@@ -472,22 +480,24 @@ export class UiPlayerAction extends Component {
 	}
 
 	private onClickQuater( button: Button ) {
+		let quaterValue = this.quaterValue+ this.numberMyBet;
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
-			this.cbBet( this.quaterValue );
+			this.cbBet( quaterValue );
 
 		} else {
-			this.cbRaise( this.quaterValue );
+			this.cbRaise( quaterValue );
 		}
 		AudioController.instance.PlaySound('VOICE_BETTING_QUATER');
 		// this.cbBetAnnounce( ENUM_BETTING_KIND.QUATER );
 	}
 
 	private onClickHalf( button: Button ) {
+		let halfValue = this.halfValue+ this.numberMyBet;		
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
-			this.cbBet( this.halfValue );
+			this.cbBet( halfValue );
 
 		} else {
-			this.cbRaise( this.halfValue );
+			this.cbRaise( halfValue );
 		}
 		AudioController.instance.PlaySound('VOICE_BETTING_HALF');
 
@@ -495,22 +505,27 @@ export class UiPlayerAction extends Component {
 	}
 
 	private onClickFull( button: Button ) {
+		let fullValue = this.fullValue + this.numberMyBet;				
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
-			this.cbBet( this.fullValue );
+			this.cbBet( fullValue );
 
 		} else {
-			this.cbRaise( this.fullValue );
+			this.cbRaise( fullValue );
 		}
 		AudioController.instance.PlaySound('VOICE_BETTING_FULL');		
 		// this.cbBetAnnounce( ENUM_BETTING_KIND.FULL );
 	}
 
 	private onClickMax( button: Button ) {
+		let maxValue = this.numberMyChips+ this.numberMyBet;
+
 		if ( this.betType == ENUM_BETTING_TYPE.Bet ) {
-			this.cbBet( this.maxValue );
+			let value = this.numberBetRange - this.numberMyBet;
+			this.cbBet( value );
 
 		} else {
-			this.cbRaise( this.maxValue );
+			let value = this.numberRaiseRange - this.numberMyBet;			
+			this.cbRaise( value );
 		}
 		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
 		// this.cbBetAnnounce( ENUM_BETTING_KIND.MAX );

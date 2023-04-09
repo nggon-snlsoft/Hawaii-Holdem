@@ -419,7 +419,7 @@ class StraightFlush extends Hand {
     if (this.cards[0] && this.cards[0].rank === 13) {
       this.descr = '로열 스트레이트 플러시';
     } else if (this.cards.length >= this.game.sfQualify) {
-      this.descr = '스트레이트 플러시' + ', ' + this.cards[0].toString().slice(0, -1) + suit + ' 하이';
+      this.descr = '스트레이트 플러시' + ' [' + this.cards[0].toString().slice(0, -1) + suit + ']';
     }
 
     return this.cards.length >= this.game.sfQualify;
@@ -811,7 +811,7 @@ class Flush extends Hand {
     }
 
     if (this.cards.length >= this.game.sfQualify) {
-      this.descr = '플러시' + ', ' + this.cards[0].toString().slice(0, -1) + suit + ' 하이';
+      this.descr = '플러시' + ' [' + this.cards[0].toString().slice(0, -1) + suit + ']';
       this.sfLength = this.cards.length;
       if (this.cards.length < this.game.cardsInHand) {
         this.cards = this.cards.concat(this.nextHighest().slice(0, this.game.cardsInHand - this.cards.length));
@@ -900,7 +900,7 @@ class Straight extends Hand {
       this.cards = this.cards.sort(Card.sort);
     }
     if (this.cards.length >= this.game.sfQualify) {
-      this.descr = '스트레이트' + ', ' + this.cards[0].toString().slice(0, -1) + ' 하이';
+      this.descr = '스트레이트' + ' [' + this.cards[0].toString().slice(0, -1) + ']';
       this.cards = this.cards.slice(0, this.game.cardsInHand);
       this.sfLength = this.cards.length;
       if (this.cards.length < this.game.cardsInHand) {
@@ -1108,7 +1108,7 @@ class ThreeOfAKind extends Hand {
         this.cards.length = 3;
       }
 
-      this.descr = '트리플' + ', ' + this.cards[0].toString().slice(0, -1) + '\'s';
+      this.descr = '트리플' + ' [ ' + this.cards[0].toString().slice(0, -1) + ' ]';
     }
 
     return this.cards.length >= 3;
@@ -1182,8 +1182,8 @@ class ThreePair extends Hand {
     }
 
     if (this.cards.length >= 6) {
-      var type = this.cards[0].toString().slice(0, -1) + '\'s & ' + this.cards[2].toString().slice(0, -1) + '\'s & ' + this.cards[4].toString().slice(0, -1) + '\'s';
-      this.descr = '트리플' + ', ' + type;
+      var type = this.cards[0].toString().slice(0, -1) + ', ' + this.cards[2].toString().slice(0, -1) + ', ' + this.cards[4].toString().slice(0, -1);
+      this.descr = '트리플' + ' [ ' + type + ' ]';
     }
 
     return this.cards.length >= 6;
@@ -1244,8 +1244,8 @@ class TwoPair extends Hand {
         this.cards.length = 4;
       }
 
-      var type = this.cards[0].toString().slice(0, -1) + '\'s & ' + this.cards[2].toString().slice(0, -1) + '\'s';
-      this.descr = '투페어' + ', ' + type;
+      var type = this.cards[0].toString().slice(0, -1) + ', ' + this.cards[2].toString().slice(0, -1);
+      this.descr = '투페어' + '[ ' + type + ' ]';
     }
 
     return this.cards.length >= 4;
@@ -1283,7 +1283,7 @@ class OnePair extends Hand {
         this.cards.length = 2;
       }
 
-      this.descr = '원페어' + ', ' + this.cards[0].toString().slice(0, -1) + '\'s';
+      this.descr = '원페어' + ' [ ' + this.cards[0].toString().slice(0, -1) + ' ]';
     }
 
     return this.cards.length >= 2;
@@ -1311,7 +1311,7 @@ class HighCard extends Hand {
     }
 
     this.cards = this.cards.sort(Card.sort);
-    this.descr = this.cards[0].toString().slice(0, -1) + ' 하이';
+    this.descr = this.cards[0].toString().slice(0, -1) + ' 탑';
 
     return true;
   }
