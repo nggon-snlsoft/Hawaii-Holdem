@@ -10,6 +10,7 @@ export class UiLobbyLoading extends Component {
     @property(ProgressBar) progressBar: ProgressBar = null;
 
     private progress: number = 0.0;
+    private cbNext: ()=> void;
 
     public init() {
         this.rootFadeIn.active = false;
@@ -17,7 +18,15 @@ export class UiLobbyLoading extends Component {
         this.node.active = false;
     }
 
-    public show() {
+    public show(cbNext: ()=> void ) {
+        if ( this.cbNext != null ) {
+            this.cbNext = null;
+
+            if ( cbNext != null ) {
+                this.cbNext = cbNext;
+            }
+        }
+
         this.progressBar.progress = 0.0;
         this.FadeIn( this.rootFadeIn, 1.0, ()=>{
             this.preLoadResource ();
@@ -91,6 +100,11 @@ export class UiLobbyLoading extends Component {
 
         }, ()=>{
             this.progressBar.progress = 1.0;
+
+            if ( this.cbNext != null ) {
+                this.cbNext();
+                this.cbNext = null;
+            }
 
             director.loadScene('GameScene');
         });

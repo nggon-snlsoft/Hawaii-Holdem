@@ -485,8 +485,6 @@ export class UiEntity extends Component {
     public StartActionTimer() {
         this.timerDeltaTime = this.turnDuration;
         this.playTimeLimitSound = true;
-
-        
     }
 
     endTurn() {

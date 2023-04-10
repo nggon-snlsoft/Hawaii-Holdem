@@ -25,6 +25,7 @@ export class UiLobby extends Component {
 
 	private userInfo : any = null;
     private settingInfo: any = null;
+    private cbEnd: ()=> void = null; 
 
     public init() {
         this.uiLobbyPopup.init( this );
@@ -46,7 +47,15 @@ export class UiLobby extends Component {
         this.node.active = true;
     }
 
-    show() {
+    show( cbEnd: ()=> void ) {
+        if ( this.cbEnd != null ) {
+            this.cbEnd = null;
+
+            if ( cbEnd != null ) {
+                this.cbEnd = cbEnd;
+            }
+        }
+
         this.userInfo = NetworkManager.Instance().getUserInfo();
         this.settingInfo = NetworkManager.Instance().getUserSetting();
 
@@ -82,8 +91,14 @@ export class UiLobby extends Component {
 
         LobbySystemPopup.instance.showPopUpYesOrNo('로그아웃', '로그아웃 하시겠습니까?', ()=>{
             this.uiTableList.end();
-
             NetworkManager.Instance().logout();
+
+            if ( this.cbEnd != null ) {
+                this.cbEnd();
+
+                this.cbEnd = null;
+            }
+
             director.loadScene("LoginScene",
             (error: null | Error, scene?: Scene )=>{
 
@@ -148,18 +163,25 @@ export class UiLobby extends Component {
                     Board.room = room;
                     UiTable.seatMaxFromServer = res.count;
 
-                    this.uiLobbyLoading.show();
-
-                    // director.loadScene('GameScene', ( err: null | Error, scene?: Scene )=>{
-
-                    // }, ()=>{
-
-                    // })
+                    this.uiLobbyLoading.show( ()=>{
+                        if ( this.cbEnd != null ) {
+                            this.cbEnd();
+                            this.cbEnd = null;
+                        }
+                    });
                 }, ( err )=>{
 
                 });
             }
         }
+    }
+
+    public onEVENT_SHOW() {
+        console.log('onEVENT_SHOW');
+    }
+
+    public onEVENT_HIDE() {
+        console.log('onEVENT_HIDE');
     }
 }
 

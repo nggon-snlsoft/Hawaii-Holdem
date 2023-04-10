@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, game, Game } from 'cc';
 import {UiGameSystemPopup} from "./UiGameSystemPopup";
 import {UiGameInput} from "./UiGameInput";
 import { UiControls } from './UiControls';
@@ -48,6 +48,9 @@ export class GameEntry extends Component {
 
         this._table.init();
         this._table.show();
+
+        game.on( Game.EVENT_SHOW, this.onEVENT_SHOW.bind(this), this );
+        game.on( Game.EVENT_HIDE, this.onEVENT_HIDE.bind(this), this );
     }
 
     private RegisterChildren() {
@@ -72,6 +75,16 @@ export class GameEntry extends Component {
         }
 
         this._isChildrenRegisted = true;
+    }
+
+    private onEVENT_SHOW() {
+        console.log('onEVENT_SHOW');
+        this._table.onEVENT_SHOW();
+    }
+
+    private onEVENT_HIDE() {
+        console.log('onEVENT_HIDE');        
+        this._table.onEVENT_HIDE();
     }
 }
 

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, game, Game } from 'cc';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 import { LobbySystemPopup } from './LobbySystemPopup';
 import { UiLobby } from './UiLobby';
@@ -18,7 +18,6 @@ export class LobbyEntry extends Component {
 	private _isChildrenRegisted: boolean = false;    
 
     protected onLoad(): void {
-        console.log('LobbyEntry onLoad');
 
         this.rootPortrait.active = false;
         this.rootLandscape.active = false;
@@ -50,7 +49,15 @@ export class LobbyEntry extends Component {
         }
 
         this.AudioContoller.init();
-        this._lobby.show();
+        this._lobby.show( ()=>{
+            this.end();
+        });
+
+        game.off( Game.EVENT_SHOW);
+        game.off( Game.EVENT_HIDE);
+
+        game.on( Game.EVENT_SHOW, this.onEVENT_SHOW.bind(this), this);
+        game.on( Game.EVENT_HIDE, this.onEVENT_HIDE.bind(this), this);
 	}
 
 	private RegisterChildren() {
@@ -70,6 +77,19 @@ export class LobbyEntry extends Component {
 
 		this._isChildrenRegisted = true;
 	}
+
+    private onEVENT_SHOW() {
+        this._lobby.onEVENT_SHOW();
+    }
+
+    private onEVENT_HIDE() {
+        this._lobby.onEVENT_HIDE();
+    }
+
+    public end() {
+        game.off( Game.EVENT_SHOW);
+        game.off( Game.EVENT_HIDE);
+    }
 }
 
 

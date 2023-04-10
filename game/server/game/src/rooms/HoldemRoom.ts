@@ -1295,10 +1295,6 @@ export class HoldemRoom extends Room<RoomState> {
 						timeoutPlayer.wait = true;
 						this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
 						this.UpdateSeatInfo();
-
-						//logger.error("Player " + this.betSeat + " is over fold limit send 4000 exit code and set client leave");
-						//this.kickPlayer(timeoutPlayer.client.sessionId ,4000);
-						//this.onLeave(timeoutPlayer.client);
 					}
 				}
 			}

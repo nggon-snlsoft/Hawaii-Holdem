@@ -96,10 +96,10 @@ export class UiWinEffect extends Component {
                 AudioController.instance.PlaySound('VOICE_RANK_FULL_HOUSE');                
                 break;
             case 7:
-                AudioController.instance.PlaySound('VOICE_RANK_STRAIGHT_FLUSH');                
+                AudioController.instance.PlaySound('VOICE_RANK_FOURCARD');
                 break;                
             case 8:
-                AudioController.instance.PlaySound('VOICE_RANK_FOURCARD');                
+                AudioController.instance.PlaySound('VOICE_RANK_STRAIGHT_FLUSH');
                 break;
        }
         this.node.active = true;

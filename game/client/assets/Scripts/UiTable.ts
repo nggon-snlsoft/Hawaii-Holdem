@@ -501,13 +501,6 @@ export class UiTable extends Component {
             NetworkManager.Instance().leaveReason = code;
 
 			director.loadScene("LobbyScene");
-
-			// if ( code == 1005 ) {				
-			// 	director.loadScene("LobbyScene");
-			// }
-			// else {
-			// 	director.loadScene("LoginScene");
-			// }
         });
 
         room.onMessage( "ping", this.onPING.bind( this ) );
@@ -950,7 +943,8 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 			if( seat == this.seatPlayers[ i ] ) {
 				uiEntity?.startTurn(duration);
-				uiEntity?.StartActionTimer();				
+				uiEntity?.StartActionTimer();
+
 				continue;
 			}
 			uiEntity?.endTurn();
@@ -1567,9 +1561,12 @@ export class UiTable extends Component {
 	}
 
     private async ShowAll ( msg: any ) {
+		console.log( msg );
 
 		let cards: number[] = msg["cards"];
 		let dpPot: any = msg['dpPot'];
+		let pot: any = msg['pot'];		
+		console.log( dpPot );
 		let playerCards: any[] = msg['playerCards'];
 
 
@@ -1577,8 +1574,8 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.reset();
 		this.uiPlayerAction.hide();
 
-		this.ChipsMoveToPot( dpPot[0].total, ()=>{
-			this.uiRoundPotValue.show(dpPot[0].total);
+		this.ChipsMoveToPot( pot, ()=>{
+			this.uiRoundPotValue.show(pot);
 
 			this.uiShowDownEffect.Show(()=>{
 
@@ -1603,7 +1600,19 @@ export class UiTable extends Component {
 				return;
 			}
 
+			let p: string = totalCards[players[ key ][ 0 ]];
+			let s: string = totalCards[players[ key ][ 1 ]];
+			
+			let c0: string = totalCards[this.numberCommunityCards[0]];
+			let c1: string = totalCards[this.numberCommunityCards[1]];			
+			let c2: string = totalCards[this.numberCommunityCards[2]];
+			let c3: string = totalCards[this.numberCommunityCards[3]];
+			let c4: string = totalCards[this.numberCommunityCards[4]];
+
 			let handRank = this.getHandRank( players[ key ][ 0 ], players[ key ][ 1 ], this.numberCommunityCards );
+			console.log( 'PLAYER: [ ' + p + ' ,' + s + ' ]');
+			console.log( 'COMMUNITY: [ ' + c0 + ', ' + c1 + ', ' + c2 + ', ' + c3 + ', ' + c4 + ' ]');
+			console.log( 'HANDRANK: ' + handRank );
 			uiEntity.setUiHandRank( handRank );
 		} );
 	}
@@ -1647,7 +1656,7 @@ export class UiTable extends Component {
 
 					this.uiEffectShowRiver.Show(card + 1, ()=>{
 					this.OpenRiverCard( tableCards, ()=>{
-						console.log('OPEN_RIVER_CARD');						
+						console.log('OPEN_RIVER_CARD');
 						this.ShowPlayersHandRank(playerCards);
 						this.onSHOWDOWN_END();
 					});
@@ -2770,8 +2779,7 @@ export class UiTable extends Component {
 					});
 				}
 			});
-		}		
-
+		}
     }
 
     private onRES_ADD_CHIPS( msg ) {
@@ -2886,6 +2894,14 @@ export class UiTable extends Component {
         this.labelTableInformation.string = Board.info.name + ' / ' + Board.id.toString() + ' / (SB: ' + sb + ") / (BB: " + bb + ')';
 		this.labelTableInformation.node.active = true;
     }
+
+	public onEVENT_SHOW() {
+
+	}
+
+	public onEVENT_HIDE() {
+
+	}
 }
 
 
