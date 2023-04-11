@@ -1,4 +1,6 @@
-import { _decorator, AudioClip, Component, Node, resources, SpriteFrame, url } from 'cc';
+import { _decorator, AudioClip, Color, Component, Node, resources, Sprite, SpriteFrame, url } from 'cc';
+import { NetworkManager } from './NetworkManager';
+import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 const CARDS_NAME: string[] = [
@@ -40,8 +42,11 @@ export class ResourceManager extends Component {
 
     private preloadCardsResource: {} = {};
     private preloadChipsResource: {} = {};
-    private preloadSoundsResouce: {} = {};	
-    private preloadAvatarResouce: {} = {};
+    private preloadSoundsResource: {} = {};	
+    private preloadAvatarResource: {} = {};
+
+	private preloadTableResource: any = null;
+	private preloadBackgroundResource: any = null;	
 
     public static Instance(): ResourceManager {
         if ( this._instance == null ) {
@@ -53,7 +58,7 @@ export class ResourceManager extends Component {
     public loadAvatars( count: number, cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt: number = 0;
 		let l: number = count;
-		this.preloadAvatarResouce = {};
+		this.preloadAvatarResource = {};
 		for( let i = 0; i < l; i++ ) {
 			const url = `Avatars/${ i }/spriteFrame`;
 
@@ -69,8 +74,8 @@ export class ResourceManager extends Component {
                     console.log('err');
 				}
 
-                this.preloadAvatarResouce[ res.name ] = res;
-				if( count == Object.keys( this.preloadAvatarResouce ).length ) {
+                this.preloadAvatarResource[ res.name ] = res;
+				if( count == Object.keys( this.preloadAvatarResource ).length ) {
 					cbDone();
 				}
 			} );
@@ -107,8 +112,11 @@ export class ResourceManager extends Component {
     public loadCards( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt = 0;
 		this.preloadCardsResource = {};
+
+		let type = NetworkManager.Instance().getUserSetting().card;
 		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
-			const url = `PlayingCards/${ i }/spriteFrame`;
+			const url = 'Cards/'+'type' + type.toString() + '/' + i.toString() + '/spriteFrame';
+
 			resources.load<SpriteFrame>( url, (finished, total, item )=>{
 				if ( item.ext == '.png' ) {
 					cnt++;
@@ -138,7 +146,6 @@ export class ResourceManager extends Component {
 
 		for ( let i: number = 0 ; i < SOUNDS_NAME.length; i++ ) {
 			let item = values[i];
-			console.log(item['url']);
 			const url = `Sounds/${ item['url'] }`;
 			resources.load<AudioClip> ( url, ( err, res )=>{
 				if ( null != err ) {
@@ -149,12 +156,54 @@ export class ResourceManager extends Component {
 				let p: number = cnt / SOUNDS_NAME.length;
 				cbProgress(p);
 
-				this.preloadSoundsResouce[ item['name'] ] = res;
-				if ( Object.keys( this.preloadSoundsResouce ).length >= SOUNDS_NAME.length ) {
+				this.preloadSoundsResource[ item['name'] ] = res;
+				if ( Object.keys( this.preloadSoundsResource ).length >= SOUNDS_NAME.length ) {
 					cbDone();
 				}
 			})
 		}
+    }
+
+	public loadTables ( cbDone: ()=>void ) {
+		let cnt = 0;
+		this.preloadTableResource = null;
+
+		let url: string = '';
+		let info = GameManager.Instance().GetInfo();
+		let type = NetworkManager.Instance().getUserSetting().board;
+
+		if ( info.device == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
+			url = 'Tables/'+'portrait/'+ type.toString() + '/spriteFrame';
+
+		} else {
+			url = 'Tables/'+'landscape/'+ type.toString() + '/spriteFrame';
+		}
+
+		console.log(url);
+
+		resources.load<SpriteFrame> (url, (err, res )=>{
+			if ( null != err ) {
+
+			}
+			this.preloadTableResource = res;
+			cbDone();
+		});
+    }
+
+	public loadBackground ( cbDone: ()=>void ) {
+		let cnt = 0;
+		this.preloadBackgroundResource = null;
+
+		let type = NetworkManager.Instance().getUserSetting().background;
+		let url: string = 'Backgrounds/'+type.toString() + '/spriteFrame';
+
+		resources.load<SpriteFrame> (url, (err, res )=>{
+			if ( null != err ) {
+
+			}
+			this.preloadBackgroundResource = res;
+			cbDone();
+		});
     }
 
     public getCardImage( num: number ): SpriteFrame {
@@ -166,7 +215,41 @@ export class ResourceManager extends Component {
 	}
 
 	public getAvatarImage( num: number ): SpriteFrame {
-		return this.preloadAvatarResouce[ num ];
+		return this.preloadAvatarResource[ num ];
+	}
+
+	public getTableImage() {
+		return this.preloadTableResource;
+	}
+
+	public getBackgroundImage() {
+		return this.preloadBackgroundResource;
+	}
+
+	public setBackgroundImage( s:Sprite ) {
+		s.spriteFrame = this.preloadBackgroundResource;
+		let type = NetworkManager.Instance().getUserSetting().background;
+		switch ( type ) {
+			case 0:
+				s.color = new Color(30, 30, 30, 255);
+				break;
+			case 1:
+				s.color = new Color(100, 100, 100, 255);				
+				break;
+			case 2:
+				s.color = new Color(150, 150, 150, 255);				
+				break;
+			case 3:
+				s.color = new Color(70, 70, 70, 255);				
+				break;
+			case 4:
+				s.color = new Color(100, 100, 100, 255);				
+				break;
+		}
+	}
+
+	public setTableImage( s:Sprite ) {
+		s.spriteFrame = this.preloadTableResource;
 	}
 
 	public getCardPreloadState(): boolean {		
@@ -184,10 +267,28 @@ export class ResourceManager extends Component {
 	}
 
 	public getSoundsPreloadState(): boolean {
-		if ( Object.keys( this.preloadSoundsResouce ).length >= SOUNDS_NAME.length ) {
+		if ( Object.keys( this.preloadSoundsResource ).length >= SOUNDS_NAME.length ) {
 			return true;
 		}
 		return false;
+	}
+
+	public getTablePreloadState(): boolean {
+		return false;
+
+		// if ( this.preloadTableResource != null ) {
+		// 	return true;
+		// }
+		// return false;
+	}
+
+	public getBackgroundPreloadState(): boolean {
+		return false;
+
+		// if ( this.preloadBackgroundResource != null ) {
+		// 	return true;
+		// }
+		// return false;
 	}
 
 	public getSoundSource( name: string ): AudioClip {
@@ -196,7 +297,7 @@ export class ResourceManager extends Component {
 			return e['name'] == name;
 		})['name'];
 
-		return this.preloadSoundsResouce[ clipName ];
+		return this.preloadSoundsResource[ clipName ];
 	}
 
 	public resetCardsPreload() {

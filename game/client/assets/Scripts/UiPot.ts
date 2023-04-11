@@ -8,9 +8,9 @@ export class Pot{
     @property(Label) public valueLabel : Label = null;
 
     public ClearCallback(){
-        this.showRoot.off(Node.EventType.TOUCH_START);
-        this.showRoot.off(Node.EventType.TOUCH_END);
-        this.showRoot.off(Node.EventType.TOUCH_CANCEL);
+        // this.showRoot.off(Node.EventType.TOUCH_START);
+        // this.showRoot.off(Node.EventType.TOUCH_END);
+        // this.showRoot.off(Node.EventType.TOUCH_CANCEL);
     }
 }
 
@@ -86,41 +86,42 @@ export class UiPot extends Component {
 
             const potInfo = shown[i];
 
-            sidePot.valueLabel.string = undefined != potInfo.rake && potInfo.rake > 0 ? 
-            ( potInfo.total - potInfo.rake ).toString() :  potInfo.total.toString();
+            sidePot.valueLabel.string = CommonUtil.getKoreanNumber( potInfo.total );
+            // undefined != potInfo.rake && potInfo.rake > 0 ? 
+            // ( potInfo.total - potInfo.rake ).toString() :  potInfo.total.toString();
             sidePot.showRoot.active = true;
 
             if(null == potInfo.rake){
                 continue;
             }
 
-            sidePot.showRoot.on(Node.EventType.TOUCH_START, () => {
-                if(this.potInfoTimeout != null){
-                    clearTimeout(this.potInfoTimeout);
-                    this.potInfoTimeout = null;
-                }
+            // sidePot.showRoot.on(Node.EventType.TOUCH_START, () => {
+            //     if(this.potInfoTimeout != null){
+            //         clearTimeout(this.potInfoTimeout);
+            //         this.potInfoTimeout = null;
+            //     }
 
-                this.potInfoTimeout = setTimeout(() => {
-                    this.OnSelectPot(sidePot.showRoot, i, sidePot.valueLabel.string, potInfo.rake.toString());                    
-                })
-            }, this);
+            //     this.potInfoTimeout = setTimeout(() => {
+            //         this.OnSelectPot(sidePot.showRoot, i, sidePot.valueLabel.string, potInfo.rake.toString());                    
+            //     })
+            // }, this);
 
-            sidePot.showRoot.on(Node.EventType.TOUCH_END, () => {
-                if(this.potInfoTimeout != null){
-                    clearTimeout(this.potInfoTimeout);
-                    this.potInfoTimeout = null;
+            // sidePot.showRoot.on(Node.EventType.TOUCH_END, () => {
+            //     if(this.potInfoTimeout != null){
+            //         clearTimeout(this.potInfoTimeout);
+            //         this.potInfoTimeout = null;
 
-                    this.OnDeselectPot(i);
-                }
-            },this);
-            sidePot.showRoot.on(Node.EventType.TOUCH_CANCEL, () => {
-                if(this.potInfoTimeout != null){
-                    clearTimeout(this.potInfoTimeout);
-                    this.potInfoTimeout = null;
+            //         this.OnDeselectPot(i);
+            //     }
+            // },this);
+            // sidePot.showRoot.on(Node.EventType.TOUCH_CANCEL, () => {
+            //     if(this.potInfoTimeout != null){
+            //         clearTimeout(this.potInfoTimeout);
+            //         this.potInfoTimeout = null;
 
-                    this.OnDeselectPot(i);
-                }
-            },this);
+            //         this.OnDeselectPot(i);
+            //     }
+            // },this);
         }
     }
 
@@ -172,22 +173,22 @@ export class UiPot extends Component {
         this.potInfoRoot.active = false;
     }
     
-    private OnSelectPot(element : Node, index : number, potTotoal : string, rake : string ){
+    // private OnSelectPot(element : Node, index : number, potTotoal : string, rake : string ){
         
-        this.selectedPot = index;
+    //     this.selectedPot = index;
 
-        this.labelPotInfo.string = "POT: " + potTotoal + "\n" + "RAKE: " + rake;
-        this.potInfoRoot.worldPosition = element.worldPosition;
-        this.potInfoRoot.active = true;
-    }
+    //     this.labelPotInfo.string = "POT: " + potTotoal + "\n" + "RAKE: " + rake;
+    //     this.potInfoRoot.worldPosition = element.worldPosition;
+    //     this.potInfoRoot.active = true;
+    // }
     
-    private OnDeselectPot(index : number){
-        if(this.selectedPot != index){
-            return;
-        }
+    // private OnDeselectPot(index : number){
+    //     if(this.selectedPot != index){
+    //         return;
+    //     }
 
-        this.potInfoRoot.active = false;
-    }    
+    //     this.potInfoRoot.active = false;
+    // }    
 }
 
 

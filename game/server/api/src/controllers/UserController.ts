@@ -170,6 +170,7 @@ export class UserController {
         let _user = ClientUserData.getClientUserData(user);
 
         let setting: any = await this.getSettingByUserID( req.app.get('DAO'), id );
+
         if ( setting == undefined ) {
             const r: any = await this.createUserSetting( req.app.get('DAO'), id );
             setting = await this.getSettingByUserID( req.app.get('DAO'), id );

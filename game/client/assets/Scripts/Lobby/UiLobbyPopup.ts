@@ -184,6 +184,7 @@ export class UiLobbyPopup extends Component {
 
     private applySetting( selected: any ) {        
         NetworkManager.Instance().updateUserSetting( selected, (res)=>{
+            
             LobbySystemPopup.instance.showPopUpOk('설정', '설정이 변경되었습니다.', ()=>{
                 LobbySystemPopup.instance.closePopup();
                 this.closeSetting();

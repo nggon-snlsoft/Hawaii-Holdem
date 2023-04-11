@@ -142,6 +142,18 @@ export class UiTable extends Component {
 		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
 		UiControls.instance.show();
 
+		let bg: Sprite = this.node.getChildByPath('SPRITE_BACKGROUND').getComponent(Sprite);
+        if ( bg != null ) {
+            ResourceManager.Instance().setBackgroundImage(bg);
+            bg.node.active = true;
+        }
+
+        let tb: Sprite = this.node.getChildByPath('SPRITE_TABLE').getComponent( Sprite );
+        if ( tb != null ) {
+            ResourceManager.Instance().setTableImage(tb);
+            tb.node.active = true;            
+        }
+
 		this.buttonEmoticon.node.on('click', this.onClickShowEmoticon.bind(this), this);
 		this.buttonAddChips.node.on('click', this.onClickAddChips.bind(this), this);
 

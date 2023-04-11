@@ -151,6 +151,7 @@ export class UiLogin extends Component {
 
     private onLoadInitialData( id: number ) {
         NetworkManager.Instance().reqLOAD_INITIAL_DATA(id, (res)=>{
+            console.log( res );
 
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 if ( res.user != null && res.setting != null && res.conf != null ) {

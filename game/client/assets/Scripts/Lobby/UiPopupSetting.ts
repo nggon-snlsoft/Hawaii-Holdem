@@ -6,17 +6,13 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UiPopupSetting')
 export class UiPopupSetting extends Component {
-    @property(ToggleContainer) toggleContainerCardFronts: ToggleContainer = null;
-    @property(ToggleContainer) toggleContainerCardBacks: ToggleContainer = null;
-    @property(ToggleContainer) toggleTables: ToggleContainer = null;
+    @property(ToggleContainer) togglesCard: ToggleContainer = null;
+    @property(ToggleContainer) togglesTable: ToggleContainer = null;
+    @property(ToggleContainer) togglesBackground: ToggleContainer = null;
 
-    private currentCardFront: number = -1;
-    private currentCardBack: number = -1;
-    private currentTable: number = -1;
-
-    private selectCardFront: number = -1;
-    private selectCardBack: number = -1;
-    private selectTable: number = -1;
+    private selectCard: number = 0;
+    private selectTable: number = 0;
+    private selectBackground: number = 0;
 
     private initSetting: boolean = false;
 
@@ -35,50 +31,54 @@ export class UiPopupSetting extends Component {
             this.cbApply = cbApply;
         }
 
-        this.toggleContainerCardFronts.toggleItems.forEach( (e)=>{
-            e.node.on('toggle', this.onToggleCardFrontsChanged.bind(this) );            
+        this.togglesCard.toggleItems.forEach( (e)=>{
+            e.node.on('toggle', this.onToggleCardsChanged.bind(this) );            
         } );
 
-        this.toggleContainerCardBacks.toggleItems.forEach( (e)=>{
-            e.node.on('toggle', this.onToggleCardBacksChanged.bind(this) );            
-        } );
-
-        this.toggleTables.toggleItems.forEach( (e)=>{
+        this.togglesTable.toggleItems.forEach( (e)=>{
             e.node.on('toggle', this.onToggleTablesChanged.bind(this) );            
+        } );
+
+        this.togglesBackground.toggleItems.forEach( (e)=>{
+            e.node.on('toggle', this.onToggleBackgroundChanged.bind(this) );            
         } );
 
         this.buttonExit.node.on("click", this.onClickExit.bind(this));
         this.buttonApply.node.on('click', this.onClickApply.bind(this));
+    
+        this.selectCard = 0;
+        this.selectTable = 0;
+        this.selectBackground = 0;
 
         this.initSetting = false;
         this.node.active = false;
     }
 
-    private onToggleCardFrontsChanged( toggle: Toggle ) {
+    private onToggleCardsChanged( toggle: Toggle ) {
         if ( toggle.isChecked == false || this.initSetting == true ) {
             return;
         }
 
         LobbyAudioContoller.instance.playButtonClick();
 
-        for ( let index = 0; index < this.toggleContainerCardFronts.toggleItems.length; index++ ) {
-            if ( this.toggleContainerCardFronts.toggleItems[index].isChecked == true ) {
+        for ( let index = 0; index < this.togglesCard.toggleItems.length; index++ ) {
+            if ( this.togglesCard.toggleItems[index].isChecked == true ) {
 
-                this.selectCardFront = index;
+                this.selectCard = index;
             }
         }
     }
 
-    private onToggleCardBacksChanged( toggle: Toggle ) {
+    private onToggleBackgroundChanged( toggle: Toggle ) {
         if ( toggle.isChecked == false || this.initSetting == true ) {
             return;
         }
 
         LobbyAudioContoller.instance.playButtonClick();
 
-        for ( let index = 0; index < this.toggleContainerCardBacks.toggleItems.length; index++ ) {
-            if ( this.toggleContainerCardBacks.toggleItems[index].isChecked == true ) {
-                this.selectCardBack = index;
+        for ( let index = 0; index < this.togglesBackground.toggleItems.length; index++ ) {
+            if ( this.togglesBackground.toggleItems[index].isChecked == true ) {
+                this.selectBackground = index;
             }
         }
     }
@@ -90,8 +90,8 @@ export class UiPopupSetting extends Component {
 
         LobbyAudioContoller.instance.playButtonClick();
 
-        for ( let index = 0; index < this.toggleTables.toggleItems.length; index++ ) {
-            if ( this.toggleTables.toggleItems[index].isChecked == true ) {
+        for ( let index = 0; index < this.togglesTable.toggleItems.length; index++ ) {
+            if ( this.togglesTable.toggleItems[index].isChecked == true ) {
                 this.selectTable = index;
             }
         }
@@ -101,13 +101,16 @@ export class UiPopupSetting extends Component {
         let info = NetworkManager.Instance().getUserInfo();
 
         NetworkManager.Instance().reqSetting( info.id, (res)=>{
-            console.log(res);
             let setting = res.setting;
             this.node.active = true;
 
-            this.toggleContainerCardFronts.toggleItems[ Number(setting.cardFront) ].isChecked = true;
-            this.toggleContainerCardBacks.toggleItems[ Number(setting.cardBack) ].isChecked = true;
-            this.toggleTables.toggleItems[ Number(setting.board) ].isChecked = true;
+            this.togglesCard.toggleItems[ Number( setting.card ) ].isChecked = true;
+            this.togglesTable.toggleItems[ Number( setting.board ) ].isChecked = true;
+            this.togglesBackground.toggleItems[ Number( setting.background ) ].isChecked = true;
+
+            this.selectCard = setting.card;
+            this.selectTable = setting.board;
+            this.selectBackground = setting.background;
 
         }, (err)=>{
             LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
@@ -135,9 +138,10 @@ export class UiPopupSetting extends Component {
         if ( this.cbApply != null ) {
             LobbyAudioContoller.instance.playButtonClick();
             this.cbApply( {
-                cardFront: this.selectCardFront,
-                cardBack: this.selectCardBack,
-                tableType: this.selectTable
+                sound: 1,
+                card: this.selectCard,
+                table: this.selectTable,
+                background: this.selectBackground
             });
         }
     }

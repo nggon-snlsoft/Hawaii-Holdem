@@ -26,9 +26,11 @@ export class ClientUserData{
 	static  getClientSettingData(dbSettingData: any): any {
 		let setting: any = {
 			id: dbSettingData.userId,
-			cardFront: dbSettingData.card_type1,
+			sound: dbSettingData.sound,
+			card: dbSettingData.card_type1,
 			cardBack: dbSettingData.card_type2,
 			board: dbSettingData.board_type,
+			background: dbSettingData.bg_type,			
 			bestHand: dbSettingData.best_hands,
 		}
 

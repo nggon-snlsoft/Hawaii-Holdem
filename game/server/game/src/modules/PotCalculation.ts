@@ -68,7 +68,7 @@ export class PotCalculation {
       return;
     }
 
-    // this.CalculateRake();
+    this.CalculateRake();
   }
 
   private CalculateMinBet(players: any[]): number {
@@ -254,16 +254,16 @@ export class PotCalculation {
 
     let rake: number = Math.trunc(totalAmount * rakePerc);
 
-    let rakeCap = this.playerCount > this.rakeCap.length ? this.rakeCap[this.rakeCap.length - 1] : this.rakeCap[this.playerCount - 1];
-    if (rakeCap != 0) {
-      rake = Math.min(rakeCap, rake);
-    }
+    // let rakeCap = this.playerCount > this.rakeCap.length ? this.rakeCap[this.rakeCap.length - 1] : this.rakeCap[this.playerCount - 1];
+    // if (rakeCap != 0) {
+    //   rake = Math.min(rakeCap, rake);
+    // }
 
-    if(this.flopRake == false && this.centerCardState == eCommunityCardStep.PRE_FLOP){
-      rake = 0;
-    }
+    // if(this.flopRake == false && this.centerCardState == eCommunityCardStep.PRE_FLOP){
+    //   rake = 0;
+    // }
 
-    logger.info("Start Rake Calculate RakePercent : " + rakePerc + " / Rake Cap : " + rakeCap + " / Rake : " + rake + " / Pot Total : " + totalAmount);
+    // logger.info("Start Rake Calculate RakePercent : " + rakePerc + " / Rake Cap : " + rakeCap + " / Rake : " + rake + " / Pot Total : " + totalAmount);
 
     let tempCopare: number = 0;
 

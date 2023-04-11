@@ -1,8 +1,9 @@
-import { _decorator, Component, Node, Button, Label } from 'cc';
+import { _decorator, Component, Node, Button, Label, Sprite } from 'cc';
 import { Board } from './Board';
 import { CommonUtil } from './CommonUtil';
 import { UiGameSystemPopup } from './Game/UiGameSystemPopup';
 import { UiSeat } from './UiSeat';
+import { ResourceManager } from './ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiSeats')
@@ -25,8 +26,7 @@ export class UiSeats extends Component {
     public unselectSeatDuringTime = false;
     private labelBlind: Label = null;
 
-
-    public init (maxSeat: number, onClickCallback: (seatNumber: number)=>void) {
+    public init ( maxSeat: number, onClickCallback: (seatNumber: number)=>void) {
 
         this.isWaitingResult = false;
         let seatCount: number = maxSeat;
@@ -70,6 +70,18 @@ export class UiSeats extends Component {
         this.labelBlind = this.node.getChildByPath('ROOM_INFORMATION/BLIND/Label').getComponent(Label);
         if ( this.labelBlind != null ) {
             this.labelBlind.string = '';
+        }
+
+        let bg: Sprite = this.node.getChildByPath('SPRITE_BACKGROUND').getComponent(Sprite);
+        if ( bg != null ) {
+            ResourceManager.Instance().setBackgroundImage(bg);
+            bg.node.active = true;
+        }
+
+        let tb: Sprite = this.node.getChildByPath('SPRITE_TABLE').getComponent( Sprite );
+        if ( tb != null ) {
+            ResourceManager.Instance().setTableImage(tb);
+            tb.node.active = true;            
         }
 
         this.unselectSeatDuringTime = false;

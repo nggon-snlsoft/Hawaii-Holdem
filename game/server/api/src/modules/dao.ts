@@ -78,12 +78,14 @@ dao.selectSettingByID = function ( id: any, cb: any ) {
 
 dao.updateSettingByID = function ( id: any, setting: any, cb: any ) {
 	let index = id;
-	let front = setting.cardFront;
-	let back = setting.cardBack;
-	let table = setting.tableType;
+	let sound = setting.sound;
+	let card = setting.card;
+	let table = setting.table;
+	let background = setting.background;
 
-	let sql = "UPDATE SETTING SET CARD_TYPE1 = ?, CARD_TYPE2 = ?, BOARD_TYPE = ? WHERE USERID = ? ";
-	let args = [front, back, table, index];
+
+	let sql = "UPDATE SETTING SET SOUND = ?, CARD_TYPE1 = ?, BOARD_TYPE = ?, BG_TYPE = ? WHERE USERID = ? ";
+	let args = [ sound, card, table, background, index ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 
@@ -139,8 +141,8 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 dao.insertInitialSetting = function ( id: any, cb: any ) {
 
-	let sql = "INSERT INTO setting ( userId, card_type1, card_type2, board_type, best_hands) values ( ?,?,?,?,? )";
-	let args = [ id, '0', '0', '0', ' '];
+	let sql = "INSERT INTO setting ( userId, sound, card_type1, card_type2, board_type, bg_type, best_hands) values ( ?,?,?,?,?,?,? )";
+	let args = [ id, '1', '0', '0', '0', '0', ' '];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {
