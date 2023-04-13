@@ -4,6 +4,7 @@ import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
 import { UiTable } from './UiTable';
 import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
+import { NetworkManager } from './NetworkManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('Main')
@@ -11,7 +12,7 @@ export class Main extends Component {
 	@property(Node) rootPortrait: Node = null;
 	@property(Node) rootLandscape: Node = null;	
 
-	@property version: number = 1.0;
+	@property version: string = '1';
 
 	private _root: Node = null;
 
@@ -62,7 +63,15 @@ export class Main extends Component {
 			this._lableVersion.node.active = true;
 		}
 
-		this._login.show();
+		NetworkManager.Instance().Init( this.version, (res: any)=>{
+			this._login.show();			
+		}, ( err: any)=>{
+			console.log('mismatch version');
+			this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
+				this._login.exitGame();
+			});
+
+		} );
 	}
 
 	public onShowJoinMember() {

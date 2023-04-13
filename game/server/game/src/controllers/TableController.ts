@@ -29,7 +29,6 @@ export class TableController {
 
         let _tables: any[] = [];
         let rooms: RoomListingData<any>[] = await matchMaker.query({private: false});
-        console.log( rooms );
 
         for (let i = 0; i < tables.length; i++ ) {
             let t = ClientUserData.getClientTableData( tables[i]);
@@ -39,7 +38,6 @@ export class TableController {
             });
 
             if ( r != null ) {
-                console.log( r );
             }
 
             let p = (r == null) ? 0 : r.clients;
@@ -74,6 +72,14 @@ export class TableController {
                 msg: 'INCORRECT_ID',
             });
             return;
+        }
+
+        if ( user.tableID != -1 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'DUPLICATE_LOGIN',
+            });
+            return;            
         }
 
         let table: any = await this.getTableInfoFromDB( req.app.get('DAO'), tableID );

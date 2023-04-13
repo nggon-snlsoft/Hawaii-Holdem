@@ -35,8 +35,7 @@ export default Arena( {
 		const sqlClient = sql.init();
 		dao.init( sqlClient );
 
-		RoomController.Instance().InitializeRoomController(dao);
-
+		// RoomController.Instance().InitializeRoomController(dao);
 
 		gameServer.define( "holdem_full", HoldemRoom, { dao: dao, ts :"full", clientLimit: 9, passPrice : 2000 } ).filterBy( [ "serial" ] );
 		gameServer.define( "holdem_short", HoldemRoom, { dao: dao, ts : "short", clientLimit: 6, passPrice : 1000 } ).filterBy( [ "serial" ] );
@@ -67,8 +66,10 @@ export default Arena( {
 		tableController = new TableController();
 
 		app.set( "DAO", dao );
-		// app.use( "/users", userRoutes );
 		app.use( "/tables", tableController.router );
+		app.use( "/check", ()=>{
+
+		} );		
 
 		app.get( "/", ( req, res ) => {
 			res.send( "It could not be a better day to die~~ :)" );
@@ -87,5 +88,6 @@ export default Arena( {
 	},
 
 	beforeListen: () => {
+
 	}
 } );

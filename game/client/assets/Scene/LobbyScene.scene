@@ -569,9 +569,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 138,
+      "g": 138,
+      "b": 138,
       "a": 255
     },
     "_spriteFrame": {
@@ -4976,7 +4976,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 55.29,
+      "width": 89.93,
       "height": 63
     },
     "_anchorPoint": {
@@ -5005,11 +5005,11 @@
       "b": 255,
       "a": 100
     },
-    "_string": "9인",
+    "_string": "9MAX",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
-    "_actualFontSize": 35,
-    "_fontSize": 35,
+    "_actualFontSize": 31,
+    "_fontSize": 31,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 50,
     "_overflow": 0,
@@ -6518,8 +6518,8 @@
     "_string": "참여하기",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 30,
+    "_actualFontSize": 32,
+    "_fontSize": 32,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 30,
     "_overflow": 1,
@@ -8400,7 +8400,7 @@
         "__id__": 779
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 801
@@ -17637,7 +17637,10 @@
       "b": 124,
       "a": 255
     },
-    "_normalSprite": null,
+    "_normalSprite": {
+      "__uuid__": "afc6b802-677e-477f-a214-c40a2960f940@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
     "_hoverSprite": null,
     "_pressedSprite": null,
     "_disabledSprite": null,
@@ -17944,7 +17947,10 @@
       "b": 124,
       "a": 255
     },
-    "_normalSprite": null,
+    "_normalSprite": {
+      "__uuid__": "6883246b-fe8f-47d4-a6df-baac97e72ea8@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
     "_hoverSprite": null,
     "_pressedSprite": null,
     "_disabledSprite": null,

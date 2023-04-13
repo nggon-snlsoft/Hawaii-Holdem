@@ -1,0 +1,6 @@
+{
+  "server": {
+    "name": "api",
+    "version": "1"    
+  }
+}

@@ -8,13 +8,20 @@ dao.init = function ( sql: any ) {
     console.log('DAO INITIALIZED');
     _client = sql;
 
-    let query = 'UPDATE USERS SET ACTIVESESSIONID = ?'
-	let arg = '';
+    let query = 'UPDATE USERS SET ACTIVESESSIONID = ?, PENDINGSESSIONID = ?, PENDINGSESSIONTIMESTAMP = 0, TABLEID = -1'
+	let arg = ['', ''];
 
     _client.query( query, arg, function ( err: any, res: any ) {
         if ( !!err ) {
             return;
         }
+
+		query = 'UPDATE USERS SET BALANCE = BALANCE + CHIP, CHIP = 0 WHERE CHIP > 0'
+		_client.query ( query, null, function ( err: any, res: any ) {
+			if ( !!err ) {
+				return;
+			}
+		});
     });
 
     return dao;

@@ -169,7 +169,26 @@ export class UiLobby extends Component {
                             this.cbEnd = null;
                         }
                     });
+
                 }, ( err )=>{
+                    switch ( err.msg ) {
+                        case 'DUPLICATE_LOGIN':
+                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "이미 플레이중인 테이블이 있습니다.", ()=>{
+                                LobbySystemPopup.instance.closePopup();
+                            });                            
+                            break;
+                        case 'INCORRECT_TABLE_INFO':
+                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.", ()=>{
+                                LobbySystemPopup.instance.closePopup();
+                            });                                                        
+                            break;
+                        case 'TABLE_IS_FULL':
+                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "테이블이 가득 찼습니다.", ()=>{
+                                LobbySystemPopup.instance.closePopup();
+                            });                                                                                    
+                            break;                            
+                        default:
+                    }
 
                 });
             }

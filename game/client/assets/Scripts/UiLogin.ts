@@ -65,8 +65,7 @@ export class UiLogin extends Component {
         this.buttonExit.node.on('click', ()=>{
 
             LoginSystemPopup.instance.showPopUpYesOrNo('종료', '게임을 종료하시겠습니까?', ()=>{
-                director.end();
-                game.end();
+                this.exitGame();
             }, ()=>{
                 LoginSystemPopup.instance.closePopup();
             });
@@ -78,6 +77,11 @@ export class UiLogin extends Component {
         this.audioSource.playOneShot(this.soundButtonClick, 1);
         this.onLogin();
 	}
+
+    public exitGame() {
+        director.end();
+        game.end();
+    }
 
     onLogin() {
         let uid: string = this.editBoxUID.string;

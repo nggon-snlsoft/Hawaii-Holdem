@@ -108,7 +108,7 @@ export class UiEntity extends Component {
             this.uiHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(UiCard);
             if ( this.uiHandCards[0] != null ) {
                 this.uiHandCards[0].init();
-                this.uiHandCards[0].node.active = false;
+                this.uiHandCards[0].hide();
             }
 
             this.spriteHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(Sprite);
@@ -119,7 +119,7 @@ export class UiEntity extends Component {
             this.uiHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(UiCard);
             if ( this.uiHandCards[1] != null ) {
                 this.uiHandCards[1].init();                
-                this.uiHandCards[1].node.active = false;
+                this.uiHandCards[1].hide();
             }
             this.spriteHandCardsBackground[0] = this.rootCards.getChildByPath('CARD_0_BACKGROUND').getComponent(Sprite);
             if ( this.spriteHandCardsBackground[0] != null ) {
@@ -236,7 +236,7 @@ export class UiEntity extends Component {
             this.id = entity.id;
         }
 
-        this.uiEntityAvatar.setAvatar( entity );
+        this.uiEntityAvatar.setAvatar( entity, this.isMe );
         this.endTurn();        
         this.clearUiAction();
         this.clearUiBetValue();    
@@ -252,19 +252,19 @@ export class UiEntity extends Component {
             this.setUiFold();
             return;
         }
-        else {
-            this.uiEntityAvatar.setUiFold( false );
-        }
+        // else {
+        //     this.uiEntityAvatar.setUiFold( false );
+        // }
 
         if( true == entity.wait ){
             this.setUiWait();
             return;
         }
-        else {
-            this.uiEntityAvatar.setUiFold( false );
-        }
+        // else {
+        //     this.uiEntityAvatar.setUiFold( false );
+        // }
 
-        this.setUiPlay();
+        // this.setUiPlay();
 
         this.callbackProfileOpen = null;
         this.callbackProfileClose = null;
@@ -323,8 +323,8 @@ export class UiEntity extends Component {
         this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].node.active = false;
 
-        this.uiHandCards[0].node.active = false;
-        this.uiHandCards[1].node.active = false;
+        this.uiHandCards[0].hide();
+        this.uiHandCards[1].hide();
 
         this.labelHandRank.node.active = false;
         this.posSymbols['dealer'].node.active = false;
@@ -353,6 +353,7 @@ export class UiEntity extends Component {
 
     setUiPlay() {
         this.uiEntityAvatar.setUiPlay();
+
         this.clearUiAction();
         this.clearUiBetValue();
     }
@@ -443,15 +444,19 @@ export class UiEntity extends Component {
 
     clearUiHandCards() {
         this.spriteHandCards[0].spriteFrame = null;
-        this.spriteHandCards[0].node.active = false;
         this.spriteHandCards[1].spriteFrame = null;   
-        this.spriteHandCards[1].node.active = false;
 
         this.spriteHandCards[0].color = Color.WHITE;
         this.spriteHandCards[1].color = Color.WHITE;
 
         this.spriteHiddenCards[0].color = Color.WHITE;
         this.spriteHiddenCards[1].color = Color.WHITE;
+
+        this.spriteHandCards[0].node.active = false;
+        this.spriteHandCards[1].node.active = false;
+
+        this.uiHandCards[0].hide();
+        this.uiHandCards[1].hide();
     }
 
     setUiHandCardsFold() {
@@ -637,6 +642,16 @@ export class UiEntity extends Component {
         this.uiResultEffect.SetWinEffect( value );
     }
 
+    public SetWinCards( pools: any ) {
+        if ( this.uiHandCards[0] != null ) {
+            this.uiHandCards[0].SetWinCard(pools);
+        }
+
+        if ( this.uiHandCards[1] != null ) {
+            this.uiHandCards[1].SetWinCard(pools);
+        }
+    }
+
     setAniWinner( value: number ) {
         this.uiResultEffect.SetWinEffect( value );
     }
@@ -677,8 +692,8 @@ export class UiEntity extends Component {
         this.spriteHiddenCards[0].node.active = false;
         this.spriteHiddenCards[1].node.active = false;
 
-        this.uiHandCards[0].node.active = false;
-        this.uiHandCards[1].node.active = false;        
+        this.uiHandCards[0].hide();
+        this.uiHandCards[1].hide();
 
         this.spriteHandCardsBackground[0].node.active = false;
         this.spriteHandCardsBackground[1].node.active = false;

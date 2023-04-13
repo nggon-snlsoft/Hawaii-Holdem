@@ -90,6 +90,16 @@ export class UserController {
     public async login( req: any, res: any ) {
         let uid = req.body.uid;
         let pass = req.body.password;
+        if ( req.body.version == null ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_VERSION'
+            });
+            return;
+        }
+
+        let version: string = req.body.version;
+        console.log( 'CLIENT_VERSION: ' + version );
         // let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
         if ( uid == null || uid.length < 4 ) {

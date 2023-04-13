@@ -3,6 +3,7 @@ import ColySeus from "db://colyseus-sdk/colyseus.js"
 import * as cc from "cc";
 import { _decorator, Component, Node } from 'cc';
 import { ENUM_BETTING_TYPE } from "./Game/UiBettingControl";
+import { GameManager } from "./GameManager";
 const { ccclass } = cc._decorator;
 
 export enum ENUM_RESULT_CODE {
@@ -53,6 +54,65 @@ export class NetworkManager extends cc.Component {
 		return this._instance;
 	}
 
+	public async Init( version: string, onSuccess: ( res: any )=>void, onFail: (msg: any )=> void ) {
+		let result_api: string = null;
+		let error: string = null;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
+			version: version,
+		} )
+		.then( (res: string)=> {
+			result_api = res;
+		})
+		.catch( (err: any)=>{
+			err = JSON.parse( err );
+			error = err.msg;
+		});
+
+		if( error != null ) {
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: error,
+			});
+			return;
+		}
+
+		// await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
+		// 	version: version,
+		// } )
+		// .then( (res: string)=> {
+		// 	result_api = res;
+		// })
+		// .catch( (err: any)=>{
+		// 	err = JSON.parse( err );
+		// 	error = err.msg;
+		// });
+
+		// if( error != null ) {
+		// 	onFail({
+		// 		code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+		// 		msg: error,
+		// 	});
+		// 	return;
+		// }
+
+		let obj : any = JSON.parse( result_api );
+		if(null == obj){
+			onFail( 'JSON_PARSE_ERROR' );
+			return;
+		}
+
+		if ( obj.code != ENUM_RESULT_CODE.SUCCESS ) {
+			onFail('VERSION_MISMATCH');
+			return;			
+		}
+
+		onSuccess( {
+			code: ENUM_RESULT_CODE.SUCCESS,
+			obj: obj,
+		});
+	}
+
 	public logout() {
 		this.userInfo = null;
 		this.userSetting = null;
@@ -62,10 +122,10 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/checkVersion', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
 			version: version,
 		} )
-		.then( (res: String)=> {
+		.then( (res: string)=> {
 
 		})
 		.catch( (err: any)=>{
@@ -77,10 +137,12 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 		let isConnect: boolean = true;
+		let version: string = GameManager.Instance().GetVersion();
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/login', {
 			uid: uid,
 			password: password,
+			version: version,
 
 		} ).then(( res: string ) => {
 			isConnect = true;
@@ -204,8 +266,6 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		console.log( result );
-
 		onSuccess(result);
 	}
 
@@ -245,21 +305,79 @@ export class NetworkManager extends cc.Component {
 		}
 
 		result = JSON.parse(result);
-
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
-			80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
-
-		this.client.consumeSeatReservation( result["seatReservation"]).then( (room) => {
-
-			this.room = room;
-			onSuccess( this.room, result );
-		}).catch(e => {
-			onFail({
+		if ( result == null ) {
+			return onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-				errorCode: e.code,
-				msg: e.msg,				
+				msg: 'JSON_PARSE_ERROR'
 			});
-		});
+		}
+
+		if ( result.code == ENUM_RESULT_CODE.SUCCESS ) {
+			this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
+			this.client.consumeSeatReservation( result["seatReservation"]).then( (room) => {
+				this.room = room;
+				onSuccess( this.room, result );
+			}).catch(e => {
+				onFail({
+					code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+					errorCode: e.code,
+					msg: e.msg,				
+				});
+			});
+		} else {
+			switch ( result.msg ) {
+				case 'DUPLICATE_LOGIN':
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'DUPLICATE_LOGIN',				
+					});	
+					break;
+				case 'INCORRECT_TABLE_INFO':
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'INCORRECT_TABLE_INFO',				
+					});	
+					break;
+				case 'TABLE_IS_FULL':
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'TABLE_IS_FULL',				
+					});	
+					break;					
+				default:
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'UNKNOWN_FAIL',				
+					});	
+			}
+		}
+
+
+
+		// if ( obj.code == ENUM_RESULT_CODE.SUCCESS ) {
+		// 	onSuccess( {
+		// 		code: ENUM_RESULT_CODE.SUCCESS,
+		// 		obj: obj,
+		// 	});
+		// } else {
+		// 	switch ( obj.msg ) {
+		// 		case 'DUPLICATE_LOGIN':
+		// 		break;
+
+		// 		case 'INCORRECT_TABLE_INFO':
+		// 		break;
+				
+		// 		case 'TABLE_IS_FULL':
+		// 		break;								
+
+		// 		default:
+		// 			onFail({
+		// 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+		// 				msg: 'UNKNOWN_ERROR',
+		// 			});
+		// 	}
+		// }
+
 	}		
 
 	async reqSetting( id: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
@@ -646,6 +764,7 @@ export class NetworkManager extends cc.Component {
 
 		let resultString: string = null;
 		let errMsg: string = null;
+		let version: string = GameManager.Instance().GetVersion();
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/auth", {
 			pinCode: parseIntPinCode,

@@ -8,9 +8,11 @@ export enum ENUM_DEVICE_TYPE {
     PC_LANDSCAPE = 1,
 }
 
+const CLIENT_VERSION: string = '1';
+
 @ccclass('GameManager')
 export class GameManager extends cc.Component {
-    private version: number = 0;
+    private version: string = '';
     private deviceType: ENUM_DEVICE_TYPE = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
 
     private static _instance : GameManager = null;
@@ -25,7 +27,7 @@ export class GameManager extends cc.Component {
 	}
 
     public Init() {
-        this.version = 1.0;
+        this.version = CLIENT_VERSION;
         this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;
     }
 
@@ -34,6 +36,10 @@ export class GameManager extends cc.Component {
             device: this.deviceType,
             version: this.version,
         };
+    }
+
+    public GetVersion() : string {
+        return this.version;
     }
 }
 

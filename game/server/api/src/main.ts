@@ -6,6 +6,9 @@ import { sqlProxy } from './modules/sqlProxy';
 import dao from './modules/dao';
 import exitHook from './modules/hookExit';
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 const cors = require('cors');
 
 import UserController from './controllers/UserController';
@@ -27,13 +30,14 @@ const devServerInfo: any = {
 export enum ENUM_RESULT_CODE {
     UNKNOWN_FAIL = -1,
     SUCCESS = 0,
-    EXPIRED_SESSION = 1,
+    EXPIRED_SESSION = 2,
 }
 
 export class HoldemApiServer {
     public app: express.Application;
     private userController: UserController = null;
     private tableController: TableController = null;
+    private conf: any = null;
 
     readonly sqlClient: sqlProxy = null;
 
@@ -46,16 +50,47 @@ export class HoldemApiServer {
         this.userController = new UserController(this.sqlClient);
         this.tableController = new TableController(this.sqlClient, devServerInfo);
 
+        // let confFile = await fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), {encoding : 'utf8'});
+		// let confJson = JSON.parse( confFile.toString() );
+
         this.initRoutes();
+
+        this.Init();
+    }
+
+    async Init(): Promise<any>{
+        let confFile = await fs.readFileSync( path.join(__dirname, "../src/config/ServerConfigure.json"), {encoding : 'utf8'});
+		let confJson = JSON.parse( confFile.toString() );
+        this.conf = confJson['server'];
     }
 
     private initRoutes() {
 
-        this.app.use('/users', this.userController.router );
-        this.app.use('/tables', this.tableController.router );        
-        this.app.get('/', (req, res)=>{
+        this.app.use( '/users', this.userController.router );
+        this.app.use( '/tables', this.tableController.router );        
+        this.app.get( '/', (req, res)=>{
 			res.send( "It could not be a better day to die" );
         });
+
+        this.app.use( '/check', this.CheckVersion.bind(this) );
+    }
+
+    private CheckVersion(req: any, res: any ) {
+        let cv = req.body.version;
+        let sv = this.conf.version;
+
+        if ( cv == sv ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.SUCCESS,
+                msg: 'SUCCESS',
+                name: this.conf.name,
+            });
+        } else {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_VERSION'
+            });
+        }
     }
 
     private initMiddleWares() {
@@ -82,7 +117,6 @@ export class HoldemApiServer {
             console.log(`API SERVER IS RUNNING ON ${ port }`);
         });
     }
-
 
     beforeListen: () => {
 
