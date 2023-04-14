@@ -55,7 +55,7 @@ export class UiEffectShowRiver extends Component {
 
     onChangeCard() {
         let sf: SpriteFrame = ResourceManager.Instance().getCardImage( this.value );
-        AudioController.instance.playFlipHandCard();
+        // AudioController.instance.playFlipHandCard();
         if ( sf != null ) {
             this.sprite.spriteFrame = sf;
         }

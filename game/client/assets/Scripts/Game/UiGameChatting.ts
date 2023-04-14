@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Button, instantiate, Sprite, Toggle, Label } from 'cc';
 const { ccclass, property } = _decorator;
 import { CommonUtil } from '../CommonUtil';
+import { AudioController } from './AudioController';
 
 export enum EMOTICON_TYPE {
     Emoticon,
@@ -126,6 +127,7 @@ export class ChattingElement {
 
     private onClick( button: Button ) {
         if ( this.cb != null ) {
+            AudioController.instance.ButtonClick();
             this.cb( this.id, button );
         }
     }
@@ -196,18 +198,19 @@ export class UiGameChatting extends Component {
     }
 
     public onClickExit(button: Button) {
+        AudioController.instance.ButtonClick();        
         this.hide();
     }    
 
     onClickEmoticon(id: number, button: Button) {
         this.cbSelect(EMOTICON_TYPE.Emoticon, id);
-
+        AudioController.instance.ButtonClick();
         this.hide();
     }
 
     onClickChatting(id: number, button: Button) {
+        AudioController.instance.ButtonClick();
         this.cbSelect(EMOTICON_TYPE.Chatting, id);
-
         this.hide();
     }    
 

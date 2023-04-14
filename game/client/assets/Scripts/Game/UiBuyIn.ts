@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Label, Button, Slider, EventHandler } from
 import {CommonUtil} from "../CommonUtil";
 import {Board} from "../Board";
 import {UiGameInput} from "./UiGameInput";
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 const limitTime: number = 60;
@@ -182,6 +183,7 @@ export class UiBuyIn extends Component {
             this.cbExit();
         }
 
+        AudioController.instance.ButtonClick();
         this.cbExit = null;
         this.node.active = false;
     }
@@ -191,6 +193,7 @@ export class UiBuyIn extends Component {
             this.cbBuyIn( this.buyInResult );
         }
 
+        AudioController.instance.ButtonClick();
         this.node.active = false;
     }
 
@@ -205,10 +208,12 @@ export class UiBuyIn extends Component {
     }
 
     private  onClickMin( button: Button ) {
+        AudioController.instance.ButtonClick();        
         this.setBuyInRatio(0);
     }
 
     private  onClickMax( button: Button ) {
+        AudioController.instance.ButtonClick();
         this.setBuyInRatio(1);
     }
 

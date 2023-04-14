@@ -1,20 +1,25 @@
-import { _decorator, Component, Node, Button, Toggle, ToggleContainer } from 'cc';
+import { _decorator, Component, Node, Button, Toggle, ToggleContainer, Slider, Label, EventHandler } from 'cc';
 import { LobbySystemPopup } from '../LobbySystemPopup';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
 const { ccclass, property } = _decorator;
+
+export const VOLUMNE_MULTIPLIER:number = 10.0;
 
 @ccclass('UiPopupSetting')
 export class UiPopupSetting extends Component {
     @property(ToggleContainer) togglesCard: ToggleContainer = null;
     @property(ToggleContainer) togglesTable: ToggleContainer = null;
     @property(ToggleContainer) togglesBackground: ToggleContainer = null;
+    @property(Slider) sliderVolumn: Slider = null;
+    @property(Label) labelVolumn: Label = null;    
 
     private selectCard: number = 0;
     private selectTable: number = 0;
     private selectBackground: number = 0;
 
     private initSetting: boolean = false;
+    private volumn: number = 0;
 
     @property(Button) buttonExit: Button = null;
     @property(Button) buttonApply: Button = null;    
@@ -43,6 +48,15 @@ export class UiPopupSetting extends Component {
             e.node.on('toggle', this.onToggleBackgroundChanged.bind(this) );            
         } );
 
+        const sliderEventHandler = new EventHandler();
+        sliderEventHandler.target = this.node;
+        sliderEventHandler.component = 'UiPopupSetting';
+        sliderEventHandler.handler = 'onSliderChangeVolumn';
+        sliderEventHandler.customEventData = '???'
+        this.sliderVolumn.slideEvents.push( sliderEventHandler );
+
+        this.labelVolumn.string = '';
+
         this.buttonExit.node.on("click", this.onClickExit.bind(this));
         this.buttonApply.node.on('click', this.onClickApply.bind(this));
     
@@ -52,6 +66,11 @@ export class UiPopupSetting extends Component {
 
         this.initSetting = false;
         this.node.active = false;
+    }
+
+    onSliderChangeVolumn( slider: Slider ) {
+        this.volumn = Math.floor( slider.progress * VOLUMNE_MULTIPLIER );
+        this.labelVolumn.string = this.volumn.toString();
     }
 
     private onToggleCardsChanged( toggle: Toggle ) {
@@ -102,7 +121,6 @@ export class UiPopupSetting extends Component {
 
         NetworkManager.Instance().reqSetting( info.id, (res)=>{
             let setting = res.setting;
-            this.node.active = true;
 
             this.togglesCard.toggleItems[ Number( setting.card ) ].isChecked = true;
             this.togglesTable.toggleItems[ Number( setting.board ) ].isChecked = true;
@@ -112,6 +130,12 @@ export class UiPopupSetting extends Component {
             this.selectTable = setting.board;
             this.selectBackground = setting.background;
 
+            this.volumn = setting.sound;
+            this.labelVolumn.string = ( this.volumn ).toString();
+            this.sliderVolumn.progress = ( this.volumn / VOLUMNE_MULTIPLIER);
+
+            this.node.active = true;
+            
         }, (err)=>{
             LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
                 LobbySystemPopup.instance.closePopup();
@@ -138,7 +162,7 @@ export class UiPopupSetting extends Component {
         if ( this.cbApply != null ) {
             LobbyAudioContoller.instance.playButtonClick();
             this.cbApply( {
-                sound: 1,
+                sound: this.volumn,
                 card: this.selectCard,
                 table: this.selectTable,
                 background: this.selectBackground

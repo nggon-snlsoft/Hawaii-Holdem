@@ -2,7 +2,6 @@ import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canv
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
-import { UiTable } from './UiTable';
 import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 import { NetworkManager } from './NetworkManager';
 const { ccclass, property } = _decorator;
@@ -66,7 +65,7 @@ export class Main extends Component {
 		NetworkManager.Instance().Init( this.version, (res: any)=>{
 			this._login.show();			
 		}, ( err: any)=>{
-			console.log('mismatch version');
+
 			this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
 				this._login.exitGame();
 			});

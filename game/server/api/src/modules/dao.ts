@@ -142,7 +142,7 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 dao.insertInitialSetting = function ( id: any, cb: any ) {
 
 	let sql = "INSERT INTO setting ( userId, sound, card_type1, card_type2, board_type, bg_type, best_hands) values ( ?,?,?,?,?,?,? )";
-	let args = [ id, '1', '0', '0', '0', '0', ' '];
+	let args = [ id, '7', '0', '0', '0', '0', ' '];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {

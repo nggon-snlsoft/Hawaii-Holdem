@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Button, Sprite, Label } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiPopupProfile')
@@ -51,10 +52,8 @@ export class UiPopupProfile extends Component {
         this.labelChips.string = CommonUtil.getKoreanNumber(info.balance);
         this.labelPoints.string = CommonUtil.getKoreanNumber(info.chip);
 
-        let url = info.avatar;
-        CommonUtil.setAvatarSprite(url, this.avatar, ()=>{
-            this.avatar.node.active = true;
-        });
+        this.avatar.spriteFrame = ResourceManager.Instance().getAvatarImage(info.avatar);
+        this.avatar.node.active = true;
     }
 
     public hide() {

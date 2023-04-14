@@ -49,10 +49,6 @@ export class HoldemApiServer {
         this.initMiddleWares();
         this.userController = new UserController(this.sqlClient);
         this.tableController = new TableController(this.sqlClient, devServerInfo);
-
-        // let confFile = await fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), {encoding : 'utf8'});
-		// let confJson = JSON.parse( confFile.toString() );
-
         this.initRoutes();
 
         this.Init();

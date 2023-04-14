@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Label, Color, native, Sprite, Vec3, Animation, animation, tween, Quat, Tween, bezier, SpriteFrame } from 'cc';
 import { CommonUtil } from '../CommonUtil';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 const TIMER_BEGIN_COLOR: Color = Color.YELLOW;
@@ -21,7 +22,6 @@ export class UiEntityAvatar extends Component {
     private rootSelected: Node = null;
     private rootNameTag: Node = null;
     private rootActions: Node = null;
-    // private rootFoldCover: Node = null;
     private rootStatus: Node = null;
 
     private spriteAvatarProfile: Sprite = null;
@@ -31,13 +31,13 @@ export class UiEntityAvatar extends Component {
 
     private labelNickname: Label = null;
     private labelChips: Label = null;
-    // private labelSitout: Label = null;
     private labelWaitingTimer: Label = null;
 
     private actions: {} = {};
     private isChildRegisted: boolean = false;
     private isFold: boolean = false;
     private isMe: boolean = false;
+    private uiEntity: any = null;
 
     init() {
         this.childRegistered();
@@ -45,7 +45,8 @@ export class UiEntityAvatar extends Component {
         this.node.active = false;
     }
 
-    setAvatar(entity: any, isMe: boolean  ) {
+    setAvatar(uiEntity: any, entity: any, isMe: boolean  ) {
+        this.uiEntity = uiEntity;
         this.entity = entity;
         this.isMe = isMe;
 
@@ -98,9 +99,8 @@ export class UiEntityAvatar extends Component {
 
     private setAvatarProfile() {
         let s = Number( this.entity.avatar);
-        CommonUtil.setAvatarSprite(s, this.spriteAvatarProfile, ()=>{
-            this.spriteAvatarProfile.node.active = true;
-        });
+        this.spriteAvatarProfile.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
+        this.spriteAvatarProfile.node.active = true;
     }
 
     public clearUiBetValue() {
@@ -187,7 +187,7 @@ export class UiEntityAvatar extends Component {
         this.spriteTimer.fillRange = 1;
         this.spriteTimer.node.active = false;
 
-        if ( this.entity.getIsUiSitOut() == true ) {
+        if ( this.uiEntity.getIsUiSitOut() == true ) {
             this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
         } else {
             this.SetStatus( ENUM_STATUS_TYPE.WAITING );

@@ -12,28 +12,43 @@ const CARDS_NAME: string[] = [
 	"3s", "2s" ];
 
 const SOUNDS_NAME: any = [
-	{ name: 'VOICE_GOOD_LUCK',		url: 'voice_goodluck' },
-	{ name: 'VOICE_START', 			url: 'voice_start' },
+	{ name: 'BUTTON_CLICK',				url: 'fx_click' },
+	{ name: 'TURN_LIMIT',				url: 'fx_timer' },
+	{ name: 'BET_CHIPS',				url: 'fx_bet' },
+	{ name: 'MY_TURN',					url: 'fx_my_turn' },
+	{ name: 'CARD_SHUFFLE',				url: 'fx_shuffle_card' },
+	{ name: 'CARD_DEALING',				url: 'fx_dealing' },
+	{ name: 'CHIP_START',				url: 'fx_chip_start' },
+	{ name: 'CHIP_END',					url: 'fx_chip_end' },
+	{ name: 'CARD_PUT',					url: 'fx_card_put' },
+	{ name: 'CARD_FLIP',				url: 'fx_card_flip' },
+	{ name: 'CARD_SHOW',				url: 'fx_card_show' },
+	{ name: 'WIN',						url: 'fx_win' },
+	{ name: 'SHOWDOWN',					url: 'fx_showdown' },	
 
-	{ name: 'VOICE_ACTION_ALLIN', 	url: 'voice_action_allin' },	
-	{ name: 'VOICE_ACTION_CALL',	url: 'voice_action_call' },	
-	{ name: 'VOICE_ACTION_CHECK',	url: 'voice_action_check' },	
-	{ name: 'VOICE_ACTION_DIE',		url: 'voice_action_die'	},
+	{ name: 'VOICE_GOOD_LUCK',			url: 'voice_goodluck' },
+	{ name: 'VOICE_WELCOME',			url: 'voice_welcome' },	
+	{ name: 'VOICE_START', 				url: 'voice_start' },
 
-	{ name: 'VOICE_BETTING_FULL',	url: 'voice_betting_full' },	
-	{ name: 'VOICE_BETTING_HALF',	url: 'voice_betting_half' },	
-	{ name: 'VOICE_BETTING_QUATER',	url: 'voice_betting_quater' },
+	{ name: 'VOICE_ACTION_ALLIN', 		url: 'voice_action_allin' },	
+	{ name: 'VOICE_ACTION_CALL',		url: 'voice_action_call' },	
+	{ name: 'VOICE_ACTION_CHECK',		url: 'voice_action_check' },	
+	{ name: 'VOICE_ACTION_DIE',			url: 'voice_action_die'	},
 
-	{ name: 'VOICE_RANK_TOP',		url: 'voice_rank_top' },	
-	{ name: 'VOICE_RANK_ONEPAIR',	url: 'voice_rank_onepair' },	
-	{ name: 'VOICE_RANK_TWOPAIR',	url: 'voice_rank_twopair' },
-	{ name: 'VOICE_RANK_TRIPLE',	url: 'voice_rank_triple' },	
-	{ name: 'VOICE_RANK_STRAIGHT',	url: 'voice_rank_straight' },	
-	{ name: 'VOICE_RANK_FLUSH',		url: 'voice_rank_flush' },
-	{ name: 'VOICE_RANK_FULL_HOUSE',url: 'voice_rank_fullhouse' },	
-	{ name: 'VOICE_RANK_STRAIGHT_FLUSH',	url: 'voice_rank_straightflush' },	
-	{ name: 'VOICE_RANK_FOURCARD',	url: 'voice_rank_fourcard' },
-	{ name: 'VOICE_RANK_RSFLUSH',	url: 'voice_rank_rsflush' },
+	{ name: 'VOICE_BETTING_FULL',		url: 'voice_betting_full' },	
+	{ name: 'VOICE_BETTING_HALF',		url: 'voice_betting_half' },	
+	{ name: 'VOICE_BETTING_QUATER',		url: 'voice_betting_quater' },
+
+	{ name: 'VOICE_RANK_TOP',			url: 'voice_rank_top' },	
+	{ name: 'VOICE_RANK_ONEPAIR',		url: 'voice_rank_onepair' },	
+	{ name: 'VOICE_RANK_TWOPAIR',		url: 'voice_rank_twopair' },
+	{ name: 'VOICE_RANK_TRIPLE',		url: 'voice_rank_triple' },	
+	{ name: 'VOICE_RANK_STRAIGHT',		url: 'voice_rank_straight' },	
+	{ name: 'VOICE_RANK_FLUSH',			url: 'voice_rank_flush' },
+	{ name: 'VOICE_RANK_FULL_HOUSE',	url: 'voice_rank_fullhouse' },	
+	{ name: 'VOICE_RANK_STRAIGHT_FLUSH',url: 'voice_rank_straightflush' },	
+	{ name: 'VOICE_RANK_FOURCARD',		url: 'voice_rank_fourcard' },
+	{ name: 'VOICE_RANK_RSFLUSH',		url: 'voice_rank_rsflush' },
 ];
 
 @ccclass('ResourceManager')
@@ -155,8 +170,8 @@ export class ResourceManager extends Component {
 				cnt++;
 				let p: number = cnt / SOUNDS_NAME.length;
 				cbProgress(p);
-
 				this.preloadSoundsResource[ item['name'] ] = res;
+
 				if ( Object.keys( this.preloadSoundsResource ).length >= SOUNDS_NAME.length ) {
 					cbDone();
 				}

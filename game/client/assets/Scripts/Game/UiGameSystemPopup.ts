@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Label, Button } from 'cc';
 import {UiControls} from "./UiControls";
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiGameSystemPopup')
@@ -84,18 +85,21 @@ export class UiGameSystemPopup extends Component {
 
     private onClickOk( button: Button ) {
         if ( this.cbOk != null ) {
+            AudioController.instance.ButtonClick();
             this.cbOk();
         }
     }
 
     private onClickYes( button: Button ) {
         if ( this.cbYes != null ) {
+            AudioController.instance.ButtonClick();
             this.cbYes();
         }
     }
 
     private onClickNo( button: Button ) {
         if ( this.cbNo != null ) {
+            AudioController.instance.ButtonClick();            
             this.cbNo();
         }
     }

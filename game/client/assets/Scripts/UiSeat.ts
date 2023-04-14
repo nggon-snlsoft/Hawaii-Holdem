@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Button, Sprite, Label, SpriteFrame, resources } from 'cc';
 import { Board } from './Board';
 import { CommonUtil } from './CommonUtil';
+import { ResourceManager } from './ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiSeat')
@@ -78,9 +79,12 @@ export class UiSeat extends Component {
         }
 
         let s = Number(entity.avatar);
-        CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
-            this.spriteAvatar.node.active = true;
-        });
+        this.spriteAvatar.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
+        this.spriteAvatar.node.active = true;
+
+        // CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
+        //     this.spriteAvatar.node.active = true;
+        // });
 
         this.isSet = true;
     }
@@ -117,16 +121,6 @@ export class UiSeat extends Component {
                 v.node.active = true;
             }
         });
-    }
-
-    setAvatarImg( avatar: SpriteFrame ) {
-        this.spriteAvatar.spriteFrame = avatar;
-        this.spriteAvatar.node.active = null != avatar;
-    }
-
-    clearAvatarImg() {
-        this.spriteAvatar.spriteFrame = null;
-        this.spriteAvatar.node.active = false;
     }
 
     getTakeButton (): Button {

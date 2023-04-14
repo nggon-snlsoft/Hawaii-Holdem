@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button } from 'cc';
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiControls')
@@ -30,6 +31,7 @@ export class UiControls extends Component {
 
     private onClickExit(button: Button) {
         if ( this.cbExit != null ) {
+            AudioController.instance.ButtonClick();
             this.cbExit();
 
         }

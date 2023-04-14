@@ -20,7 +20,6 @@ export class UiPlayerAction extends Component {
 	private buttonCheck: Button = null;
 
 	private buttonCall: Button = null;
-	// private labelCall: Label = null;
 
 	private buttonBet: Button = null;
 	private labelBet: Label = null;
@@ -191,13 +190,6 @@ export class UiPlayerAction extends Component {
 	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, isLast : boolean, hasAction: boolean) {
 		this.childRegistered();
 
-		console.log('minBet: ' + minBet.toString());
-		console.log('turnBet: ' + turnBet.toString());
-		console.log('minRaise: ' + minRaise.toString());
-		console.log('pot: ' + pot.toString());
-		console.log('myBet: ' + myBet.toString());
-		console.log('myChips: ' + myChips.toString());
-
 		this.quaterValue  = 0;
 		this.halfValue = 0;
 		this.fullValue = 0;
@@ -235,10 +227,8 @@ export class UiPlayerAction extends Component {
 			return;
 		}
 
-		//폴드는 항상 활성화
 		this.buttonFold.node.active = true;
 
-		//체크랑 콜은 두개중에 선택
 		this.buttonCheck.node.active = ( turnBet == myBet ) && ( true == hasAction );
 		this.buttonCall.node.active = ( turnBet > myBet );
 
@@ -246,12 +236,9 @@ export class UiPlayerAction extends Component {
 			let betValue = turnBet - myBet;
 			if( betValue >= this.numberMyChips ){
 				this.buttonCall.node.active = false;
-				//올인 조건
-				//콜버튼 대신 올인을 띄운다
 			}
 			else{
 				this.labelCallValue.string = CommonUtil.getKoreanNumber( betValue );
-				// this.labelCall.string = `콜\n${ CommonUtil.getKoreanNumber(betValue) }`;
 			}
 		}
 

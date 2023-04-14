@@ -1,10 +1,10 @@
-import { _decorator, Component, Node, game, Game } from 'cc';
+import { _decorator, Component, Node, game, Game, Label } from 'cc';
 import {UiGameSystemPopup} from "./UiGameSystemPopup";
-import {UiGameInput} from "./UiGameInput";
 import { UiControls } from './UiControls';
 import { AudioController } from './AudioController';
 import { ENUM_DEVICE_TYPE, GameManager } from '../GameManager';
 import { UiTable } from '../UiTable';
+import { Board } from '../Board';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameEntry')
@@ -19,6 +19,10 @@ export class GameEntry extends Component {
     private _controls: UiControls = null;
     private _isChildrenRegisted: boolean = false;
     private _table: UiTable = null;
+    private _rootInformation: Node = null;
+    private _labelID: Label = null;    
+    private _labelSB: Label = null;
+    private _labelBB: Label = null;
 
     onLoad() {
 		this.rootPortrait.active = false;
@@ -49,6 +53,25 @@ export class GameEntry extends Component {
         this._table.init();
         this._table.show();
 
+        if ( this._rootInformation != null ) {
+            if ( this._labelID != null ) {
+                this._labelID.string = (Board.id).toString();
+                this._labelID.node.active = true;
+            }
+
+            if ( this._labelSB != null ) {
+                this._labelSB.string = (Board.small).toString();
+                this._labelSB.node.active = true;
+            }
+
+            if ( this._labelBB != null ) {
+                this._labelBB.string = (Board.big).toString();
+                this._labelBB.node.active = true;
+            }
+
+            this._rootInformation.active = true;
+        }
+
         game.on( Game.EVENT_SHOW, this.onEVENT_SHOW.bind(this), this );
         game.on( Game.EVENT_HIDE, this.onEVENT_HIDE.bind(this), this );
     }
@@ -72,6 +95,29 @@ export class GameEntry extends Component {
         this._table = this._root.getChildByPath('UI_TABLE').getComponent(UiTable);
         if ( this._table != null ) {
             this._table.node.active = false;
+        }
+
+        this._rootInformation = this._root.getChildByPath('INFO');
+        if ( this._rootInformation != null ) {
+            this._table.node.active = false;
+
+            this._labelID = this._rootInformation.getChildByPath('LABEL_ID').getComponent(Label);
+            if ( this._labelID != null ) {
+                this._labelID.node.active = false;
+                this._labelID.string = '0';
+            }
+            
+            this._labelSB = this._rootInformation.getChildByPath('LABEL_SB').getComponent(Label);
+            if ( this._labelSB != null ) {
+                this._labelSB.node.active = false;
+                this._labelSB.string = '0';
+            }
+
+            this._labelBB = this._rootInformation.getChildByPath('LABEL_BB').getComponent(Label);
+            if ( this._labelBB != null ) {
+                this._labelBB.node.active = false;
+                this._labelBB.string = '0';
+            }
         }
 
         this._isChildrenRegisted = true;

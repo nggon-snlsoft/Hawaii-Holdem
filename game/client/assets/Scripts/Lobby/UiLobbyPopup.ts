@@ -12,6 +12,7 @@ import { UiPopupQuickJoin } from './UiPopupQuickJoin';
 import { UiPopupRanking } from './UiPopupRanking';
 import { UiPopupSetting } from './UiPopupSetting';
 import { UiPopupTransfer } from './UiPopupTransfer';
+import { LobbyAudioContoller } from './LobbyAudioContoller';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyPopup')
@@ -187,6 +188,8 @@ export class UiLobbyPopup extends Component {
             
             LobbySystemPopup.instance.showPopUpOk('설정', '설정이 변경되었습니다.', ()=>{
                 LobbySystemPopup.instance.closePopup();
+                LobbyAudioContoller.instance.ApplyVolumn();
+
                 this.closeSetting();
             });
         }, (err)=>{

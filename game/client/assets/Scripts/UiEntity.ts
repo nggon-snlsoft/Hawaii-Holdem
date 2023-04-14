@@ -224,7 +224,7 @@ export class UiEntity extends Component {
         this.childRegistered();
     }
 
-    setUi( entity ) {
+    setUi( entity: any ) {
         this.childRegistered();
 
         if( null === entity || undefined === entity  ){
@@ -236,7 +236,7 @@ export class UiEntity extends Component {
             this.id = entity.id;
         }
 
-        this.uiEntityAvatar.setAvatar( entity, this.isMe );
+        this.uiEntityAvatar.setAvatar( this, entity, this.isMe );
         this.endTurn();        
         this.clearUiAction();
         this.clearUiBetValue();    
@@ -248,23 +248,20 @@ export class UiEntity extends Component {
         this.isFold = entity.fold;
         this.node.active = true;
 
+        if ( this.isUiSitOut == true ) {
+            this.setUiSitOut();
+            return;
+        }
+
         if( true == this.isFold){
             this.setUiFold();
             return;
         }
-        // else {
-        //     this.uiEntityAvatar.setUiFold( false );
-        // }
 
         if( true == entity.wait ){
             this.setUiWait();
             return;
         }
-        // else {
-        //     this.uiEntityAvatar.setUiFold( false );
-        // }
-
-        // this.setUiPlay();
 
         this.callbackProfileOpen = null;
         this.callbackProfileClose = null;
@@ -482,9 +479,6 @@ export class UiEntity extends Component {
     startTurn( duration: number ) {
         this.turnDuration = duration / 1000;
         this.uiEntityAvatar.startTurn();
-
-        // this.timerDeltaTime = this.turnDuration;
-        // this.playTimeLimitSound = true;
     }
 
     public StartActionTimer() {
@@ -496,7 +490,7 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.endTurn();
 
         this.timerDeltaTime = 0;
-        AudioController.instance.stopTimeLimitForSec();
+        AudioController.instance.StopTimeLimit();
     }
 
     setUiFold() {
@@ -604,18 +598,18 @@ export class UiEntity extends Component {
             this.uiEntityAvatar.setShowTimer( false );
         }
 
-        if( this.isMe == true && 4 >= this.timerDeltaTime && this.playTimeLimitSound ){
+        if( this.isMe == true && this.timerDeltaTime <= 6 && this.playTimeLimitSound ){
             this.playTimeLimitSound = false;
-            AudioController.instance.playTimeLimitForSec();
+            AudioController.instance.PlayTimeLimit();
         }
 
         // if ( this.timerDeltaTime < 10 ) {
-            if ( this.timerDeltaTime <= 5 ) {
-                this.uiEntityAvatar.setWaitingTimerColor(Color.RED);
-            } else {
-                this.uiEntityAvatar.setWaitingTimerColor(Color.YELLOW);
-            }
-            this.uiEntityAvatar.setWaitingTimer(this.timerDeltaTime);
+        if ( this.timerDeltaTime <= 6 ) {
+            this.uiEntityAvatar.setWaitingTimerColor(Color.RED);
+        } else {
+            this.uiEntityAvatar.setWaitingTimerColor(Color.YELLOW);
+        }
+        this.uiEntityAvatar.setWaitingTimer(this.timerDeltaTime);
         // }
 
         this.uiEntityAvatar.setWaitingTimerProgress( this.timerDeltaTime / this.turnDuration );
@@ -714,7 +708,7 @@ export class UiEntity extends Component {
             return;
         }
 
-        AudioController.instance.playCardDispensing();                
+        AudioController.instance.PlaySound('CARD_DEALING');
         
         let tw = tween( target )
         .delay(delay)

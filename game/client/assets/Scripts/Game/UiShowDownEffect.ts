@@ -22,7 +22,7 @@ export class UiShowDownEffect extends Component {
         }
 
         this.scheduleOnce(()=>{
-            AudioController.instance.playShowDown();
+            AudioController.instance.PlaySound('SHOWDOWN');
             this.node.active = true;
             this.animation.play();
         }, 1);

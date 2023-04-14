@@ -31,21 +31,6 @@ export class UiPlayerActionReservation extends Component {
     }
 
     show( myBet: number, turnBet: number ) {
-
-        // if ( this.isOpen == false ) {
-        //     this.toggleFoldReservation.isChecked = false;
-        //     this.toggleCheckReservation.isChecked = false;
-        // }
-
-        // if ( turnBet == myBet ) {
-        //     this.toggleFoldReservation.node.active = true;
-        //     this.toggleCheckReservation.node.active = true;
-
-        // } else {
-        //     this.toggleFoldReservation.node.active = true;
-        //     this.toggleCheckReservation.node.active = false;
-        // }
-
         this.toggleFoldReservation.node.active = true;
 
         this.isOpen = true;
@@ -55,11 +40,6 @@ export class UiPlayerActionReservation extends Component {
     reset( resetCheck: boolean = false) {
         this.reservationType = ENUM_RESERVATION_TYPE.RESERVATION_NONE;
         this.isOpen = false;
-
-        // if ( resetCheck == true ) {
-        //     this.toggleFoldReservation.isChecked = false;
-        //     this.toggleCheckReservation.isChecked = false;
-        // }
 
         this.toggleFoldReservation.isChecked = false;
         this.toggleCheckReservation.isChecked = false;

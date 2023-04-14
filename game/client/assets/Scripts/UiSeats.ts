@@ -4,18 +4,16 @@ import { CommonUtil } from './CommonUtil';
 import { UiGameSystemPopup } from './Game/UiGameSystemPopup';
 import { UiSeat } from './UiSeat';
 import { ResourceManager } from './ResourceManager';
+import { AudioController } from './Game/AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiSeats')
 export class UiSeats extends Component {
-    @property(Node) nodeRoomInformation: Node = null;
-    @property(Label) labelRoomInformation: Label = null;
     @property(Label) labelLimitTimer: Label = null;
 
     private uiSeats: UiSeat[] = [];
     private buttonTakeSeats: Button[] = [];
     private count: number = 0;
-    callback: (number) => void = null;
     private isWaitingResult: boolean = false;
     private timerId: number = 0;
     private isOpen: boolean = false;
@@ -24,7 +22,8 @@ export class UiSeats extends Component {
     private joinPlayer: number = -1;
     private playingPlayer: number = -1;
     public unselectSeatDuringTime = false;
-    private labelBlind: Label = null;
+
+    callback: (number) => void = null;
 
     public init ( maxSeat: number, onClickCallback: (seatNumber: number)=>void) {
 
@@ -65,11 +64,6 @@ export class UiSeats extends Component {
 
         for (let i = 0 ; i < this.uiSeats.length; i++) {
             this.buttonTakeSeats[i] = this.uiSeats[i].getTakeButton();
-        }
-
-        this.labelBlind = this.node.getChildByPath('ROOM_INFORMATION/BLIND/Label').getComponent(Label);
-        if ( this.labelBlind != null ) {
-            this.labelBlind.string = '';
         }
 
         let bg: Sprite = this.node.getChildByPath('SPRITE_BACKGROUND').getComponent(Sprite);
@@ -189,8 +183,6 @@ export class UiSeats extends Component {
             this.timerId = setInterval( ()=>this.checkTimer(), 1000 );
         }
 
-        this.setRoomInformation();
-
         this.unselectSeatDuringTime = false;
         this.node.active = true;
     }
@@ -216,6 +208,8 @@ export class UiSeats extends Component {
         if (true === this.isWaitingResult) {
             return;
         }
+
+        AudioController.instance.PlaySound('BUTTON_CLICK');
 
         this.isWaitingResult = true;
         this.callback( seatPos );
@@ -310,18 +304,6 @@ export class UiSeats extends Component {
     onJoinTable() {
         Board.room.send("BUY_IN", {id: Board.id, buyInAmount: Board.buyin});
         this.node.active = false;
-    }
-
-    setRoomInformation() {
-        let sb = CommonUtil.getNumberStringWithComma(Board.small);
-        let bb = CommonUtil.getNumberStringWithComma(Board.big);
-
-        this.labelBlind.string = CommonUtil.getKoreanNumber( Board.small ) + ' / ' + CommonUtil.getKoreanNumber( Board.big );
-
-        this.labelRoomInformation.string = Board.info.name + ' ' + Board.id.toString() + '(SB: ' + sb + ", BB: " + bb + ')';
-        this.labelRoomInformation.node.active = false;
-        
-        this.nodeRoomInformation.active = true;
     }
 }
 

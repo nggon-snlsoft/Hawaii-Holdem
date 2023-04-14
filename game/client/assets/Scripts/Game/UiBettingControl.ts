@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math, ConeCollider } from 'cc';
+import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
@@ -138,6 +138,7 @@ export class UiBettingControl extends Component {
     }
 
     private onClickBetMinus( button:Button ) {
+		AudioController.instance.ButtonClick();        
         let r = this.displayValue - this.CONST_BET_STEP;
         this.setValue( r );
     }
@@ -170,6 +171,7 @@ export class UiBettingControl extends Component {
 
     private onClickBetPlus( button: Button ) {
         let r = this.displayValue + this.CONST_BET_STEP;
+		AudioController.instance.ButtonClick();
         this.setValue( r );
     }
 
@@ -211,7 +213,7 @@ export class UiBettingControl extends Component {
 
     private onClickBetMax( button: Button ) {
         this.setRatio(1);
-
+		AudioController.instance.ButtonClick();
         if ( this.cbBetting != null ) {
             this.cbBetting ({
                 kind: ENUM_BETTING_KIND.MAX,
