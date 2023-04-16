@@ -48,7 +48,8 @@ export class UiPopupProfile extends Component {
     public refresh() {
         let info = NetworkManager.Instance().getUserInfo();
 
-        this.labeNickname.string = info.name;
+        this.labeNickname.string = info.nickname;
+        this.labeNickname.node.active = true;
         this.labelChips.string = CommonUtil.getKoreanNumber(info.balance);
         this.labelPoints.string = CommonUtil.getKoreanNumber(info.chip);
 

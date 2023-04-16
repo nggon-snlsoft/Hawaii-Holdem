@@ -122,9 +122,10 @@ export class UiPopupSetting extends Component {
         NetworkManager.Instance().reqSetting( info.id, (res)=>{
             let setting = res.setting;
 
-            this.togglesCard.toggleItems[ Number( setting.card ) ].isChecked = true;
-            this.togglesTable.toggleItems[ Number( setting.board ) ].isChecked = true;
-            this.togglesBackground.toggleItems[ Number( setting.background ) ].isChecked = true;
+            this.node.active = true;
+            this.togglesCard.toggleItems[ setting.card ].isChecked = true;
+            this.togglesTable.toggleItems[ setting.board ].isChecked = true;
+            this.togglesBackground.toggleItems[ setting.background ].isChecked = true;
 
             this.selectCard = setting.card;
             this.selectTable = setting.board;
@@ -133,8 +134,6 @@ export class UiPopupSetting extends Component {
             this.volumn = setting.sound;
             this.labelVolumn.string = ( this.volumn ).toString();
             this.sliderVolumn.progress = ( this.volumn / VOLUMNE_MULTIPLIER);
-
-            this.node.active = true;
             
         }, (err)=>{
             LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{

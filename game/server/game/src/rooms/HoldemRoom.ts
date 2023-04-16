@@ -327,10 +327,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 		client.send("SHOW_SELECT_SEAT",{
 			limitTime: this.conf["selectSeatLimitTime"],
-			balanceRatio: this.conf["balanceRatio"],
-			balanceFraction: this.conf["balanceFraction"],
-			chipsRatio: this.conf["chipsRatio"],
-			chipsFraction: this.conf["chipsFraction"],
 			useLog : this.conf["useLog"]
 		});
 
@@ -455,7 +451,6 @@ export class HoldemRoom extends Room<RoomState> {
 			endSeat: this.endSeat,
 			maxBet: this.state.maxBet,
 			minRaise: this.state.minRaise,
-			// pot: this.state.pot - this.potCalc.rakeTotal,
 			pot: this.state.pot,			
 			centerCardState: this.centerCardState,
 			openCards: openCards,
@@ -469,10 +464,6 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: entity.tableInitChips,
 			tableBuyInAmount: entity.tableBuyInAmount,
 			tableBuyInCount: entity.tableBuyInCount,
-			balanceRatio: this.conf["balanceRatio"],
-			balanceFraction: this.conf["balanceFraction"],
-			chipsRatio: this.conf["chipsRatio"],
-			chipsFraction: this.conf["chipsFraction"]
 		});
 
 		if (eGameState.Suspend === this.state.gameState) {
@@ -564,9 +555,9 @@ export class HoldemRoom extends Room<RoomState> {
 		if (entity.seat < 0) {
 			//return to firstLogin
 			this._buyInWaiting[client.sessionId] = auth;
-			client.send("SHOW_SELECT_SEAT",{ limitTime: this.conf["selectSeatLimitTime"],
-				balanceRatio: this.conf["balanceRatio"], chipsRatio: this.conf["chipsRatio"],
-				balanceFraction: this.conf["balanceFraction"], chipsFraction: this.conf["chipsFraction"],
+			client.send("SHOW_SELECT_SEAT",
+			{ 
+				limitTime: this.conf["selectSeatLimitTime"],
 			});
 
 			this.UpdateSeatInfo();
@@ -605,7 +596,6 @@ export class HoldemRoom extends Room<RoomState> {
 			maxBet: this.state.maxBet,
 			minRaise: this.state.minRaise,
 			minBet: this.state.startBet,
-			// pot: this.state.pot - this.potCalc.rakeTotal,
 			pot: this.state.pot,			
 			centerCardState: this.centerCardState,
 			openCards: openCards,
@@ -621,11 +611,6 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: entity.tableInitChips,
 			tableBuyInAmount: entity.tableBuyInAmount,
 			tableBuyInCount: entity.tableBuyInCount,
-			balanceRatio: this.conf["balanceRatio"],
-			balanceFraction: this.conf["balanceFraction"],
-			chipsRatio: this.conf["chipsRatio"],
-			chipsFraction: this.conf["chipsFraction"],
-			useTimePass : this.conf["useTimePass"],
 			useLog : this.conf["useLog"]
 		} );
 	}
@@ -738,7 +723,6 @@ export class HoldemRoom extends Room<RoomState> {
 						endSeat: this.endSeat,
 						maxBet: this.state.maxBet,
 						minRaise: this.state.minRaise,
-						// pot: this.state.pot - this.potCalc.rakeTotal,
 						pot: this.state.pot,						
 						centerCardState: this.centerCardState,
 						openCards: openCards,
@@ -752,10 +736,6 @@ export class HoldemRoom extends Room<RoomState> {
 						tableInitChips: entity.tableInitChips,
 						tableBuyInAmount: entity.tableBuyInAmount,
 						tableBuyInCount: entity.tableBuyInCount,
-						balanceRatio: this.conf["balanceRatio"],
-						balanceFraction: this.conf["balanceFraction"],
-						chipsRatio: this.conf["chipsRatio"],
-						chipsFraction: this.conf["chipsFraction"]
 					} );
 
 					if( eGameState.Suspend === this.state.gameState ) {
@@ -1192,8 +1172,6 @@ export class HoldemRoom extends Room<RoomState> {
 			this._dao.chipOut(e.chips, e.id);
 			e.chips = 0;
 		});
-
-
 	}
 
 	onPong( client: Client, msg: any ) {
@@ -1382,12 +1360,14 @@ export class HoldemRoom extends Room<RoomState> {
 				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat } );
 				escapees.push( this.state.entities[ l ].seat );
 
-				this._dao.clearActiveSessionID(this.state.entities[ l ].id);
+				this._dao.clearActiveSessionID( this.state.entities[ l ].id );
+				this._dao.clearPendingSessionID( this.state.entities[ l ].id );
 
 				let data = {
 					tableID: -1,
 					id : this.state.entities[ l ].id
 				}
+
 				this._dao.updateTableID(data, (err: any, res: boolean) => {
 					if (null != err) {
 						logger.error(err);
@@ -1956,37 +1936,37 @@ export class HoldemRoom extends Room<RoomState> {
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let entity = this.state.entities[ i ];
 
-			// 	entity.seat, entity.wait, entity.fold, entity.leave, entity.allIn, entity.waitReconnection  );
-
 			if (-1 === entity.seat) {
 				continue;
 			}
 
 			if( true === entity.wait || true === entity.fold) {
 				entity.client.send( "CARD_DISPENSING", {
-					primaryCard: -1,//entity.primaryCard,
-					secondaryCard: -1//entity.secondaryCard
+					primary: -1, 
+					secondary: -1,
+					eval: ''
 				} );
 				continue;
 			}
 
-			let primaryIndex = parseInt( this.totalCards2[ this.cardPickPos++ ] );
-			entity.primaryCard = this.totalCards[ primaryIndex ];
-			entity.cardIndex.push( primaryIndex );
+			let primary = parseInt( this.totalCards2[ this.cardPickPos++ ] );
+			entity.primaryCard = this.totalCards[ primary ];
+			entity.cardIndex.push( primary );
 
-			let secondaryIndex = parseInt( this.totalCards2[ this.cardPickPos++ ] );
-			entity.secondaryCard = this.totalCards[ secondaryIndex ];
-			entity.cardIndex.push( secondaryIndex );
-
-			entity.client.send( "CARD_DISPENSING", {
-				primaryCard: primaryIndex,//entity.primaryCard,
-				secondaryCard: secondaryIndex//entity.secondaryCard
-			} );
+			let secondary = parseInt( this.totalCards2[ this.cardPickPos++ ] );
+			entity.secondaryCard = this.totalCards[ secondary ];
+			entity.cardIndex.push( secondary );
 
 			entity.eval = PokerEvaluator.evalHand(
 				[ entity.primaryCard, entity.secondaryCard,
 					this.communityCardString[ 0 ], this.communityCardString[ 1 ], this.communityCardString[ 2 ],
 					this.communityCardString[ 3 ], this.communityCardString[ 4 ] ] );
+
+			entity.client.send( "CARD_DISPENSING", {
+				primary: primary,
+				secondary: secondary,
+				eval: entity.eval,
+			} );
 
 			logger.debug( "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
 			logger.debug( "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );

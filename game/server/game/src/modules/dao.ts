@@ -163,6 +163,17 @@ dao.clearActiveSessionID = function( id: any ){
 	 });
 }
 
+dao.clearPendingSessionID = function( id: any ){
+	let sql = "UPDATE USERS SET PENDINGSESSIONID = ?, PENDINGSESSIONTIMESTAMP = ? WHERE ID = ?";
+	let args = ['', '', id];
+	
+	_client.query(sql, args, function (err: any, res: any) {
+	 	if ( !!err ) {
+	 		return;
+	 	}
+	 });
+}
+
 dao.chipOut = function(chip: any, id: any){
 	let query = 'SELECT * FROM USERS WHERE ID = ?';
 	let args = [id];

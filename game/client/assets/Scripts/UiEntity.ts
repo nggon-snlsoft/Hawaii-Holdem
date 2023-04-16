@@ -12,6 +12,8 @@ import { UiResultEffect } from './Game/UiResultEffect';
 import { NetworkManager } from './NetworkManager';
 import { ResourceManager } from './ResourceManager';
 import { UiPotChips } from './Game/UiPotChips';
+import { Card } from './Game/Card';
+import { ENUM_CARD_TYPE } from './HoldemDefines';
 
 const { ccclass, property } = _decorator;
 
@@ -26,6 +28,8 @@ export class UiEntity extends Component {
     public spriteHandCards: Sprite[] = [ null, null ];
     public uiHandCards: UiCard[] = [null, null];
     public spriteHandCardsBackground: Sprite[] = [ null, null ];
+
+
 
     private rootHiddenCard: Node = null;
     public spriteHiddenCards: Sprite[] = [ null, null ];
@@ -70,6 +74,14 @@ export class UiEntity extends Component {
     callbackProfileClose: () => void = null;
 
     public isPlaying: boolean = false;
+
+    private rootHandCards: Node = null;
+    private handCards: Card[] = [ null, null ];
+
+    private rootHiddenCards: Node = null;
+    private hiddenCards: Card[] = [ null, null ];
+    private rootCardDispensing: Node = null;
+    
 
     childRegistered() {
         if( true == this.isChildRegistered){
@@ -153,6 +165,28 @@ export class UiEntity extends Component {
                 this.rootHiddenCard.active = false;
             }
             this.rootCards.active = false;
+        }
+
+        this.rootHandCards = this.rootCards.getChildByPath('HAND_CARDS');
+        if ( this.rootHandCards != null ) {
+            for ( let i: number = 0 ; i < 2; i ++ ) {
+                this.handCards[i] = this.rootHandCards.getChildByPath( i.toString() ).getComponent(Card);
+                this.handCards[i].Init( ENUM_CARD_TYPE.PLAYER_HAND );
+            }
+            this.rootHandCards.active = false;
+        }
+
+        this.rootHiddenCards = this.rootCards.getChildByPath('HIDDEN_CARDS');
+        if ( this.rootHiddenCards != null ) {
+            for ( let i: number = 0 ; i < 2; i ++ ) {
+                this.hiddenCards[i] = this.rootHiddenCards.getChildByPath( i.toString() ).getComponent(Card);
+                this.hiddenCards[i].Init( ENUM_CARD_TYPE.PLAYER_HIDDEN );
+            }
+
+            this.rootCardDispensing = this.rootHiddenCards.getChildByPath('DISPENSING_ROOT');
+            this.rootCardDispensing.active = true;
+
+            this.rootHiddenCards.active = false;
         }
 
         this.rootHandRank = this.node.getChildByPath('HAND_RANK');
@@ -682,6 +716,26 @@ export class UiEntity extends Component {
 
     }
 
+    PrepareDispensingCards() {
+        console.log('PrepareDispensingCards');
+        this.handCards.forEach( ( e )=> {
+            if ( e != null ) {
+                e.Hide();
+            }
+        });
+
+        this.hiddenCards.forEach( ( e )=> {
+            if ( e != null ) {
+                e.Hide();
+            }
+        });
+
+        this.rootHiddenCards.active = true;
+        this.rootHandCards.active = true;
+
+        this.rootCards.active = true;
+    }
+
     prepareCardDispense() {
         this.spriteHiddenCards[0].node.active = false;
         this.spriteHiddenCards[1].node.active = false;
@@ -707,9 +761,43 @@ export class UiEntity extends Component {
         if ( from == null || to == null ) {
             return;
         }
+       
+        let tw = tween( target )
+        .delay(delay)
+        .set ({
+            position: from,
+            active: true,
 
-        AudioController.instance.PlaySound('CARD_DEALING');
-        
+        }).to ( duration, {
+            position: to,
+        }, {
+            easing: this.easeOutQuad,
+            onUpdate: ( target: Node, ratio: number )=> {
+
+            },
+        });
+
+        tw.call( ()=>{
+            if (cb != null ) {
+                cb( index );
+            }
+        } );
+        tw.start();
+    }
+
+    CardDispensing( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
+        this.hiddenCards[card].Show();        
+        let target = this.hiddenCards[card].node;
+
+        let from = new Vec3( this.rootCardDispensing.position );
+        let to = new Vec3( this.hiddenCards[card].node.position );
+
+        target.active = false;
+
+        if ( from == null || to == null ) {
+            return;
+        }
+       
         let tw = tween( target )
         .delay(delay)
         .set ({
@@ -746,6 +834,18 @@ export class UiEntity extends Component {
         this.uiHandCards[1].show( card.secondary, null, 0.5 );
 
         this.rootCards.active = true;
+    }
+
+    ShowHands( cards: number[] ) {
+        this.hiddenCards.forEach( (e)=> {
+            e.Hide();
+        });
+
+        for ( let i = 0 ; i < cards.length; i ++ ) {
+            this.handCards[i].ShowFlip( cards[i], 0.2 + 0.1 * i, ()=>{
+
+            });
+        }
     }
 
     ShowdownPlayerCards( card: any, cb:()=>void ) {

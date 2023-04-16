@@ -1,0 +1,31 @@
+
+export enum ENUM_GAME_STATE {
+	SUSPEND = 0,
+	READY = 1,
+	PREPARE = 2,
+	PREFLOP = 3,	//BLIND_BET
+	BET = 4,
+	FLOP = 5,
+	TURN = 6,
+	RIVER = 7,
+	SHOWDOWN = 8,
+	CLEAR_ROUND = 9,
+}
+
+export enum ENUM_COMMUNTY_CARD_STATE {
+	PREPARE = 0,
+	PRE_FLOP = 1,
+	FLOP = 2,
+	TURN = 3,
+	RIVER = 4,
+	SHOWDOWN = 5
+}
+
+export enum ENUM_CARD_TYPE {
+    NONE = 0,
+	PLAYER_HIDDEN = 1,
+	PLAYER_HAND = 2,
+	COMMUNITY_FLOP = 3,
+	COMMUNITY_TURN = 4,
+	COMMUNITY_RIVER = 5,
+}
