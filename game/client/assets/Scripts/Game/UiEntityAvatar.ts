@@ -73,6 +73,11 @@ export class UiEntityAvatar extends Component {
         return this.entity.nickname;
     }
 
+    public SetChips( chips: number ) {                   
+        this.labelChips.color = new Color(255, 200, 70);
+        this.labelChips.string = CommonUtil.getKoreanNumber( chips );
+    }
+
     public setUiChips( chips: number, isSitout: boolean ) {
         if ( this.labelChips != null ) {
             this.labelChips.color = new Color(255, 200, 70);
@@ -129,7 +134,17 @@ export class UiEntityAvatar extends Component {
         this.clearUiAction();
     }
 
+    public ClearAction() {
+        let keys = Object.keys( this.actions );
+        keys.forEach ( (e)=> {
+            let v: Node = this.actions[e];
+            v.active = false;
+        });
+        this.rootActions.active = false;
+    }
+
     public clearUiAction() {
+        //deplicate
         let keys = Object.keys( this.actions );
         keys.forEach ( (e)=> {
             let v: Node = this.actions[e];

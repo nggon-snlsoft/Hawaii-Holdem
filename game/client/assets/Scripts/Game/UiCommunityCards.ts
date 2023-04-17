@@ -107,6 +107,26 @@ export class UiCommunityCards extends Component {
         } );
     }
 
+    public ShowRiverCardImmediate( cards: number[] ) {
+        if ( cards.length != 1 ) {
+            return;
+        }
+
+        this.cards.forEach( (e)=>{
+            if ( e.GetType() == ENUM_CARD_TYPE.COMMUNITY_RIVER ) {
+                this.numbers.push( cards[0] );
+                e.ShowImmediate( cards[0] );
+            }
+        } );
+    }
+
+    public SetWinCards( pools: number[] ) {
+        this.cards.forEach( (e)=> {
+            console.log('SetWinCards');
+            e.SetWinCard( pools );
+        });
+    }
+
     public GetCommunityCards(): number[] {
         return this.numbers;
     }

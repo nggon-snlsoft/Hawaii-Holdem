@@ -59,6 +59,35 @@ export class Card extends Component {
         }, delay );
     }
 
+    public ShowImmediate( num: number ) {
+        this.num = num;
+        this.spriteCard.spriteFrame = ResourceManager.Instance().getCardImage( this.num + 1 );
+        this.spriteCard.node.active = true;
+        this.node.active = true;        
+    }
+
+    public Fold() {
+        this.spriteDimmed.node.active = true;
+    }
+
+    public SetWinCard( pools: number[] ) {
+        console.log('SetWinCard');
+
+        let c = pools.find( (e)=>{
+            return e == this.num;
+        });
+
+        if ( c != null ) {
+            this.spriteHighlight.node.active = true;
+            this.spriteDimmed.node.active = false;
+
+            this.node.position = new Vec3( this.vec3Original.x, this.vec3Original.y + 30, this.vec3Original.z);
+        } else {
+            this.spriteHighlight.node.active = false;
+            this.spriteDimmed.node.active = true;            
+        }
+    }
+
     public Hide() {
         this.node.active = false;
     }
@@ -77,6 +106,7 @@ export class Card extends Component {
         this.spriteCard.spriteFrame = ResourceManager.Instance().getCardImage( this.num );
 
         this.ResetPosition();
+
         this.spriteHighlight.node.active = false;
         this.spriteDimmed.node.active = false;
 

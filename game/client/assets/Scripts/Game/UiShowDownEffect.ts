@@ -25,7 +25,7 @@ export class UiShowDownEffect extends Component {
             AudioController.instance.PlaySound('SHOWDOWN');
             this.node.active = true;
             this.animation.play();
-        }, 1);
+        }, 0.5);
     }
 
     Hide() {

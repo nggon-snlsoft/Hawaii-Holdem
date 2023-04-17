@@ -25,15 +25,13 @@ export class UiEntity extends Component {
 
     private rootCards: Node = null;
 
-    public spriteHandCards: Sprite[] = [ null, null ];
-    public uiHandCards: UiCard[] = [null, null];
-    public spriteHandCardsBackground: Sprite[] = [ null, null ];
+    // public spriteHandCards: Sprite[] = [ null, null ];
+    // public uiHandCards: UiCard[] = [null, null];
+    // public spriteHandCardsBackground: Sprite[] = [ null, null ];
 
-
-
-    private rootHiddenCard: Node = null;
-    public spriteHiddenCards: Sprite[] = [ null, null ];
-    public vectorHiddenCards: Vec3[] = [ null, null ];
+    // private rootHiddenCard: Node = null;
+    // public spriteHiddenCards: Sprite[] = [ null, null ];
+    // public vectorHiddenCards: Vec3[] = [ null, null ];
     
     private timerDeltaTime: number = 0;
     private turnDuration: number = 20;
@@ -112,81 +110,29 @@ export class UiEntity extends Component {
 
         this.rootCards = this.node.getChildByPath('CARDS');
         if ( this.rootCards != null ) {
-            this.spriteHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(Sprite);
-            if ( this.spriteHiddenCards[0] != null ) {
-                this.spriteHandCards[0].node.active = false;
-            }
-
-            this.uiHandCards[0] = this.rootCards.getChildByPath('CARD_0').getComponent(UiCard);
-            if ( this.uiHandCards[0] != null ) {
-                this.uiHandCards[0].init();
-                this.uiHandCards[0].hide();
-            }
-
-            this.spriteHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(Sprite);
-            if ( this.spriteHiddenCards[1] != null ) {
-                this.spriteHandCards[1].node.active = false;
-            }
-
-            this.uiHandCards[1] = this.rootCards.getChildByPath('CARD_1').getComponent(UiCard);
-            if ( this.uiHandCards[1] != null ) {
-                this.uiHandCards[1].init();                
-                this.uiHandCards[1].hide();
-            }
-            this.spriteHandCardsBackground[0] = this.rootCards.getChildByPath('CARD_0_BACKGROUND').getComponent(Sprite);
-            if ( this.spriteHandCardsBackground[0] != null ) {
-                this.spriteHandCardsBackground[0].node.active = false;
-            }
-
-            this.spriteHandCardsBackground[1] = this.rootCards.getChildByPath('CARD_1_BACKGROUND').getComponent(Sprite);
-            if ( this.spriteHandCardsBackground[1] != null ) {
-                this.spriteHandCardsBackground[1].node.active = false;
-            }
-
-            this.rootHiddenCard = this.rootCards.getChildByPath('HIDDEN_CARD');
-            if ( this.rootHiddenCard != null ) {
-                this.spriteHiddenCards[0] = this.rootHiddenCard.getChildByPath('CARD_0').getComponent(Sprite);
-                if ( this.spriteHiddenCards[0] != null ) {
-                    let sf = ResourceManager.Instance().getCardImage(0);
-                    this.spriteHiddenCards[0].spriteFrame = sf;
-
-                    this.vectorHiddenCards[0] = new Vec3( this.spriteHiddenCards[0].node.position );
-                    this.spriteHiddenCards[0].node.active = false;            
+            this.rootHandCards = this.rootCards.getChildByPath('HAND_CARDS');
+            if ( this.rootHandCards != null ) {
+                for ( let i: number = 0 ; i < 2; i ++ ) {
+                    this.handCards[i] = this.rootHandCards.getChildByPath( i.toString() ).getComponent(Card);
+                    this.handCards[i].Init( ENUM_CARD_TYPE.PLAYER_HAND );
                 }
-
-                this.spriteHiddenCards[1] = this.rootHiddenCard.getChildByPath('CARD_1').getComponent(Sprite);
-                if ( this.spriteHiddenCards[1] != null ) {
-                    let sf = ResourceManager.Instance().getCardImage(0);
-                    this.spriteHiddenCards[0].spriteFrame = sf;
-                    
-                    this.vectorHiddenCards[1] = new Vec3( this.spriteHiddenCards[1].node.position );
-                    this.spriteHiddenCards[1].node.active = false;            
-                }
-                this.rootHiddenCard.active = false;
+                this.rootHandCards.active = false;
             }
+    
+            this.rootHiddenCards = this.rootCards.getChildByPath('HIDDEN_CARDS');
+            if ( this.rootHiddenCards != null ) {
+                for ( let i: number = 0 ; i < 2; i ++ ) {
+                    this.hiddenCards[i] = this.rootHiddenCards.getChildByPath( i.toString() ).getComponent(Card);
+                    this.hiddenCards[i].Init( ENUM_CARD_TYPE.PLAYER_HIDDEN );
+                }
+    
+                this.rootCardDispensing = this.rootHiddenCards.getChildByPath('DISPENSING_ROOT');
+                this.rootCardDispensing.active = true;
+    
+                this.rootHiddenCards.active = false;
+            }
+
             this.rootCards.active = false;
-        }
-
-        this.rootHandCards = this.rootCards.getChildByPath('HAND_CARDS');
-        if ( this.rootHandCards != null ) {
-            for ( let i: number = 0 ; i < 2; i ++ ) {
-                this.handCards[i] = this.rootHandCards.getChildByPath( i.toString() ).getComponent(Card);
-                this.handCards[i].Init( ENUM_CARD_TYPE.PLAYER_HAND );
-            }
-            this.rootHandCards.active = false;
-        }
-
-        this.rootHiddenCards = this.rootCards.getChildByPath('HIDDEN_CARDS');
-        if ( this.rootHiddenCards != null ) {
-            for ( let i: number = 0 ; i < 2; i ++ ) {
-                this.hiddenCards[i] = this.rootHiddenCards.getChildByPath( i.toString() ).getComponent(Card);
-                this.hiddenCards[i].Init( ENUM_CARD_TYPE.PLAYER_HIDDEN );
-            }
-
-            this.rootCardDispensing = this.rootHiddenCards.getChildByPath('DISPENSING_ROOT');
-            this.rootCardDispensing.active = true;
-
-            this.rootHiddenCards.active = false;
         }
 
         this.rootHandRank = this.node.getChildByPath('HAND_RANK');
@@ -250,7 +196,6 @@ export class UiEntity extends Component {
     }
 
     onClickAvatar( button: Button ) {
-        // Board.table.openUserProfile( this.id );
     
     }
 
@@ -302,7 +247,41 @@ export class UiEntity extends Component {
 
     }
 
+    SetClearRound( entity ) {
+        if( null === entity || undefined === entity  ){
+            return;
+        }
+        this.endTurn();        
+
+        this.SetChips( entity.chips );
+
+        this.ClearAction();
+        this.ClearBetValue();
+        this.ResetHands();
+
+        
+        
+
+        // this.isFold = false;
+        // this.uiEntityAvatar.clearUiAction();
+
+
+
+        // this.clearUiBetValue();
+        // this.clearUiHandCards();
+        this.clearUiHandRank();
+
+        if( true == entity.wait ){
+            this.setUiWait();
+            return;
+        }
+
+        this.ResetResultEffect();
+        this.setUiPlay(); 
+    }    
+
     setUiPrepareRound( entity ) {
+        //Maybe Deplicate
         if( null === entity || undefined === entity  ){
             return;
         }
@@ -329,12 +308,12 @@ export class UiEntity extends Component {
         this.setUiPlay(); 
     }
 
-    public setShowHiddenCard( show: boolean ) {
-        this.spriteHiddenCards[0].node.active = show;
-        this.spriteHiddenCards[1].node.active = show;
+    // public setShowHiddenCard( show: boolean ) {
+    //     this.spriteHiddenCards[0].node.active = show;
+    //     this.spriteHiddenCards[1].node.active = show;
         
-        this.rootHiddenCard.active = show;
-    }
+    //     this.rootHiddenCard.active = show;
+    // }
 
     public setChipsMoveToPot(index: number, pot: Node, cb: (idx: number)=>void) {
         if ( this.uiBettingChips != null ) {
@@ -349,13 +328,13 @@ export class UiEntity extends Component {
     setEscapee() {
         this.uiEntityAvatar.setEscape();
 
-        this.spriteHandCards[0].node.active = false;
-        this.spriteHandCards[1].node.active = false;
-        this.spriteHandCards[0].node.active = false;
-        this.spriteHandCards[1].node.active = false;
+        // this.spriteHandCards[0].node.active = false;
+        // this.spriteHandCards[1].node.active = false;
+        // this.spriteHandCards[0].node.active = false;
+        // this.spriteHandCards[1].node.active = false;
 
-        this.uiHandCards[0].hide();
-        this.uiHandCards[1].hide();
+        // this.uiHandCards[0].hide();
+        // this.uiHandCards[1].hide();
 
         this.labelHandRank.node.active = false;
         this.posSymbols['dealer'].node.active = false;
@@ -391,6 +370,10 @@ export class UiEntity extends Component {
 
     setNickname ( name: string ) {
         this.uiEntityAvatar.setNickname( name );
+    }
+
+    SetChips( chips: number ) {
+        this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
     }
 
     setUiChips( chips: number ) {
@@ -458,6 +441,10 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.setUiAction( action );
     }
 
+    ClearAction() {
+        this.uiEntityAvatar.ClearAction();        
+    }
+
     clearUiAction() {
         this.uiEntityAvatar.clearUiAction();
     }
@@ -469,33 +456,66 @@ export class UiEntity extends Component {
         });
     }
 
+    ClearBetValue() {
+        this.uiBettingChips.hide();        
+    }
+
     clearUiBetValue() {
         this.uiBettingChips.hide();
     }
 
+    ResetHands() {
+        this.handCards.forEach( (e)=>{
+            e.Reset();
+        });
+    }
+
     clearUiHandCards() {
-        this.spriteHandCards[0].spriteFrame = null;
-        this.spriteHandCards[1].spriteFrame = null;   
+        // this.spriteHandCards[0].spriteFrame = null;
+        // this.spriteHandCards[1].spriteFrame = null;   
 
-        this.spriteHandCards[0].color = Color.WHITE;
-        this.spriteHandCards[1].color = Color.WHITE;
+        // this.spriteHandCards[0].color = Color.WHITE;
+        // this.spriteHandCards[1].color = Color.WHITE;
 
-        this.spriteHiddenCards[0].color = Color.WHITE;
-        this.spriteHiddenCards[1].color = Color.WHITE;
+        // this.spriteHiddenCards[0].color = Color.WHITE;
+        // this.spriteHiddenCards[1].color = Color.WHITE;
 
-        this.spriteHandCards[0].node.active = false;
-        this.spriteHandCards[1].node.active = false;
+        // this.spriteHandCards[0].node.active = false;
+        // this.spriteHandCards[1].node.active = false;
 
-        this.uiHandCards[0].hide();
-        this.uiHandCards[1].hide();
+        // this.uiHandCards[0].hide();
+        // this.uiHandCards[1].hide();
     }
 
     setUiHandCardsFold() {
-        this.spriteHandCards[0].color = Color.GRAY;
-        this.spriteHandCards[1].color = Color.GRAY;
+        // this.spriteHandCards[0].color = Color.GRAY;
+        // this.spriteHandCards[1].color = Color.GRAY;
+    }
+
+    SetShowHiddenCard() {
+        this.hiddenCards.forEach( (e)=>{
+            e.Show();
+        });
+    }
+
+    SetHandCardsFold() {
+        this.hiddenCards.forEach( (e)=>{
+            e.Fold();
+        });
+    }
+
+    SetHandRank( handEval: any ) {
+        if ( handEval == null ) {
+            return;
+        }
+
+        this.rootHandRank.active = true;
+        this.labelHandRank.string = handEval.descr;
+        this.labelHandRank.node.active = true;
     }
 
     setUiHandRank( rankName: string ) {
+        //deplicate
         if(rankName === "" || rankName === null){
             return;
         }
@@ -533,41 +553,41 @@ export class UiEntity extends Component {
         this.timerDeltaTime = 0;
     }
 
-    public setUiFoldCardAnimation() {
+    // public setUiFoldCardAnimation() {
 
-        let from: Node = this.rootHiddenCard;
-        let to: Node = this.rootCardDeck;
+    //     let from: Node = this.rootHiddenCard;
+    //     let to: Node = this.rootCardDeck;
 
-        let original:Vec3 = new Vec3(from.position);
+    //     let original:Vec3 = new Vec3(from.position);
 
-        let op: UIOpacity = from.getComponent(UIOpacity);
-        if ( op != null ) {
-            op.opacity = 255;
-        }
+    //     let op: UIOpacity = from.getComponent(UIOpacity);
+    //     if ( op != null ) {
+    //         op.opacity = 255;
+    //     }
         
-        let duration = 0.2;
-        let tw = tween( from )
-        .set ({
-            position: from.position,
+    //     let duration = 0.2;
+    //     let tw = tween( from )
+    //     .set ({
+    //         position: from.position,
 
-        }).to ( duration, {
-            position: to.position,
-        }, {
-            easing: this.easeOutQuad,
-            onUpdate: ( target: Node, ratio: number )=> {
-                let o = 255 - 255 * ratio;
-                op.opacity = o;
-            },
-        });
+    //     }).to ( duration, {
+    //         position: to.position,
+    //     }, {
+    //         easing: this.easeOutQuad,
+    //         onUpdate: ( target: Node, ratio: number )=> {
+    //             let o = 255 - 255 * ratio;
+    //             op.opacity = o;
+    //         },
+    //     });
 
-        tw.call( ()=>{
-            from.active = false;
-            from.position = new Vec3(original);
+    //     tw.call( ()=>{
+    //         from.active = false;
+    //         from.position = new Vec3(original);
 
-            op.opacity = 255;
-        } );
-        tw.start();
-    }
+    //         op.opacity = 255;
+    //     } );
+    //     tw.start();
+    // }
 
     setUiAllIn() {
         this.uiEntityAvatar.setUiAllin();
@@ -671,13 +691,9 @@ export class UiEntity extends Component {
     }
 
     public SetWinCards( pools: any ) {
-        if ( this.uiHandCards[0] != null ) {
-            this.uiHandCards[0].SetWinCard(pools);
-        }
-
-        if ( this.uiHandCards[1] != null ) {
-            this.uiHandCards[1].SetWinCard(pools);
-        }
+        this.handCards.forEach( (e)=>{
+            e.SetWinCard( pools );
+        });
     }
 
     setAniWinner( value: number ) {
@@ -736,54 +752,54 @@ export class UiEntity extends Component {
         this.rootCards.active = true;
     }
 
-    prepareCardDispense() {
-        this.spriteHiddenCards[0].node.active = false;
-        this.spriteHiddenCards[1].node.active = false;
+    // prepareCardDispense() {
+    //     this.spriteHiddenCards[0].node.active = false;
+    //     this.spriteHiddenCards[1].node.active = false;
 
-        this.uiHandCards[0].hide();
-        this.uiHandCards[1].hide();
+    //     this.uiHandCards[0].hide();
+    //     this.uiHandCards[1].hide();
 
-        this.spriteHandCardsBackground[0].node.active = false;
-        this.spriteHandCardsBackground[1].node.active = false;
+    //     this.spriteHandCardsBackground[0].node.active = false;
+    //     this.spriteHandCardsBackground[1].node.active = false;
 
-        this.rootHiddenCard.active = true;
-        this.rootCards.active = true;
-    }
+    //     this.rootHiddenCard.active = true;
+    //     this.rootCards.active = true;
+    // }
 
-    moveDeckToHiddenCard( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
-        let target = this.spriteHiddenCards[card].node;
+    // moveDeckToHiddenCard( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
+    //     let target = this.spriteHiddenCards[card].node;
 
-        let from = new Vec3(this.rootCardDeck.position);
-        let to = new Vec3(this.spriteHiddenCards[card].node.position);
+    //     let from = new Vec3(this.rootCardDeck.position);
+    //     let to = new Vec3(this.spriteHiddenCards[card].node.position);
 
-        target.active = false;
+    //     target.active = false;
 
-        if ( from == null || to == null ) {
-            return;
-        }
+    //     if ( from == null || to == null ) {
+    //         return;
+    //     }
        
-        let tw = tween( target )
-        .delay(delay)
-        .set ({
-            position: from,
-            active: true,
+    //     let tw = tween( target )
+    //     .delay(delay)
+    //     .set ({
+    //         position: from,
+    //         active: true,
 
-        }).to ( duration, {
-            position: to,
-        }, {
-            easing: this.easeOutQuad,
-            onUpdate: ( target: Node, ratio: number )=> {
+    //     }).to ( duration, {
+    //         position: to,
+    //     }, {
+    //         easing: this.easeOutQuad,
+    //         onUpdate: ( target: Node, ratio: number )=> {
 
-            },
-        });
+    //         },
+    //     });
 
-        tw.call( ()=>{
-            if (cb != null ) {
-                cb( index );
-            }
-        } );
-        tw.start();
-    }
+    //     tw.call( ()=>{
+    //         if (cb != null ) {
+    //             cb( index );
+    //         }
+    //     } );
+    //     tw.start();
+    // }
 
     CardDispensing( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
         this.hiddenCards[card].Show();        
@@ -821,61 +837,67 @@ export class UiEntity extends Component {
         tw.start();
     }
 
-    showPlayerCard() {
-        this.spriteHiddenCards[0].node.active = false;
-        this.spriteHiddenCards[1].node.active = false;
-    }
+    // showPlayerCard() {
+    //     this.spriteHiddenCards[0].node.active = false;
+    //     this.spriteHiddenCards[1].node.active = false;
+    // }
 
-    ShowPlayerCards( card: any ) {
-        this.spriteHiddenCards[0].node.active = false;
-        this.spriteHiddenCards[1].node.active = false;
+    // ShowPlayerCards( card: any ) {
+    //     this.spriteHiddenCards[0].node.active = false;
+    //     this.spriteHiddenCards[1].node.active = false;
         
-        this.uiHandCards[0].show( card.primary, null, 0.3 );
-        this.uiHandCards[1].show( card.secondary, null, 0.5 );
+    //     this.uiHandCards[0].show( card.primary, null, 0.2 );
+    //     this.uiHandCards[1].show( card.secondary, null, 0.4 );
 
-        this.rootCards.active = true;
-    }
+    //     this.rootCards.active = true;
+    // }
 
-    ShowHands( cards: number[] ) {
+    ShowHands( cards: number[], done: ()=>void = null  ) {
         this.hiddenCards.forEach( (e)=> {
             e.Hide();
         });
 
+        let cnt: number = 0;
         for ( let i = 0 ; i < cards.length; i ++ ) {
             this.handCards[i].ShowFlip( cards[i], 0.2 + 0.1 * i, ()=>{
-
+                cnt++;
+                if ( cnt >= cards.length ) {
+                    if ( done != null ) {
+                        done();
+                    }
+                }
             });
         }
     }
 
-    ShowdownPlayerCards( card: any, cb:()=>void ) {
-        this.spriteHiddenCards[0].node.active = false;
-        this.spriteHiddenCards[1].node.active = false;
+    // ShowdownPlayerCards( card: any, cb:()=>void ) {
+    //     this.spriteHiddenCards[0].node.active = false;
+    //     this.spriteHiddenCards[1].node.active = false;
 
-        let cnt: number = 0;
-        let end: boolean = false;
+    //     let cnt: number = 0;
+    //     let end: boolean = false;
         
-        this.uiHandCards[0].show( card.primary, ()=>{
-            cnt++;
+    //     this.uiHandCards[0].show( card.primary, ()=>{
+    //         cnt++;
 
-            if ( cnt >= 2 && end == false ) {
-                end = true;
-                cb();
-            }
+    //         if ( cnt >= 2 && end == false ) {
+    //             end = true;
+    //             cb();
+    //         }
 
-        }, 0.1 );
+    //     }, 0.1 );
 
-        this.uiHandCards[1].show( card.secondary, ()=>{
-            cnt++;
+    //     this.uiHandCards[1].show( card.secondary, ()=>{
+    //         cnt++;
 
-            if ( cnt >= 2 && end == false ) {
-                end = true;
-                cb();
-            }
-        }, 0.1 );
+    //         if ( cnt >= 2 && end == false ) {
+    //             end = true;
+    //             cb();
+    //         }
+    //     }, 0.1 );
 
-        this.rootCards.active = true;
-    }
+    //     this.rootCards.active = true;
+    // }
 
 
     hiddenCardFadeOut( target: Node, duration: number, delay: number ) {
@@ -918,6 +940,9 @@ export class UiEntity extends Component {
         return 1 - (1 - x) * (1 - x);
     }
 
+    HideHiddenCard() {
+        this.rootHiddenCards.active = false;
+    }
 }
 
 

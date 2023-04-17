@@ -641,7 +641,7 @@ class FourWilds extends Hand {
         this.cards.length = 4;
       }
 
-      this.descr = '포 카드';
+      this.descr = '포카드';
     }
 
     return this.cards.length >= 4;
@@ -1311,7 +1311,7 @@ class HighCard extends Hand {
     }
 
     this.cards = this.cards.sort(Card.sort);
-    this.descr = this.cards[0].toString().slice(0, -1) + ' 탑';
+    this.descr = '탑 [' + this.cards[0].toString().slice(0, -1) + ']';
 
     return true;
   }
