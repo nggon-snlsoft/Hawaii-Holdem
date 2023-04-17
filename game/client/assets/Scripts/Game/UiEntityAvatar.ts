@@ -45,19 +45,26 @@ export class UiEntityAvatar extends Component {
         this.node.active = false;
     }
 
-    setAvatar(uiEntity: any, entity: any, isMe: boolean  ) {
+    SetAvatar( uiEntity: any, entity: any, isMe: boolean ) {
+        console.log( entity );
         this.uiEntity = uiEntity;
         this.entity = entity;
         this.isMe = isMe;
 
-        this.setNickname( entity.nickname );
-        this.setUiChips( entity.chips, false );
-        this.setAvatarProfile();
+        this.SetNickname( entity.nickname );
+        this.SetChips( entity.chips );
+        this.SetPlayerThumbnail( entity.avatar );
 
-        if ( this.isMe == true ) {
-            this.SetStatus(ENUM_STATUS_TYPE.NONE);
+        if ( entity.isSitout == true ) {
+            this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
+        } else if ( entity.isWait == true ) {
+            if ( this.isMe == true ) {
+                this.SetStatus( ENUM_STATUS_TYPE.NONE );
+            } else {
+                this.SetStatus( ENUM_STATUS_TYPE.WAITING );
+            }
         } else {
-            this.SetStatus(ENUM_STATUS_TYPE.WAITING);
+            this.SetStatus( ENUM_STATUS_TYPE.NONE );            
         }
 
         this.rootNameTag.active = true;
@@ -65,31 +72,17 @@ export class UiEntityAvatar extends Component {
         this.node.active = true;
     }
 
-    public setNickname( name: string ) {
+    public SetNickname( name: string ) {
         this.labelNickname.string = name;        
     }
 
-    public getNickname() {
+    public GetNickname() {
         return this.entity.nickname;
     }
 
     public SetChips( chips: number ) {                   
         this.labelChips.color = new Color(255, 200, 70);
         this.labelChips.string = CommonUtil.getKoreanNumber( chips );
-    }
-
-    public setUiChips( chips: number, isSitout: boolean ) {
-        if ( this.labelChips != null ) {
-            this.labelChips.color = new Color(255, 200, 70);
-
-            this.labelChips.string = CommonUtil.getKoreanNumber( chips );
-
-            if ( isSitout == true ) {
-                this.setUiSitout();
-            } else {
-                this.setUiSitback();
-            }
-        }
     }
 
     public setSmallBlind() {
@@ -102,8 +95,8 @@ export class UiEntityAvatar extends Component {
         this.labelChips.string = "빅블라인드"
     }
 
-    private setAvatarProfile() {
-        let s = Number( this.entity.avatar);
+    private SetPlayerThumbnail ( avatar ) {
+        let s = Number( avatar );
         this.spriteAvatarProfile.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
         this.spriteAvatarProfile.node.active = true;
     }
@@ -219,11 +212,20 @@ export class UiEntityAvatar extends Component {
         this.setUiAction('allin');
     }
 
-    public setUiSitout() {
-        this.labelChips.node.active = true;
-        // this.labelSitout.node.active = true;
-
+    public SetSitout() {
         this.SetStatus(ENUM_STATUS_TYPE.SITOUT);
+    }
+
+    public setUiSitout() {
+        this.SetStatus(ENUM_STATUS_TYPE.SITOUT);
+    }
+
+    public SetSitback() {
+        if ( this.isFold == true ) {
+            this.SetStatus(ENUM_STATUS_TYPE.FOLD);
+        } else {
+            this.SetStatus(ENUM_STATUS_TYPE.NONE);
+        }
     }
 
     public setUiSitback() {

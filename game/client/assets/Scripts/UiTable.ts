@@ -19,7 +19,6 @@ import { UiWinEffect } from './Game/UiWinEffect';
 import { UiPotChips } from './Game/UiPotChips';
 import { UiRoundPotValue } from './Game/UiRoundPotValue';
 import { ResourceManager } from './ResourceManager';
-import { UiCard } from './Game/UiCard';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 import { UiCommunityCards } from './Game/UiCommunityCards';
@@ -83,8 +82,10 @@ export class UiTable extends Component {
     private startBetFromServer: number = -1;
     private betMin: number = -1;
     private seatMax: number = 6;
-    private seatPlayers: number[] = [];
+    // private seatPlayers: number[] = [];
     private enableSeats: number[] = [];
+
+	private SEAT_PLAYERS: number[] = [];
 
     private dealerSeatPosition: number = -1;
     private smallBlindSeatPosition: number = -1;
@@ -363,15 +364,18 @@ export class UiTable extends Component {
 		this.sendMsg("SIT_OUT", { 
 			seat : this.mySeat 
 		});
-
 		AudioController.instance.ButtonClick();
-		this.buttonSitOut.node.active = false;
-		this.buttonSitBack.node.active = true;
+		this.buttonSitOut.interactable = false;
 
-		let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
-		if ( uiEntity != null ) {
-			uiEntity.setUiSitOut();
-		}
+
+
+		// this.buttonSitOut.node.active = false;
+		// this.buttonSitBack.node.active = true;
+
+		// let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
+		// if ( uiEntity != null ) {
+		// 	uiEntity.setUiSitOut();
+		// }
     }
 
     public onClickSitBack() {
@@ -380,10 +384,12 @@ export class UiTable extends Component {
 		});
 
 		AudioController.instance.ButtonClick();
-		this.buttonSitBack.node.active = false;
-		this.buttonSitOut.node.active = false;
+		this.buttonSitBack.interactable = false;
 
-		this.isSitOutReservation = false;
+		// this.buttonSitBack.node.active = false;
+		// this.buttonSitOut.node.active = false;
+
+		// this.isSitOutReservation = false;
     }
 
     onClickAddChips() {
@@ -561,7 +567,7 @@ export class UiTable extends Component {
 		this.myChips = myEntity.chips;
 		this.myWaitStatus = myEntity.wait;
 		this.isFold = false;
-		this.seatPlayers = [];
+		this.SEAT_PLAYERS = [];
 		this.msgWINNERS = "";
 		// this.playersCARD = null;
 		this.isAllIn = false;
@@ -576,7 +582,7 @@ export class UiTable extends Component {
 
 		for( let i = 0; i < this.seatMax; i++ ) {
 			let seat = this.mySeat + i;
-			this.seatPlayers.push( seat % this.seatMax );
+			this.SEAT_PLAYERS.push( seat % this.seatMax );
 		}
 
 		if (true === myEntity.isSitOut) {
@@ -589,12 +595,12 @@ export class UiTable extends Component {
 
 		this.buttonShowCard.node.active = false;
 		let players: any = msg[ "entities" ];
-		this.setUiEntities( players );
+		this.SetEntities( players );
 		this.countPlayers = players.length;
 		this.enableSeats = [];
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 			let entity =  msg[ "entities" ].find( elem => elem.seat == seat );
 			let uiEntity = this.entityUiElements[ i ];
 
@@ -698,14 +704,14 @@ export class UiTable extends Component {
 
         let players: any = msg["entities"];
 		this.countPlayers = players.length;
-        this.seatPlayers = [];
+        this.SEAT_PLAYERS = [];
 
         for ( let i = 0; i < this.seatMax ; i++) {
             let seat = this.mySeat + i;
-            this.seatPlayers.push( seat % this.seatMax );
+            this.SEAT_PLAYERS.push( seat % this.seatMax );
         }
 
-        this.setUiEntities( players );
+        this.SetEntities( players );
 
 		if ( this.GAME_STATE == ENUM_GAME_STATE.SUSPEND ) {
 			this.labelReadyMessage.string = '다른 플레이어를 기다리고 있습니다';
@@ -766,34 +772,36 @@ export class UiTable extends Component {
 
     leaveRoom(code: any) {
         this.room = null;
-        this.clearUiEntities();
-		this.clearUiPot();
+        this.ClearEntities();
+		this.ClearPot();
 
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
 		this.isAllIn = false;
     }
 
-    private setUiEntities(entities: any) {
-        for (let i = 0; i < this.seatPlayers.length; i++ ) {
-            let seat = this.seatPlayers[i];
-            let entity = entities?.find( (e) => e.seat === seat );
-            let uiEntity = this.getUiEntityFromSeat( seat );
-            uiEntity?.setUi( entity );
-            if (null !== uiEntity && undefined !== uiEntity ) {
-                uiEntity.callbackProfileOpen = ( e ) => {
-                }
-                uiEntity.callbackProfileClose = () => {
-                }
-            }
-        }
-    }
+	private SetEntities( entities: any ) {
+        for (let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+            let seat = this.SEAT_PLAYERS[i];
 
-    private clearUiEntities() {
-        for ( let i = 0; i < this.seatPlayers.length; i++ ) {
-            let seat = this.seatPlayers[ i ];
+			let entity = entities.find( (e)=> {
+				return e.seat == seat;
+			} );
+
             let uiEntity = this.getUiEntityFromSeat( seat );
-            uiEntity?.setUi( null );
+			if ( uiEntity != null ) {
+				uiEntity.SetEntity( entity );
+			}
+        }
+	}
+
+    private ClearEntities() {
+        for ( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+            let seat = this.SEAT_PLAYERS[ i ];
+            let uiEntity = this.getUiEntityFromSeat( seat );
+			if ( uiEntity != null ) {
+				uiEntity.SetEntity( null );
+			}
         }
     }
 
@@ -804,7 +812,7 @@ export class UiTable extends Component {
 		}
     }
 
-    private clearUiPot() {
+    private ClearPot() {
 		this.spritePotRoot.node.active = false;
 		this.labelCurrentPot.node.active = false;
 		this.uiPot.Hide();
@@ -821,7 +829,7 @@ export class UiTable extends Component {
 	}
 
     private getUiEntityFromSeat( seat: number ) {
-        let idx = this.seatPlayers.findIndex( (e)=> e == seat );
+        let idx = this.SEAT_PLAYERS.findIndex( (e)=> e == seat );
         if ( -1 == idx )
         {
             return;
@@ -963,9 +971,11 @@ export class UiTable extends Component {
     }
 
     private onNEW_ENTITY( msg ) {
-		let newEntity = msg[ "newEntity" ];
-		let uiEntity = this.getUiEntityFromSeat( newEntity.seat );
-		uiEntity?.setUi( newEntity );
+		let entity = msg[ "newEntity" ];
+		let uiEntity = this.getUiEntityFromSeat( entity.seat );
+		if ( uiEntity != null ) {
+			uiEntity.SetEntity( entity );
+		}
     }
 
     private onCARD_DISPENSING( msg ) {
@@ -982,9 +992,9 @@ export class UiTable extends Component {
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
 			let uiEntity = this.entityUiElements[ i ];
-			if( seat == this.seatPlayers[ i ] ) {
+			if( seat == this.SEAT_PLAYERS[ i ] ) {
 				uiEntity?.startTurn(duration);
 				uiEntity?.StartActionTimer();
 				continue;
@@ -1256,8 +1266,8 @@ export class UiTable extends Component {
 		this.uiPot.Hide();
 		this.labelCurrentPot.node.active = false;
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 			let entity = entities.find( elem => elem.seat == seat );
 			let uiEntity = this.entityUiElements[ i ];
 
@@ -1321,8 +1331,8 @@ export class UiTable extends Component {
 		this.enableSeats = [];
 		this.isAllIn = false;
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 			let entity = entities.find( elem => elem.seat == seat );
 			let uiEntity = this.entityUiElements[ i ];
 
@@ -1347,7 +1357,7 @@ export class UiTable extends Component {
 		}
 
 		// this.clearUiCommunityCards();
-		this.clearUiPot();
+		this.ClearPot();
 		this.clearPosSymbol();
 
 		let uiDeal = this.getUiEntityFromSeat( this.dealerSeatPosition );
@@ -1372,8 +1382,8 @@ export class UiTable extends Component {
 
 		let cnt = 0;
 
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
 				let uiEntity = this.getUiEntityFromSeat(seat);
@@ -1417,8 +1427,8 @@ export class UiTable extends Component {
 
 		let cnt = 0;
 
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
 				let uiEntity = this.getUiEntityFromSeat(seat);
@@ -1459,8 +1469,8 @@ export class UiTable extends Component {
 
 		let cnt = 0;
 
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
 				let uiEntity = this.getUiEntityFromSeat(seat);
@@ -1501,8 +1511,8 @@ export class UiTable extends Component {
 
 		let cnt = 0;
 
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
 				let uiEntity = this.getUiEntityFromSeat(seat);
@@ -1594,8 +1604,8 @@ export class UiTable extends Component {
 	private ChipsMoveToPot( value, cbDone: ()=>void ) {
 		let cnt = 0;
 
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if( this.isEnableSeat( seat ) == true ) {
 				let uiEntity = this.getUiEntityFromSeat(seat);
@@ -1639,8 +1649,8 @@ export class UiTable extends Component {
 		this.nodeCardShuffleMessage.active = true;
 		AudioController.instance.PlaySound('CARD_SHUFFLE');
 
-		for( let i = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 			let uiEntity = this.getUiEntityFromSeat( seat );
 			let entity = entities.find( elem => elem.seat == seat );
 
@@ -1656,7 +1666,7 @@ export class UiTable extends Component {
 		}
 
 		this.setUiHideHiddenCard();
-		this.clearUiPot();
+		this.ClearPot();
 
 		let me = entities.find( elem => elem.seat == this.mySeat );
 
@@ -1736,7 +1746,7 @@ export class UiTable extends Component {
 
 		let chips = Number.parseInt( msg[ "chips" ] );
 		
-		uiEntity?.setUiChips( chips );
+		uiEntity?.SetChips( chips );
 		if( this.mySeat == seat ) {
 			this.myChips = chips;
 		}
@@ -1795,7 +1805,7 @@ export class UiTable extends Component {
 		}
 
 		let chips = Number.parseInt( msg[ "chips" ] );
-		uiEntity?.setUiChips( chips );
+		uiEntity?.SetChips( chips );
 
 		if( this.mySeat == seat ) {
 			this.myChips = chips;
@@ -1828,7 +1838,7 @@ export class UiTable extends Component {
 		}
 
 		let chips = Number.parseInt( msg[ "chips" ] );
-		uiEntity?.setUiChips( chips );
+		uiEntity?.SetChips( chips );
 
 		if( this.mySeat == seat ) {
 			this.myChips = chips;
@@ -1849,39 +1859,55 @@ export class UiTable extends Component {
     }
 
     private onSitOut( msg: any ) {
-		console.log('onSitOut');
+		let seat = msg['seat'];
 
-		let seatNumber = msg["seat"];
-
-		if(null === seatNumber || undefined === seatNumber){
+		if( seat == null || seat == undefined ){
 			return;
 		}
 
-		let uiEntity = this.getUiEntityFromSeat(seatNumber);
-		uiEntity?.setUiSitOut();
+		let uiEntity = this.getUiEntityFromSeat( seat );
+		if ( uiEntity != null ) {
+			uiEntity.SetSitout();
+		}
 
-		if(seatNumber == this.mySeat){
+		if ( seat == this.mySeat ) {
+			this.buttonSitOut.interactable = true;
 			this.buttonSitOut.node.active = false;
-			this.buttonSitBack.node.active = true;	
+
+			this.buttonSitBack.interactable = true;
+			this.buttonSitBack.node.active = true;
 		}
     }
 
     private onSitBack( msg: any ) {
-		let seatNumber = msg["seat"];
-		
-		if(null === seatNumber || undefined === seatNumber){
+		let seat = msg['seat'];
+
+		if ( seat == null || seat == undefined ) {
 			return;
 		}
 
-		if(seatNumber !== this.mySeat){
-			let uiEntity = this.getUiEntityFromSeat(seatNumber);
-			uiEntity?.setUiSitBack();
-			return;
+		let uiEntity = this.getUiEntityFromSeat( seat );
+		if ( uiEntity != null ) {
+			uiEntity.SetSitback();
 		}
-		else {
-			let uiEntity = this.getUiEntityFromSeat(seatNumber);
-			uiEntity?.setUiSitBack();			
+
+		if ( seat == this.mySeat ) {
+
+		} else {
+
 		}
+
+
+
+		// if(seatNumber !== this.mySeat){
+		// 	let uiEntity = this.getUiEntityFromSeat(seatNumber);
+		// 	uiEntity?.setUiSitBack();
+		// 	return;
+		// }
+		// else {
+		// 	let uiEntity = this.getUiEntityFromSeat(seatNumber);
+		// 	uiEntity?.setUiSitBack();			
+		// }
 
 		this.buttonSitOut.node.active = true;
 		this.buttonSitBack.node.active = false;
@@ -2037,8 +2063,8 @@ export class UiTable extends Component {
 			let cnt: number = 0;
 			let potValue = this.msgWINNERS['pot'];
 
-			for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-				let seat = this.seatPlayers[ i ];
+			for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+				let seat = this.SEAT_PLAYERS[ i ];
 
 				if( this.isEnableSeat( seat ) == true ) {
 					let uiEntity = this.getUiEntityFromSeat(seat);
@@ -2251,8 +2277,8 @@ export class UiTable extends Component {
 
 	private CardDispensing() {
 		let seats: number[] = [];
-		for( let i: number = 0; i < this.seatPlayers.length; i++ ) {
-			let seat = this.seatPlayers[ i ];
+		for( let i: number = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
 
 			if ( this.isEnableSeat ( seat) == false ) {
 				continue;
@@ -2373,7 +2399,7 @@ export class UiTable extends Component {
 
 						}
 					}, isLast ? () => {
-						uiEntity?.setUiChips(chips);
+						uiEntity?.SetChips(chips);
 						if (true == isPlaySound) {
 							AudioController.instance.PlaySound('CHIP_END');
 
@@ -2413,7 +2439,7 @@ export class UiTable extends Component {
 						AudioController.instance.PlaySound('CHIP_START');
 					}
 				}, isLast ? () => {
-					uiEntity?.setUiChips( chips );
+					uiEntity?.SetChips( chips );
 					if( true == isPlaySound ) {
 						AudioController.instance.PlaySound('CHIP_END');
 					}
@@ -2572,7 +2598,7 @@ export class UiTable extends Component {
 		Board.balance = Number.parseInt( msg['balance ']);
 		let uiEntity = this.getUiEntityFromSeat( this.mySeat );
 		let chips = Number.parseInt( msg ['chip'] );
-		uiEntity.setUiChips( chips);
+		uiEntity.SetChips( chips);
 		this.myChips = chips;
     }
 
@@ -2631,7 +2657,7 @@ export class UiTable extends Component {
 			} else {
 				let uiEntity = this.getUiEntityFromSeat( this.mySeat );
 				Board.balance = balance;
-				uiEntity.setUiChips( chips );
+				uiEntity.SetChips( chips );
 				this.myChips = chips;
 
 				let message: string = CommonUtil.getNumberStringWithComma(amount) + " 칩이 추가되었습니다.";
@@ -2656,7 +2682,7 @@ export class UiTable extends Component {
 			let amount = msg[ "amount" ];
 
 			Board.balance = balance;
-			uiEntity.setUiChips( chips );
+			uiEntity.SetChips( chips );
 			this.myChips = chips;
 
 			let tableBuyInAmount = msg["tableBuyInAmount"];

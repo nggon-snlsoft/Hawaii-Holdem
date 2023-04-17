@@ -24,15 +24,6 @@ export class UiEntity extends Component {
     private isChildRegistered: boolean = false;
 
     private rootCards: Node = null;
-
-    // public spriteHandCards: Sprite[] = [ null, null ];
-    // public uiHandCards: UiCard[] = [null, null];
-    // public spriteHandCardsBackground: Sprite[] = [ null, null ];
-
-    // private rootHiddenCard: Node = null;
-    // public spriteHiddenCards: Sprite[] = [ null, null ];
-    // public vectorHiddenCards: Vec3[] = [ null, null ];
-    
     private timerDeltaTime: number = 0;
     private turnDuration: number = 20;
     private playTimeLimitSound: boolean = false;
@@ -41,11 +32,12 @@ export class UiEntity extends Component {
 
     private rootHandRank: Node = null;
     private labelHandRank: Label = null;
-    // private nodeHandRankBackground: Node = null;
 
     public isFold: boolean = false;
+    public isWait: boolean = false;
     public isMe: boolean = false;
     public isUiSitOut: boolean = false;
+    public isSitout: boolean = false;
 
     public bezierPoints: Node[] = [];
 
@@ -65,6 +57,7 @@ export class UiEntity extends Component {
     private rootCardDeck: Node = null;
     private rootPotChips: Node = null;
     private vecPotChips: Vec3 = null;
+    
     private timeOutId = -1;
     private uiPotChips: UiPotChips = null;
 
@@ -203,48 +196,47 @@ export class UiEntity extends Component {
         this.childRegistered();
     }
 
-    setUi( entity: any ) {
+    public SetEntity( entity: any ) {
         this.childRegistered();
 
-        if( null === entity || undefined === entity  ){
-            this.setEscapee();
+        if ( entity == null || entity == undefined ) {
+            this.SetEscape();
             return;
         }
 
-        if ( entity != null ) {
-            this.id = entity.id;
-        }
+        this.id = entity.id;
+        this.uiEntityAvatar.SetAvatar( this, entity, this.isMe );
 
-        this.uiEntityAvatar.setAvatar( this, entity, this.isMe );
-        this.endTurn();        
+        this.endTurn();
         this.clearUiAction();
-        this.clearUiBetValue();    
+        this.clearUiBetValue();
         this.clearUiHandCards();
         this.clearUiHandRank();
 
         this.isPlaying = true;
 
         this.isFold = entity.fold;
-        this.node.active = true;
+        this.isWait = entity.wait;
+        this.isSitout = entity.isSitOut;
 
-        if ( this.isUiSitOut == true ) {
-            this.setUiSitOut();
-            return;
-        }
+        // if ( this.isUiSitOut == true ) {
+        //     this.setUiSitOut();
+        //     return;
+        // }
 
-        if( true == this.isFold){
-            this.setUiFold();
-            return;
-        }
+        // if( true == this.isFold){
+        //     this.setUiFold();
+        //     return;
+        // }
 
-        if( true == entity.wait ){
-            this.setUiWait();
-            return;
-        }
+        // if( true == entity.wait ){
+        //     this.setUiWait();
+        //     return;
+        // }
 
         this.callbackProfileOpen = null;
         this.callbackProfileClose = null;
-
+        this.node.active = true;
     }
 
     SetClearRound( entity ) {
@@ -258,14 +250,10 @@ export class UiEntity extends Component {
         this.ClearAction();
         this.ClearBetValue();
         this.ResetHands();
-
-        
-        
+        this.isFold = false;
 
         // this.isFold = false;
         // this.uiEntityAvatar.clearUiAction();
-
-
 
         // this.clearUiBetValue();
         // this.clearUiHandCards();
@@ -286,7 +274,7 @@ export class UiEntity extends Component {
             return;
         }
 
-        this.setUiChips(entity.chips);
+        this.SetChips( entity.chips );
 
         this.isFold = false;
         this.uiEntityAvatar.clearUiAction();
@@ -308,13 +296,6 @@ export class UiEntity extends Component {
         this.setUiPlay(); 
     }
 
-    // public setShowHiddenCard( show: boolean ) {
-    //     this.spriteHiddenCards[0].node.active = show;
-    //     this.spriteHiddenCards[1].node.active = show;
-        
-    //     this.rootHiddenCard.active = show;
-    // }
-
     public setChipsMoveToPot(index: number, pot: Node, cb: (idx: number)=>void) {
         if ( this.uiBettingChips != null ) {
             this.uiBettingChips.moveChipsToPot(pot, ()=>{
@@ -325,16 +306,29 @@ export class UiEntity extends Component {
         }
     }
 
-    setEscapee() {
+    SetEscape() {
         this.uiEntityAvatar.setEscape();
 
-        // this.spriteHandCards[0].node.active = false;
-        // this.spriteHandCards[1].node.active = false;
-        // this.spriteHandCards[0].node.active = false;
-        // this.spriteHandCards[1].node.active = false;
+        this.labelHandRank.node.active = false;
+        this.posSymbols['dealer'].node.active = false;
+        this.posSymbols['sb'].node.active = false;
+        this.posSymbols['bb'].node.active = false;
 
-        // this.uiHandCards[0].hide();
-        // this.uiHandCards[1].hide();
+        this.uiBettingChips.hide();
+
+        this.callbackProfileOpen = null;
+        this.callbackProfileClose = null;
+
+        this.isPlaying = false;
+        this.node.active = false;
+
+        clearTimeout(this.timeOutId);
+
+        this.ResetResultEffect();        
+    }
+
+    setEscapee() {
+        this.uiEntityAvatar.setEscape();
 
         this.labelHandRank.node.active = false;
         this.posSymbols['dealer'].node.active = false;
@@ -368,28 +362,18 @@ export class UiEntity extends Component {
         this.clearUiBetValue();
     }
 
-    setNickname ( name: string ) {
-        this.uiEntityAvatar.setNickname( name );
+    
+    SetNickname ( name: string ) {
+        this.uiEntityAvatar.SetNickname( name );
     }
 
     SetChips( chips: number ) {
-        this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+        this.uiEntityAvatar.SetChips( chips );
     }
 
-    setUiChips( chips: number ) {
-        // this.chips = chips;
-        // if ( this.labelChips != null ) {
-        //     this.labelChips.color = new Color(255, 200, 70);
-
-        //     this.labelChips.string = CommonUtil.getKoreanNumber(chips);
-        //     if ( this.isUiSitOut == true ) {
-        //         this.setUiSitOut();
-        //     } else {
-        //         this.setUiSitBack();
-        //     }
-        // }
-        this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
-    }
+    // setUiChips( chips: number ) {
+    //     this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+    // }
 
     setUiBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
         if ( this.isUiSitOut == true ) {
@@ -408,13 +392,13 @@ export class UiEntity extends Component {
             this.timeOutId = setTimeout(() => {
                 clearTimeout( this.timeOutId);
                 if ( this.uiEntityAvatar != null ) {
-                    this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+                    this.uiEntityAvatar.SetChips( chips );
                 }
 
             }, 2000);
         } else {
             if ( this.uiEntityAvatar != null ) {
-                this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
+                this.uiEntityAvatar.SetChips( chips );
             }
         }
     }
@@ -471,25 +455,11 @@ export class UiEntity extends Component {
     }
 
     clearUiHandCards() {
-        // this.spriteHandCards[0].spriteFrame = null;
-        // this.spriteHandCards[1].spriteFrame = null;   
 
-        // this.spriteHandCards[0].color = Color.WHITE;
-        // this.spriteHandCards[1].color = Color.WHITE;
-
-        // this.spriteHiddenCards[0].color = Color.WHITE;
-        // this.spriteHiddenCards[1].color = Color.WHITE;
-
-        // this.spriteHandCards[0].node.active = false;
-        // this.spriteHandCards[1].node.active = false;
-
-        // this.uiHandCards[0].hide();
-        // this.uiHandCards[1].hide();
     }
 
     setUiHandCardsFold() {
-        // this.spriteHandCards[0].color = Color.GRAY;
-        // this.spriteHandCards[1].color = Color.GRAY;
+
     }
 
     SetShowHiddenCard() {
@@ -553,45 +523,14 @@ export class UiEntity extends Component {
         this.timerDeltaTime = 0;
     }
 
-    // public setUiFoldCardAnimation() {
-
-    //     let from: Node = this.rootHiddenCard;
-    //     let to: Node = this.rootCardDeck;
-
-    //     let original:Vec3 = new Vec3(from.position);
-
-    //     let op: UIOpacity = from.getComponent(UIOpacity);
-    //     if ( op != null ) {
-    //         op.opacity = 255;
-    //     }
-        
-    //     let duration = 0.2;
-    //     let tw = tween( from )
-    //     .set ({
-    //         position: from.position,
-
-    //     }).to ( duration, {
-    //         position: to.position,
-    //     }, {
-    //         easing: this.easeOutQuad,
-    //         onUpdate: ( target: Node, ratio: number )=> {
-    //             let o = 255 - 255 * ratio;
-    //             op.opacity = o;
-    //         },
-    //     });
-
-    //     tw.call( ()=>{
-    //         from.active = false;
-    //         from.position = new Vec3(original);
-
-    //         op.opacity = 255;
-    //     } );
-    //     tw.start();
-    // }
-
     setUiAllIn() {
         this.uiEntityAvatar.setUiAllin();
         this.timerDeltaTime = 0;
+    }
+
+    SetSitout() {
+        this.isUiSitOut = true;
+        this.uiEntityAvatar.SetSitout();
     }
 
     setUiSitOut() {
@@ -601,6 +540,11 @@ export class UiEntity extends Component {
 
     public getIsUiSitOut(): boolean {
         return this.isUiSitOut;
+    }
+
+    SetSitback() {
+        this.isUiSitOut = false;
+        this.uiEntityAvatar.SetSitback();
     }
 
     setUiSitBack() {
@@ -669,8 +613,8 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.setWaitingTimerProgress( this.timerDeltaTime / this.turnDuration );
     }
 
-    public getNickname(): string {
-        return this.uiEntityAvatar.getNickname();
+    public GetNickname(): string {
+        return this.uiEntityAvatar.GetNickname();
     }
 
     public ResetResultEffect() {
@@ -752,55 +696,6 @@ export class UiEntity extends Component {
         this.rootCards.active = true;
     }
 
-    // prepareCardDispense() {
-    //     this.spriteHiddenCards[0].node.active = false;
-    //     this.spriteHiddenCards[1].node.active = false;
-
-    //     this.uiHandCards[0].hide();
-    //     this.uiHandCards[1].hide();
-
-    //     this.spriteHandCardsBackground[0].node.active = false;
-    //     this.spriteHandCardsBackground[1].node.active = false;
-
-    //     this.rootHiddenCard.active = true;
-    //     this.rootCards.active = true;
-    // }
-
-    // moveDeckToHiddenCard( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
-    //     let target = this.spriteHiddenCards[card].node;
-
-    //     let from = new Vec3(this.rootCardDeck.position);
-    //     let to = new Vec3(this.spriteHiddenCards[card].node.position);
-
-    //     target.active = false;
-
-    //     if ( from == null || to == null ) {
-    //         return;
-    //     }
-       
-    //     let tw = tween( target )
-    //     .delay(delay)
-    //     .set ({
-    //         position: from,
-    //         active: true,
-
-    //     }).to ( duration, {
-    //         position: to,
-    //     }, {
-    //         easing: this.easeOutQuad,
-    //         onUpdate: ( target: Node, ratio: number )=> {
-
-    //         },
-    //     });
-
-    //     tw.call( ()=>{
-    //         if (cb != null ) {
-    //             cb( index );
-    //         }
-    //     } );
-    //     tw.start();
-    // }
-
     CardDispensing( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
         this.hiddenCards[card].Show();        
         let target = this.hiddenCards[card].node;
@@ -837,21 +732,6 @@ export class UiEntity extends Component {
         tw.start();
     }
 
-    // showPlayerCard() {
-    //     this.spriteHiddenCards[0].node.active = false;
-    //     this.spriteHiddenCards[1].node.active = false;
-    // }
-
-    // ShowPlayerCards( card: any ) {
-    //     this.spriteHiddenCards[0].node.active = false;
-    //     this.spriteHiddenCards[1].node.active = false;
-        
-    //     this.uiHandCards[0].show( card.primary, null, 0.2 );
-    //     this.uiHandCards[1].show( card.secondary, null, 0.4 );
-
-    //     this.rootCards.active = true;
-    // }
-
     ShowHands( cards: number[], done: ()=>void = null  ) {
         this.hiddenCards.forEach( (e)=> {
             e.Hide();
@@ -869,36 +749,6 @@ export class UiEntity extends Component {
             });
         }
     }
-
-    // ShowdownPlayerCards( card: any, cb:()=>void ) {
-    //     this.spriteHiddenCards[0].node.active = false;
-    //     this.spriteHiddenCards[1].node.active = false;
-
-    //     let cnt: number = 0;
-    //     let end: boolean = false;
-        
-    //     this.uiHandCards[0].show( card.primary, ()=>{
-    //         cnt++;
-
-    //         if ( cnt >= 2 && end == false ) {
-    //             end = true;
-    //             cb();
-    //         }
-
-    //     }, 0.1 );
-
-    //     this.uiHandCards[1].show( card.secondary, ()=>{
-    //         cnt++;
-
-    //         if ( cnt >= 2 && end == false ) {
-    //             end = true;
-    //             cb();
-    //         }
-    //     }, 0.1 );
-
-    //     this.rootCards.active = true;
-    // }
-
 
     hiddenCardFadeOut( target: Node, duration: number, delay: number ) {
         if ( target == null ) {
