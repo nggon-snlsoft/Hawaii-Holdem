@@ -495,7 +495,7 @@ export class UiTable extends Component {
 		room.onMessage( "SHOW_RIVER", this.onSHOW_RIVER.bind( this ) );
 		room.onMessage( "RIVER_END", this.onRIVER_END.bind( this ) );
 
-		room.onMessage( 'SHOWDOWN_START', this.onSHOWDOWN_START.bind(this) );		
+		room.onMessage( 'SHOWDOWN_START', this.onSHOWDOWN_START.bind(this) );
 		room.onMessage( 'SHOWDOWN_FLOP', this.onSHOWDOWN_FLOP.bind(this) );
 		room.onMessage( 'SHOWDOWN_TURN', this.onSHOWDOWN_TURN.bind(this) );
 		room.onMessage( 'SHOWDOWN_RIVER', this.onSHOWDOWN_RIVER.bind(this) );
@@ -822,11 +822,28 @@ export class UiTable extends Component {
 				let winners = msg['winners'];
 
 				this.SetUiCommunityCards( msg[ "openCards" ] );
+
+				if ( playerCards != null ) {
+					this.onPLAYER_CARDS(playerCards);
+				}
+
+				if ( winners != null ) {
+					this.onWINNERS(winners);
+				}
+
 			} else if ( this.GAME_STATE == GAME_STATE_SHOWDOWN ) {
 				let showdown = msg['showdown'];
 				let winners = msg['winners'];
-				
+
+				this.onSHOWDOWN_START( showdown );
 				this.SetUiCommunityCards( msg[ "openCards" ] );
+				this.UpdatePlayerHandRank();
+
+				if ( this.SHOWDOWN_STATE == SHOWDOWN_END ) {
+					if ( winners != null ) {
+						this.onWINNERS( winners );
+					}
+				}
 			}
 		}
 
@@ -965,38 +982,6 @@ export class UiTable extends Component {
 		} );
 
 		let rs = array.join();
-		let handRank = globalThis.lib[ "Hand" ].solve( rs.split( "," ) );
-		return handRank;
-	}
-
-	public getHandsEval( hands: number[], communities: number[] ): string {
-		//deplicated
-		if ( hands == null || hands.length != 2) {
-			return;
-		}
-
-		if ( communities == null || communities.length != 5 ) {
-			return;
-		}
-
-		let array = [];
-
-		hands.forEach( e => {
-			if( -1 == e ) {
-				return;
-			}
-			array.push( totalCards[ e ] );
-		} );
-
-		communities.forEach( e => {
-			if( -1 == e ) {
-				return;
-			}
-			array.push( totalCards[ e ] );
-		} );
-
-		let rs = array.join();
-
 		let handRank = globalThis.lib[ "Hand" ].solve( rs.split( "," ) );
 		return handRank;
 	}
@@ -1708,7 +1693,7 @@ export class UiTable extends Component {
 		console.log('onSHOWDOWN_FLOP');
 		let cards = msg['cards'];
 
-		this.uiCommunityCards.ShowFlopCards(cards, ()=>{
+		this.uiCommunityCards.ShowFlopCards( cards, ()=>{
 			this.UpdatePlayerHandRank();
 		});
 	}
@@ -2317,7 +2302,7 @@ export class UiTable extends Component {
 
 		let pools: number[] = [];
 		wns.forEach( ( e )=>{
-			let c: any = this.getHandsEval( e.cards, cards )['cards'];
+			let c: any = this.GetHandsEval( e.cards, cards )['cards'];
 			c.forEach( (elem)=> {
 				let name = elem.value + elem.suit;
 				let num = this.ConvertCardNameToIndex( name );
