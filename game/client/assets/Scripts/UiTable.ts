@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, director, Sprite, Vec3, Label, sys,
-    instantiate, bezier, UITransform, tween, SpriteFrame, Color, Quat, Button} from 'cc';
+    instantiate, bezier, UITransform, tween, SpriteFrame, Color, Quat, Button, ConstantForce} from 'cc';
 import { Board } from './Board';
 import { NetworkManager } from './NetworkManager';
 
@@ -44,8 +44,9 @@ export class UiTable extends Component {
 
 	@property(Node) nodeCardShuffleMessage: Node = null;
 	@property(Button) buttonShowCard: Button = null;
-	@property(Button) buttonSitOut: Button = null;
-	@property(Button) buttonSitBack: Button = null;
+	@property(Button) buttonSitout: Button = null;
+	@property(Button) buttonSitoutCancel: Button = null;	
+	@property(Button) buttonSitback: Button = null;
 	@property(Button) buttonEmoticon: Button = null;
 	@property(Button) buttonAddChips: Button = null;
 
@@ -82,7 +83,6 @@ export class UiTable extends Component {
     private startBetFromServer: number = -1;
     private betMin: number = -1;
     private seatMax: number = 6;
-    // private seatPlayers: number[] = [];
     private enableSeats: number[] = [];
 
 	private SEAT_PLAYERS: number[] = [];
@@ -323,13 +323,13 @@ export class UiTable extends Component {
 		this.buttonShowCard.node.on('click', this.onClickShowCard.bind(this));
 		this.buttonShowCard.node.active = false;
 
-		this.buttonSitOut.node.off('click');
-		this.buttonSitOut.node.on('click', this.onClickSitOut.bind(this));
-		this.buttonSitOut.node.active = false;
+		this.buttonSitout.node.off('click');
+		this.buttonSitout.node.on('click', this.onClickSitOut.bind(this));
+		this.buttonSitout.node.active = false;
 
-		this.buttonSitBack.node.off('click');
-		this.buttonSitBack.node.on('click', this.onClickSitBack.bind(this));
-		this.buttonSitBack.node.active = false;
+		this.buttonSitback.node.off('click');
+		this.buttonSitback.node.on('click', this.onClickSitBack.bind(this));
+		this.buttonSitback.node.active = false;
 
 		this.nodeCardShuffleMessage.active = false;
 
@@ -365,18 +365,9 @@ export class UiTable extends Component {
 			seat : this.mySeat 
 		});
 		AudioController.instance.ButtonClick();
-		this.buttonSitOut.interactable = false;
+		this.buttonSitout.interactable = false;
+	}
 
-
-
-		// this.buttonSitOut.node.active = false;
-		// this.buttonSitBack.node.active = true;
-
-		// let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
-		// if ( uiEntity != null ) {
-		// 	uiEntity.setUiSitOut();
-		// }
-    }
 
     public onClickSitBack() {
 		this.sendMsg("SIT_BACK", {
@@ -384,7 +375,7 @@ export class UiTable extends Component {
 		});
 
 		AudioController.instance.ButtonClick();
-		this.buttonSitBack.interactable = false;
+		this.buttonSitback.interactable = false;
 
 		// this.buttonSitBack.node.active = false;
 		// this.buttonSitOut.node.active = false;
@@ -432,8 +423,8 @@ export class UiTable extends Component {
 			seat : this.mySeat 
 		});
 
-		this.buttonSitOut.node.active = false;
-		this.buttonSitBack.node.active = true;
+		this.buttonSitout.node.active = false;
+		this.buttonSitback.node.active = true;
     }
 
     registRoomEvent(room: Colyseus.Room ) {
@@ -586,11 +577,11 @@ export class UiTable extends Component {
 		}
 
 		if (true === myEntity.isSitOut) {
-			this.buttonSitOut.node.active = false;
-			this.buttonSitBack.node.active = true;
+			this.buttonSitout.node.active = false;
+			this.buttonSitback.node.active = true;
 		} else {
-			this.buttonSitOut.node.active = true;
-			this.buttonSitBack.node.active = false;
+			this.buttonSitout.node.active = true;
+			this.buttonSitback.node.active = false;
 		}
 
 		this.buttonShowCard.node.active = false;
@@ -756,12 +747,12 @@ export class UiTable extends Component {
 		}
 
         if ( myEntity.isSitOut == true ) {
-			this.buttonSitOut.node.active = false;
-			this.buttonSitBack.node.active = true;
+			this.buttonSitout.node.active = false;
+			this.buttonSitback.node.active = true;
 
         } else {
-			this.buttonSitOut.node.active = true;
-			this.buttonSitBack.node.active = false;
+			this.buttonSitout.node.active = true;
+			this.buttonSitback.node.active = false;
         }
 
 		this.scheduleOnce(()=>{
@@ -791,9 +782,14 @@ export class UiTable extends Component {
             let uiEntity = this.getUiEntityFromSeat( seat );
 			if ( uiEntity != null ) {
 				uiEntity.SetEntity( entity );
+
+				if ( uiEntity != undefined ) {
+					uiEntity.callbackProfileOpen = ( e ) => {}
+					uiEntity.callbackProfileClose = () => {}	
+				}
 			}
         }
-	}
+    }
 
     private ClearEntities() {
         for ( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
@@ -1596,7 +1592,7 @@ export class UiTable extends Component {
 			this.UpdatePlayerHandRank();
 		});
 	}
-
+	
 	private onSHOWDOWN_END( msg ) {
 
 	}
@@ -1632,6 +1628,7 @@ export class UiTable extends Component {
 		console.log('onCLEAR_ROUND');
 
 		this.uiCommunityCards.Reset();
+		this.buttonShowCard.node.active = false;
 
 		this.labelReadyMessage.node.active = false;
 		this.nodeCardShuffleMessage.active = false;
@@ -1665,7 +1662,6 @@ export class UiTable extends Component {
 			}
 		}
 
-		this.setUiHideHiddenCard();
 		this.ClearPot();
 
 		let me = entities.find( elem => elem.seat == this.mySeat );
@@ -1708,7 +1704,6 @@ export class UiTable extends Component {
 				self.room?.leave();
 			});
 		}
-		this.buttonShowCard.node.active = false;
     }
 
     private onCHECK( msg ) {
@@ -1745,7 +1740,7 @@ export class UiTable extends Component {
 		}
 
 		let chips = Number.parseInt( msg[ "chips" ] );
-		
+
 		uiEntity?.SetChips( chips );
 		if( this.mySeat == seat ) {
 			this.myChips = chips;
@@ -1753,12 +1748,12 @@ export class UiTable extends Component {
 
 		if( true == msg[ "allin" ] ) {
 			uiEntity?.setUiAllIn();			
-			AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
 		}
 		else {
 			uiEntity?.setUiAction( "raise" );
-			AudioController.instance.PlaySound('BET_CHIPS');			
-		}
+				AudioController.instance.PlaySound('BET_CHIPS');							
+			}
 
 		this.setUiPot(msg["dpPot"]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
@@ -1775,17 +1770,17 @@ export class UiTable extends Component {
 			return;
 		}
 
-		uiEntity.clearUiAction();
+			uiEntity.clearUiAction();
 
 		if( this.mySeat != seat ) {
 			uiEntity.clearUiHandCards();
 		}
 		else {
-			uiEntity.setUiHandCardsFold();
-			this.isFold = true;
-		}
+				uiEntity.setUiHandCardsFold();
+				this.isFold = true;
+			}
 
-		uiEntity.setUiFold();
+			uiEntity.setUiFold();			
 
 		if( this.mySeat == seat ) {
 			return;
@@ -1811,14 +1806,14 @@ export class UiTable extends Component {
 			this.myChips = chips;
 		}
 
-		if( true == msg[ "allin" ] ) {
-			uiEntity?.setUiAllIn();
-			AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
-		}
-		else {
-			uiEntity?.setUiAction( "call" );
-			AudioController.instance.PlaySound('VOICE_ACTION_CALL');
-		}
+			if( true == msg[ "allin" ] ) {
+				uiEntity?.setUiAllIn();
+				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+			}
+			else {
+				uiEntity?.setUiAction( "call" );
+				AudioController.instance.PlaySound('VOICE_ACTION_CALL');
+			}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
@@ -1844,14 +1839,14 @@ export class UiTable extends Component {
 			this.myChips = chips;
 		}
 
-		if( true == msg[ "allin" ] ) {
+			if( true == msg[ "allin" ] ) {
 			uiEntity?.setUiAllIn();
-			AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
-		}
-		else {
+				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+			}
+			else {
 			uiEntity?.setUiAction( "bet" );
-			AudioController.instance.PlaySound('BET_CHIPS');
-		}
+				AudioController.instance.PlaySound('BET_CHIPS');
+			}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
@@ -1871,17 +1866,17 @@ export class UiTable extends Component {
 		}
 
 		if ( seat == this.mySeat ) {
-			this.buttonSitOut.interactable = true;
-			this.buttonSitOut.node.active = false;
+			this.buttonSitout.interactable = true;
+			this.buttonSitout.node.active = false;
 
-			this.buttonSitBack.interactable = true;
-			this.buttonSitBack.node.active = true;
+			this.buttonSitback.interactable = true;
+			this.buttonSitback.node.active = true;
 		}
     }
 
     private onSitBack( msg: any ) {
 		let seat = msg['seat'];
-
+		
 		if ( seat == null || seat == undefined ) {
 			return;
 		}
@@ -1909,43 +1904,28 @@ export class UiTable extends Component {
 		// 	uiEntity?.setUiSitBack();			
 		// }
 
-		this.buttonSitOut.node.active = true;
-		this.buttonSitBack.node.active = false;
+		this.buttonSitout.node.active = true;
+		this.buttonSitback.node.active = false;
     }
 
     private onSHOW_CARD( msg ) {
 		let seat = msg[ "seat" ];
 		let cards = msg[ "cards" ];
 
-		// if( false == this.isEnableSeat( seat) || this.mySeat == seat) {
-		// 	if (this.mySeat == seat) {
-		// 		let handRank = this.getHandRank( cards[0], cards[1], this.numberCommunityCards );
-		// 	}
-		// 	return;
-		// }
+		if ( seat == this.mySeat ) {
 
-		// this.playersCARD = {};
+		} else {
+			let uiEntity = this.getUiEntityFromSeat( seat );
+			if ( uiEntity != null ) {
+				uiEntity.HideHiddenCard();
 
-		let uiEntity = this.getUiEntityFromSeat( seat );
-		if( null == uiEntity ) {
-			return;
+				let hands: number[] = [cards[0], cards[1]];
+				uiEntity.ShowHands( hands, ()=>{
+					this.SetPlayerHandRank( hands, uiEntity );
+					AudioController.instance.PlaySound('CARD_SHOW');
+				});
+			}
 		}
-
-		let primaryCard = cards[ 0 ];
-		let secondaryCard = cards[ 1 ];
-		// this.playersCARD[ seat ] = { primaryCard: primaryCard, secondaryCard: secondaryCard };
-
-		// uiEntity.spriteHandCards[ 0 ].spriteFrame = ResourceManager.Instance().getCardImage( primaryCard + 1 );
-		// uiEntity.spriteHandCards[ 1 ].spriteFrame = ResourceManager.Instance().getCardImage( secondaryCard + 1 );
-
-		// uiEntity.spriteHandCards[ 0 ].node.active = true;
-		// uiEntity.spriteHandCards[ 1 ].node.active = true;
-
-		// let handRank = this.getHandRank( primaryCard, secondaryCard, this.numberCommunityCards );
-		// uiEntity.setUiHandRank( handRank );
-		// uiEntity.setShowHiddenCard( false );
-
-		AudioController.instance.PlaySound('CARD_SHOW');
     }
 
     private onPLAYER_CARDS( msg ) {
@@ -1979,6 +1959,7 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
+		console.log( msg );
 		this.msgWINNERS = msg;
 
 		this.uiPlayerActionReservation.reset();
@@ -1986,46 +1967,21 @@ export class UiTable extends Component {
 
 		this.SetWinners();
 
-		// this.setUiWinners();
+		let folders = msg['folders'];
+		let folder = folders.find( (e)=>{
+			return e == this.mySeat;
+		});
 
-		// let me = msg.winners.find((elem) => {return elem.seat === this.mySeat});
-
-		// if( msg.skip == true ){
-		// 	if ( this.buttonShowCard == null ) {
-		// 		return;
-		// 	}
-
-		// 	if (this.isAllIn == true) {
-		// 		this.buttonShowCard.node.active = false;
-
-		// 		let folders = msg["folders"];
-		// 		for( let i = 0; i < folders.length; i++ ) {
-		// 			if( folders[ i ] == this.mySeat ) {
-		// 				this.buttonShowCard.node.active = true;
-		// 				break;
-		// 			}
-		// 		}
-		// 	} else {
-		// 		let timer:number = 0;
-		// 		timer = setTimeout( () => {
-		// 			if ( this.buttonShowCard != null ) {
-		// 				this.buttonShowCard.node.active = true;
-		// 			}
-
-		// 			clearTimeout(timer);
-		// 		}, 1500 );
-		// 	}
-		// 	return;
-		// } else {
-		// 	//msg.skip == true;
-		// }
-		// this.buttonShowCard.node.active = true;
-
+		if ( folder != null ) {
+			this.buttonShowCard.node.active = true;
+		} else {
+			this.buttonShowCard.node.active = false;			
+		}
     }
 
     private onClickShowCard( button: Button ) {
 		button.node.active = false;
-		AudioController.instance.ButtonClick();		
+		AudioController.instance.ButtonClick();
 		if(null == this.msgWINNERS){
 			return;
 		}
@@ -2035,23 +1991,6 @@ export class UiTable extends Component {
 		};
 
 		this.sendMsg( "SHOW_CARD", obj );
-    }
-
-    private setUiHideHiddenCard() {
-		this.enableSeats.forEach( seat => {
-
-			let uiEntity = this.getUiEntityFromSeat( seat );
-			if( null == uiEntity ) {
-				return;
-			}
-
-			if( this.mySeat == seat ) {
-				return;
-			}
-
-			// uiEntity.spriteHiddenCards[ 0 ].node.active = false;
-			// uiEntity.spriteHiddenCards[ 1 ].node.active = false;
-		} );
     }
 
     private SetWinners() {
