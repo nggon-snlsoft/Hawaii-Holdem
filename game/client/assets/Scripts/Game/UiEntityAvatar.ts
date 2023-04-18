@@ -46,7 +46,6 @@ export class UiEntityAvatar extends Component {
     }
 
     SetAvatar( uiEntity: any, entity: any, isMe: boolean ) {
-        console.log( entity );
         this.uiEntity = uiEntity;
         this.entity = entity;
         this.isMe = isMe;
@@ -57,12 +56,8 @@ export class UiEntityAvatar extends Component {
 
         if ( entity.isSitout == true ) {
             this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
-        } else if ( entity.isWait == true ) {
-            if ( this.isMe == true ) {
-                this.SetStatus( ENUM_STATUS_TYPE.NONE );
-            } else {
-                this.SetStatus( ENUM_STATUS_TYPE.WAITING );
-            }
+        } else if ( entity.wait == true ) {
+            this.SetStatus( ENUM_STATUS_TYPE.WAITING );
         } else {
             this.SetStatus( ENUM_STATUS_TYPE.NONE );            
         }
@@ -187,6 +182,18 @@ export class UiEntityAvatar extends Component {
             // this.rootFoldCover.active = false;
         }
     }
+
+    public SetWait() {
+        this.endTurn();
+        this.SetStatus( ENUM_STATUS_TYPE.WAITING );
+
+        // if ( this.uiEntity.getIsUiSitOut() == true ) {
+        //     this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
+        // } else {
+        //     this.SetStatus( ENUM_STATUS_TYPE.WAITING );
+        // }
+    }
+
 
     public setUiWait() {
         // this.rootFoldCover.active = false;

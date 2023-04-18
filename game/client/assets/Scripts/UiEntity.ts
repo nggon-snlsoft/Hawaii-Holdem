@@ -208,10 +208,9 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.SetAvatar( this, entity, this.isMe );
 
         this.endTurn();
-        this.clearUiAction();
-        this.clearUiBetValue();
-        this.clearUiHandCards();
-        this.clearUiHandRank();
+        this.ClearAction();
+        this.ClearBetValue();
+        this.ClearHands();
 
         this.isPlaying = true;
 
@@ -249,50 +248,35 @@ export class UiEntity extends Component {
 
         this.ClearAction();
         this.ClearBetValue();
-        this.ResetHands();
+        this.ClearHands();
+        this.ResetResultEffect();        
         this.isFold = false;
-
-        // this.isFold = false;
-        // this.uiEntityAvatar.clearUiAction();
-
-        // this.clearUiBetValue();
-        // this.clearUiHandCards();
-        this.clearUiHandRank();
 
         if( true == entity.wait ){
             this.setUiWait();
             return;
         }
-
-        this.ResetResultEffect();
         this.setUiPlay(); 
-    }    
+    }
 
-    setUiPrepareRound( entity ) {
-        //Maybe Deplicate
+    SetPrepareRound( entity ) {
         if( null === entity || undefined === entity  ){
             return;
         }
 
+        this.endTurn();        
         this.SetChips( entity.chips );
+        this.ClearAction();
+        this.ClearBetValue();
+        this.ClearHands();
 
         this.isFold = false;
-        this.uiEntityAvatar.clearUiAction();
-
-        this.endTurn();
-
-        this.clearUiAction();
-        this.clearUiBetValue();
-
-        this.clearUiHandCards();
-        this.clearUiHandRank();
+        this.ResetResultEffect();
 
         if( true == entity.wait ){
             this.setUiWait();
             return;
         }
-
-        this.ResetResultEffect();
         this.setUiPlay(); 
     }
 
@@ -327,25 +311,11 @@ export class UiEntity extends Component {
         this.ResetResultEffect();        
     }
 
-    setEscapee() {
-        this.uiEntityAvatar.setEscape();
+    SetWait() {
+        this.clearUiAction();
+        this.clearUiBetValue();
 
-        this.labelHandRank.node.active = false;
-        this.posSymbols['dealer'].node.active = false;
-        this.posSymbols['sb'].node.active = false;
-        this.posSymbols['bb'].node.active = false;
-
-        this.uiBettingChips.hide();
-
-        this.callbackProfileOpen = null;
-        this.callbackProfileClose = null;
-
-        this.isPlaying = false;
-        this.node.active = false;
-
-        clearTimeout(this.timeOutId);
-
-        this.ResetResultEffect();
+        this.uiEntityAvatar.SetWait();
     }
 
     setUiWait() {
@@ -433,6 +403,12 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.clearUiAction();
     }
 
+    SetBetValue( betValue: number, done: ()=> void = null ) {
+        this.uiBettingChips.show(betValue, ()=>{
+
+        });
+    }
+
     setUiBetValue( betValue: number, color?: Color ) {
 
         this.uiBettingChips.show(betValue, ()=>{
@@ -454,24 +430,30 @@ export class UiEntity extends Component {
         });
     }
 
-    clearUiHandCards() {
+    ClearHands() {
+        this.HideHiddenCard();
+        
+        this.ResetHands();
+        this.HideHandCard();
 
-    }
-
-    setUiHandCardsFold() {
-
+        this.ClearHandRank()
     }
 
     SetShowHiddenCard() {
         this.hiddenCards.forEach( (e)=>{
             e.Show();
         });
+
+        this.rootHiddenCards.active = true;
+        this.rootCards.active = true;        
     }
 
     SetHandCardsFold() {
         this.hiddenCards.forEach( (e)=>{
             e.Fold();
         });
+
+        this.rootHandCards.active = true;
     }
 
     SetHandRank( handEval: any ) {
@@ -494,7 +476,7 @@ export class UiEntity extends Component {
         this.labelHandRank.node.active = true;
     }
 
-    clearUiHandRank() {
+    ClearHandRank() {
         this.rootHandRank.active = false;
         this.labelHandRank.node.active = false;
         this.labelHandRank.string = '';
@@ -517,6 +499,14 @@ export class UiEntity extends Component {
         AudioController.instance.StopTimeLimit();
     }
 
+    SetFold() {
+        this.isFold = true;        
+        this.uiEntityAvatar.setUiFold( true );
+        this.timerDeltaTime = 0;
+        
+        this.HideHiddenCard();
+    }
+
     setUiFold() {
         this.isFold = true;        
         this.uiEntityAvatar.setUiFold( true );
@@ -531,6 +521,8 @@ export class UiEntity extends Component {
     SetSitout() {
         this.isUiSitOut = true;
         this.uiEntityAvatar.SetSitout();
+
+        this.HideHiddenCard();
     }
 
     setUiSitOut() {
@@ -677,7 +669,6 @@ export class UiEntity extends Component {
     }
 
     PrepareDispensingCards() {
-        console.log('PrepareDispensingCards');
         this.handCards.forEach( ( e )=> {
             if ( e != null ) {
                 e.Hide();
@@ -738,6 +729,10 @@ export class UiEntity extends Component {
         });
 
         let cnt: number = 0;
+
+        this.rootHandCards.active = true;
+        this.rootCards.active = true;
+
         for ( let i = 0 ; i < cards.length; i ++ ) {
             this.handCards[i].ShowFlip( cards[i], 0.2 + 0.1 * i, ()=>{
                 cnt++;
@@ -792,6 +787,10 @@ export class UiEntity extends Component {
 
     HideHiddenCard() {
         this.rootHiddenCards.active = false;
+    }
+
+    HideHandCard() {
+        this.rootHandCards.active = false;
     }
 }
 

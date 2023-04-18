@@ -11,17 +11,17 @@ const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
 
 enum eGameState {
-	Suspend,
-	Ready,
-	Prepare,
-	PreFlop,
-	Bet,
-	Flop,
-	Turn,
-	River,
-	Result,
-	ShowDown,
-	ClearRound
+	Suspend,	//0
+	Ready,		//1
+	Prepare,	//2
+	PreFlop,	//3
+	Bet,		//4
+	Flop,		//5
+	Turn,		//6
+	River,		//7
+	Result,		//8	
+	ShowDown,	//9
+	ClearRound	//10
 }
 
 export enum eCommunityCardStep {
@@ -76,6 +76,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 	seatWaitingList : string[] = [];
 	_roomConf: any = null;
+	_initPot: number = 0;
 
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
@@ -476,6 +477,7 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: entity.tableInitChips,
 			tableBuyInAmount: entity.tableBuyInAmount,
 			tableBuyInCount: entity.tableBuyInCount,
+			initPot: this._initPot
 		});
 
 		if (eGameState.Suspend === this.state.gameState) {
@@ -627,6 +629,148 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 	}
 
+	private GetPlayerCards(): any {
+		let cards: any = {};
+		let isWinners: any = {};
+
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				continue;
+			}
+
+			cards[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
+			isWinners[ this.state.entities[ i ].seat ] = false;
+			let winner = this.potCalc.IsWinner(this.state.entities[i].seat);
+			isWinners[ this.state.entities[ i ].seat ] = winner;
+		}
+
+		return {
+			cards: cards,
+			winners: isWinners,
+			communities: this.communityCardIndex,
+		};
+	}
+
+	private GetWinners( skip : boolean, isAllIn : boolean): any {		
+		let rakeInfo = this.potCalc.userRakeInfo;
+		let pots = this.potCalc.GetPots(true);
+		let winners = [];
+		let folders: number[] = [];
+
+		if (null != rakeInfo) {
+			for (let i = 0; i < rakeInfo.length; i++) {
+				let element = rakeInfo[i];
+				
+				let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
+
+				if(null == ent){
+					continue;
+				}
+
+				ent.rake += element.rake;
+			}
+		}
+
+		for(let i = 0; i < pots.length; i++){
+			let pot : any = pots[i];
+			let potWinners : any[] = pot.winner;
+			let potAmount = pot.rake == undefined ? pot.total : pot.total - pot.rake;
+			let winAmount = potAmount / potWinners.length;
+
+			for(let j = 0; j < potWinners.length; j++){
+				let entity = this.getEntity(potWinners[j]);
+
+				if(null === entity || undefined === entity){
+					continue;
+				}
+
+				entity.chips += winAmount;
+				entity.winAmount += winAmount;
+				entity.winHandRank = entity.eval.handName;
+
+				winners.push( {
+					seat: entity.seat,
+					cards: entity.cardIndex,
+					nickname: entity.nickname,
+					eval: entity.eval,
+					chips: entity.chips,
+					winAmount: entity.winAmount,
+					fold : entity.fold
+				} );
+			}
+		}
+
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				folders.push(this.state.entities[i].seat);
+			}
+		}
+
+		let playerCards: any = {};
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				continue;
+			}
+
+			playerCards[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
+		}
+		
+		return {
+			skip: skip,
+			winners: winners,
+			pot: this.state.pot,
+			dpPot : pots,
+			cards: this.communityCardIndex,
+			playerCards: playerCards,
+			folders: folders,
+			isAllInMatch : isAllIn
+		}
+	}
+
+	private GetShowdown(): any {
+		let folders: number[] = [];
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				folders.push(this.state.entities[i].seat);
+			}
+		}
+
+		let hands: any = {};
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			if( true === this.state.entities[ i ].wait ) {
+				continue;
+			}
+
+			if(true === this.state.entities[i].fold) {
+				continue;
+			}
+
+			hands[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
+		}
+
+		return {
+			pot: this.state.pot,
+			hands: hands,
+			folders: folders,
+		}
+	}	
+
 	onBuyIn( client: Client, msg: any ) {
 		try {
 			logger.info( "[ onBuyIn ] msg : %s", msg );
@@ -727,10 +871,49 @@ export class HoldemRoom extends Room<RoomState> {
 						tableBuyInCount: entity.tableBuyInCount,
 					});
 
+					let playerCards = null;
+					let winners = null;
+					let showdown = null;
+
+					if ( this.state.gameState == eGameState.Result )
+					{
+						playerCards = this.GetPlayerCards();
+						winners = this.GetWinners( this.isAllFold(), false );
+					}
+
+					if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
+						showdown = this.GetShowdown();
+						winners = this.GetWinners( false, true );
+
+						switch ( this.SHOWDOWN_STATE ) {				
+							case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
+								openCards = [];
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_FLOP:
+								openCards = this.communityCardIndex.slice( 0, 3 );
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_TURN:
+								openCards = this.communityCardIndex.slice( 0, 4 );
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_RIVER:
+								openCards = this.communityCardIndex;
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOWDOWN_END:
+								openCards = this.communityCardIndex;							
+								winners = this.GetWinners( false, true );
+								break;
+						}						
+					}
+		
 					client.send( "JOIN", {
 						yourself: entity,
 						entities: this.state.entities,
 						gameState: this.state.gameState,
+						showdownState: this.SHOWDOWN_STATE,
 						betSeat: this.betSeat,
 						endSeat: this.endSeat,
 						maxBet: this.state.maxBet,
@@ -748,6 +931,10 @@ export class HoldemRoom extends Room<RoomState> {
 						tableInitChips: entity.tableInitChips,
 						tableBuyInAmount: entity.tableBuyInAmount,
 						tableBuyInCount: entity.tableBuyInCount,
+						initPot: this._initPot,
+						playerCards: playerCards,
+						showdown: showdown,
+						winners: winners,
 					} );
 
 					if( eGameState.Suspend === this.state.gameState ) {
@@ -1354,11 +1541,12 @@ export class HoldemRoom extends Room<RoomState> {
 				this.updatePlayerEligible();
 
 				let isStart = this.checkStartCondition();
-				if ( true === isStart ) {
+				if ( isStart == true) {
 					this.updateButtons();
 					this.changeState( eGameState.ClearRound );
 					// this.changeState( eGameState.Prepare );
 				} else {
+					console.log('this.changeState( eGameState.Suspend );');
 					this.changeState( eGameState.Suspend );
 				}
 			}
@@ -1637,6 +1825,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		switch( state ) {
 			case eGameState.Suspend:
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;				
 				this.broadcast( "SUSPEND_ROUND", {
 					entities: this.state.entities,
 					dealerPos: this.state.dealerSeat,
@@ -1644,6 +1833,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.Ready:
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;				
 				this.broadcast( "READY_ROUND", {
 					msg: "READY_ROUND", timeMS: this.conf[ "readyTerm" ], entities: this.state.entities
 				} );
@@ -1651,7 +1841,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			case eGameState.Prepare: // reset room, set dealer pos, card shuffle, pick community cards
 				logger.info( "[ changeState ] PREPARE" );
-
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 				this.potCalc.Clear();
 				this.prepareRound();
 				this.cardDispensing();
@@ -1698,7 +1888,14 @@ export class HoldemRoom extends Room<RoomState> {
 				this.potCalc.CalculatePot();
 				
 				logger.info( "[ changeState ] FLOP. card : %s", this.communityCardIndex.slice( 0, 3 ).toString() );
-				this.broadcast( "SHOW_FLOP", { cards: this.communityCardIndex.slice( 0, 3 ), dpPot : this.potCalc.GetPots(false), potTotal : this.state.pot - this.potCalc.rakeTotal});
+
+				this._initPot = this.state.pot;
+				this.broadcast( "SHOW_FLOP", 
+				{ 
+					cards: this.communityCardIndex.slice( 0, 3 ), 
+					dpPot : this.potCalc.GetPots(false), 
+					pot : this.state.pot,
+				});
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
@@ -1707,7 +1904,12 @@ export class HoldemRoom extends Room<RoomState> {
 
 			case eGameState.Turn:
 				logger.info( "[ changeState ] TURN. card : %s", this.communityCardIndex.slice( 3, 4 ).toString() );
-				this.broadcast( "SHOW_TURN", { cards: this.communityCardIndex.slice( 3, 4 ), dpPot : this.potCalc.GetPots(false)} );
+				this._initPot = this.state.pot;
+				this.broadcast( "SHOW_TURN", { 
+					cards: this.communityCardIndex.slice( 3, 4 ), 
+					dpPot : this.potCalc.GetPots(false),
+					pot: this.state.pot,
+				} );
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
@@ -1717,7 +1919,12 @@ export class HoldemRoom extends Room<RoomState> {
 
 			case eGameState.River:
 				logger.info( "[ changeState ] RIVER. card : %s", this.communityCardIndex.slice( 4 ).toString() );
-				this.broadcast( "SHOW_RIVER", { cards: this.communityCardIndex.slice( 4 ), dpPot : this.potCalc.GetPots(false)} );
+				this._initPot = this.state.pot;
+				this.broadcast( "SHOW_RIVER", { 
+					cards: this.communityCardIndex.slice( 4 ), 
+					dpPot : this.potCalc.GetPots(false),
+					pot: this.state.pot,
+				} );
 
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Bet );
@@ -1745,7 +1952,7 @@ export class HoldemRoom extends Room<RoomState> {
 					}
 				}
 
-				this.finishProc( this.isAllFold(), isAllIn);
+				this.finishProc( this.isAllFold(), isAllIn );
 				this.elapsedTick = 0;
 				break;
 			case eGameState.ShowDown:
@@ -1766,6 +1973,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.processPendingAddChips();
 				this.processReBuyInRequest();
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 
 				this.broadcast( "CLEAR_ROUND", {
 					msg: "CLEAR_ROUND", timeMS: this.conf[ "clearTerm" ] * 1000, entities: this.state.entities
@@ -1973,10 +2181,10 @@ export class HoldemRoom extends Room<RoomState> {
 		this.communityCardIndex = [];
 		this.centerCardState = eCommunityCardStep.PREPARE;
 
-		logger.info( "[ card shuffle");
+		logger.info( "[ card shuffle ]");
 
 		// card shuffle
-		for( let i = 0; i < 2; i++ ) {
+		for( let i = 0; i < 10; i++ ) {
 			for( let index = this.totalCards2.length - 1; index > 0; index-- ) {
 				const randomPosition = Math.floor( Math.random() * ( index + 1 ) );
 				const temporary = this.totalCards2[ index ];
@@ -2185,6 +2393,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.state.maxBet = this.state.startBet;
 		this.state.minRaise = this.state.maxBet;
+		this._initPot = this.state.pot;
 
 		this.broadcast( "BLIND_BET", {
 			smallBlind: smallBlind, // this.state.startBet / 2,
@@ -3027,7 +3236,6 @@ export class HoldemRoom extends Room<RoomState> {
 			folders: folders,
 			isAllInMatch : isAllIn
 		} );
-
 	}
 
 	updateBetSeat( seat: number ) {

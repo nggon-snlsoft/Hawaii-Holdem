@@ -22,7 +22,6 @@ import { ResourceManager } from './ResourceManager';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 import { UiCommunityCards } from './Game/UiCommunityCards';
-import { ENUM_COMMUNTY_CARD_STATE, ENUM_GAME_STATE } from './HoldemDefines';
 
 const { ccclass, property } = _decorator;
 
@@ -33,6 +32,25 @@ let totalCards: string[] = [
 	"Th", "9h", "8h", "7h", "6h", "5h", "4h", "3h", "2h", "As", 
 	"Ks", "Qs", "Js", "Ts", "9s", "8s", "7s", "6s", "5s", "4s",
 	"3s", "2s" ];
+
+const GAME_STATE_SUSPEND: number = 0;
+const GAME_STATE_READY: number = 1;
+const GAME_STATE_PREPARE: number = 2;
+const GAME_STATE_PREFLOP: number = 3;
+const GAME_STATE_BET: number = 4;
+const GAME_STATE_FLOP: number = 5;
+const GAME_STATE_TURN: number = 6;
+const GAME_STATE_RIVER: number = 7;
+const GAME_STATE_RESULT: number = 8;
+const GAME_STATE_SHOWDOWN: number = 9;
+const GAME_STATE_CLEAR: number = 10;
+
+const SHOWDOWN_NONE: number = 0;
+const SHOWDOWN_START: number = 1;
+const SHOWDOWN_FLOP: number = 2;
+const SHOWDOWN_TURN: number = 3;
+const SHOWDOWN_RIVER: number = 4;
+const SHOWDOWN_END: number = 5;
 
 @ccclass('UiTable')
 export class UiTable extends Component {
@@ -45,7 +63,6 @@ export class UiTable extends Component {
 	@property(Node) nodeCardShuffleMessage: Node = null;
 	@property(Button) buttonShowCard: Button = null;
 	@property(Button) buttonSitout: Button = null;
-	@property(Button) buttonSitoutCancel: Button = null;	
 	@property(Button) buttonSitback: Button = null;
 	@property(Button) buttonEmoticon: Button = null;
 	@property(Button) buttonAddChips: Button = null;
@@ -57,8 +74,11 @@ export class UiTable extends Component {
 	@property(UiShowDownEffect) uiShowDownEffect: UiShowDownEffect = null;
 	@property(UiEffectShowRiver) uiEffectShowRiver: UiEffectShowRiver = null;
 
-	private GAME_STATE: ENUM_GAME_STATE = ENUM_GAME_STATE.SUSPEND;
-	private CENTER_CARD_STATE: ENUM_COMMUNTY_CARD_STATE = ENUM_COMMUNTY_CARD_STATE.PREPARE;
+	private GAME_STATE: number = GAME_STATE_SUSPEND;
+	private SHOWDOWN_STATE: number = SHOWDOWN_NONE;
+
+	private SEAT_PLAYERS: number[] = [];
+    private PLAYER_CARDS: {} = null;
 
     private roundState: string = "";
     private spritePotRoot: Sprite = null;
@@ -85,8 +105,6 @@ export class UiTable extends Component {
     private seatMax: number = 6;
     private enableSeats: number[] = [];
 
-	private SEAT_PLAYERS: number[] = [];
-
     private dealerSeatPosition: number = -1;
     private smallBlindSeatPosition: number = -1;
     private bigBlindSeatPosition: number = -1;
@@ -96,6 +114,8 @@ export class UiTable extends Component {
 
     private isFold: boolean = false;
     private isAllIn: boolean = false;
+	private isSitout: boolean = false;
+	private isWait: boolean = false;
 
     private readyMessageHandler: number = -1;
     private countPlayers: number = -1;
@@ -106,8 +126,10 @@ export class UiTable extends Component {
 	private labelCurrentPot: Label = null;
 
 	private rootPotChips: Node = null;
-    private PLAYER_CARDS: {} = null;
-
+	private labelSitout: Label = null;
+	private labelSitback: Label = null;
+	private isReserveSitout: boolean = false;
+	private isSitoutable: boolean = false;
 
     init() {
         this.seatMax = UiTable.seatMaxFromServer;
@@ -160,7 +182,6 @@ export class UiTable extends Component {
 
         });
     }
-
 
 	onClickShowEmoticon(button: Button) {
 		AudioController.instance.ButtonClick();		
@@ -232,7 +253,7 @@ export class UiTable extends Component {
 		for ( let i = 1; i < this.entityUiElements.length; i++ ) {
 			let entity = this.entityUiElements[i];
 			if (entity != null) {
-				entity.setEscapee();
+				entity.SetEscape();
 			}
 		}
 
@@ -324,12 +345,22 @@ export class UiTable extends Component {
 		this.buttonShowCard.node.active = false;
 
 		this.buttonSitout.node.off('click');
-		this.buttonSitout.node.on('click', this.onClickSitOut.bind(this));
+		this.buttonSitout.node.on('click', this.onClickSitout.bind(this));
 		this.buttonSitout.node.active = false;
 
+		this.labelSitout = this.buttonSitout.node.getChildByPath('LABEL').getComponent(Label);
+		if ( this.labelSitout != null ) {
+			this.labelSitout.string = '자리비움';
+		}
+
 		this.buttonSitback.node.off('click');
-		this.buttonSitback.node.on('click', this.onClickSitBack.bind(this));
+		this.buttonSitback.node.on('click', this.onClickSitback.bind(this));
 		this.buttonSitback.node.active = false;
+
+		this.labelSitback = this.buttonSitback.node.getChildByPath('LABEL').getComponent(Label);
+		if ( this.labelSitback != null ) {
+			this.labelSitback.string = '게임복귀';
+		}
 
 		this.nodeCardShuffleMessage.active = false;
 
@@ -360,28 +391,53 @@ export class UiTable extends Component {
         this.uiSeats.updateSeatInfo( msg["entities"], msg["seatInfo"], msg["bbSeat"], msg["sbSeat"], msg["dealerSeat"]);
     }
 
-    public onClickSitOut() {
+    public onClickSitout() {
+		AudioController.instance.ButtonClick();		
+		if ( this.isSitoutable == false ) {
+			this.isReserveSitout = true;
+
+			this.buttonSitout.node.active = false;
+			this.labelSitback.string = '자리비움 취소';
+			this.buttonSitback.node.active = true;
+
+		} else {
+			this.SetSitout();
+			
+			// this.buttonSitout.node.active = false;
+			// this.labelSitback.string = '게임복귀';
+			// this.buttonSitback.node.active = true;
+		}
+	}
+
+    public onClickSitback() {
+		AudioController.instance.ButtonClick();
+
+		if ( this.isReserveSitout == true ) {
+			this.isReserveSitout = false;
+
+			this.buttonSitback.node.active = false;
+			this.buttonSitout.node.active = true;
+		} else {
+			this.SetSitback();
+
+
+			// this.buttonSitback.node.active = false;
+			// this.buttonSitout.node.active = true;
+		}
+    }
+
+	private SetSitout() {
 		this.sendMsg("SIT_OUT", { 
 			seat : this.mySeat 
 		});
-		AudioController.instance.ButtonClick();
-		this.buttonSitout.interactable = false;
+		this.isReserveSitout = false;
 	}
 
-
-    public onClickSitBack() {
+	private SetSitback() {
 		this.sendMsg("SIT_BACK", {
 			seat : this.mySeat
 		});
-
-		AudioController.instance.ButtonClick();
-		this.buttonSitback.interactable = false;
-
-		// this.buttonSitBack.node.active = false;
-		// this.buttonSitOut.node.active = false;
-
-		// this.isSitOutReservation = false;
-    }
+	}
 
     onClickAddChips() {
 		AudioController.instance.ButtonClick();
@@ -418,15 +474,6 @@ export class UiTable extends Component {
         this.node.active = false;
     }
 
-    sitOut() {
-		this.sendMsg("SIT_OUT", { 
-			seat : this.mySeat 
-		});
-
-		this.buttonSitout.node.active = false;
-		this.buttonSitback.node.active = true;
-    }
-
     registRoomEvent(room: Colyseus.Room ) {
         this.room = room;
         room.onMessage( "NEW_ENTITY", this.onNEW_ENTITY.bind( this ) );
@@ -452,8 +499,6 @@ export class UiTable extends Component {
 		room.onMessage( 'SHOWDOWN_FLOP', this.onSHOWDOWN_FLOP.bind(this) );
 		room.onMessage( 'SHOWDOWN_TURN', this.onSHOWDOWN_TURN.bind(this) );
 		room.onMessage( 'SHOWDOWN_RIVER', this.onSHOWDOWN_RIVER.bind(this) );
-		room.onMessage( 'SHOWDOWN_END', this.onSHOWDOWN_END.bind(this) );
-
 		room.onMessage( "CLEAR_ROUND", this.onCLEAR_ROUND.bind( this ) );
         
         //PLAYER ACTION
@@ -477,8 +522,8 @@ export class UiTable extends Component {
 
 		// room.onMessage( "RES_ADD_CHIPS_PEND", this.onRES_ADD_CHIPS_PEND.bind( this ) );
 
-		room.onMessage( "SIT_OUT", this.onSitOut.bind(this));
-		room.onMessage( "SIT_BACK", this.onSitBack.bind(this));
+		room.onMessage( "SIT_OUT", this.onSIT_OUT.bind(this));
+		room.onMessage( "SIT_BACK", this.onSIT_BACK.bind(this));
 
         room.onMessage( "SHOW_SELECT_SEAT", this.onSHOW_SELECT_SEAT.bind(this));
         room.onMessage( "UPDATE_SELECT_SEAT", this.onUPDATE_SELECT_SEAT.bind(this));
@@ -596,7 +641,7 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 
 			if( null == entity ) {
-				uiEntity?.setEscapee();
+				uiEntity?.SetEscape();
 				continue;
 			}
 
@@ -654,7 +699,7 @@ export class UiTable extends Component {
     }
 
     public onJOIN( room, msg) {
-		console.log('onJOIN')
+		console.log('onJOIN');
 		console.log( msg );
 
 		Board.big = msg["big"];
@@ -664,7 +709,7 @@ export class UiTable extends Component {
 
         this.room = room;
 		this.GAME_STATE = msg['gameState'];
-		this.CENTER_CARD_STATE = msg['centerCardState'];
+		this.SHOWDOWN_STATE = msg['showdownState'];
 
 		//INTIALIZE_TABLE
 		this.uiCommunityCards.Reset();
@@ -677,7 +722,6 @@ export class UiTable extends Component {
 		this.uiRoundPotValue.hide();
 
 		this.msgWINNERS = '';
-		// this.playersCARD = null;
 
 		//INITALIZE_CONTROLS
 		this.uiPlayerAction.init( Board.small, Board.big );
@@ -703,13 +747,30 @@ export class UiTable extends Component {
         }
 
         this.SetEntities( players );
+		this.enableSeats = [];
 
-		if ( this.GAME_STATE == ENUM_GAME_STATE.SUSPEND ) {
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
+			let entity =  msg[ "entities" ].find( elem => elem.seat == seat );
+			let uiEntity = this.entityUiElements[ i ];
+
+			if( null == entity ) {
+				uiEntity?.SetEscape();
+				continue;
+			}
+
+			this.enableSeats.push( entity.seat );
+		}		
+
+		if ( this.GAME_STATE == GAME_STATE_SUSPEND ) {
+
 			this.labelReadyMessage.string = '다른 플레이어를 기다리고 있습니다';
 			this.labelReadyMessage.node.active = true;
 
 			this.uiPot.Hide();
+
 		} else {
+
 			this.dealerSeatPosition = msg["dealer"];
 			let dealer = this.getUiEntityFromSeat( this.dealerSeatPosition );
 			dealer?.setUiPosSymbol( "dealer" );
@@ -722,27 +783,50 @@ export class UiTable extends Component {
 			let bigBlind = this.getUiEntityFromSeat( this.bigBlindSeatPosition );
 			bigBlind?.setUiPosSymbol( "bb" );
 
-			if ( this.GAME_STATE != ENUM_GAME_STATE.PREPARE && 
-				 this.GAME_STATE != ENUM_GAME_STATE.READY ) {
-
+			if ( this.GAME_STATE == GAME_STATE_PREFLOP ||
+				 this.GAME_STATE == GAME_STATE_BET || 
+				 this.GAME_STATE == GAME_STATE_FLOP ||
+				 this.GAME_STATE == GAME_STATE_TURN ||
+				 this.GAME_STATE == GAME_STATE_RIVER )
+			{
 				this.curPotValue = msg['pot'];
 				this.uiPotChips.show( this.curPotValue );
 				this.uiRoundPotValue.show( this.curPotValue );
 
-				players.forEach( (e)=> {
-					if ( e.seat != this.mySeat && e.wait != true ) {
-						let uiEntity = this.getUiEntityFromSeat( e.seat );							
-						if ( uiEntity != null ) {
-							uiEntity.SetShowHiddenCard();
-
+				players.forEach( ( e )=> {
+					let uiEntity = this.getUiEntityFromSeat( e.seat );
+					if ( uiEntity != null ) {
+						if ( e.wait == true ) {
+							uiEntity.SetWait();
+						} else {
 							if ( e.fold == true ) {
-								uiEntity.SetHandCardsFold();
+								uiEntity.SetFold();								
+							} else {
+								if ( e.seat != this.mySeat ) {
+									uiEntity.ClearHands();
+									uiEntity.SetShowHiddenCard();
+									uiEntity.SetBetValue( e.roundBet );
+								}
 							}
 						}
-
 					}
 				});
-				this.SetUiCommunityCards( msg[ "openCards" ] );					
+
+				this.curPotValue = msg['pot'];
+				this.uiPotChips.show( msg['initPot'] );
+				this.uiRoundPotValue.show( msg['initPot'] );
+				
+				this.SetUiCommunityCards( msg[ "openCards" ] );
+			} else if ( this.GAME_STATE == GAME_STATE_RESULT ) {
+				let playerCards = msg['playerCards'];
+				let winners = msg['winners'];
+
+				this.SetUiCommunityCards( msg[ "openCards" ] );
+			} else if ( this.GAME_STATE == GAME_STATE_SHOWDOWN ) {
+				let showdown = msg['showdown'];
+				let winners = msg['winners'];
+				
+				this.SetUiCommunityCards( msg[ "openCards" ] );
 			}
 		}
 
@@ -814,7 +898,7 @@ export class UiTable extends Component {
 		this.uiPot.Hide();
     }
 
-    private clearPosSymbol() {
+    private ClearPosSymbol() {
 		this.entityUiElements.forEach( element => element.clearUiPositionSymbol() );        
     }
 
@@ -917,7 +1001,11 @@ export class UiTable extends Component {
 		return handRank;
 	}
 
-	private SetMyHandRank() {
+	private SetMyHandRank() {		
+		if ( this.myCards[0] < 0 || this.myCards[1] < 0 ) {
+			return;
+		}
+
 		let hand = this.myCards;
 		let communities = this.uiCommunityCards.GetCommunityCards();
 
@@ -929,6 +1017,10 @@ export class UiTable extends Component {
     }
 
 	private SetPlayerHandRank( cards: number[], uiEntity: any ) {
+		if ( cards.length != 2) {
+			return;
+		}		
+
 		let hand = cards;
 		let communities = this.uiCommunityCards.GetCommunityCards();
 
@@ -936,6 +1028,12 @@ export class UiTable extends Component {
 		if ( uiEntity != null ) {
 			uiEntity.SetHandRank( evaluate );
 		}
+	}
+
+	private EndTurns() {
+		this.entityUiElements.forEach( element => {
+			element.endTurn();
+		} );
 	}
 
 	private ClearUiEntities() {
@@ -1010,17 +1108,17 @@ export class UiTable extends Component {
 
 			AudioController.instance.PlaySound('MY_TURN');
 
-			let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
-			if ( uiEntity != null ) {
-				if ( uiEntity.getIsUiSitOut() == true ) {
-					let obj = {
-						seat: this.mySeat
-					};
-					this.sendMsg( "FOLD", obj );
-					this.uiPlayerAction.hide();
-					return;					
-				}
-			}
+			// let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
+			// if ( uiEntity != null ) {
+			// 	if ( uiEntity.getIsUiSitOut() == true ) {
+			// 		let obj = {
+			// 			seat: this.mySeat
+			// 		};
+			// 		this.sendMsg( "FOLD", obj );
+			// 		this.uiPlayerAction.hide();
+			// 		return;					
+			// 	}
+			// }
 
 			let reservation = this.uiPlayerActionReservation.checkReservation( myBet, curBet );
 			if ( reservation != ENUM_RESERVATION_TYPE.RESERVATION_NONE ) {
@@ -1054,7 +1152,18 @@ export class UiTable extends Component {
 				return;
 
 			} else {
-				uiEntity.StartActionTimer();
+				let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
+				if ( uiEntity != null ) {
+					uiEntity.StartActionTimer();
+					// if ( uiEntity.getIsUiSitOut() == true ) {
+					// 	let obj = {
+					// 		seat: this.mySeat
+					// 	};
+					// 	this.sendMsg( "FOLD", obj );
+					// 	this.uiPlayerAction.hide();
+					// 	return;					
+					// }
+				}
 			}
 
 			this.uiPlayerActionReservation.hide();
@@ -1130,8 +1239,6 @@ export class UiTable extends Component {
 					seat: this.mySeat,
 					kind: kind,
 				};
-
-				// this.sendMsg('BET_ANNOUNCE', obj);
 			};
 		}
 		else {
@@ -1157,8 +1264,8 @@ export class UiTable extends Component {
     }
 
     private onBLIND_BET( msg ) {
+		console.log('onBLIND_BET');
 		this.roundState = "BLIND_BET";
-
 		this.betMin = msg[ "maxBet" ];
 
 		this.clearUiEntitiesAction();
@@ -1236,15 +1343,31 @@ export class UiTable extends Component {
 			}
 		}
 
+
 		this.curPotValue = msg[ "pot" ];
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
+
+		this.isSitoutable = false;
+		if ( this.isSitout == true ) {
+
+		}
+
+		this.isSitoutable = false;
+		if ( this.isWait == true ) {
+
+		}
+		else {
+			this.labelSitout.string = '자리비움 예약';
+			this.labelSitback.string = '자리비움 취소';
+		}
     }
 
     private onSUSPEND_ROUND( msg ) {
 		console.log('onSUSPEND_ROUND');
+		clearInterval(this.readyMessageHandler);
 
 		this.roundState = "SUSPEND_ROUND";
 		this.labelReadyMessage.node.active = false;
@@ -1268,11 +1391,11 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 
 			if( null == entity ) {
-				uiEntity?.setEscapee();
+				uiEntity?.SetEscape();
 				continue;
 			}
 
-			uiEntity?.setUiPrepareRound( entity );
+			uiEntity?.SetPrepareRound( entity );
 
 			if( seat == this.mySeat ) {
 				this.myWaitStatus = entity.wait;
@@ -1286,6 +1409,7 @@ export class UiTable extends Component {
     private onREADY_ROUND( msg ) {
 		console.log('onREADY_ROUND');		
 		this.roundState = "READY_ROUND";
+		clearInterval(this.readyMessageHandler);		
 
 		let timeMs = msg[ "timeMS" ] / 1000;
 		let lb:string = "새로운 게임이 " + timeMs + " 초 후에 시작합니다";
@@ -1321,9 +1445,6 @@ export class UiTable extends Component {
 		this.startBetFromServer = msg[ "startBet" ];
 		this.betMin = msg[ "startBet" ];
 
-		// this.myPrimaryCardIndex = -1;
-		// this.mySecondaryCardIndex = -1;
-
 		this.enableSeats = [];
 		this.isAllIn = false;
 
@@ -1333,7 +1454,7 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 
 			if( null == entity ) {
-				uiEntity?.setEscapee();
+				uiEntity.SetEscape();
 				continue;
 			}
 
@@ -1342,34 +1463,40 @@ export class UiTable extends Component {
 				this.isFold = false;
 			}
 
-			if( true == entity.wait ) {
-				uiEntity.setUiWait();
-				continue;
+			if ( uiEntity != null ) {
+				if ( entity.wait == true ) {
+					uiEntity.setUiWait();
+				}
+				else {
+					this.enableSeats.push( entity.seat );
+					uiEntity.SetPrepareRound( entity );
+				}
 			}
-
-			uiEntity?.setUiSitBack();
-			this.enableSeats.push( entity.seat );
-			uiEntity?.setUiPrepareRound( entity );
 		}
 
-		// this.clearUiCommunityCards();
 		this.ClearPot();
-		this.clearPosSymbol();
+		this.ClearPosSymbol();
 
 		let uiDeal = this.getUiEntityFromSeat( this.dealerSeatPosition );
-		uiDeal?.setUiPosSymbol( "dealer" );
+		if ( uiDeal != null ) {
+			uiDeal.setUiPosSymbol( "dealer" );
+		}
 
 		let uiSB = this.getUiEntityFromSeat( this.smallBlindSeatPosition );
-		uiSB?.setUiPosSymbol( "sb" );
+		if ( uiSB != null ) {
+			uiSB.setUiPosSymbol( "sb" );
+		}
 
 		let uiBB = this.getUiEntityFromSeat( this.bigBlindSeatPosition );
-		uiBB?.setUiPosSymbol( "bb" );
+		if ( uiBB != null ) {
+			uiBB.setUiPosSymbol( "bb" );
+		}
     }
 
     private onHANDLE_ESCAPEE( msg ) {
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
-		uiEntity?.setEscapee();
+		uiEntity.SetEscape();
     }
 
 	private onPRE_FLOP_END( msg ) {
@@ -1400,6 +1527,7 @@ export class UiTable extends Component {
 
     private onSHOW_FLOP( msg ) {
 		console.log('onSHOW_FLOP');
+		console.log(msg);
 		this.roundState = "SHOW_FLOP";
 
 		this.uiPlayerActionReservation.resetCheck();
@@ -1407,14 +1535,17 @@ export class UiTable extends Component {
 		this.clearUiEntitiesAction();
 
 		let cards = msg[ "cards" ];
-		console.log(cards);
 
 		this.uiCommunityCards.ShowFlopCards( cards, ()=>{
-			this.SetMyHandRank();
+			if ( this.isEnableSeat( this.mySeat ) == true ) {
+				this.SetMyHandRank();
+			}
 		} );
 
-		let pot = msg['potTotal'];
-		this.uiPot.UpdatePotTotal( pot );
+		this.curPotValue = msg['pot'];
+		this.uiPot.UpdatePotTotal( this.curPotValue );
+		this.uiPotChips.show( this.curPotValue );
+		this.uiRoundPotValue.show( this.curPotValue );
     }
 
 	private onFLOP_END( msg ) {
@@ -1452,11 +1583,17 @@ export class UiTable extends Component {
 
 		let cards = msg[ "cards" ];
 		console.log('onSHOW_TURN');
-		console.log(cards);
 
 		this.uiCommunityCards.ShowTurnCard( cards, ()=>{
-			this.SetMyHandRank();
+			if ( this.isEnableSeat( this.mySeat ) == true ) {
+				this.SetMyHandRank();
+			}
 		} );
+
+		this.curPotValue = msg['pot'];
+		this.uiPot.UpdatePotTotal( this.curPotValue );
+		this.uiPotChips.show( this.curPotValue );
+		this.uiRoundPotValue.show( this.curPotValue );
     }
 
 	private onTURN_END( msg ) {
@@ -1495,8 +1632,15 @@ export class UiTable extends Component {
 		let cards = msg[ "cards" ];
 
 		this.uiCommunityCards.ShowRiverCard( cards, ()=>{
-			this.SetMyHandRank();
+			if ( this.isEnableSeat( this.mySeat ) == true ) {
+				this.SetMyHandRank();
+			}
 		});
+
+		this.curPotValue = msg['pot'];
+		this.uiPot.UpdatePotTotal( this.curPotValue );
+		this.uiPotChips.show( this.curPotValue );
+		this.uiRoundPotValue.show( this.curPotValue );
     }
 
 	private onRIVER_END( msg ) {
@@ -1529,7 +1673,6 @@ export class UiTable extends Component {
 
 	private onSHOWDOWN_START ( msg ) {
 		console.log('onSHOWDOWN_START');
-		console.log( msg );
 
 		let pot: any = msg['pot'];
 
@@ -1563,7 +1706,6 @@ export class UiTable extends Component {
 
 	private onSHOWDOWN_FLOP( msg ) {
 		console.log('onSHOWDOWN_FLOP');
-		console.log(msg);
 		let cards = msg['cards'];
 
 		this.uiCommunityCards.ShowFlopCards(cards, ()=>{
@@ -1573,7 +1715,6 @@ export class UiTable extends Component {
 
 	private onSHOWDOWN_TURN( msg ) {
 		console.log('onSHOWDOWN_FLOP');
-		console.log(msg);
 		let cards = msg['cards'];
 
 		this.uiCommunityCards.ShowTurnCard( cards, ()=>{
@@ -1583,7 +1724,6 @@ export class UiTable extends Component {
 
 	private onSHOWDOWN_RIVER( msg ) {
 		console.log('onSHOWDOWN_FLOP');
-		console.log(msg);
 		let cards = msg['cards'];
 		let river = cards[0];
 
@@ -1591,10 +1731,6 @@ export class UiTable extends Component {
 			this.uiCommunityCards.ShowRiverCardImmediate( cards );
 			this.UpdatePlayerHandRank();
 		});
-	}
-	
-	private onSHOWDOWN_END( msg ) {
-
 	}
 	
 	private ChipsMoveToPot( value, cbDone: ()=>void ) {
@@ -1651,16 +1787,23 @@ export class UiTable extends Component {
 			let uiEntity = this.getUiEntityFromSeat( seat );
 			let entity = entities.find( elem => elem.seat == seat );
 
-			if( null == entity ) {
-				uiEntity?.setEscapee();
-				continue;
-			}
-
-			uiEntity.SetClearRound( entity );
-			if( seat == this.mySeat ) {
-				this.myChips = entity.chips;
+			if ( uiEntity != null && entity != null ) {
+				uiEntity.SetClearRound( entity );
+				if( seat == this.mySeat ) {
+					this.myChips = entity.chips;
+				}	
+			} else {
+				uiEntity.SetEscape();
 			}
 		}
+
+		if ( this.isReserveSitout == true ) {
+			this.SetSitout();						
+		}
+
+		this.isSitoutable = true;
+		this.labelSitout.string = '자리비움';
+		this.labelSitback.string = '게임복귀';
 
 		this.ClearPot();
 
@@ -1718,12 +1861,10 @@ export class UiTable extends Component {
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
-
-		if(null === uiEntity || undefined === uiEntity){
-			return;
+		if ( uiEntity != null ) {
+			uiEntity.endTurn();
+			uiEntity.setUiAction( "check" );			
 		}
-
-		uiEntity?.setUiAction( "check" );
     }
 
     private onRAISE( msg ) {
@@ -1735,6 +1876,11 @@ export class UiTable extends Component {
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
+
+		if ( uiEntity != null ) {
+			uiEntity.endTurn();
+		}
+
 		if( null == uiEntity ) {
 			return;
 		}
@@ -1766,45 +1912,30 @@ export class UiTable extends Component {
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
-		if( null == uiEntity ) {
-			return;
-		}
-
+		if ( uiEntity != null ) {
+			uiEntity.endTurn();
 			uiEntity.clearUiAction();
 
-		if( this.mySeat != seat ) {
-			uiEntity.clearUiHandCards();
-		}
-		else {
-				uiEntity.setUiHandCardsFold();
+			if( this.mySeat != seat ) {
+				uiEntity.ClearHandRank();
+			}
+			else {
 				this.isFold = true;
 			}
-
-			uiEntity.setUiFold();			
-
-		if( this.mySeat == seat ) {
-			return;
+			uiEntity.SetFold();
 		}
     }
 
     private onCALL ( msg ) {
 
 		this.curPotValue = msg[ "pot" ];
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
-
-		let seat = msg[ "seat" ];
-		let uiEntity = this.getUiEntityFromSeat( seat );
-		
-		if(null === uiEntity || undefined === uiEntity){
-			return;
-		}
-
 		let chips = Number.parseInt( msg[ "chips" ] );
-		uiEntity?.SetChips( chips );
+		let seat = msg[ "seat" ];
 
-		if( this.mySeat == seat ) {
-			this.myChips = chips;
-		}
+		let uiEntity = this.getUiEntityFromSeat( seat );
+		if ( uiEntity != null ) {
+			uiEntity.endTurn();
+			uiEntity.SetChips( chips );
 
 			if( true == msg[ "allin" ] ) {
 				uiEntity?.setUiAllIn();
@@ -1814,10 +1945,14 @@ export class UiTable extends Component {
 				uiEntity?.setUiAction( "call" );
 				AudioController.instance.PlaySound('VOICE_ACTION_CALL');
 			}
+			uiEntity.setUiBetValue( msg[ "bet" ], Color.GRAY );
+		}
 
+		if( this.mySeat == seat ) {
+			this.myChips = chips;
+		}
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-
-		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
+		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
     }
 
     private onBET ( msg ) {
@@ -1828,6 +1963,10 @@ export class UiTable extends Component {
 
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
+		if ( uiEntity != null ) {
+			uiEntity.endTurn();
+		}
+
 		if( null == uiEntity ) {
 			return;
 		}
@@ -1853,7 +1992,7 @@ export class UiTable extends Component {
 		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
     }
 
-    private onSitOut( msg: any ) {
+    private onSIT_OUT( msg: any ) {
 		let seat = msg['seat'];
 
 		if( seat == null || seat == undefined ){
@@ -1862,19 +2001,23 @@ export class UiTable extends Component {
 
 		let uiEntity = this.getUiEntityFromSeat( seat );
 		if ( uiEntity != null ) {
+			uiEntity.endTurn();
 			uiEntity.SetSitout();
 		}
 
 		if ( seat == this.mySeat ) {
+			this.isReserveSitout = false;
+
 			this.buttonSitout.interactable = true;
 			this.buttonSitout.node.active = false;
 
 			this.buttonSitback.interactable = true;
+			this.labelSitback.string = '게임복귀';
 			this.buttonSitback.node.active = true;
 		}
     }
 
-    private onSitBack( msg: any ) {
+    private onSIT_BACK( msg: any ) {
 		let seat = msg['seat'];
 		
 		if ( seat == null || seat == undefined ) {
@@ -1887,25 +2030,15 @@ export class UiTable extends Component {
 		}
 
 		if ( seat == this.mySeat ) {
+			this.isReserveSitout = false;
 
-		} else {
+			this.buttonSitback.interactable = true;
+			this.buttonSitback.node.active = false;
 
+			this.buttonSitout.interactable = true;
+			this.labelSitout.string = '자리비움';
+			this.buttonSitout.node.active = true;
 		}
-
-
-
-		// if(seatNumber !== this.mySeat){
-		// 	let uiEntity = this.getUiEntityFromSeat(seatNumber);
-		// 	uiEntity?.setUiSitBack();
-		// 	return;
-		// }
-		// else {
-		// 	let uiEntity = this.getUiEntityFromSeat(seatNumber);
-		// 	uiEntity?.setUiSitBack();			
-		// }
-
-		this.buttonSitout.node.active = true;
-		this.buttonSitback.node.active = false;
     }
 
     private onSHOW_CARD( msg ) {
@@ -1958,13 +2091,12 @@ export class UiTable extends Component {
     }
 
     private onWINNERS ( msg ) {
-		console.log('onWINNERS');
-		console.log( msg );
 		this.msgWINNERS = msg;
 
 		this.uiPlayerActionReservation.reset();
 		this.uiPlayerAction.hide();
 
+		this.EndTurns();
 		this.SetWinners();
 
 		let folders = msg['folders'];
@@ -2182,7 +2314,6 @@ export class UiTable extends Component {
 		console.log('ShowWinningCards');
 
 		let cards: any = this.msgWINNERS['cards'];
-		console.log(cards);		
 
 		let pools: number[] = [];
 		wns.forEach( ( e )=>{

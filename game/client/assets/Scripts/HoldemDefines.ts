@@ -1,16 +1,17 @@
 
-export enum ENUM_GAME_STATE {
-	SUSPEND = 0,
-	READY = 1,
-	PREPARE = 2,
-	PREFLOP = 3,	//BLIND_BET
-	BET = 4,
-	FLOP = 5,
-	TURN = 6,
-	RIVER = 7,
-	SHOWDOWN = 8,
-	CLEAR_ROUND = 9,
-}
+export const GAME_STATE_SUSPEND: number = 0;
+export const GAME_STATE_READY: number = 1;
+export const GAME_STATE_PREPARE: number = 2;
+
+export const GAME_STATE_PREFLOP: number = 3;
+export const GAME_STATE_BET: number = 4;
+export const GAME_STATE_FLOP: number = 5;
+export const GAME_STATE_TURN: number = 6;
+export const GAME_STATE_RIVER: number = 7;
+
+export const GAME_STATE_RESULT: number = 8;
+export const GAME_STATE_SHOWDOWN: number = 9;
+export const GAME_STATE_CLEAR: number = 10;
 
 export enum ENUM_COMMUNTY_CARD_STATE {
 	PREPARE = 0,
