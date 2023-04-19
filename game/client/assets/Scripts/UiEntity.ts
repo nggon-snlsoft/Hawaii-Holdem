@@ -214,28 +214,28 @@ export class UiEntity extends Component {
 
         this.isPlaying = true;
 
-        this.isFold = entity.fold;
+        this.isFold = entity.fold;        
         this.isWait = entity.wait;
         this.isSitout = entity.isSitOut;
-
-        // if ( this.isUiSitOut == true ) {
-        //     this.setUiSitOut();
-        //     return;
-        // }
-
-        // if( true == this.isFold){
-        //     this.setUiFold();
-        //     return;
-        // }
-
-        // if( true == entity.wait ){
-        //     this.setUiWait();
-        //     return;
-        // }
 
         this.callbackProfileOpen = null;
         this.callbackProfileClose = null;
         this.node.active = true;
+
+        if ( this.isSitout == true ) {
+            this.SetSitout();
+            return;
+        }
+
+        if( true == this.isFold){
+            this.SetFold();
+            return;
+        }
+
+        if( true == entity.wait ){
+            this.SetWait();
+            return;
+        }
     }
 
     SetClearRound( entity ) {

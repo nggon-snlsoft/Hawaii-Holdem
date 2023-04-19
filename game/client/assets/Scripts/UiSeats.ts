@@ -31,15 +31,23 @@ export class UiSeats extends Component {
         let seatCount: number = maxSeat;
         this.callback = onClickCallback;
 
-        let seatsRoot: Node = this.node.getChildByPath('SEATS9');
+        let seatsRoot9: Node = this.node.getChildByPath('SEATS9');
+        let seatsRoot6: Node = this.node.getChildByPath('SEATS6');        
+
+
         let nodeTarget: Node = null;
 
         let seatRootPath = `SEATS${ seatCount }`;
 
-        if ( seatsRoot.name == seatRootPath )
+        if ( seatsRoot9.name == seatRootPath )
         {
-            seatsRoot.active = true;
-            nodeTarget = seatsRoot;
+            seatsRoot9.active = true;
+            seatsRoot6.active = false;
+            nodeTarget = seatsRoot9;
+        } else {
+            seatsRoot9.active = false;
+            seatsRoot6.active = true;
+            nodeTarget = seatsRoot6;
         }
 
         this.uiSeats = [];

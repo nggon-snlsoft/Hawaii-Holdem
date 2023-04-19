@@ -71,8 +71,6 @@ export class Card extends Component {
     }
 
     public SetWinCard( pools: number[] ) {
-        console.log('SetWinCard');
-
         let c = pools.find( (e)=>{
             return e == this.num;
         });

@@ -11,6 +11,7 @@ const { ccclass, property } = _decorator;
 export class TableListUiElement {
     @property(Node) nodeRoot: Node = null;
     @property(Label) labelTableName: Label = null;
+    @property(Label) labelTableMax: Label = null;    
     @property(Label) labelBlind: Label = null;
     @property(Label) labelBuyIn: Label = null;
     @property(Label) labelPlayers: Label = null;    
@@ -25,6 +26,7 @@ export class TableListUiElement {
 
         copyObject.nodeRoot = newObject;
         copyObject.labelTableName = newObject.getChildByPath("LABEL_TABLE_NAME")?.getComponent(Label);
+        copyObject.labelTableMax = newObject.getChildByPath("LABEL_TABLE_MAX")?.getComponent(Label);        
         copyObject.labelBlind = newObject.getChildByPath("VALUES/LABEL_BLIND")?.getComponent(Label);
         copyObject.labelBuyIn = newObject.getChildByPath("VALUES/LABEL_MIN_BUYIN")?.getComponent(Label);
         copyObject.labelPlayers = newObject.getChildByPath("VALUES/LABEL_PLAYERS")?.getComponent(Label);        
@@ -35,6 +37,7 @@ export class TableListUiElement {
 
     public clear() {
         this.labelTableName.string = "";
+        this.labelTableMax.string = "";        
         this.labelBlind.string = "";
         this.labelBuyIn.string = "";
 
@@ -46,6 +49,14 @@ export class TableListUiElement {
     public setTable( table: any, cb: ( button:Button, table: any )=>void ) {
         this.table = table;
         this.labelTableName.string = this.table.name + ' ' + this.table.id;
+
+        if ( table.maxPlayers == 9 ) {
+            this.labelTableMax.string = '9인';
+
+        } else if ( table.maxPlayers == 6 ) {
+            this.labelTableMax.string = '6인';
+        }
+
         this.labelBlind.string = 
             CommonUtil.getNumberStringWithComma( this.table.smallBlind )  + " / " + 
             CommonUtil.getNumberStringWithComma( this.table.bigBlind );
@@ -207,7 +218,6 @@ export class UiTableList extends Component {
     }
 
     public getTableList() {
-        console.log('UPDATE_TABLE_LIST');
         NetworkManager.Instance().reqTABLE_LIST((res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 this.showTableList(res.tables);

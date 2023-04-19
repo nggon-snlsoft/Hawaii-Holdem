@@ -105,8 +105,6 @@ export class UiPopupChangeAvatar extends Component {
         this.userInfo = NetworkManager.Instance().getUserInfo();
         this.gameSetting = CommonUtil.getGameSetting();
 
-        console.log(this.gameSetting);
-
         this.currentId = this.userInfo.avatar;        
         this.showAvatars( this.gameSetting.avatars ) ;
         this.selectId = this.currentId;

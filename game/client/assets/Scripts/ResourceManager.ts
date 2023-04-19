@@ -194,8 +194,6 @@ export class ResourceManager extends Component {
 			url = 'Tables/'+'landscape/'+ type.toString() + '/spriteFrame';
 		}
 
-		console.log(url);
-
 		resources.load<SpriteFrame> (url, (err, res )=>{
 			if ( null != err ) {
 

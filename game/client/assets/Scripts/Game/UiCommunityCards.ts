@@ -23,13 +23,21 @@ export class UiCommunityCards extends Component {
     }
 
     public Ready() {
-
+        this.numbers = [];
     }
 
     public SetCommunityCards( cards: number[] ) {
         let cnt: number = 0;
         for ( let i: number = 0 ; i < cards.length; i++ ) {
             if ( cards[i] > 0 ) {
+                let d = this.numbers.find( ( e )=>{
+                    return e == cards[i];
+                });
+
+                if ( d != null || this.numbers.length > 5 ) {
+                    continue;
+                }
+
                 cnt++;
                 this.numbers.push( cards[i] );
 
@@ -53,6 +61,14 @@ export class UiCommunityCards extends Component {
 
         for ( let i: number = 0 ; i < cards.length; i++ ) {
             if ( cards[i] >= 0 ) {
+                let d = this.numbers.find( ( e )=>{
+                    return e == cards[i];
+                });
+
+                if ( d != null || this.numbers.length > 5 ) {
+                    continue;
+                }
+
                 cnt++;
                 this.numbers.push( cards[i] );
 
@@ -76,14 +92,20 @@ export class UiCommunityCards extends Component {
 
         this.cards.forEach( (e)=>{
             if ( e.GetType() == ENUM_CARD_TYPE.COMMUNITY_TURN ) {
-                this.numbers.push( cards[0] );                
-                let delay = 0.2;
+                let d = this.numbers.find( ( e )=>{
+                    return e == cards[0];
+                });
 
-                e.ShowFlip( cards[0] , delay, ()=>{
-                    if ( cbDone != null ) {
-                        cbDone();
-                    }
-                } );
+                if ( d == null ) {
+                    this.numbers.push( cards[0] );                
+                    let delay = 0.2;
+    
+                    e.ShowFlip( cards[0] , delay, ()=>{
+                        if ( cbDone != null ) {
+                            cbDone();
+                        }
+                    } );    
+                }
             }
         } );
     }
@@ -95,14 +117,25 @@ export class UiCommunityCards extends Component {
 
         this.cards.forEach( (e)=>{
             if ( e.GetType() == ENUM_CARD_TYPE.COMMUNITY_RIVER ) {
-                this.numbers.push( cards[0] );
+                let d = this.numbers.find( ( e )=>{
+                    return e == cards[0];
+                });
 
-                let delay = 0.2;
-                e.ShowFlip( cards[0] , delay, ()=>{
+                if ( d == null ) {
+                    this.numbers.push( cards[0] );
+
+                    let delay = 0.2;
+                    e.ShowFlip( cards[0] , delay, ()=>{
+                        if ( cbDone != null ) {
+                            cbDone();
+                        }                    
+                    } );    
+                }
+                else {
                     if ( cbDone != null ) {
                         cbDone();
-                    }                    
-                } );
+                    }
+                }
             }
         } );
     }
@@ -114,15 +147,20 @@ export class UiCommunityCards extends Component {
 
         this.cards.forEach( (e)=>{
             if ( e.GetType() == ENUM_CARD_TYPE.COMMUNITY_RIVER ) {
-                this.numbers.push( cards[0] );
-                e.ShowImmediate( cards[0] );
+                let d = this.numbers.find( ( e )=>{
+                    return e == cards[0];
+                });
+
+                if ( d == null ) {
+                    this.numbers.push( cards[0] );
+                    e.ShowImmediate( cards[0] );    
+                }
             }
         } );
     }
 
     public SetWinCards( pools: number[] ) {
         this.cards.forEach( (e)=> {
-            console.log('SetWinCards');
             e.SetWinCard( pools );
         });
     }

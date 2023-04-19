@@ -77,10 +77,6 @@ export class UiResultEffect extends Component {
     }
 
     private WinTweenEffect() {
-        console.log('WinTweenEffect');
-
-        // this.winTweens.forEach( elem => elem.stop() );
-        // this.winTweens = [];
 
         this.spriteWinAnimation1.node.active = true;
         let tw1 = tween( this.spriteWinAnimation1.node )

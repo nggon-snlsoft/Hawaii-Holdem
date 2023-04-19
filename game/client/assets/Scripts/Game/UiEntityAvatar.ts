@@ -228,7 +228,10 @@ export class UiEntityAvatar extends Component {
     }
 
     public SetSitback() {
-        if ( this.isFold == true ) {
+        if ( this.entity.wait == true ) {
+            this.SetStatus(ENUM_STATUS_TYPE.WAITING);
+        }
+        else if ( this.entity.fold == true ) {
             this.SetStatus(ENUM_STATUS_TYPE.FOLD);
         } else {
             this.SetStatus(ENUM_STATUS_TYPE.NONE);
@@ -275,7 +278,6 @@ export class UiEntityAvatar extends Component {
         switch ( type ) {
             case ENUM_STATUS_TYPE.NONE:
                 {
-                    console.log('ENUM_STATUS_TYPE.NONE');
                     this.spriteDimmed.node.active = false;
                     this.spriteStatus.node.active = false;
                     this.rootStatus.active = false;                
@@ -283,8 +285,6 @@ export class UiEntityAvatar extends Component {
                 break;
             case ENUM_STATUS_TYPE.FOLD:
                 {
-                    console.log('ENUM_STATUS_TYPE.FOLD');
-
                     this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[0];
                     this.spriteStatus.spriteFrame = sf;
@@ -295,8 +295,6 @@ export class UiEntityAvatar extends Component {
                 break;
             case ENUM_STATUS_TYPE.WAITING:
                 {
-                    console.log('ENUM_STATUS_TYPE.WAITING');
-
                     this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[1];
                     this.spriteStatus.spriteFrame = sf;
@@ -307,8 +305,6 @@ export class UiEntityAvatar extends Component {
                 break;
             case ENUM_STATUS_TYPE.SITOUT:
                 {
-                    console.log('ENUM_STATUS_TYPE.SITOUT');
-
                     this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[2];
                     this.spriteStatus.spriteFrame = sf;
@@ -325,7 +321,6 @@ export class UiEntityAvatar extends Component {
     }
 
     childRegistered() {
-        console.log('childRegistered');
         if ( this.isChildRegisted == true ) {
             return;
         }

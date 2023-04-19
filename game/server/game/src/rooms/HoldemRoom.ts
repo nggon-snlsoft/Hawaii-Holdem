@@ -151,6 +151,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage("PONG", this.onPong.bind(this));
 				this.onMessage("SHOW_CARD", this.onShowCard.bind(this));
 				this.onMessage("SIT_OUT", this.OnSitOut.bind(this));
+				this.onMessage("SIT_OUT_CANCEL", this.OnSitoutCancel.bind(this));				
 				this.onMessage("SIT_BACK", this.OnSitBack.bind(this));
 				this.onMessage("SEAT_SELECT", this.OnSelectSeat.bind(this));
 				this.onMessage("CANCEL_BUY_IN", this.onCancelBuyIn.bind(this));
@@ -1458,21 +1459,21 @@ export class HoldemRoom extends Room<RoomState> {
 				logger.info( "[ update ] seat %s bet timeout. call fold", this.betSeat );
 
 				let next = this.funcFold( this.betSeat );
+				let timeoutPlayer = this.getEntity(this.betSeat);
+
 				if( next ) {
 					this.broadTurn();
 				}
 
-				let timeoutPlayer = this.getEntity(this.betSeat);
-
 				if(null != timeoutPlayer){
 					timeoutPlayer.timeLimitCount += 1;
 
-					if(timeoutPlayer.timeLimitCount == this.conf["timeoutExitLimit"]){
+					// if( timeoutPlayer.timeLimitCount == this.conf["timeoutExitLimit"]){
 						timeoutPlayer.isSitOut = true;
 						timeoutPlayer.wait = true;
+						this.UpdateSeatInfo();						
 						this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
-						this.UpdateSeatInfo();
-					}
+					// }
 				}
 			}
 		}
@@ -1501,15 +1502,16 @@ export class HoldemRoom extends Room<RoomState> {
 				let isStart = this.checkStartCondition();
 				if ( true == isStart ) {
 					this.updateButtons();
-					this.state.entities.forEach( e => {
-						if ( e.isSitBack === true && e.wait === false) {
-							logger.info("EXIT_SIT_OUT");
-							e.isSitBack = false;
-							e.isSitOut = false;
-							this.broadcast("SIT_BACK", { seat: e.seat });
-							return;
-						}
-					} );
+
+					// this.state.entities.forEach( e => {
+					// 	if ( e.isSitBack === true && e.wait === false) {
+					// 		logger.info("EXIT_SIT_OUT");
+					// 		e.isSitBack = false;
+					// 		e.isSitOut = false;
+					// 		this.broadcast("SIT_BACK", { seat: e.seat });
+					// 		return;
+					// 	}
+					// } );
 
 					this.state.entities.forEach( e => {
 						if ( e.longSitOut === true) {
@@ -1961,7 +1963,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			case eGameState.ClearRound:
 				this.state.entities.forEach( e => {
-					if ( e.isSitOut === true && false === e.wait ) {
+					if ( e.isSitOut === true && false == e.wait ) {
 						logger.error("ENTER_SIT_OUT");
 						e.isSitBack = false;
 						e.isSitOut = true;
@@ -1999,29 +2001,30 @@ export class HoldemRoom extends Room<RoomState> {
 			case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
 				{
 					let delay = 0;
+					let next: any = null;
 					if ( this.centerCardState == eCommunityCardStep.PRE_FLOP ) {
 
-						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_FLOP;
+						next = ENUM_SHOWDOWN_STEP.SHOW_FLOP;
 						delay = 4000;
 
 					} else if ( this.centerCardState == eCommunityCardStep.FLOP ) {						
 
-						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_TURN;
+						next = ENUM_SHOWDOWN_STEP.SHOW_TURN;
 						delay = 3000;
 
 					} else if ( this.centerCardState == eCommunityCardStep.TURN ) {
 
-						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_RIVER;
+						next = ENUM_SHOWDOWN_STEP.SHOW_RIVER;
 						delay = 3000;
 
 					} else if ( this.centerCardState == eCommunityCardStep.RIVER ) {
 
-						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOWDOWN_END;
+						next = ENUM_SHOWDOWN_STEP.SHOWDOWN_END;
 						delay = 3000;
-
 					}
 
 					this.bufferTimerID = setTimeout( () => {
+						this.SHOWDOWN_STATE = next;						
 						this.ChangeShowdownState();
 					}, delay );
 				}
@@ -2033,10 +2036,10 @@ export class HoldemRoom extends Room<RoomState> {
 						msg: "SHOWDOWN_FLOP",
 						cards: this.communityCardIndex.slice( 0, 3 ),
 					} );
-	
-					this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_TURN;
+
 					let delay = 1500;
 					this.bufferTimerID = setTimeout( () => {
+						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_TURN;						
 						this.ChangeShowdownState();
 					}, delay );
 				}
@@ -2050,9 +2053,9 @@ export class HoldemRoom extends Room<RoomState> {
 						cards: this.communityCardIndex.slice( 3, 4 ),
 					} );
 					
-					this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_RIVER;
 					let delay = 1500;
 					this.bufferTimerID = setTimeout( () => {
+						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOW_RIVER;						
 						this.ChangeShowdownState();
 					}, delay );										
 				}
@@ -2065,9 +2068,9 @@ export class HoldemRoom extends Room<RoomState> {
 						cards: this.communityCardIndex.slice( 4 ),
 					} );
 
-					this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOWDOWN_END;
 					let delay = 4000;
 					this.bufferTimerID = setTimeout( () => {
+						this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.SHOWDOWN_END;						
 						this.ChangeShowdownState();
 					}, delay );
 				}
@@ -2924,7 +2927,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		sitOutPlayer.isSitOut = true;
 		
-		if(sitOutPlayer.wait == true){
+		if(sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
 			return;
@@ -2933,11 +2936,41 @@ export class HoldemRoom extends Room<RoomState> {
 		if( this.state.gameState === eGameState.Suspend ||
 			this.state.gameState === eGameState.Ready ||
 			this.state.gameState === eGameState.ClearRound ){
+
 			sitOutPlayer.wait = true;
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
+		} else {
+			client.send("SIT_OUT_PEND",
+			{ 
+
+			});			
 		}
 	}
+
+	private OnSitoutCancel(client : Client, msg : any){
+		let seatNumber : number = msg["seat"];
+
+		if(null === seatNumber || undefined === seatNumber){
+			logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
+			return;
+		}
+
+		let player = this.getEntity(seatNumber);
+
+		if( player == null || player == undefined){
+			logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
+			return;
+		}
+
+		player.isSitOut = false;
+		this.UpdateSeatInfo();
+
+		client.send('SIT_OUT_CANCEL', {
+
+		});
+	}
+
 
 	private OnSitBack(client : Client, msg : any){
 		let seatNumber : number = msg["seat"];
@@ -2954,13 +2987,14 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		if(false === sitOutPlayer.isSitOut){
+		if(false === sitOutPlayer.isSitOut ){
 			logger.error(" [ OnSitBack ] the seat number " + seatNumber + " is not sit-out but try sit-back");
 			return;
 		}
 
 		sitOutPlayer.isSitOut = false;
 		sitOutPlayer.isSitBack = true;
+		sitOutPlayer.wait = true;
 
 		if( eGameState.Suspend === this.state.gameState ) {
 			sitOutPlayer.isSitBack = false;
@@ -2980,6 +3014,10 @@ export class HoldemRoom extends Room<RoomState> {
 			sitOutPlayer.isSitBack = false;
 			sitOutPlayer.isSitOut = false;
 
+			this.UpdateSeatInfo();
+			this.broadcast("SIT_BACK", { seat : seatNumber });
+		}
+		else {
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", {seat : seatNumber});
 		}
