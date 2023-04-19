@@ -18,17 +18,17 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-const apiHost: string = '127.0.0.1';
-const apiPort: number = 2600;
-
-const gameHost: string = '127.0.0.1';
-const gamePort: number = 2568;
-
-// const apiHost: string = '18.183.95.34';
+// const apiHost: string = '127.0.0.1';
 // const apiPort: number = 2600;
 
-// const gameHost: string = '18.183.95.34';
+// const gameHost: string = '127.0.0.1';
 // const gamePort: number = 2568;
+
+const apiHost: string = '18.183.95.34';
+const apiPort: number = 2600;
+
+const gameHost: string = '18.183.95.34';
+const gamePort: number = 2568;
 
 @ccclass('NetworkManager')
 export class NetworkManager extends cc.Component {

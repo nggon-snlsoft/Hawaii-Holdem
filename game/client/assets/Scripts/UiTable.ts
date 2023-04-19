@@ -837,6 +837,9 @@ export class UiTable extends Component {
 				});
 
 				this.curPotValue = msg['pot'];
+				if ( this.curPotValue > 0 ) {
+					this.labelCurrentPot.string = '현재 팟: ' + CommonUtil.getKoreanNumber(this.curPotValue);
+				}
 				this.uiPotChips.show( msg['initPot'] );
 				this.uiRoundPotValue.show( msg['initPot'] );
 				
@@ -1343,6 +1346,11 @@ export class UiTable extends Component {
 
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
+
+		if ( this.curPotValue > 0 ) {
+			this.labelCurrentPot.string = '현재 팟: ' + CommonUtil.getKoreanNumber(this.curPotValue);
+			this.labelCurrentPot.node.active = true;
+		}		
     }
 
     private onSUSPEND_ROUND( msg ) {
@@ -2456,6 +2464,7 @@ export class UiTable extends Component {
 		if ( uiEntity != null ) {
 
 			uiEntity.ShowHands( this.myCards, ()=>{
+				AudioController.instance.PlaySound('CARD_FLIP');
 				this.SetMyHandRank();
 			} );
 		}

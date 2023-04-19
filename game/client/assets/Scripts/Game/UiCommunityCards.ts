@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Vec3 } from 'cc';
 import { ENUM_CARD_TYPE } from '../HoldemDefines';
 import { Card } from './Card';
+import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 
@@ -42,7 +43,9 @@ export class UiCommunityCards extends Component {
                 this.numbers.push( cards[i] );
 
                 let delay: number = 0.2 + ( cnt * 0.1 );
-                this.cards[i].ShowFlip( cards[i], delay, null );
+                this.cards[i].ShowFlip( cards[i], delay, ()=>{
+                    AudioController.instance.PlaySound('CARD_FLIP');
+                } );
             }
         }
         this.Show();
@@ -76,6 +79,7 @@ export class UiCommunityCards extends Component {
                 this.cards[i].ShowFlip( cards[i], delay, ()=>{
                     done++;
                     if ( done >= 3 ) {
+                        AudioController.instance.PlaySound('CARD_FLIP');
                         if ( cbDone != null ) {
                             cbDone();
                         }
@@ -101,6 +105,7 @@ export class UiCommunityCards extends Component {
                     let delay = 0.2;
     
                     e.ShowFlip( cards[0] , delay, ()=>{
+                        AudioController.instance.PlaySound('CARD_FLIP');
                         if ( cbDone != null ) {
                             cbDone();
                         }
@@ -126,6 +131,7 @@ export class UiCommunityCards extends Component {
 
                     let delay = 0.2;
                     e.ShowFlip( cards[0] , delay, ()=>{
+                        AudioController.instance.PlaySound('CARD_FLIP');
                         if ( cbDone != null ) {
                             cbDone();
                         }                    
@@ -153,7 +159,8 @@ export class UiCommunityCards extends Component {
 
                 if ( d == null ) {
                     this.numbers.push( cards[0] );
-                    e.ShowImmediate( cards[0] );    
+                    e.ShowImmediate( cards[0] );
+                    AudioController.instance.PlaySound('CARD_FLIP');
                 }
             }
         } );
