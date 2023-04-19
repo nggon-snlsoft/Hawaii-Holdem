@@ -1349,7 +1349,7 @@ export class UiTable extends Component {
 
 		if ( this.curPotValue > 0 ) {
 			this.labelCurrentPot.string = '현재 팟: ' + CommonUtil.getKoreanNumber(this.curPotValue);
-			this.labelCurrentPot.node.active = true;
+			this.labelCurrentPot.node.active = false;
 		}		
     }
 
