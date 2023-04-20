@@ -38,12 +38,12 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadTable() {
-        if ( ResourceManager.Instance().getTablePreloadState() == true ) {
-            console.log('loadTable complete');            
-            this.progressBar.progress = 0.1;
-            this.loadBackground();
-            return;
-        }
+        // if ( ResourceManager.Instance().getTablePreloadState() == true ) {
+        //     console.log('loadTable complete');            
+        //     this.progressBar.progress = 0.1;
+        //     this.loadBackground();
+        //     return;
+        // }
 
         ResourceManager.Instance().loadTables( ()=>{
             this.progressBar.progress = 0.1;
@@ -52,12 +52,12 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadBackground() {
-        if ( ResourceManager.Instance().getBackgroundPreloadState() == true ) {
-            console.log('loadBackground complete');            
-            this.progressBar.progress = 0.2;
-            this.loadSounds();
-            return;
-        }
+        // if ( ResourceManager.Instance().getBackgroundPreloadState() == true ) {
+        //     console.log('loadBackground complete');            
+        //     this.progressBar.progress = 0.2;
+        //     this.loadSounds();
+        //     return;
+        // }
 
         ResourceManager.Instance().loadBackground( ()=>{
             this.progressBar.progress = 0.2;
@@ -86,12 +86,12 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadCards() {
-        if ( ResourceManager.Instance().getCardPreloadState() == true ) {
-            console.log('loadCards complete');
-            this.progressBar.progress = 0.6;
-            this.loadChips();
-            return;
-        }
+        // if ( ResourceManager.Instance().getCardPreloadState() == true ) {
+        //     console.log('loadCards complete');
+        //     this.progressBar.progress = 0.6;
+        //     this.loadChips();
+        //     return;
+        // }
 
         ResourceManager.Instance().loadCards(( progress: number )=>{
             this.progressBar.progress = 0.4 + (progress * 0.2) ;

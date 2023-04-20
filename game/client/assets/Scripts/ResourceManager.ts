@@ -129,6 +129,7 @@ export class ResourceManager extends Component {
 		this.preloadCardsResource = {};
 
 		let type = NetworkManager.Instance().getUserSetting().card;
+		console.log('type:' + type);
 		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
 			const url = 'Cards/'+'type' + type.toString() + '/' + i.toString() + '/spriteFrame';
 
@@ -154,7 +155,7 @@ export class ResourceManager extends Component {
 
     public loadSounds( cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt = 0;
-		this.preloadCardsResource = {};
+		this.preloadSoundsResource = {};
 
 		let keys = Object.keys( SOUNDS_NAME );
 		let values = Object.values ( SOUNDS_NAME );
