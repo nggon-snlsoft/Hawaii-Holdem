@@ -22,6 +22,7 @@ import { ResourceManager } from './ResourceManager';
 import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 import { UiCommunityCards } from './Game/UiCommunityCards';
+import { PlayerActionInformation } from './Game/PlayerActionInformation';
 
 const { ccclass, property } = _decorator;
 
@@ -74,6 +75,8 @@ export class UiTable extends Component {
 	@property(UiRoundPotValue) uiRoundPotValue: UiRoundPotValue = null;
 	@property(UiShowDownEffect) uiShowDownEffect: UiShowDownEffect = null;
 	@property(UiEffectShowRiver) uiEffectShowRiver: UiEffectShowRiver = null;
+
+	@property(PlayerActionInformation) playerActionInformation: PlayerActionInformation = null;
 
 	private GAME_STATE: number = GAME_STATE_SUSPEND;
 	private SHOWDOWN_STATE: number = SHOWDOWN_NONE;
@@ -132,6 +135,7 @@ export class UiTable extends Component {
 	private isReserveSitout: boolean = false;
 	private isSitoutable: boolean = false;
 	private labelReservationSitout: Label = null;
+	private rootCurrentPot: Node = null;
 
     init() {
         this.seatMax = UiTable.seatMaxFromServer;
@@ -154,6 +158,8 @@ export class UiTable extends Component {
 		this.uiShowDownEffect.Init();
 		this.uiEffectShowRiver.Init();
 		this.uiCommunityCards.Init();
+
+		this.playerActionInformation.Init();
 
         if ( null == NetworkManager.Instance().room ) {
             return;
@@ -366,10 +372,6 @@ export class UiTable extends Component {
 
 		this.nodeCardShuffleMessage.active = false;
 
-		this.labelCurrentPot = this.node.getChildByPath('LABEL_CURRENT_POT').getComponent(Label);
-		this.labelCurrentPot.string = '0';
-		this.labelCurrentPot.node.active = false;
-
 		this.labelReservationSitout = this.node.getChildByPath('LABEL_RESERVATION_SITOUT').getComponent(Label);
 		if ( this.labelReservationSitout != null ) {
 			this.labelReservationSitout.node.active = false;
@@ -378,7 +380,29 @@ export class UiTable extends Component {
 		this.buttonSitoutCancel.node.off('click');
 		this.buttonSitoutCancel.node.on('click', this.onClickSitCancel.bind(this));
 		this.buttonSitoutCancel.node.active = false;
+
+		this.rootCurrentPot = this.node.getChildByPath('CURRENT_POT');
+		if ( this.rootCurrentPot != null ) {
+			this.rootCurrentPot.active = false;
+
+			this.labelCurrentPot = this.rootCurrentPot.getChildByPath('LABEL_CURRENT_POT').getComponent(Label);
+			this.labelCurrentPot.string = '0';
+			this.labelCurrentPot.node.active = false;
+		}
     }
+
+	private SetCurrentPot( value: number ) {
+		let v = CommonUtil.getKoreanNumber( value );
+		this.labelCurrentPot.string = v;
+
+		this.labelCurrentPot.node.active = true;
+		this.rootCurrentPot.active = true;		
+	}
+
+	private ResetCurrentPot() {
+		this.labelCurrentPot.string = '0';
+		this.rootCurrentPot.active = false;
+	}
 
     private onClickSeatSelect(no: number)
     {
@@ -406,41 +430,12 @@ export class UiTable extends Component {
 		AudioController.instance.ButtonClick();
 		this.buttonSitout.interactable = false;
 		this.SetSitout();
-
-		
-		// if ( this.isSitoutable == false ) {
-		// 	this.isReserveSitout = true;
-
-		// 	this.buttonSitout.node.active = false;
-		// 	this.labelSitback.string = '자리비움 취소';
-		// 	this.buttonSitback.node.active = true;
-
-		// } else {
-		// 	this.SetSitout();
-			
-		// 	// this.buttonSitout.node.active = false;
-		// 	// this.labelSitback.string = '게임복귀';
-		// 	// this.buttonSitback.node.active = true;
-		// }
 	}
 
     public onClickSitback() {
 		AudioController.instance.ButtonClick();
 		this.buttonSitback.interactable = false;		
 		this.SetSitback();
-
-		// if ( this.isReserveSitout == true ) {
-		// 	this.isReserveSitout = false;
-
-		// 	this.buttonSitback.node.active = false;
-		// 	this.buttonSitout.node.active = true;
-		// } else {
-		// 	this.SetSitback();
-
-
-		// 	// this.buttonSitback.node.active = false;
-		// 	// this.buttonSitout.node.active = true;
-		// }
     }
 
 	public onClickSitCancel( button: Button ) {
@@ -779,7 +774,7 @@ export class UiTable extends Component {
 			let uiEntity = this.entityUiElements[ i ];
 
 			if( null == entity ) {
-				uiEntity?.SetEscape();
+				uiEntity.SetEscape();
 				continue;
 			}
 
@@ -1103,21 +1098,9 @@ export class UiTable extends Component {
 			let curPot = msg[ "currPot" ];
 			let isLast = msg["isLast"];
 			let hasAction = msg["action"];
+			let maxChips = msg['maxChip'];
 
 			AudioController.instance.PlaySound('MY_TURN');
-
-			// let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
-			// if ( uiEntity != null ) {
-			// 	if ( uiEntity.getIsUiSitOut() == true ) {
-			// 		let obj = {
-			// 			seat: this.mySeat
-			// 		};
-			// 		this.sendMsg( "FOLD", obj );
-			// 		this.uiPlayerAction.hide();
-			// 		return;					
-			// 	}
-			// }
-
 			let reservation = this.uiPlayerActionReservation.checkReservation( myBet, curBet );
 			if ( reservation != ENUM_RESERVATION_TYPE.RESERVATION_NONE ) {
 
@@ -1153,19 +1136,14 @@ export class UiTable extends Component {
 				let uiEntity =  this.getUiEntityFromSeat(this.mySeat);
 				if ( uiEntity != null ) {
 					uiEntity.StartActionTimer();
-					// if ( uiEntity.getIsUiSitOut() == true ) {
-					// 	let obj = {
-					// 		seat: this.mySeat
-					// 	};
-					// 	this.sendMsg( "FOLD", obj );
-					// 	this.uiPlayerAction.hide();
-					// 	return;					
-					// }
 				}
 			}
-
 			this.uiPlayerActionReservation.hide();
-			this.uiPlayerAction.show( this.betMin, curBet, minRaise, curPot, myBet, chips, isLast, hasAction);
+
+			this.uiPlayerAction.show( this.betMin, curBet, minRaise, curPot, myBet, chips, maxChips, isLast, hasAction);
+			// this.playerActionInformation.Set( this.betMin, msg );
+			// this.playerActionInformation.Show();
+
 			this.uiPlayerAction.cbCheck = () => {
 				this.entityUiElements.forEach( element => element.endTurn() );
 
@@ -1343,14 +1321,9 @@ export class UiTable extends Component {
 
 		this.curPotValue = msg[ "pot" ];
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
-
-		if ( this.curPotValue > 0 ) {
-			this.labelCurrentPot.string = '현재 팟: ' + CommonUtil.getKoreanNumber(this.curPotValue);
-			this.labelCurrentPot.node.active = false;
-		}		
+		this.SetCurrentPot( this.curPotValue );
     }
 
     private onSUSPEND_ROUND( msg ) {
@@ -1392,6 +1365,8 @@ export class UiTable extends Component {
 				}	
 			}
 		}
+
+		this.ResetCurrentPot();
     }
 
     private onREADY_ROUND( msg ) {
@@ -1465,6 +1440,7 @@ export class UiTable extends Component {
 		this.ClearPot();
 		this.ClearPosSymbol();
 		this.uiCommunityCards.Ready();
+		this.ResetCurrentPot();
 
 		let uiDeal = this.getUiEntityFromSeat( this.dealerSeatPosition );
 		if ( uiDeal != null ) {
@@ -1485,7 +1461,9 @@ export class UiTable extends Component {
     private onHANDLE_ESCAPEE( msg ) {
 		let seat = msg[ "seat" ];
 		let uiEntity = this.getUiEntityFromSeat( seat );
-		uiEntity.SetEscape();
+		if ( uiEntity != null ) {
+			uiEntity.SetEscape();
+		}
     }
 
 	private onPRE_FLOP_END( msg ) {
@@ -1534,6 +1512,7 @@ export class UiTable extends Component {
 		this.uiPot.UpdatePotTotal( this.curPotValue );
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
+		this.SetCurrentPot( this.curPotValue );
     }
 
 	private onFLOP_END( msg ) {
@@ -1582,6 +1561,7 @@ export class UiTable extends Component {
 		this.uiPot.UpdatePotTotal( this.curPotValue );
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
+		this.SetCurrentPot( this.curPotValue );
     }
 
 	private onTURN_END( msg ) {
@@ -1629,6 +1609,7 @@ export class UiTable extends Component {
 		this.uiPot.UpdatePotTotal( this.curPotValue );
 		this.uiPotChips.show( this.curPotValue );
 		this.uiRoundPotValue.show( this.curPotValue );
+		this.SetCurrentPot( this.curPotValue );
     }
 
 	private onRIVER_END( msg ) {
@@ -1774,6 +1755,7 @@ export class UiTable extends Component {
 		console.log('onCLEAR_ROUND');
 
 		this.uiCommunityCards.Reset();
+		this.ResetCurrentPot();
 		this.buttonShowCard.node.active = false;
 
 		this.labelReadyMessage.node.active = false;
@@ -1873,6 +1855,8 @@ export class UiTable extends Component {
 			uiEntity.endTurn();
 			uiEntity.setUiAction( "check" );			
 		}
+
+		this.SetCurrentPot( this.curPotValue );
     }
 
     private onRAISE( msg ) {
@@ -1911,6 +1895,7 @@ export class UiTable extends Component {
 
 		this.setUiPot(msg["dpPot"]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
+		this.SetCurrentPot( this.curPotValue );
 
 		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
     }
@@ -1960,13 +1945,12 @@ export class UiTable extends Component {
 			this.myChips = chips;
 		}
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
+		this.SetCurrentPot( this.curPotValue );
     }
 
     private onBET ( msg ) {
 
 		this.curPotValue = msg[ "pot" ];
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
 		this.uiPlayerActionReservation.showCheck( false );
 
 		let seat = msg[ "seat" ];
@@ -1996,6 +1980,7 @@ export class UiTable extends Component {
 			}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
+		this.SetCurrentPot( this.curPotValue );
 
 		uiEntity?.setUiBetValue( msg[ "bet" ], Color.GRAY );
     }

@@ -8,7 +8,7 @@ const { ccclass, property } = _decorator;
 @ccclass('UiPlayerAction')
 export class UiPlayerAction extends Component {
 	@property (Node) NodeNativeContoller: Node = null;
-	@property (Node) NodeMobileContoller: Node = null;
+	// @property (Node) NodeMobileContoller: Node = null;
 	
 	private uiBettingControl: UiBettingControl = null;
 
@@ -90,7 +90,7 @@ export class UiPlayerAction extends Component {
 		// }
 
 		this.nodeRoot = this.NodeNativeContoller;
-		this.NodeMobileContoller.active = false;
+		// this.NodeMobileContoller.active = false;
 
 		this.buttonFold = this.nodeRoot.getChildByPath( "BUTTON_FOLD" )?.getComponent( Button );
 		this.buttonFold?.node.on( "click", this.onClickFold.bind( this ), this );
@@ -187,7 +187,7 @@ export class UiPlayerAction extends Component {
 		this.bb = bb;
 	}
     
-	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, isLast : boolean, hasAction: boolean) {
+	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, maxChips:number, isLast : boolean, hasAction: boolean) {
 		this.childRegistered();
 
 		this.quaterValue  = 0;
@@ -232,8 +232,8 @@ export class UiPlayerAction extends Component {
 		this.buttonCheck.node.active = ( turnBet == myBet ) && ( true == hasAction );
 		this.buttonCall.node.active = ( turnBet > myBet );
 
+		let betValue = turnBet - myBet;
 		if( this.buttonCall.node.active == true ) {
-			let betValue = turnBet - myBet;
 			if( betValue >= this.numberMyChips ){
 				this.buttonCall.node.active = false;
 			}
@@ -243,12 +243,13 @@ export class UiPlayerAction extends Component {
 		}
 
 		let isBet: boolean = ( 0 == turnBet );
+		console.log('isBet: ' + isBet + ' turnBet: ' + turnBet);
 
 		if ( this.rotateType == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
 			this.buttonBet.node.active = ( 0 == turnBet );
 
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
-			this.numberRaiseStart = 0 == turnBet ? this.numberRaiseMin : minRaise * 2;
+			this.numberRaiseStart = 0 == turnBet ? this.numberRaiseMin : turnBet * 2;
 	
 			this.numberBetRange = myChips;
 			this.numberRaiseRange = myChips;
@@ -279,7 +280,7 @@ export class UiPlayerAction extends Component {
 			this.buttonConfirm.node.active = false;
 
 			this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
-			this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : minRaise * 2;
+			this.numberRaiseStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
 	
 			this.numberBetRange = myChips;
 			this.numberRaiseRange = myChips;
@@ -306,22 +307,22 @@ export class UiPlayerAction extends Component {
 				this.buttonMax.node.active = false;
 				
 			} else {
-				//그냥 여기서 계산하자
 				let quater: number = 0;
 				let half: number = 0;
 				let full: number = 0;
 				let max: number = 0;
 
+				let pv = pot + betValue;
 				if ( isBet == true ) {
-					quater = pot * 0.25;
+					quater = pv * 0.25;
 					quater = Math.max( quater, this.numberBetStart);
 					quater = Math.min( quater, this.numberBetRange);
 
-					half = pot * 0.5; 
+					half = pv * 0.5; 
 					half = Math.max( half, this.numberBetStart);
 					half = Math.min( half, this.numberBetRange);
 
-					full = pot * 1;
+					full = pv * 1;
 					full = Math.max( full, this.numberBetStart);
 					full = Math.min( full, this.numberBetRange);
 
@@ -343,16 +344,16 @@ export class UiPlayerAction extends Component {
 					max = this.numberRaiseRange;
 				}
 
-				this.quaterValue  = quater;
-				this.halfValue = half;
-				this.fullValue = full;
+				this.quaterValue  = quater + betValue;
+				this.halfValue = half + betValue;
+				this.fullValue = full + betValue;
 				this.maxValue = max;
 				this.betType = ( isBet == true ) ? ENUM_BETTING_TYPE.Bet : ENUM_BETTING_TYPE.Raise;
 
-				this.labelQuaterValue.string = CommonUtil.getKoreanNumber( quater );
-				this.labelHalfValue.string = CommonUtil.getKoreanNumber( half );
-				this.labelFullValue.string = CommonUtil.getKoreanNumber( full );
-				this.labelMaxValue.string = CommonUtil.getKoreanNumber( max );
+				this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
+				this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
+				this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
+				this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue );
 
 				this.labelQuaterValue.node.active = true;
 				this.labelHalfValue.node.active = true;

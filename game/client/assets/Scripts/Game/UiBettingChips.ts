@@ -94,11 +94,12 @@ export class UiBettingChips extends Component {
     }
 
     private setDigits() {
+        console.log( this.numbers );
         for ( let i: number = 0 ; i < this.digits.length; i ++ ) {
 
             let s: any = this.sprites[i];
             for ( let j: number = 0 ; j < 9; j++ ) {
-                let sf: SpriteFrame = ResourceManager.Instance().getChipImage(this.numbers[i].digit);
+                let sf: SpriteFrame = ResourceManager.Instance().getChipImage( this.numbers[i].digit );
                 s[j].spriteFrame = sf;
                 if ( j < this.numbers[i].number ) {
                     s[j].node.active = true;

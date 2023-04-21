@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, AudioSource, AudioClip } from 'cc';
 import { ResourceManager } from '../ResourceManager';
 import { NetworkManager } from '../NetworkManager';
-import { VOLUMNE_MULTIPLIER } from '../Lobby/UiPopupSetting';
+import { VOLUMNE_MULTIPLIER } from '../HoldemDefines';
 const { ccclass, property } = _decorator;
 
 @ccclass('AudioController')

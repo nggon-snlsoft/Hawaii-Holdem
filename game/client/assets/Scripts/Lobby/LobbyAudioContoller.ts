@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, AudioSource, AudioClip } from 'cc';
 import { NetworkManager } from '../NetworkManager';
-import { VOLUMNE_MULTIPLIER } from './UiPopupSetting';
+import { VOLUMNE_MULTIPLIER } from '../HoldemDefines';
 const { ccclass, property } = _decorator;
 
 @ccclass('LobbyAudioContoller')

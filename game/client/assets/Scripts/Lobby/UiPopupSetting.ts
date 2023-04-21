@@ -2,9 +2,8 @@ import { _decorator, Component, Node, Button, Toggle, ToggleContainer, Slider, L
 import { LobbySystemPopup } from '../LobbySystemPopup';
 import { NetworkManager } from '../NetworkManager';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
+import { VOLUMNE_MULTIPLIER } from '../HoldemDefines';
 const { ccclass, property } = _decorator;
-
-export const VOLUMNE_MULTIPLIER:number = 10.0;
 
 @ccclass('UiPopupSetting')
 export class UiPopupSetting extends Component {

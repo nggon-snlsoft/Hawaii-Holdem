@@ -13,6 +13,8 @@ export const GAME_STATE_RESULT: number = 8;
 export const GAME_STATE_SHOWDOWN: number = 9;
 export const GAME_STATE_CLEAR: number = 10;
 
+export const VOLUMNE_MULTIPLIER:number = 10.0;
+
 export enum ENUM_COMMUNTY_CARD_STATE {
 	PREPARE = 0,
 	PRE_FLOP = 1,

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite } from 'cc';
+import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite, EventHandler, input, Input, EventKeyboard, KeyCode } from 'cc';
 import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
@@ -29,6 +29,21 @@ export class UiLogin extends Component {
         if (NetworkManager.Instance().isLogin() == true) {
             
         }
+
+        this.RegistEditboxEvent();
+
+        // input.on( Input.EventType.KEY_DOWN, (event: EventKeyboard )=>{
+        //     switch ( event.keyCode ) {
+        //         case KeyCode.TAB:
+        //             console.log('TAB!!');
+        //             if ( this.editBoxUID.isFocused() == true ) {
+        //                 this.editBoxPassword.setFocus();
+        //             }
+        //             break;
+        //     }
+        // }, this );
+
+
 
         // this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
         //     editbox.string = '';
@@ -71,6 +86,77 @@ export class UiLogin extends Component {
             });
 
         }, this);
+    }
+
+    RegistEditboxEvent() {
+		const uidEditBoxReturn = new EventHandler();
+		uidEditBoxReturn.target = this.node;
+		uidEditBoxReturn.component = "UiLogin";
+		uidEditBoxReturn.handler = "onUIDEditboxReturn";
+		uidEditBoxReturn.customEventData = "???";
+		this.editBoxUID.editingReturn.push( uidEditBoxReturn );
+
+		const uidEditBoxChanged = new EventHandler();
+		uidEditBoxChanged.target = this.node;
+		uidEditBoxChanged.component = "UiLogin";
+		uidEditBoxChanged.handler = "onUIDEditboxChanged";
+		uidEditBoxChanged.customEventData = "???";
+		this.editBoxUID?.textChanged.push( uidEditBoxChanged );
+
+		const uidEditBoxDidBegan = new EventHandler();
+		uidEditBoxDidBegan.target = this.node;
+		uidEditBoxDidBegan.component = "UiLogin";
+		uidEditBoxDidBegan.handler = "onUIDEditboxDidBegan";
+		uidEditBoxDidBegan.customEventData = "???";
+		this.editBoxUID.editingDidBegan.push( uidEditBoxDidBegan );
+
+		const passwordEditBoxReturn = new EventHandler();
+		passwordEditBoxReturn.target = this.node;
+		passwordEditBoxReturn.component = "UiLogin";
+		passwordEditBoxReturn.handler = "onPasswordEditboxReturn";
+		passwordEditBoxReturn.customEventData = "???";
+		this.editBoxPassword.editingReturn.push( passwordEditBoxReturn );
+
+		const passwordEditBoxChanged = new EventHandler();
+		passwordEditBoxChanged.target = this.node;
+		passwordEditBoxChanged.component = "UiLogin";
+		passwordEditBoxChanged.handler = "onPasswordEditboxChanged";
+		passwordEditBoxChanged.customEventData = "???";
+		this.editBoxPassword?.textChanged.push( passwordEditBoxChanged );
+
+		const passwordEditBoxDidBegan = new EventHandler();
+		passwordEditBoxDidBegan.target = this.node;
+		passwordEditBoxDidBegan.component = "UiLogin";
+		passwordEditBoxDidBegan.handler = "onPasswordEditboxDidBegan";
+		passwordEditBoxDidBegan.customEventData = "???";
+		this.editBoxPassword.editingDidBegan.push( passwordEditBoxDidBegan );                        
+    }
+
+    onUIDEditboxReturn() {
+
+    }
+
+    onUIDEditboxChanged() {
+
+    }
+
+    onUIDEditboxDidBegan() {
+        this.editBoxUID.string = '';
+    }
+
+    onPasswordEditboxReturn() {        
+        if ( this.editBoxPassword.string.length > 0 && this.editBoxUID.string.length > 0 ) {
+            this.audioSource.playOneShot(this.soundButtonClick, 1);
+            this.onLogin();
+        }
+    }
+
+    onPasswordEditboxChanged() {
+
+    }
+
+    onPasswordEditboxDidBegan() {
+        this.editBoxPassword.string = '';
     }
     
     onClickLogin(button: Button) {

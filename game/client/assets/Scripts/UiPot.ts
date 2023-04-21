@@ -18,11 +18,9 @@ export class Pot{
 export class UiPot extends Component {
     @property(Label) public labelMaxPot : Label = null;
     @property(Label) public labelPotCount : Label = null;
-    @property(Label) public labelPotInfo : Label = null;
 
     @property(Node) public maxPotRoot : Node = null;
     @property(Node) public potCountRoot : Node = null;
-    @property(Node) public potInfoRoot : Node = null;
 
     @property(Pot) private potUi : Pot[] = [];
 
@@ -33,9 +31,6 @@ export class UiPot extends Component {
     private potInfoTimeout : number = null;
 
     onLoad() {
-        if (null != this.potInfoRoot) {
-            this.potInfoRoot.active = false;
-        }
     }
 
     public Show(pots : any[])
@@ -87,48 +82,17 @@ export class UiPot extends Component {
             const potInfo = shown[i];
 
             sidePot.valueLabel.string = CommonUtil.getKoreanNumber( potInfo.total );
-            // undefined != potInfo.rake && potInfo.rake > 0 ? 
-            // ( potInfo.total - potInfo.rake ).toString() :  potInfo.total.toString();
             sidePot.showRoot.active = true;
 
             if(null == potInfo.rake){
                 continue;
             }
-
-            // sidePot.showRoot.on(Node.EventType.TOUCH_START, () => {
-            //     if(this.potInfoTimeout != null){
-            //         clearTimeout(this.potInfoTimeout);
-            //         this.potInfoTimeout = null;
-            //     }
-
-            //     this.potInfoTimeout = setTimeout(() => {
-            //         this.OnSelectPot(sidePot.showRoot, i, sidePot.valueLabel.string, potInfo.rake.toString());                    
-            //     })
-            // }, this);
-
-            // sidePot.showRoot.on(Node.EventType.TOUCH_END, () => {
-            //     if(this.potInfoTimeout != null){
-            //         clearTimeout(this.potInfoTimeout);
-            //         this.potInfoTimeout = null;
-
-            //         this.OnDeselectPot(i);
-            //     }
-            // },this);
-            // sidePot.showRoot.on(Node.EventType.TOUCH_CANCEL, () => {
-            //     if(this.potInfoTimeout != null){
-            //         clearTimeout(this.potInfoTimeout);
-            //         this.potInfoTimeout = null;
-
-            //         this.OnDeselectPot(i);
-            //     }
-            // },this);
         }
     }
 
     public UpdatePotTotal(totalValue : number){
         this.labelMaxPot.node.active = true;
         this.labelMaxPot.string = CommonUtil.getKoreanNumber(totalValue);
-        // this.maxPotRoot.active = true;
     }
 
     public GetPots() : Pot[]{
@@ -169,26 +133,7 @@ export class UiPot extends Component {
             clearTimeout(this.potInfoTimeout);
             this.potInfoTimeout = null;
         }
-
-        this.potInfoRoot.active = false;
     }
-    
-    // private OnSelectPot(element : Node, index : number, potTotoal : string, rake : string ){
-        
-    //     this.selectedPot = index;
-
-    //     this.labelPotInfo.string = "POT: " + potTotoal + "\n" + "RAKE: " + rake;
-    //     this.potInfoRoot.worldPosition = element.worldPosition;
-    //     this.potInfoRoot.active = true;
-    // }
-    
-    // private OnDeselectPot(index : number){
-    //     if(this.selectedPot != index){
-    //         return;
-    //     }
-
-    //     this.potInfoRoot.active = false;
-    // }    
 }
 
 
