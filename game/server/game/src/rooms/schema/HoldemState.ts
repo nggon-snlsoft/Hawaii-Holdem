@@ -32,6 +32,7 @@ export class EntityState extends Schema {
 	waitReconnection : boolean = false;
 	lastPingTime : number = -1;
 	totalBet : number = 0;
+	ante: number = 0;
 	
 	@type("boolean") isSitOut : boolean = false;
 	@type("boolean") isSitBack : boolean = false;

@@ -24,11 +24,14 @@ export class UiEntity extends Component {
     private isChildRegistered: boolean = false;
 
     private rootCards: Node = null;
+    private rootButtons: Node = null;
+
     private timerDeltaTime: number = 0;
     private turnDuration: number = 20;
     private playTimeLimitSound: boolean = false;
 
-    private posSymbols: {} = {};
+    private buttons: {} = {};
+    // private posSymbols: {} = {};
 
     private rootHandRank: Node = null;
     private labelHandRank: Label = null;
@@ -142,14 +145,25 @@ export class UiEntity extends Component {
             this.rootHandRank.active = false;
         }
 
-        this.posSymbols['dealer'] = this.node.getChildByPath('BUTTONS/DEALER').getComponent(Sprite);
-        this.posSymbols['dealer'].node.active = false;
-        
-        this.posSymbols['sb'] = this.node.getChildByPath('BUTTONS/SB').getComponent(Sprite);
-        this.posSymbols['sb'].node.active = false;
-        
-        this.posSymbols['bb'] = this.node.getChildByPath('BUTTONS/BB').getComponent(Sprite);
-        this.posSymbols['bb'].node.active = false;
+        this.rootButtons = this.node.getChildByPath('BUTTONS');
+        if ( this.rootButtons != null ) {
+            console.log('this.rootButtons != null');
+
+            this.buttons['DEALER'] = this.rootButtons.getChildByPath('DEALER').getComponent(Sprite);
+            if ( this.buttons['DEALER'] != null) {
+                this.buttons['DEALER'].node.active = false;
+            }
+
+            this.buttons['SB'] = this.rootButtons.getChildByPath('SB').getComponent(Sprite);
+            if ( this.buttons['SB'] != null ) {
+                this.buttons['SB'].node.active = false;
+            }
+
+            this.buttons['BB'] = this.rootButtons.getChildByPath('BB').getComponent(Sprite);
+            if ( this.buttons['BB'] != null ) {
+                this.buttons['BB'].node.active = false;
+            }
+        }
 
         this.bezierPoints = [];
         for(let i=0; i<2; i++){
@@ -294,9 +308,10 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.setEscape();
 
         this.labelHandRank.node.active = false;
-        this.posSymbols['dealer'].node.active = false;
-        this.posSymbols['sb'].node.active = false;
-        this.posSymbols['bb'].node.active = false;
+
+        this.buttons['DEALER'].node.active = false;
+        this.buttons['SB'].node.active = false;
+        this.buttons['BB'].node.active = false;
 
         this.uiBettingChips.hide();
 
@@ -341,11 +356,7 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.SetChips( chips );
     }
 
-    // setUiChips( chips: number ) {
-    //     this.uiEntityAvatar.setUiChips( chips, this.getIsUiSitOut() );
-    // }
-
-    setUiBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
+    SetBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
         if ( this.isUiSitOut == true ) {
             this.setUiSitOut();
         } else {
@@ -353,9 +364,9 @@ export class UiEntity extends Component {
         }
 
         if ( true == isBB ) {
-            this.uiEntityAvatar.setBigBlind();
+            this.uiEntityAvatar.SetBigBlind();
         } else {
-            this.uiEntityAvatar.setSmallBlind();
+            this.uiEntityAvatar.SetSmallBlind();
         }
 
         if ( true == isBB || true == isSB ) {
@@ -370,25 +381,28 @@ export class UiEntity extends Component {
             if ( this.uiEntityAvatar != null ) {
                 this.uiEntityAvatar.SetChips( chips );
             }
-        }
+        }        
     }
 
-    setUiPosSymbol( symbolName: string ) {
-        let keys = Object.keys(this.posSymbols);
+    SetButtons( name: string ) {
+        let keys = Object.keys( this.buttons );
         keys.forEach(element => {
-            let v: Sprite = this.posSymbols[element];
-            if (element == symbolName) {
+            let v: Sprite = this.buttons[element];
+            if (element == name) {
                 v.node.active = true;
             }
         });
+
+        this.rootButtons.active = true;
     }
 
-    clearUiPositionSymbol() {
-        let keys = Object.keys(this.posSymbols);
+    ClearButtons() {
+        let keys = Object.keys(this.buttons);
         keys.forEach(element => {
-            let v: Sprite = this.posSymbols[element];
+            let v: Sprite = this.buttons[element];
             v.node.active = false;
         });
+        this.rootButtons.active = false;
     }
 
     setUiAction( action: string ) {
@@ -404,16 +418,16 @@ export class UiEntity extends Component {
     }
 
     SetBetValue( betValue: number, done: ()=> void = null ) {
-        this.uiBettingChips.show(betValue, ()=>{
-
-        });
-    }
-
-    setUiBetValue( betValue: number, color?: Color ) {
-
-        this.uiBettingChips.show(betValue, ()=>{
-
-        });
+        if ( betValue > 0 ) {
+            this.uiBettingChips.show(betValue, ()=>{
+                if ( done != null ) {
+                    done();
+                }
+            });
+        }
+        else {
+            done();
+        }
     }
 
     ClearBetValue() {

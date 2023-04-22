@@ -26,6 +26,7 @@
     "balanceFraction": 0,
     "chipsRatio": 10,
     "chipsFraction": 0,
+    "ante": 1000, 
     "flopRake" : false,
     "useLog" : true
   },
@@ -42,6 +43,7 @@
     "readyTerm": 3000,
     "smallBlind": 100,
     "bigBlind" : 200,
+    "ante": 1000,     
     "maxClient" :6,
     "minStakePrice": 10000,
     "maxStakePrice": 20000,

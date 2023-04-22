@@ -34,6 +34,7 @@ export class UiEntityAvatar extends Component {
     private labelWaitingTimer: Label = null;
 
     private actions: {} = {};
+
     private isChildRegisted: boolean = false;
     private isFold: boolean = false;
     private isMe: boolean = false;
@@ -80,12 +81,12 @@ export class UiEntityAvatar extends Component {
         this.labelChips.string = CommonUtil.getKoreanNumber( chips );
     }
 
-    public setSmallBlind() {
+    public SetSmallBlind() {
         this.labelChips.color = new Color(100, 150, 180);
         this.labelChips.string = "스몰블라인드"
     }
 
-    public setBigBlind() {
+    public SetBigBlind() {
         this.labelChips.color = new Color(100, 150, 180);
         this.labelChips.string = "빅블라인드"
     }

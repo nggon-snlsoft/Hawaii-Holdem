@@ -120,6 +120,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
+					this.conf["ante"] = 1000;
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -135,33 +136,30 @@ export class HoldemRoom extends Room<RoomState> {
 				this.setSimulationInterval((deltaTime) => this.update(deltaTime));
 
 				// register message handlers
-				this.onMessage("ONLOAD", this.OnLoadDone.bind(this));
-				this.onMessage("BUY_IN", this.onBuyIn.bind(this));
-				this.onMessage("CHECK", this.onCheck.bind(this));
-				this.onMessage("CALL", this.onCall.bind(this));
-				this.onMessage("BET", this.onBet.bind(this));
-				this.onMessage("RAISE", this.onRaise.bind(this));
-				this.onMessage("ALLIN", this.onAllIn.bind(this));
-				this.onMessage("FOLD", this.onFold.bind(this));
-				this.onMessage("RE_BUY", this.onReBuy.bind(this));
-
-				this.onMessage("ADD_CHIPS_REQUEST", this.onAddChipsRequest.bind(this));
-				this.onMessage("ADD_CHIPS", this.onAddChips.bind(this));
-
-				this.onMessage("PONG", this.onPong.bind(this));
-				this.onMessage("SHOW_CARD", this.onShowCard.bind(this));
-				this.onMessage("SIT_OUT", this.OnSitOut.bind(this));
-				this.onMessage("SIT_OUT_CANCEL", this.OnSitoutCancel.bind(this));				
-				this.onMessage("SIT_BACK", this.OnSitBack.bind(this));
-				this.onMessage("SEAT_SELECT", this.OnSelectSeat.bind(this));
-				this.onMessage("CANCEL_BUY_IN", this.onCancelBuyIn.bind(this));
-				this.onMessage("SHOW_EMOTICON", this.onShowEmoticon.bind(this));
+				this.onMessage("ONLOAD", this.onLOAD_DONE.bind(this));
+				this.onMessage("BUY_IN", this.onBUY_IN.bind(this));
+				this.onMessage("CHECK", this.onCHECK.bind(this));
+				this.onMessage("CALL", this.onCALL.bind(this));
+				this.onMessage("BET", this.onBET.bind(this));
+				this.onMessage("RAISE", this.onRAISE.bind(this));
+				this.onMessage("ALLIN", this.onALLIN.bind(this));
+				this.onMessage("FOLD", this.onFOLD.bind(this));
+				this.onMessage("RE_BUY", this.onRE_BUY.bind(this));
+				this.onMessage("ADD_CHIPS_REQUEST", this.onADD_CHIPS_REQUEST.bind(this));
+				this.onMessage("ADD_CHIPS", this.onADD_CHIPS.bind(this));
+				this.onMessage("PONG", this.onPONG.bind(this));
+				this.onMessage("SHOW_CARD", this.onSHOW_CARD.bind(this));
+				this.onMessage("SIT_OUT", this.onSIT_OUT.bind(this));
+				this.onMessage("SIT_OUT_CANCEL", this.onSIT_OUT_CALCEL.bind(this));
+				this.onMessage("SIT_BACK", this.onSIT_BACK.bind(this));
+				this.onMessage("SEAT_SELECT", this.onSEAT_SELECT.bind(this));
+				this.onMessage("CANCEL_BUY_IN", this.onCANCEL_BUY_IN.bind(this));
+				this.onMessage("SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));
 
 				this.potCalc = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"] );
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
 			}
 		};
-
 		await this._dao.selectTableInfo(options["serial"], onDBFinish);
 	}
 
@@ -311,26 +309,6 @@ export class HoldemRoom extends Room<RoomState> {
 		return;
 	}
 
-	OnLoadDone( client : Client, msg : any ){
-		let auth : any = this._buyInWaiting[client.sessionId];
-
-		if(null != auth && undefined != auth){
-			this.OnLoadDoneFirstJoin(client, auth);
-			logger.info(" OnLoadDone - _buyInWaiting : " + client.sessionId);
-			return;
-		}
-
-		auth = this._rejoinWaiting[client.sessionId];
-		
-		if(null != auth && undefined != auth){
-			this.OnLoadDoneRejoin(client, auth);
-			logger.info(" OnLoadDone - _rejoinWaiting : " + client.sessionId);
-			return;
-		}
-
-		logger.error("OnLoadDone - Player Call LoadDone But No waiting exist");
-	}
-
 	OnLoadDoneFirstJoin(client : Client, auth : any){
 
 		if(null == auth || undefined == auth){
@@ -345,77 +323,6 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 
 		this.UpdateSeatInfo();
-	}
-
-	OnSelectSeat(client : Client, msg : any){
-		// selected : number
-		let auth = this._buyInWaiting[client.sessionId];
-		if(null == auth || undefined == auth){
-			// not Joined User
-			client.send("SELECT_SEAT_ERROR", {
-				message : "you are not joined User" 
-			});
-			return;
-		}
-
-		let selected = msg.selected;
-
-		let seatEntity = this.state.entities.find((elem) => {
-			return elem.seat === selected;
-		})
-		
-		if(selected < 0 || selected >= this.seatWaitingList.length || null != seatEntity){
-			//Already tacked or already waiting
-			client.send("SELECT_SEAT_ERROR", {
-				message : "is Already Took by someone" 
-			});
-			
-			this.UpdateSeatInfo();
-			return;
-		}
-
-		//Check Chips Already got ?
-
-		let myEntity = this.findEntityBySessionID(client.sessionId);
-
-		if(null == myEntity){
-			return;
-		}
-
-		let minBuyIn : number = this.conf["minStakePrice"];
-
-		if(myEntity.chips >= minBuyIn){
-			this.skipBuyIn(client, selected);
-			return;
-		}
-
-		minBuyIn = minBuyIn - myEntity.chips;
-		if ( myEntity.balance < minBuyIn ) {
-			client.send("RES_BUY_IN", {
-				ret: -1,
-				amount: 0,
-				message: "Not Enough Balance",
-				tableBuyInAmount: 0,
-				tableBuyInCount: 0,
-			});
-			return;
-		}
-
-		this.seatWaitingList[selected] = client.sessionId;
-		this.UpdateSeatInfo();
-
-		client.send( "BUY_IN", {
-			id: auth.id,
-			nickname: auth.nickname,
-			balance: auth.balance,
-			tableSize: this.tableSize,
-			small: this.conf[ "smallBlind" ],
-			big: this.conf[ "bigBlind" ],
-			turnTimeMS: this.conf[ "betTimeLimit" ],
-			minStakePrice: this.conf[ "minStakePrice" ],
-			maxStakePrice: this.conf[ "maxStakePrice" ],
-			myChips : myEntity.chips,
-		} );
 	}
 
 	skipBuyIn(client : Client, seat : number){
@@ -495,7 +402,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.broadcast("NEW_ENTITY", { newEntity: entity });
 	}
-
 	
 	UpdateSeatInfo(){
 		
@@ -550,7 +456,6 @@ export class HoldemRoom extends Room<RoomState> {
 			});
 		});
 	}
-
 
 	OnLoadDoneRejoin(client : Client, auth : any){
 
@@ -772,498 +677,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 	}	
 
-	onBuyIn( client: Client, msg: any ) {
-		try {
-			logger.info( "[ onBuyIn ] msg : %s", msg );
-
-			let entity = this.findEntityBySessionID( client.sessionId );
-			if( null === entity || undefined === entity ) {
-				logger.error( "[ onBuyIn ] entity is null" );
-				return;
-			}
-
-			let seatPos : number = -1;
-			for(let i = 0; i < this.seatWaitingList.length; i++){
-				
-				if(this.seatWaitingList[i] == client.sessionId){
-					seatPos = i;
-					this.seatWaitingList[i] = "";
-					break;
-				}
-			}
-			if(seatPos == -1){
-				return;
-			}
-			entity.seat = seatPos;
-
-			this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
-				if( !!err ) {
-					logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
-					return;
-				}
-
-				if( res.length <= 0 ) {
-					logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
-					return;
-				}
-				else {
-					entity.balance = res[0]["balance"];
-
-					let oldBalance = entity.balance;
-					let oldChips = entity.chips;
-
-					let buyInAmount = msg[ "buyInAmount" ];
-					let bal = entity.balance - buyInAmount;
-					if( bal <= 0 ) {
-						buyInAmount = entity.balance;
-						bal = 0;
-					}
-			
-					entity.balance = bal;
-					entity.chips += buyInAmount;
-					entity.initRoundChips = entity.chips;
-
-					entity.tableBuyInAmount += buyInAmount;
-					entity.tableBuyInCount++;
-
-					this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
-					entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
-					{
-						if( !!err ) {
-							logger.error( "[ onBuyIn ] buyIn query error : %s", err );
-						}
-					} );
-
-					this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
-						if( !!err ) {
-							logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
-						}
-					} );
-
-					logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
-
-					let openCards: number[] = [];
-					switch( this.centerCardState ) {
-						case eCommunityCardStep.FLOP:
-							openCards = this.communityCardIndex.slice( 0, 3 );
-							break;
-
-						case eCommunityCardStep.TURN:
-							openCards = this.communityCardIndex.slice( 0, 4 );
-							break;
-
-						case eCommunityCardStep.RIVER:
-						case eCommunityCardStep.RESULT:
-							openCards = this.communityCardIndex;
-							break;
-					}
-
-					this.UpdateSeatInfo();
-
-					entity.tableInitChips = oldChips;
-					entity.tableBuyInAmount = buyInAmount;
-					entity.tableBuyInCount = 1;
-
-					client.send("RES_BUY_IN", {
-						ret: 0,
-						amount: buyInAmount,
-						message: "SUCCEED.",
-						tableBuyInAmount: entity.tableBuyInAmount,
-						tableBuyInCount: entity.tableBuyInCount,
-					});
-
-					let playerCards = null;
-					let winners = null;
-					let showdown = null;
-
-					if ( this.state.gameState == eGameState.Result )
-					{
-						playerCards = this.GetPlayerCards();
-						winners = this.GetWinners( this.isAllFold(), false );
-					}
-
-					if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
-						showdown = this.GetShowdown();
-						winners = this.GetWinners( false, true );
-
-						switch ( this.SHOWDOWN_STATE ) {				
-							case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
-								openCards = [];
-								break;
-				
-							case ENUM_SHOWDOWN_STEP.SHOW_FLOP:
-								openCards = this.communityCardIndex.slice( 0, 3 );
-								break;
-				
-							case ENUM_SHOWDOWN_STEP.SHOW_TURN:
-								openCards = this.communityCardIndex.slice( 0, 4 );
-								break;
-				
-							case ENUM_SHOWDOWN_STEP.SHOW_RIVER:
-								openCards = this.communityCardIndex;
-								break;
-				
-							case ENUM_SHOWDOWN_STEP.SHOWDOWN_END:
-								openCards = this.communityCardIndex;							
-								winners = this.GetWinners( false, true );
-								break;
-						}						
-					}
-		
-					client.send( "JOIN", {
-						yourself: entity,
-						entities: this.state.entities,
-						gameState: this.state.gameState,
-						showdownState: this.SHOWDOWN_STATE,
-						betSeat: this.betSeat,
-						endSeat: this.endSeat,
-						maxBet: this.state.maxBet,
-						minRaise: this.state.minRaise,
-						pot: this.state.pot,						
-						centerCardState: this.centerCardState,
-						openCards: openCards,
-						small: this.conf[ "smallBlind" ],
-						big: this.conf[ "bigBlind" ],
-						minStakePrice: this.conf["minStakePrice"],
-						maxStakePrice: this.conf["maxStakePrice"],
-						dealer: this.dealerCalc.getDealer(),
-						sb : this.dealerCalc.getSb(),
-						bb : this.dealerCalc.getBb(),
-						tableInitChips: entity.tableInitChips,
-						tableBuyInAmount: entity.tableBuyInAmount,
-						tableBuyInCount: entity.tableBuyInCount,
-						initPot: this._initPot,
-						playerCards: playerCards,
-						showdown: showdown,
-						winners: winners,
-					} );
-
-					if( eGameState.Suspend === this.state.gameState ) {
-						entity.isNew = false;
-						let isStart = this.checkStartCondition();
-						if ( true === isStart ) {
-							this.changeState( eGameState.Ready );
-						}
-					} else if (eGameState.Ready === this.state.gameState) {
-						entity.isNew = false;
-					}
-
-					this.broadcast( "NEW_ENTITY", { newEntity: entity } );
-				}
-			} );
-		} catch( e ) {
-			if( e === undefined ) {
-				e = "error";
-			}
-
-			client.send("RES_BUY_IN", {
-				ret: -1,
-				amount: 0,
-				message: e,
-				tableBuyInAmount: 0,
-				tableBuyInCount: 0,
-			});
-		}
-	}
-
-	onCancelBuyIn(client : Client, msg : any){
-		let seatPos : number = -1;
-
-		for(let i = 0; i < this.seatWaitingList.length; i++){
-			
-			if(this.seatWaitingList[i] == client.sessionId){
-				seatPos = i;
-				this.seatWaitingList[i] = "";
-				break;
-			}
-		}
-
-		this.UpdateSeatInfo();
-	}
-
-	onShowEmoticon(client: Client, msg: any) {
-		this.broadcast( "SHOW_EMOTICON", { seat: msg['seat'],
-		type: msg['type'],
-		id: msg['id']} );
-	}
-
-	onReBuy( client: Client, msg: any ) {
-		logger.info( "[ onReBuy ] msg : %s", msg );
-		let locSeatIndex = msg[ "seat" ];
-		let locBuyAmount = msg[ "amount" ];
-		let code = -1;
-		let message = "SUCCEED";
-		let chips = 0;
-		let e:any = null;
-		const idx = this.state.entities.findIndex( function( e ) {
-			return e.seat === locSeatIndex;
-		} );
-
-		if( idx > -1 ) {
-			e = this.state.entities[ idx ];
-		}
-		if( null === e ) {
-			logger.error( "[ onReBuy ] entity is null. seat(%s), msg(%s)", locSeatIndex, JSON.stringify( msg ) );
-			return client.send( "RES_RE_BUY", {
-				resultCode: -1,
-				amount: 0,
-				msg: "seat user is not existed",
-				tableBuyInAmount: -1,
-				tableBuyInCount: -1,
-			} );
-		} else {
-			this._dao.selectBalanceByUID( e.id, ( err: any, res: any ) => {
-				if( !!err ) {
-					logger.error( "[ onReBuy ] selectBalanceByUID query error : %s", err );
-				}
-				else {
-					if( res.length <= 0 ) {
-						logger.error( "[ onReBuy ] selectBalanceByUID invalid user id" );
-					}
-					else {
-						e.balance = res[0]["balance"];
-						let oldBalance = e.balance;
-						let oldChips = e.chips;
-
-						logger.info( "[ onReBuy ] seat : %s // wait : %s // balance : %s // buy amount : %s",
-							locSeatIndex, e.wait, e.balance, locBuyAmount );
-		
-						//check chips
-						if( e.chips >= this.conf[ "minStakePrice" ] ) {
-							logger.warn( "[ onReBuy ] already enough chips. your chip : %s // min stake : %s", e.chips, this.conf[ "minStakePrice" ] );
-							message = "You can't stack any more chips.";
-							code = 1;
-						}
-						else if( e.fold === false && ( this.state.gameState >= eGameState.Prepare &&
-								this.state.gameState <= eGameState.Result ) &&
-							e.wait === false ) {
-							logger.warn( "[ onReBuy ] You can't buy chips during the game. gameState : %s", this.state.gameState );
-							message = "You can only purchase chips in a fold or wait state.";
-							code = 1;
-						}
-						else if( e.balance <= 0 ) {
-							logger.warn( "[ onReBuy ] not enough balance. balance : %s", e.balance );
-							code = 1;
-							message = "not enough balance.";
-						}
-						else if( e.balance <= locBuyAmount ) {
-							logger.warn( "[ onReBuy ] It has less balance than the chip you want to purchase. balance : %s // desired chips : %s",
-								e.balance, locBuyAmount );
-							code = 0;
-							chips = e.balance;// entity.chips = entity.balance;
-							e.balance = 0;
-						}
-						else {
-							code = 0;
-							e.balance -= locBuyAmount;
-							chips = locBuyAmount;// entity.chips = locBuyAmount;
-			
-							logger.info( "[ onReBuy ] succeed. balance : %s // chips : %s", e.balance, chips );
-						}
-			
-						if( 0 === code ) {
-							e.chips = e.chips + chips;
-							e.initRoundChips = e.chips;
-							logger.info( "[ onReBuy ] entity state. chips : %s // enough chip : %s // wait : %s", e.chips, e.enoughChip, e.wait );
-				
-							if( eGameState.Suspend === this.state.gameState ) {
-								e.isNew = false;
-								let isStart = this.checkStartCondition();
-								if ( true === isStart ) {
-									logger.info( "[ onReBuy ] GAME STATE TO READY" );
-									this.changeState( eGameState.Ready );
-								}
-							} else if ( eGameState.Ready === this.state.gameState ) {
-								e.isNew = false;
-							}
-						}
-			
-						this._dao.buyIn( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
-							if( !!err ) {
-								logger.error( "[ onReBuy ] buyIn query error : %s", err );
-							}
-						} );
-				
-						this._dao.updateBalance( e.id, e.balance, ( err: any, res: any ) => {
-							if( !!err ) {
-								logger.error( "[ onReBuy ] updateBalance query error : %s", err );
-							}
-						} );
-				
-						logger.info( "[ onReBuy ] done. send packet to client. result code : %s // msg : %s", code, message );
-
-						e.tableBuyInAmount += locBuyAmount;
-						e.tableBuyInCount ++;
-
-						client.send( "RES_RE_BUY", {
-							resultCode: code,
-							msg: message,
-							balance: e.balance,
-							chips: e.chips,
-							resultChip: e.chips,
-							tableBuyInAmount: e.tableBuyInAmount,
-							tableBuyInCount: e.tableBuyInCount,
-						} );
-					}
-				}
-			});
-		}
-	}
-
-	onAddChips( client: Client, msg: any ) {
-		logger.info( "[ onAddChips ] msg(%s)", msg );
-		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
-
-		let seat = msg[ "seat" ];
-		let amount = msg[ "amount" ];
-		let code = -1;
-		let e: any = null;
-
-		const idx = this.state.entities.findIndex( function( e ) {
-			return e.seat === seat;
-		} );
-
-		if( idx > -1 ) {
-			e = this.state.entities[ idx ];
-			if ( null === e || undefined === e ) {
-				code = -1;
-			} else {
-				this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
-					if (!!err) {
-						logger.error("[ onAddChips ] selectBalanceByUID query error : %s", err);
-					}
-					else {
-						if (res.length <= 0) {
-							logger.error("[ onAddChips ] selectBalanceByUID invalid user id");
-						}
-						else {
-							e.balance = res[0]["balance"];
-							let oldBalance = e.balance;
-							let oldChips = e.chips;
-	
-							let gap = MAX_BUY_IN - (e.initRoundChips + amount);
-							logger.info( "[ onAddChips ] e.initRoundChips: %d, gap : %d", e.initRoundChips, gap );
-			
-							if ( gap < 0) {
-								amount = amount + gap;
-							}
-			
-							code = this.checkReBuyCondition(e, amount, true );
-							logger.info( "[ onAddChips ] amount: %d, code : %d", amount, code );
-			
-							let pending: boolean = false;
-							if ( -1 === code || null === e || undefined === e) {
-								logger.error( "[ onAddChips ] why??" );
-								client.send( "RES_ADD_CHIPS", {
-									code: -1,
-									balance: -1,
-									chips: -1,
-									amount: 0,
-									pending: pending,
-									tableBuyInAmount: -1,
-									tableBuyInCount: -1,
-								});
-								return;
-							} else {
-								if ( true  === e.wait || true === e.fold ||
-									eGameState.Suspend === this.state.gameState || eGameState.Ready === this.state.gameState ||
-									eGameState.Prepare === this.state.gameState || eGameState.ClearRound === this.state.gameState) {
-									pending = false;
-			
-									if ( e.balance < amount ) {
-										amount = e.balance;
-									}
-									e.balance -= amount;
-									e.chips = e.chips + amount;
-									e.initRoundChips = e.chips;
-									e.tableBuyInAmount += amount;
-									e.tableBuyInCount++;
-			
-									this._dao.buyIn(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
-										if (!!err) {
-											logger.error("[ onAddChips ] buyIn query error : %s", err);
-										}
-									});
-					
-									this._dao.updateBalance(e.id, e.balance, (err: any, res : any) => {
-										if (!!err) {
-											logger.error("[ onAddChips ] updateBalance query error : %s", err);
-										}
-									});
-								} else {
-									pending = true;
-									e.pendReBuy = amount;
-								}
-							}
-			
-							client.send( "RES_ADD_CHIPS", {
-								code: code,
-								balance: e.balance,
-								chips: e.chips,
-								amount: amount,
-								pending: pending,
-								tableBuyInAmount: e.tableBuyInAmount,
-								tableBuyInCount: e.tableBuyInCount,
-							});
-						}
-					}
-				});
-			}
-		}
-		else {
-			code = -1;
-		}
-	}
-
-	onAddChipsRequest( client: Client, msg: any ) {
-		logger.info("onAddChipsRequest : msg(%s)", msg);
-		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
-		let res: number = -1;
-
-		let seat = msg["seat"];
-		let max = 0;
-
-		let e = this.findEntityBySeatNumber(seat);
-		if ( null === e || undefined === e ) {
-			client.send( "RES_ADD_CHIPS_REQUEST", {
-				code: -1,
-				balance: -1,
-				chips: -1,
-				amount: -1
-			});
-		} else {
-			this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
-				if (!!err) {
-					logger.error("[ onAddChipsRequest ] selectBalanceByUID query error : %s", err);
-				}
-				else {
-					if (res.length <= 0) {
-						logger.error("[ onAddChipsRequest ] selectBalanceByUID invalid user id");
-					}
-					else {
-						e.balance = res[0]["balance"];
-
-						max = MAX_BUY_IN - e.initRoundChips;
-						if ( e.balance < max ) {
-							max = e.balance;
-						}
-
-						res = this.checkReBuyCondition(e, max, false );
-						logger.error("checkReBuyCondition res:%d, initChip: %d", res, e.initRoundChips);
-						client.send( "RES_ADD_CHIPS_REQUEST", {
-							code: res,
-							balance: e.balance,
-							initChips: e.initRoundChips,
-							chips: e.chips,
-							amount: max
-						});
-					}
-				}
-			});
-			
-		}
-	}
-
 	checkReBuyCondition( e: any, max: number, reBuy: boolean) :number {
 		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 		const MAX_RE_BUY_COUNT: number = this.conf["limitReBuyCount"];
@@ -1374,19 +787,6 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 	}
 
-	onPong( client: Client, msg: any ) {
-		let entity = this.state.entities.find( e => e.seat === msg[ "seat" ] );
-		if( undefined === entity ) {
-			return;
-		}
-
-		let time = Date.now();
-		let elapsed = time - entity.lastPingTime;
-		if( elapsed >= 5000 ) {
-			return;
-		}
-		entity.lastPingTime = time;
-	}
 
 	update( dt: any ) {
 
@@ -1557,7 +957,6 @@ export class HoldemRoom extends Room<RoomState> {
 
 	isEnoughChip( chip: number ) {
 		let b = chip >= this.conf[ "bigBlind" ] * 2;// * 10;
-		// logger.info( "[ isEnoughChip ] chip : %s // b : %s", chip, b );
 		return b;//chip >= START_BET * 10;
 	}
 
@@ -1584,6 +983,15 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this._dao.chipOut(this.state.entities[l].chips, this.state.entities[l].id);
 				this.state.entities[l].chips = 0;
+
+				this._dao.UpdateStatics( this.state.entities[l].id, this.state.entities[l].statics, ( err: any, res: boolean  )=> {
+					if ( err != null ) {
+						logger.error( err );
+					} else {
+						console.log( ' statics saved ');
+
+					}
+				})
 			}
 		}
 
@@ -1622,7 +1030,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	updateButtons() {
-		let buttons = this.dealerCalc.moveButtons(this.state.entities);
+		let buttons = this.dealerCalc.moveButtons( this.state.entities );
 		this.state.dealerSeat = buttons[0];
 		this.state.sbSeat = buttons[1];
 		this.state.bbSeat = buttons[2];
@@ -1641,7 +1049,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			let playable: boolean = true;
-			playable = this.dealerCalc.IsPlayableSeat(this.state.entities, e.seat);
+			playable = this.dealerCalc.IsPlayableSeat( this.state.entities, e.seat );
 			if ( playable === false ) {
 				e.wait = true;
 			}
@@ -2287,14 +1695,38 @@ export class HoldemRoom extends Room<RoomState> {
 				eval: entity.eval,
 			} );
 
+			let hands: number = entity.statics.hands;
+			entity.statics.hands = hands + 1;
+
 			logger.debug( "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
 			logger.debug( "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
 			logger.debug( "[ cardDispensing ] eval : %s ", entity.eval );
-
 		}
 	}
 
 	blindBet() {
+		let player: number[] = [];
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			let e = this.state.entities[ i ];
+			if ( null === e || undefined === e ) {
+				continue;
+			}
+
+			if ( true === e.wait || true === e.isSitOut) {
+				continue;
+			}
+
+			let ante = this.conf['ante'];
+			if ( ante > 0) {
+				e.ante = ante;
+				e.chips -= e.ante;
+				this.state.pot += ante;
+				this.potCalc.SetAnte( e.ante );
+			}
+
+			player.push(e.seat);
+		}
+
 		let smallBlind = this.getEntity( this.state.sbSeat );
 		let bigBlind = this.getEntity( this.state.bbSeat );
 		let missSb: any[] = [];
@@ -2380,20 +1812,6 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		let player: number[] = [];
-		for( let i = 0; i < this.state.entities.length; i++ ) {
-			let e = this.state.entities[ i ];
-			if ( null === e || undefined === e ) {
-				continue;
-			}
-
-			if ( true === e.wait || true === e.isSitOut) {
-				continue;
-			}
-
-			player.push(e.seat);
-		}
-
 		this.state.maxBet = this.state.startBet;
 		this.state.minRaise = this.state.maxBet;
 		this._initPot = this.state.pot;
@@ -2406,6 +1824,7 @@ export class HoldemRoom extends Room<RoomState> {
 			missSb: missSb,
 			missBb: missBb,
 			player: player,
+			ante: this.conf['ante'],
 		} );
 	}
 
@@ -2560,340 +1979,6 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 	}
 
-	onCheck( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onCheck ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		logger.info( "[ onCheck ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
-		let e = this.getEntity( msg[ "seat" ] );
-
-		if(e.fold === true){
-			logger.error("onCheck - player " + msg["seat"] + " is fold but try Check");
-			return;
-		}
-
-		e.hasAction = false;
-		e.timeLimitCount = 0;
-
-		this.potCalc.CalculatePot();
-
-		this.broadcast( "CHECK", {
-			seat: this.betSeat,
-			pot : this.state.pot,
-		} );
-
-		this.elapsedTick = 0;
-
-		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onCheck ] this is last turn" );
-			this.changeCenterCardState();
-			return;
-		}
-
-		this.broadTurn();
-	}
-
-	onCall( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		logger.info( "[ onCall ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
-		let amount = msg["betAmount"];
-		let e = this.getEntity( msg[ "seat" ] );
-
-		if(e.fold === true){
-			logger.error("onCall - player " + msg["seat"] + " is fold but try Call");
-			return;
-		}
-
-		let bet = amount - e.currBet;
-		let isAllIn = bet >= e.chips;
-		if( true == isAllIn ) {
-			e.allIn = 1;
-			bet = e.chips;
-			logger.info( "[ onCall ] all-in" );
-		}
-
-		e.currBet += bet;
-		e.roundBet += bet;
-		e.totalBet += bet;
-		e.chips -= bet;
-		e.hasAction = false;
-
-		e.timeLimitCount = 0;
-
-		this.state.pot += bet;
-
-		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
-
-		this.broadcast( "CALL", {
-			seat: this.betSeat,
-			chips: e.chips,
-			bet: msg[ "betAmount" ],
-			pot: this.state.pot,
-			allin: e.allIn,
-		} );
-
-		this.elapsedTick = 0;
-
-		if( true === this.isLastTurn( this.betSeat ) ) {
-			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onCall ] round finished." );
-				this.bufferTimerID = setTimeout( () => {
-					this.changeState( eGameState.Result );
-				}, 500 );
-			}
-			else {
-				this.changeCenterCardState();
-			}
-			this.elapsedTick = 0;
-			return;
-		}
-
-		this.broadTurn();
-	}
-
-	onBet( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		logger.info( "[ onBet ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
-		if( msg[ "betAmount" ] < this.state.startBet ) {
-			logger.error( "[ onBet ] bet amount is larger than startBet??" );
-		}
-
-		let e = this.getEntity( msg[ "seat" ] );
-		
-		if(e.fold === true){
-			logger.error("onBet - player " + msg["seat"] + " is fold but try bet");
-			return;
-		}
-
-		if( msg[ "betAmount" ] > e.chips ) {
-			logger.error( "[ onBet ] bet > stack!!!" );
-			msg[ "betAmount" ] = e.chips;
-		}
-
-		e.chips -= msg[ "betAmount" ];
-
-		if( e.chips <= 0 ) {
-			logger.info( "[ onBet ] allin" );
-			e.chips = 0;
-			e.allIn = 1;
-		}
-		e.currBet += msg[ "betAmount" ];
-		e.roundBet += msg[ "betAmount" ];
-		e.totalBet += msg[ "betAmount" ];
-
-		e.timeLimitCount = 0;
-
-		this.ReOpenAction();
-		e.hasAction = false;
-
-		this.state.pot += parseInt( msg[ "betAmount" ] );
-
-		if( msg[ "betAmount" ] > this.state.maxBet ) {
-			this.state.maxBet = msg[ "betAmount" ];
-		}
-
-		if( this.state.maxBet > this.state.minRaise ) {
-			this.state.minRaise = this.state.maxBet;
-		}
-
-		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
-
-		this.broadcast( "BET", {
-			seat: this.betSeat,
-			chips: e.chips,
-			bet: msg[ "betAmount" ],
-			pot: this.state.pot,
-			allin: e.allIn,
-		} );
-
-		this.updateEndSeat( e.seat, true );
-		this.broadTurn();
-
-		this.elapsedTick = 0;
-	}
-
-	onRaise( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		let e = this.getEntity( msg[ "seat" ] );
-
-		if(e.fold === true){
-			logger.error("onRaise - player " + msg["seat"] + " is fold but try Raise");
-			return;
-		}
-
-		let locBet = msg[ "betAmount" ];
-		let locChangeEndSeat = false;
-		logger.info( "[ onRaise ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
-		this.state.maxBet = locBet;
-		this.state.minRaise = this.state.maxBet;
-		locChangeEndSeat = true;
-
-		let bet = this.state.maxBet - e.currBet;
-
-		if( bet >= e.chips ) {
-			logger.info( "[ onRaise ] allin?? But??" );
-			e.allIn = 1;
-			bet = e.chips;
-		}
-
-		e.chips -= bet;
-		e.currBet += bet;
-		e.roundBet += bet;
-		e.totalBet += bet;
-		e.timeLimitCount = 0;
-
-		this.ReOpenAction();
-		e.hasAction = false;
-
-		this.state.pot = this.state.pot + bet;
-
-		if( e.chips <= 0 ) {
-			e.chips = 0;
-		}
-
-		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
-
-		this.broadcast( "RAISE", {
-			seat: this.betSeat,
-			chips: e.chips,
-			bet: msg[ "betAmount" ],
-			pot: this.state.pot,
-			allin: e.allIn,
-		} );
-
-		if( this.checkCount() < 1 ) {
-			logger.info( "[ onRaise ] round finished." );
-			this.bufferTimerID = setTimeout( () => {
-				this.changeState( eGameState.Result );
-			}, 500 );
-			this.elapsedTick = 0;
-			return;
-		}
-
-		if( locChangeEndSeat ) {
-			logger.info( "[ onRaise ] max bet updated. change end seat??" );
-			this.updateEndSeat( e.seat , true);
-		}
-
-		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onRaise ] this is last turn" );
-
-			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onRaise ] round finished." );
-				this.bufferTimerID = setTimeout( () => {
-					this.changeState( eGameState.Result );
-				}, 1000 );
-			}
-			else {
-				this.changeCenterCardState();
-			}
-			this.elapsedTick = 0;
-			return;
-		}
-
-		this.broadTurn();
-		this.elapsedTick = 0;
-	}
-
-	onAllIn( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s",
-				msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		let e = this.getEntity( msg[ "seat" ] );
-		if(e.fold === true){
-			logger.error("onAllIn - player " + msg["seat"] + " is fold but try AllIn");
-			return;
-		}
-
-		let locBet = msg[ "betAmount" ];
-		let locChangeEndSeat = true;
-		this.state.maxBet = locBet;
-
-		let bet = locBet - e.currBet;
-		if( bet >= e.chips ) {
-			e.allIn = 1;
-			bet = e.chips;
-		}
-
-		e.chips -= bet;
-		e.currBet += bet;
-		e.roundBet += bet;
-		e.totalBet += bet;
-		e.hasAction = false;
-
-		e.timeLimitCount = 0;
-		
-		this.state.pot = this.state.pot + bet;
-
-		if( e.chips <= 0 ) {
-			e.chips = 0;
-		}
-
-		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
-
-		this.broadcast( "RAISE", {
-			seat: this.betSeat,
-			chips: e.chips,
-			bet: msg[ "betAmount" ],
-			pot: this.state.pot,
-			allin: e.allIn,
-		} );
-
-		if( this.checkCount() < 1 ) {
-			this.bufferTimerID = setTimeout( () => {
-				this.changeState( eGameState.Result );
-			}, 1000 );
-			this.elapsedTick = 0;
-			return;
-		}
-
-		if( locChangeEndSeat ) {
-			logger.info( "[ onRaise ] max bet updated. change end seat" );
-			this.updateEndSeat( e.seat , false);
-		}
-
-		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onRaise ] this is last turn" );
-
-			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onRaise ] round finished." );
-				this.bufferTimerID = setTimeout( () => {
-					this.changeState( eGameState.Result );
-				}, 1000 );
-			}
-			else {
-				this.changeCenterCardState();
-			}
-			this.elapsedTick = 0;
-			return;
-		}
-
-		this.broadTurn();
-
-		this.elapsedTick = 0;
-	}
-
 	private ReOpenAction() {
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			if( false === this.state.entities[ i ].fold &&
@@ -2904,146 +1989,8 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 	}
 
-	private OnSitOut(client : Client, msg : any){
-
-		let seatNumber : number = msg["seat"];
-
-		if(null === seatNumber || undefined === seatNumber){
-			logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
-			return;
-		}
-
-		let sitOutPlayer = this.getEntity(seatNumber);
-
-		if(null === sitOutPlayer || undefined === sitOutPlayer){
-			logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
-			return;
-		}
-
-		if(true === sitOutPlayer.isSitOut){
-			logger.error(" [ OnSitOut ] the seat number " + seatNumber + " is Already sit out but try sit out Again");
-			return;
-		}
-
-		sitOutPlayer.isSitOut = true;
-		
-		if(sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
-			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
-			this.UpdateSeatInfo();
-			return;
-		}
-
-		if( this.state.gameState === eGameState.Suspend ||
-			this.state.gameState === eGameState.Ready ||
-			this.state.gameState === eGameState.ClearRound ){
-
-			sitOutPlayer.wait = true;
-			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
-			this.UpdateSeatInfo();
-		} else {
-			client.send("SIT_OUT_PEND",
-			{ 
-
-			});			
-		}
-	}
-
-	private OnSitoutCancel(client : Client, msg : any){
-		let seatNumber : number = msg["seat"];
-
-		if(null === seatNumber || undefined === seatNumber){
-			logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
-			return;
-		}
-
-		let player = this.getEntity(seatNumber);
-
-		if( player == null || player == undefined){
-			logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
-			return;
-		}
-
-		player.isSitOut = false;
-		this.UpdateSeatInfo();
-
-		client.send('SIT_OUT_CANCEL', {
-
-		});
-	}
 
 
-	private OnSitBack(client : Client, msg : any){
-		let seatNumber : number = msg["seat"];
-
-		if(null === seatNumber || undefined === seatNumber){
-			logger.error(" [ OnSitBack ] Sit out Fail SeatNumber is null or Undefined " + msg);
-			return;
-		}
-
-		let sitOutPlayer = this.getEntity(seatNumber);
-
-		if(null === sitOutPlayer || undefined === sitOutPlayer){
-			logger.error(" [ OnSitBack ] can't find player seatNumber : " + seatNumber);
-			return;
-		}
-
-		if(false === sitOutPlayer.isSitOut ){
-			logger.error(" [ OnSitBack ] the seat number " + seatNumber + " is not sit-out but try sit-back");
-			return;
-		}
-
-		sitOutPlayer.isSitOut = false;
-		sitOutPlayer.isSitBack = true;
-		sitOutPlayer.wait = true;
-
-		if( eGameState.Suspend === this.state.gameState ) {
-			sitOutPlayer.isSitBack = false;
-			sitOutPlayer.isSitOut = false;
-
-			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", {seat : seatNumber});
-
-			let isStart = this.checkStartCondition();
-			if ( true === isStart ) {
-				logger.info( "[ onSitBack ] GAME STATE TO READY" );
-				this.changeState( eGameState.Ready );
-			}
-
-		} else if ( eGameState.Ready === this.state.gameState ||
-			eGameState.ClearRound === this.state.gameState) {
-			sitOutPlayer.isSitBack = false;
-			sitOutPlayer.isSitOut = false;
-
-			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", { seat : seatNumber });
-		}
-		else {
-			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", {seat : seatNumber});
-		}
-	}
-
-	onFold( client: Client, msg: any ) {
-		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onFold ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
-			return;
-		}
-
-		let e = this.getEntity(  msg[ "seat" ] );
-
-		if(e.fold === true){
-			logger.error(" onFold - player " + e.seat + " is fold but try fold");
-			return;
-		}
-
-		logger.info( "[ onFold ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-		
-		let next = this.funcFold( msg[ "seat" ] );
-		if( next ) {
-			this.broadTurn();
-		}
-		this.elapsedTick = 0;
-	}
 
 	funcFold( seat: number ) {
 		let e = this.getEntity( seat );
@@ -3056,6 +2003,36 @@ export class HoldemRoom extends Room<RoomState> {
 		this.broadcast( "FOLD", {
 			seat: seat
 		} );
+
+		let fold = e.statics.fold;
+		e.statics.fold = fold + 1;
+
+		switch ( this.centerCardState ) {
+			case eCommunityCardStep.PRE_FLOP:
+			{
+				let fold_preflop = e.statics.fold_preflop;
+				e.statics.fold_preflop = fold_preflop + 1;
+			}
+			break;
+			case eCommunityCardStep.FLOP:
+			{
+				let fold_flop = e.statics.fold_flop;
+				e.statics.fold_flop = fold_flop + 1;
+			}
+			break;
+			case eCommunityCardStep.TURN:
+			{
+				let fold_turn = e.statics.fold_turn;
+				e.statics.fold_turn = fold_turn + 1;
+			}
+			break;
+			case eCommunityCardStep.RIVER:
+			{
+				let fold_river = e.statics.fold_river;
+				e.statics.fold_river = fold_river + 1;
+			}
+			break;		
+		}
 
 		if ( true === e.isSitOut && false === e.wait ) {
 			e.wait = true;
@@ -3105,23 +2082,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		return true;
-	}
-
-	onShowCard(client: Client, msg: any){
-		let seat = msg["seat"];
-		logger.info("OnShowCard - Seat : " + seat);
-		if(eGameState.Result != this.state.gameState){
-			logger.error("OnShowCard GameState is Not ShowDown");
-			return;
-		}
-		
-		let entity = this.getEntity(seat);
-
-		if(null == entity){
-			logger.error("OnShowCard entity is null SeatNumber : " + seat);
-			return;
-		}
-		this.broadcast( "SHOW_CARD", { seat: entity.seat, cards: entity.cardIndex } );
 	}
 
 	broadPlayerCards( isAllIn : boolean ) {
@@ -3481,6 +2441,7 @@ export class HoldemRoom extends Room<RoomState> {
 				tableID: -1,
 				id : entity.id
 			}
+
 			this._dao.updateTableID(data, (err: any, res: boolean) => {
 				if (null != err) {
 					logger.error(err);
@@ -3522,5 +2483,1094 @@ export class HoldemRoom extends Room<RoomState> {
 				} );
 			});
 		});
+	}
+
+	//MESSAGE HANDLER
+	onLOAD_DONE( client : Client, msg : any ){
+		let auth : any = this._buyInWaiting[client.sessionId];
+
+		if(null != auth && undefined != auth){
+			this.OnLoadDoneFirstJoin(client, auth);
+			logger.info(" OnLoadDone - _buyInWaiting : " + client.sessionId);
+			return;
+		}
+
+		auth = this._rejoinWaiting[client.sessionId];
+		
+		if(null != auth && undefined != auth){
+			this.OnLoadDoneRejoin(client, auth);
+			logger.info(" OnLoadDone - _rejoinWaiting : " + client.sessionId);
+			return;
+		}
+
+		logger.error("OnLoadDone - Player Call LoadDone But No waiting exist");
+	}
+
+	onBUY_IN( client: Client, msg: any ) {
+		try {
+			logger.info( "[ onBuyIn ] msg : %s", msg );
+
+			let entity = this.findEntityBySessionID( client.sessionId );
+			if( null === entity || undefined === entity ) {
+				logger.error( "[ onBuyIn ] entity is null" );
+				return;
+			}
+
+			let seatPos : number = -1;
+			for(let i = 0; i < this.seatWaitingList.length; i++){
+				
+				if(this.seatWaitingList[i] == client.sessionId){
+					seatPos = i;
+					this.seatWaitingList[i] = "";
+					break;
+				}
+			}
+			if(seatPos == -1){
+				return;
+			}
+			entity.seat = seatPos;
+
+			this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
+				if( !!err ) {
+					logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
+					return;
+				}
+
+				if( res.length <= 0 ) {
+					logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
+					return;
+				}
+				else {
+					entity.balance = res[0]["balance"];
+
+					let oldBalance = entity.balance;
+					let oldChips = entity.chips;
+
+					let buyInAmount = msg[ "buyInAmount" ];
+					let bal = entity.balance - buyInAmount;
+					if( bal <= 0 ) {
+						buyInAmount = entity.balance;
+						bal = 0;
+					}
+			
+					entity.balance = bal;
+					entity.chips += buyInAmount;
+					entity.initRoundChips = entity.chips;
+
+					entity.tableBuyInAmount += buyInAmount;
+					entity.tableBuyInCount++;
+
+					this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
+					entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
+					{
+						if( !!err ) {
+							logger.error( "[ onBuyIn ] buyIn query error : %s", err );
+						}
+					} );
+
+					this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
+						if( !!err ) {
+							logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
+						}
+					} );
+
+					logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
+
+					let openCards: number[] = [];
+					switch( this.centerCardState ) {
+						case eCommunityCardStep.FLOP:
+							openCards = this.communityCardIndex.slice( 0, 3 );
+							break;
+
+						case eCommunityCardStep.TURN:
+							openCards = this.communityCardIndex.slice( 0, 4 );
+							break;
+
+						case eCommunityCardStep.RIVER:
+						case eCommunityCardStep.RESULT:
+							openCards = this.communityCardIndex;
+							break;
+					}
+
+					this.UpdateSeatInfo();
+
+					entity.tableInitChips = oldChips;
+					entity.tableBuyInAmount = buyInAmount;
+					entity.tableBuyInCount = 1;
+
+					client.send("RES_BUY_IN", {
+						ret: 0,
+						amount: buyInAmount,
+						message: "SUCCEED.",
+						tableBuyInAmount: entity.tableBuyInAmount,
+						tableBuyInCount: entity.tableBuyInCount,
+					});
+
+					let playerCards = null;
+					let winners = null;
+					let showdown = null;
+
+					if ( this.state.gameState == eGameState.Result )
+					{
+						playerCards = this.GetPlayerCards();
+						winners = this.GetWinners( this.isAllFold(), false );
+					}
+
+					if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
+						showdown = this.GetShowdown();
+						winners = this.GetWinners( false, true );
+
+						switch ( this.SHOWDOWN_STATE ) {				
+							case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
+								openCards = [];
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_FLOP:
+								openCards = this.communityCardIndex.slice( 0, 3 );
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_TURN:
+								openCards = this.communityCardIndex.slice( 0, 4 );
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOW_RIVER:
+								openCards = this.communityCardIndex;
+								break;
+				
+							case ENUM_SHOWDOWN_STEP.SHOWDOWN_END:
+								openCards = this.communityCardIndex;							
+								winners = this.GetWinners( false, true );
+								break;
+						}						
+					}
+		
+					client.send( "JOIN", {
+						yourself: entity,
+						entities: this.state.entities,
+						gameState: this.state.gameState,
+						showdownState: this.SHOWDOWN_STATE,
+						betSeat: this.betSeat,
+						endSeat: this.endSeat,
+						maxBet: this.state.maxBet,
+						minRaise: this.state.minRaise,
+						pot: this.state.pot,						
+						centerCardState: this.centerCardState,
+						openCards: openCards,
+						small: this.conf[ "smallBlind" ],
+						big: this.conf[ "bigBlind" ],
+						minStakePrice: this.conf["minStakePrice"],
+						maxStakePrice: this.conf["maxStakePrice"],
+						dealer: this.dealerCalc.getDealer(),
+						sb : this.dealerCalc.getSb(),
+						bb : this.dealerCalc.getBb(),
+						tableInitChips: entity.tableInitChips,
+						tableBuyInAmount: entity.tableBuyInAmount,
+						tableBuyInCount: entity.tableBuyInCount,
+						initPot: this._initPot,
+						playerCards: playerCards,
+						showdown: showdown,
+						winners: winners,
+					} );
+
+					if( eGameState.Suspend === this.state.gameState ) {
+						entity.isNew = false;
+						let isStart = this.checkStartCondition();
+						if ( true === isStart ) {
+							this.changeState( eGameState.Ready );
+						}
+					} else if (eGameState.Ready === this.state.gameState) {
+						entity.isNew = false;
+					}
+
+					this.broadcast( "NEW_ENTITY", { newEntity: entity } );
+				}
+			} );
+		} catch( e ) {
+			if( e === undefined ) {
+				e = "error";
+			}
+
+			client.send("RES_BUY_IN", {
+				ret: -1,
+				amount: 0,
+				message: e,
+				tableBuyInAmount: 0,
+				tableBuyInCount: 0,
+			});
+		}
+	}
+
+	onCHECK( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onCheck ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		logger.info( "[ onCheck ] player index : %s // send msg : %s", msg[ "seat" ], msg );
+
+		let e = this.getEntity( msg[ "seat" ] );
+
+		if(e.fold === true){
+			logger.error("onCheck - player " + msg["seat"] + " is fold but try Check");
+			return;
+		}
+
+		e.hasAction = false;
+		e.timeLimitCount = 0;
+
+		this.potCalc.CalculatePot();
+
+		this.broadcast( "CHECK", {
+			seat: this.betSeat,
+			pot : this.state.pot,
+		} );
+
+		this.elapsedTick = 0;
+
+		if( true === this.isLastTurn( this.betSeat ) ) {
+			logger.info( "[ onCheck ] this is last turn" );
+			this.changeCenterCardState();
+			return;
+		}
+
+		this.broadTurn();
+	}
+
+	onCALL( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		logger.info( "[ onCall ] player index : %s // send msg : %s", msg[ "seat" ], msg );
+
+		let amount = msg["betAmount"];
+		let e = this.getEntity( msg[ "seat" ] );
+
+		if(e.fold === true){
+			logger.error("onCall - player " + msg["seat"] + " is fold but try Call");
+			return;
+		}
+
+		let bet = amount - e.currBet;
+		let isAllIn = bet >= e.chips;
+		if( true == isAllIn ) {
+			e.allIn = 1;
+			bet = e.chips;
+			logger.info( "[ onCall ] all-in" );
+		}
+
+		e.currBet += bet;
+		e.roundBet += bet;
+		e.totalBet += bet;
+		e.chips -= bet;
+		e.hasAction = false;
+
+		e.timeLimitCount = 0;
+
+		this.state.pot += bet;
+
+		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
+
+		this.broadcast( "CALL", {
+			seat: this.betSeat,
+			chips: e.chips,
+			bet: msg[ "betAmount" ],
+			pot: this.state.pot,
+			allin: e.allIn,
+		} );
+
+		this.elapsedTick = 0;
+
+		if( true === this.isLastTurn( this.betSeat ) ) {
+			if( this.checkCount() <= 1 ) {
+				logger.info( "[ onCall ] round finished." );
+				this.bufferTimerID = setTimeout( () => {
+					this.changeState( eGameState.Result );
+				}, 500 );
+			}
+			else {
+				this.changeCenterCardState();
+			}
+			this.elapsedTick = 0;
+			return;
+		}
+
+		this.broadTurn();
+	}
+
+	onBET( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		logger.info( "[ onBet ] player index : %s // send msg : %s", msg[ "seat" ], msg );
+
+		if( msg[ "betAmount" ] < this.state.startBet ) {
+			logger.error( "[ onBet ] bet amount is larger than startBet??" );
+		}
+
+		let e = this.getEntity( msg[ "seat" ] );
+		
+		if(e.fold === true){
+			logger.error("onBet - player " + msg["seat"] + " is fold but try bet");
+			return;
+		}
+
+		if( msg[ "betAmount" ] > e.chips ) {
+			logger.error( "[ onBet ] bet > stack!!!" );
+			msg[ "betAmount" ] = e.chips;
+		}
+
+		e.chips -= msg[ "betAmount" ];
+
+		if( e.chips <= 0 ) {
+			logger.info( "[ onBet ] allin" );
+			e.chips = 0;
+			e.allIn = 1;
+		}
+		e.currBet += msg[ "betAmount" ];
+		e.roundBet += msg[ "betAmount" ];
+		e.totalBet += msg[ "betAmount" ];
+
+		e.timeLimitCount = 0;
+
+		this.ReOpenAction();
+		e.hasAction = false;
+
+		this.state.pot += parseInt( msg[ "betAmount" ] );
+
+		if( msg[ "betAmount" ] > this.state.maxBet ) {
+			this.state.maxBet = msg[ "betAmount" ];
+		}
+
+		if( this.state.maxBet > this.state.minRaise ) {
+			this.state.minRaise = this.state.maxBet;
+		}
+
+		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
+
+		this.broadcast( "BET", {
+			seat: this.betSeat,
+			chips: e.chips,
+			bet: msg[ "betAmount" ],
+			pot: this.state.pot,
+			allin: e.allIn,
+			sound: msg['sound']
+		} );
+
+		this.updateEndSeat( e.seat, true );
+		this.broadTurn();
+
+		this.elapsedTick = 0;
+	}
+
+	onRAISE( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		let e = this.getEntity( msg[ "seat" ] );
+
+		if(e.fold === true){
+			logger.error("onRaise - player " + msg["seat"] + " is fold but try Raise");
+			return;
+		}
+
+		let locBet = msg[ "betAmount" ];
+		let locChangeEndSeat = false;
+		logger.info( "[ onRaise ] player index : %s // send msg : %s", msg[ "seat" ], msg );
+
+		this.state.maxBet = locBet;
+		this.state.minRaise = this.state.maxBet;
+		locChangeEndSeat = true;
+
+		let bet = this.state.maxBet - e.currBet;
+
+		if( bet >= e.chips ) {
+			logger.info( "[ onRaise ] allin?? But??" );
+			e.allIn = 1;
+			bet = e.chips;
+		}
+
+		e.chips -= bet;
+		e.currBet += bet;
+		e.roundBet += bet;
+		e.totalBet += bet;
+		e.timeLimitCount = 0;
+
+		this.ReOpenAction();
+		e.hasAction = false;
+
+		this.state.pot = this.state.pot + bet;
+
+		if( e.chips <= 0 ) {
+			e.chips = 0;
+		}
+
+		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
+
+		this.broadcast( "RAISE", {
+			seat: this.betSeat,
+			chips: e.chips,
+			bet: msg[ "betAmount" ],
+			pot: this.state.pot,
+			allin: e.allIn,
+			sound: msg['sound']			
+		} );
+
+		if( this.checkCount() < 1 ) {
+			logger.info( "[ onRaise ] round finished." );
+			this.bufferTimerID = setTimeout( () => {
+				this.changeState( eGameState.Result );
+			}, 500 );
+			this.elapsedTick = 0;
+			return;
+		}
+
+		if( locChangeEndSeat ) {
+			logger.info( "[ onRaise ] max bet updated. change end seat??" );
+			this.updateEndSeat( e.seat , true);
+		}
+
+		if( true === this.isLastTurn( this.betSeat ) ) {
+			logger.info( "[ onRaise ] this is last turn" );
+
+			if( this.checkCount() <= 1 ) {
+				logger.info( "[ onRaise ] round finished." );
+				this.bufferTimerID = setTimeout( () => {
+					this.changeState( eGameState.Result );
+				}, 1000 );
+			}
+			else {
+				this.changeCenterCardState();
+			}
+			this.elapsedTick = 0;
+			return;
+		}
+
+		this.broadTurn();
+		this.elapsedTick = 0;
+	}
+
+	onALLIN( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s",
+				msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		let e = this.getEntity( msg[ "seat" ] );
+		if(e.fold === true){
+			logger.error("onAllIn - player " + msg["seat"] + " is fold but try AllIn");
+			return;
+		}
+
+		let locBet = msg[ "betAmount" ];
+		let locChangeEndSeat = true;
+		this.state.maxBet = locBet;
+
+		let bet = locBet - e.currBet;
+		if( bet >= e.chips ) {
+			e.allIn = 1;
+			bet = e.chips;
+		}
+
+		e.chips -= bet;
+		e.currBet += bet;
+		e.roundBet += bet;
+		e.totalBet += bet;
+		e.hasAction = false;
+
+		e.timeLimitCount = 0;
+		
+		this.state.pot = this.state.pot + bet;
+
+		if( e.chips <= 0 ) {
+			e.chips = 0;
+		}
+
+		this.potCalc.SetBet(e.seat, e.totalBet, e.eval.value, false);
+
+		this.broadcast( "RAISE", {
+			seat: this.betSeat,
+			chips: e.chips,
+			bet: msg[ "betAmount" ],
+			pot: this.state.pot,
+			allin: e.allIn,
+		} );
+
+		if( this.checkCount() < 1 ) {
+			this.bufferTimerID = setTimeout( () => {
+				this.changeState( eGameState.Result );
+			}, 1000 );
+			this.elapsedTick = 0;
+			return;
+		}
+
+		if( locChangeEndSeat ) {
+			logger.info( "[ onRaise ] max bet updated. change end seat" );
+			this.updateEndSeat( e.seat , false);
+		}
+
+		if( true === this.isLastTurn( this.betSeat ) ) {
+			logger.info( "[ onRaise ] this is last turn" );
+
+			if( this.checkCount() <= 1 ) {
+				logger.info( "[ onRaise ] round finished." );
+				this.bufferTimerID = setTimeout( () => {
+					this.changeState( eGameState.Result );
+				}, 1000 );
+			}
+			else {
+				this.changeCenterCardState();
+			}
+			this.elapsedTick = 0;
+			return;
+		}
+
+		this.broadTurn();
+
+		this.elapsedTick = 0;
+	}
+
+	onFOLD( client: Client, msg: any ) {
+		if( eGameState.Bet !== this.state.gameState ) {
+			logger.error( "[ onFold ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			return;
+		}
+
+		let e = this.getEntity(  msg[ "seat" ] );
+
+		if(e.fold === true){
+			logger.error(" onFold - player " + e.seat + " is fold but try fold");
+			return;
+		}
+
+		logger.info( "[ onFold ] player index : %s // send msg : %s", msg[ "seat" ], msg );
+		
+		let next = this.funcFold( msg[ "seat" ] );
+		if( next ) {
+			this.broadTurn();
+		}
+		this.elapsedTick = 0;
+	}
+
+	onRE_BUY( client: Client, msg: any ) {
+		logger.info( "[ onReBuy ] msg : %s", msg );
+		let locSeatIndex = msg[ "seat" ];
+		let locBuyAmount = msg[ "amount" ];
+		let code = -1;
+		let message = "SUCCEED";
+		let chips = 0;
+		let e:any = null;
+		const idx = this.state.entities.findIndex( function( e ) {
+			return e.seat === locSeatIndex;
+		} );
+
+		if( idx > -1 ) {
+			e = this.state.entities[ idx ];
+		}
+		if( null === e ) {
+			logger.error( "[ onReBuy ] entity is null. seat(%s), msg(%s)", locSeatIndex, JSON.stringify( msg ) );
+			return client.send( "RES_RE_BUY", {
+				resultCode: -1,
+				amount: 0,
+				msg: "seat user is not existed",
+				tableBuyInAmount: -1,
+				tableBuyInCount: -1,
+			} );
+		} else {
+			this._dao.selectBalanceByUID( e.id, ( err: any, res: any ) => {
+				if( !!err ) {
+					logger.error( "[ onReBuy ] selectBalanceByUID query error : %s", err );
+				}
+				else {
+					if( res.length <= 0 ) {
+						logger.error( "[ onReBuy ] selectBalanceByUID invalid user id" );
+					}
+					else {
+						e.balance = res[0]["balance"];
+						let oldBalance = e.balance;
+						let oldChips = e.chips;
+
+						logger.info( "[ onReBuy ] seat : %s // wait : %s // balance : %s // buy amount : %s",
+							locSeatIndex, e.wait, e.balance, locBuyAmount );
+		
+						//check chips
+						if( e.chips >= this.conf[ "minStakePrice" ] ) {
+							logger.warn( "[ onReBuy ] already enough chips. your chip : %s // min stake : %s", e.chips, this.conf[ "minStakePrice" ] );
+							message = "You can't stack any more chips.";
+							code = 1;
+						}
+						else if( e.fold === false && ( this.state.gameState >= eGameState.Prepare &&
+								this.state.gameState <= eGameState.Result ) &&
+							e.wait === false ) {
+							logger.warn( "[ onReBuy ] You can't buy chips during the game. gameState : %s", this.state.gameState );
+							message = "You can only purchase chips in a fold or wait state.";
+							code = 1;
+						}
+						else if( e.balance <= 0 ) {
+							logger.warn( "[ onReBuy ] not enough balance. balance : %s", e.balance );
+							code = 1;
+							message = "not enough balance.";
+						}
+						else if( e.balance <= locBuyAmount ) {
+							logger.warn( "[ onReBuy ] It has less balance than the chip you want to purchase. balance : %s // desired chips : %s",
+								e.balance, locBuyAmount );
+							code = 0;
+							chips = e.balance;// entity.chips = entity.balance;
+							e.balance = 0;
+						}
+						else {
+							code = 0;
+							e.balance -= locBuyAmount;
+							chips = locBuyAmount;// entity.chips = locBuyAmount;
+			
+							logger.info( "[ onReBuy ] succeed. balance : %s // chips : %s", e.balance, chips );
+						}
+			
+						if( 0 === code ) {
+							e.chips = e.chips + chips;
+							e.initRoundChips = e.chips;
+							logger.info( "[ onReBuy ] entity state. chips : %s // enough chip : %s // wait : %s", e.chips, e.enoughChip, e.wait );
+				
+							if( eGameState.Suspend === this.state.gameState ) {
+								e.isNew = false;
+								let isStart = this.checkStartCondition();
+								if ( true === isStart ) {
+									logger.info( "[ onReBuy ] GAME STATE TO READY" );
+									this.changeState( eGameState.Ready );
+								}
+							} else if ( eGameState.Ready === this.state.gameState ) {
+								e.isNew = false;
+							}
+						}
+			
+						this._dao.buyIn( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
+							if( !!err ) {
+								logger.error( "[ onReBuy ] buyIn query error : %s", err );
+							}
+						} );
+				
+						this._dao.updateBalance( e.id, e.balance, ( err: any, res: any ) => {
+							if( !!err ) {
+								logger.error( "[ onReBuy ] updateBalance query error : %s", err );
+							}
+						} );
+				
+						logger.info( "[ onReBuy ] done. send packet to client. result code : %s // msg : %s", code, message );
+
+						e.tableBuyInAmount += locBuyAmount;
+						e.tableBuyInCount ++;
+
+						client.send( "RES_RE_BUY", {
+							resultCode: code,
+							msg: message,
+							balance: e.balance,
+							chips: e.chips,
+							resultChip: e.chips,
+							tableBuyInAmount: e.tableBuyInAmount,
+							tableBuyInCount: e.tableBuyInCount,
+						} );
+					}
+				}
+			});
+		}
+	}
+
+	onADD_CHIPS_REQUEST( client: Client, msg: any ) {
+		logger.info("onAddChipsRequest : msg(%s)", msg);
+		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
+		let res: number = -1;
+
+		let seat = msg["seat"];
+		let max = 0;
+
+		let e = this.findEntityBySeatNumber(seat);
+		if ( null === e || undefined === e ) {
+			client.send( "RES_ADD_CHIPS_REQUEST", {
+				code: -1,
+				balance: -1,
+				chips: -1,
+				amount: -1
+			});
+		} else {
+			this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+				if (!!err) {
+					logger.error("[ onAddChipsRequest ] selectBalanceByUID query error : %s", err);
+				}
+				else {
+					if (res.length <= 0) {
+						logger.error("[ onAddChipsRequest ] selectBalanceByUID invalid user id");
+					}
+					else {
+						e.balance = res[0]["balance"];
+
+						max = MAX_BUY_IN - e.initRoundChips;
+						if ( e.balance < max ) {
+							max = e.balance;
+						}
+
+						res = this.checkReBuyCondition(e, max, false );
+						logger.error("checkReBuyCondition res:%d, initChip: %d", res, e.initRoundChips);
+						client.send( "RES_ADD_CHIPS_REQUEST", {
+							code: res,
+							balance: e.balance,
+							initChips: e.initRoundChips,
+							chips: e.chips,
+							amount: max
+						});
+					}
+				}
+			});
+			
+		}
+	}
+
+	onADD_CHIPS( client: Client, msg: any ) {
+		logger.info( "[ onAddChips ] msg(%s)", msg );
+		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
+
+		let seat = msg[ "seat" ];
+		let amount = msg[ "amount" ];
+		let code = -1;
+		let e: any = null;
+
+		const idx = this.state.entities.findIndex( function( e ) {
+			return e.seat === seat;
+		} );
+
+		if( idx > -1 ) {
+			e = this.state.entities[ idx ];
+			if ( null === e || undefined === e ) {
+				code = -1;
+			} else {
+				this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+					if (!!err) {
+						logger.error("[ onAddChips ] selectBalanceByUID query error : %s", err);
+					}
+					else {
+						if (res.length <= 0) {
+							logger.error("[ onAddChips ] selectBalanceByUID invalid user id");
+						}
+						else {
+							e.balance = res[0]["balance"];
+							let oldBalance = e.balance;
+							let oldChips = e.chips;
+	
+							let gap = MAX_BUY_IN - (e.initRoundChips + amount);
+							logger.info( "[ onAddChips ] e.initRoundChips: %d, gap : %d", e.initRoundChips, gap );
+			
+							if ( gap < 0) {
+								amount = amount + gap;
+							}
+			
+							code = this.checkReBuyCondition(e, amount, true );
+							logger.info( "[ onAddChips ] amount: %d, code : %d", amount, code );
+			
+							let pending: boolean = false;
+							if ( -1 === code || null === e || undefined === e) {
+								logger.error( "[ onAddChips ] why??" );
+								client.send( "RES_ADD_CHIPS", {
+									code: -1,
+									balance: -1,
+									chips: -1,
+									amount: 0,
+									pending: pending,
+									tableBuyInAmount: -1,
+									tableBuyInCount: -1,
+								});
+								return;
+							} else {
+								if ( true  === e.wait || true === e.fold ||
+									eGameState.Suspend === this.state.gameState || eGameState.Ready === this.state.gameState ||
+									eGameState.Prepare === this.state.gameState || eGameState.ClearRound === this.state.gameState) {
+									pending = false;
+			
+									if ( e.balance < amount ) {
+										amount = e.balance;
+									}
+									e.balance -= amount;
+									e.chips = e.chips + amount;
+									e.initRoundChips = e.chips;
+									e.tableBuyInAmount += amount;
+									e.tableBuyInCount++;
+			
+									this._dao.buyIn(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
+										if (!!err) {
+											logger.error("[ onAddChips ] buyIn query error : %s", err);
+										}
+									});
+					
+									this._dao.updateBalance(e.id, e.balance, (err: any, res : any) => {
+										if (!!err) {
+											logger.error("[ onAddChips ] updateBalance query error : %s", err);
+										}
+									});
+								} else {
+									pending = true;
+									e.pendReBuy = amount;
+								}
+							}
+			
+							client.send( "RES_ADD_CHIPS", {
+								code: code,
+								balance: e.balance,
+								chips: e.chips,
+								amount: amount,
+								pending: pending,
+								tableBuyInAmount: e.tableBuyInAmount,
+								tableBuyInCount: e.tableBuyInCount,
+							});
+						}
+					}
+				});
+			}
+		}
+		else {
+			code = -1;
+		}
+	}
+
+	onPONG( client: Client, msg: any ) {
+		let entity = this.state.entities.find( e => e.seat === msg[ "seat" ] );
+		if( undefined === entity ) {
+			return;
+		}
+
+		let time = Date.now();
+		let elapsed = time - entity.lastPingTime;
+		if( elapsed >= 5000 ) {
+			return;
+		}
+		entity.lastPingTime = time;
+	}
+
+	onSHOW_CARD(client: Client, msg: any){
+		let seat = msg["seat"];
+		logger.info("OnShowCard - Seat : " + seat);
+		if(eGameState.Result != this.state.gameState){
+			logger.error("OnShowCard GameState is Not ShowDown");
+			return;
+		}
+		
+		let entity = this.getEntity(seat);
+
+		if(null == entity){
+			logger.error("OnShowCard entity is null SeatNumber : " + seat);
+			return;
+		}
+		this.broadcast( "SHOW_CARD", { seat: entity.seat, cards: entity.cardIndex } );
+	}
+
+	private onSIT_OUT(client : Client, msg : any){
+
+		let seatNumber : number = msg["seat"];
+
+		if(null === seatNumber || undefined === seatNumber){
+			logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
+			return;
+		}
+
+		let sitOutPlayer = this.getEntity(seatNumber);
+
+		if(null === sitOutPlayer || undefined === sitOutPlayer){
+			logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
+			return;
+		}
+
+		if(true === sitOutPlayer.isSitOut){
+			logger.error(" [ OnSitOut ] the seat number " + seatNumber + " is Already sit out but try sit out Again");
+			return;
+		}
+
+		sitOutPlayer.isSitOut = true;
+		
+		if(sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
+			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
+			this.UpdateSeatInfo();
+			return;
+		}
+
+		if( this.state.gameState === eGameState.Suspend ||
+			this.state.gameState === eGameState.Ready ||
+			this.state.gameState === eGameState.ClearRound ){
+
+			sitOutPlayer.wait = true;
+			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
+			this.UpdateSeatInfo();
+		} else {
+			client.send("SIT_OUT_PEND",
+			{ 
+
+			});			
+		}
+	}
+
+	private onSIT_OUT_CALCEL(client : Client, msg : any){
+		let seatNumber : number = msg["seat"];
+
+		if(null === seatNumber || undefined === seatNumber){
+			logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
+			return;
+		}
+
+		let player = this.getEntity(seatNumber);
+
+		if( player == null || player == undefined){
+			logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
+			return;
+		}
+
+		player.isSitOut = false;
+		this.UpdateSeatInfo();
+
+		client.send('SIT_OUT_CANCEL', {
+
+		});
+	}
+
+	private onSIT_BACK(client : Client, msg : any){
+		let seatNumber : number = msg["seat"];
+
+		if(null === seatNumber || undefined === seatNumber){
+			logger.error(" [ OnSitBack ] Sit out Fail SeatNumber is null or Undefined " + msg);
+			return;
+		}
+
+		let sitOutPlayer = this.getEntity(seatNumber);
+
+		if(null === sitOutPlayer || undefined === sitOutPlayer){
+			logger.error(" [ OnSitBack ] can't find player seatNumber : " + seatNumber);
+			return;
+		}
+
+		if(false === sitOutPlayer.isSitOut ){
+			logger.error(" [ OnSitBack ] the seat number " + seatNumber + " is not sit-out but try sit-back");
+			return;
+		}
+
+		sitOutPlayer.isSitOut = false;
+		sitOutPlayer.isSitBack = true;
+		sitOutPlayer.wait = true;
+
+		if( eGameState.Suspend === this.state.gameState ) {
+			sitOutPlayer.isSitBack = false;
+			sitOutPlayer.isSitOut = false;
+
+			this.UpdateSeatInfo();
+			this.broadcast("SIT_BACK", {seat : seatNumber});
+
+			let isStart = this.checkStartCondition();
+			if ( true === isStart ) {
+				logger.info( "[ onSitBack ] GAME STATE TO READY" );
+				this.changeState( eGameState.Ready );
+			}
+
+		} else if ( eGameState.Ready === this.state.gameState ||
+			eGameState.ClearRound === this.state.gameState) {
+			sitOutPlayer.isSitBack = false;
+			sitOutPlayer.isSitOut = false;
+
+			this.UpdateSeatInfo();
+			this.broadcast("SIT_BACK", { seat : seatNumber });
+		}
+		else {
+			this.UpdateSeatInfo();
+			this.broadcast("SIT_BACK", {seat : seatNumber});
+		}
+	}
+
+	onSEAT_SELECT(client : Client, msg : any){
+		let auth = this._buyInWaiting[client.sessionId];
+		if(null == auth || undefined == auth){
+			client.send("SELECT_SEAT_ERROR", {
+				message : "you are not joined User" 
+			});
+			return;
+		}
+
+		let selected = msg.selected;
+
+		let seatEntity = this.state.entities.find((elem) => {
+			return elem.seat === selected;
+		})
+		
+		if(selected < 0 || selected >= this.seatWaitingList.length || null != seatEntity){
+			//Already tacked or already waiting
+			client.send("SELECT_SEAT_ERROR", {
+				message : "is Already Took by someone" 
+			});
+			
+			this.UpdateSeatInfo();
+			return;
+		}
+
+		//Check Chips Already got ?
+
+		let myEntity = this.findEntityBySessionID(client.sessionId);
+
+		if(null == myEntity){
+			return;
+		}
+
+		let minBuyIn : number = this.conf["minStakePrice"];
+
+		if(myEntity.chips >= minBuyIn){
+			this.skipBuyIn(client, selected);
+			return;
+		}
+
+		minBuyIn = minBuyIn - myEntity.chips;
+		if ( myEntity.balance < minBuyIn ) {
+			client.send("RES_BUY_IN", {
+				ret: -1,
+				amount: 0,
+				message: "Not Enough Balance",
+				tableBuyInAmount: 0,
+				tableBuyInCount: 0,
+			});
+			return;
+		}
+
+		this.seatWaitingList[selected] = client.sessionId;
+		this.UpdateSeatInfo();
+
+		client.send( "BUY_IN", {
+			id: auth.id,
+			nickname: auth.nickname,
+			balance: auth.balance,
+			tableSize: this.tableSize,
+			small: this.conf[ "smallBlind" ],
+			big: this.conf[ "bigBlind" ],
+			turnTimeMS: this.conf[ "betTimeLimit" ],
+			minStakePrice: this.conf[ "minStakePrice" ],
+			maxStakePrice: this.conf[ "maxStakePrice" ],
+			myChips : myEntity.chips,
+		} );
+	}
+
+	onCANCEL_BUY_IN(client : Client, msg : any){
+		let seatPos : number = -1;
+
+		for(let i = 0; i < this.seatWaitingList.length; i++){
+			
+			if(this.seatWaitingList[i] == client.sessionId){
+				seatPos = i;
+				this.seatWaitingList[i] = "";
+				break;
+			}
+		}
+
+		this.UpdateSeatInfo();
+	}
+
+	onSHOW_EMOTICON( client: Client, msg: any ) {
+		this.broadcast( "SHOW_EMOTICON", { seat: msg['seat'],
+		type: msg['type'],
+		id: msg['id']} );
 	}
 }

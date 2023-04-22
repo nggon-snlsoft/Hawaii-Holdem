@@ -1,3 +1,5 @@
+import { eCommunityCardStep } from "../rooms/HoldemRoom";
+
 let _client: any = null;
 const dao = module.exports;
 
@@ -311,3 +313,85 @@ dao.selectStaticsByID = (id: any, cb: any)=> {
 		cb?.(null, res[0]);
 	});
 };
+
+dao.UpdateHandsCount = ( id: any, cb: any )=> {
+	let query = "UPDATE STATICS SET HANDS = HANDS + 1 WHERE USERID = ?";
+	let args = [id];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});	
+}
+
+dao.UpdateFoldCount = ( id: any, state: any, cb: any ) => {
+	// export enum eCommunityCardStep {
+	// 	PREPARE,
+	// 	PRE_FLOP,
+	// 	FLOP,
+	// 	TURN,
+	// 	RIVER,
+	// 	RESULT
+	// }
+	let query: string = '';
+	switch ( state ) {
+		case eCommunityCardStep.PRE_FLOP:
+		query = "UPDATE STATICS SET FOLD_PREFLOP = FOLD_PREFLOP + 1 WHERE USERID = ?";
+		break;
+		case eCommunityCardStep.FLOP:
+		query = "UPDATE STATICS SET FOLD_FLOP = FOLD_FLOP + 1 WHERE USERID = ?";
+		break;
+		case eCommunityCardStep.TURN:
+		query = "UPDATE STATICS SET FOLD_TURN = FOLD_TURN + 1 WHERE USERID = ?";
+		break;
+		case eCommunityCardStep.RIVER:
+		query = "UPDATE STATICS SET FOLD_RIVER = FOLD_RIVER + 1 WHERE USERID = ?";			
+		break;		
+	}
+
+	let args = [id];
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});	
+
+}
+
+dao.UpdateStatics = ( id: any, statics: any, cb: any ) => {
+	let query = 'UPDATE STATICS SET HANDS = ?, RAKES = ?, ROLLINGS = ?, MAXPOTS = ?, ' + 
+	'WIN = ?, WIN_PREFLOP = ?, WIN_FLOP = ?, WIN_TURN = ?, WIN_RIVER = ?, WIN_DEALER = ?, WIN_SMALLBLIND = ?, WIN_BIGBLIND = ?, ' + 
+	'FOLD = ?, FOLD_PREFLOP =?, FOLD_FLOP = ?, FOLD_TURN =?, FOLD_RIVER = ?, ' +  
+	'DRAW = ?, BEST_HANDS = ? , UPDATEDATE = ? ' + 'WHERE USERID = ?';
+	
+	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+	let args = [ statics.hands, statics.rakes, statics.rollings, statics.maxPots,
+	statics.win, statics.win_preflop, statics.win_flop, statics.win_turn, statics.win_river, statics.win_dealer, statics.win_smallBlind, statics.win_bigBlind,
+	statics.fold, statics.fold_preflop, statics.fold_flop, statics.fold_turn, statics.fold_river,
+	statics.draw, statics.best_hands, now, id ];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
+}

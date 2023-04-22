@@ -18,6 +18,8 @@ export class UiResultEffect extends Component {
     private AnimationDrawEffect: Animation = null;
     private AnimationReturnEffect: Animation = null;
 
+    private rootLabelValue: Node = null;
+
     private labelEffectValue: Label = null;
     private winTweens: Tween<Node>[] = [];
 
@@ -35,6 +37,7 @@ export class UiResultEffect extends Component {
 
         this.labelEffectValue.string = '';
         this.labelEffectValue.node.active = false;
+        this.rootLabelValue.active = false;
 
         this.node.active = false;
     }
@@ -44,6 +47,7 @@ export class UiResultEffect extends Component {
 
         this.labelEffectValue.string = '+' + CommonUtil.getKoreanNumber( value );
         this.labelEffectValue.node.active = true;
+        this.rootLabelValue.active = true;
 
         this.spriteEffectWin.node.active = true;
         this.node.active = true;
@@ -57,6 +61,7 @@ export class UiResultEffect extends Component {
 
         this.labelEffectValue.string = '+' + CommonUtil.getKoreanNumber( value );
         this.labelEffectValue.node.active = true;
+        this.rootLabelValue.active = true;
 
         this.spriteEffectDraw.node.active = true;
         this.node.active = true;
@@ -69,6 +74,7 @@ export class UiResultEffect extends Component {
 
         this.labelEffectValue.string = '+' + CommonUtil.getKoreanNumber( value );
         this.labelEffectValue.node.active = true;
+        this.rootLabelValue.active = true;
 
         this.spriteEffectReturn.node.active = true;
         this.node.active = true;
@@ -174,18 +180,14 @@ export class UiResultEffect extends Component {
 
     private onFinishedResultWin() {
         this.AnimationWinEffect.node.active = false;
-
-        // this.ResetResultEffect();
     }
 
     private onFinishedResultDraw() {
         this.AnimationDrawEffect.node.active = false;
-        // this.ResetResultEffect();
     }
 
     private onFinishedResultReturn() {
         this.AnimationReturnEffect.node.active = false;
-        // this.ResetResultEffect();
     }
 
     childedRegisted() {
@@ -224,10 +226,15 @@ export class UiResultEffect extends Component {
             this.spriteEffectReturn.node.active = false;
         }
 
-        this.labelEffectValue = this.node.getChildByPath('LABEL_VALUE').getComponent(Label);
-        if ( this.labelEffectValue != null ) {
-            this.labelEffectValue.string = '0';
-            this.labelEffectValue.node.active = false;
+        this.rootLabelValue = this.node.getChildByPath('VALUE');
+        if ( this.rootLabelValue != null ) {
+            this.labelEffectValue = this.rootLabelValue.getChildByPath('LABEL_VALUE').getComponent(Label);
+            if ( this.labelEffectValue != null ) {
+                this.labelEffectValue.string = '0';
+                this.labelEffectValue.node.active = false;
+            }
+
+            this.rootLabelValue.active  = false;
         }
 
         this.AnimationWinEffect = this.node.getChildByPath('SPRITE_WIN').getComponent( Animation );

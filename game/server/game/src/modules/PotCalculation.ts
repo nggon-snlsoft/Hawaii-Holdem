@@ -12,6 +12,7 @@ export class PotCalculation {
   private flopRake : boolean = false;
   public userRakeInfo: any[] = [];
   public deadBlind : number = 0;
+  public antes: number = 0;
 
   private centerCardState : eCommunityCardStep = eCommunityCardStep.PREPARE;
   public rakeTotal : number = 0;
@@ -38,7 +39,7 @@ export class PotCalculation {
     logger.error("CenterState Changed : " + state);
   }
 
-  public SetBet(seat: number, value: number, handValue: number, isFold: boolean) {
+  public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
 
     let targetPlayer: any = this.player.find(element => {
       return seat === element.seat;
@@ -52,7 +53,6 @@ export class PotCalculation {
         fold: isFold
       });
     } else {
-
       targetPlayer.amount = value;
       targetPlayer.hand = handValue;
       targetPlayer.fold = isFold;
@@ -69,6 +69,10 @@ export class PotCalculation {
     }
 
     this.CalculateRake();
+  }
+
+  public SetAnte(  value: number ) {
+    this.antes += value;
   }
 
   private CalculateMinBet(players: any[]): number {
@@ -222,6 +226,7 @@ export class PotCalculation {
       });
 
       final[0].total += this.deadBlind;
+      final[0].total += this.antes;
     }
 
     return final;
@@ -362,6 +367,7 @@ export class PotCalculation {
   public Clear() {
     this.player = [];
     this.deadBlind = 0;
+    this.antes = 0;
     this.rakeTotal = 0;
     this.centerCardState = eCommunityCardStep.PREPARE;
   }
