@@ -60,6 +60,7 @@ export class ClientUserData{
 			win: dbStaticsData.win,
 			fold: dbStaticsData.fold,
 			draw: dbStaticsData.draw,
+			win_allin: dbStaticsData.win_allin,
 			win_preflop: dbStaticsData.win_preflop,
 			win_flop: dbStaticsData.win_flop,
 			win_turn: dbStaticsData.win_turn,
@@ -71,6 +72,7 @@ export class ClientUserData{
 			fold_flop: dbStaticsData.fold_flop,
 			fold_turn: dbStaticsData.fold_turn,
 			fold_river: dbStaticsData.fold_river,
+			best_rank: dbStaticsData.best_rank,
 			best_hands: dbStaticsData.best_hands,
         }
         return statics;

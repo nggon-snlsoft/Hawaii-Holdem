@@ -30,7 +30,7 @@ export class PotCalculation {
     this.playerCount = count;
   }
 
-  public AddDeadBlind(value : number){
+  public DeadBlind(value : number){
     this.deadBlind += value;
   }
 
@@ -41,21 +41,22 @@ export class PotCalculation {
 
   public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
 
-    let targetPlayer: any = this.player.find(element => {
+    let target: any = this.player.find(element => {
       return seat === element.seat;
     })
 
-    if (null === targetPlayer || undefined === targetPlayer) {
+    if (null === target || undefined === target) {
       this.player.push({
         seat: seat,
         amount: value,
         hand: handValue,
         fold: isFold
       });
+
     } else {
-      targetPlayer.amount = value;
-      targetPlayer.hand = handValue;
-      targetPlayer.fold = isFold;
+      target.amount = value;
+      target.hand = handValue;
+      target.fold = isFold;
     }
 
     this.CalculatePot();
@@ -71,9 +72,28 @@ export class PotCalculation {
     this.CalculateRake();
   }
 
-  public SetAnte(  value: number ) {
-    this.antes += value;
-  }
+  public SetAnte( seat: number, value: number, handValue: number, isFold: boolean ) {
+
+    let target: any = this.player.find(element => {
+      return seat === element.seat;
+    })
+
+    if (null === target || undefined === target) {
+      this.player.push({
+        seat: seat,
+        amount: value,
+        hand: handValue,
+        fold: isFold
+      });
+
+    } else {
+      target.amount = value;
+      target.hand = handValue;
+      target.fold = isFold;
+    }
+
+    this.CalculatePot();
+  }  
 
   private CalculateMinBet(players: any[]): number {
     var min: number = Infinity;
@@ -83,7 +103,6 @@ export class PotCalculation {
       }
     }
     return min;
-
   }
 
   public Calculate(): any[] {
@@ -226,7 +245,7 @@ export class PotCalculation {
       });
 
       final[0].total += this.deadBlind;
-      final[0].total += this.antes;
+      // final[0].total += this.antes;
     }
 
     return final;
@@ -259,28 +278,15 @@ export class PotCalculation {
 
     let rake: number = Math.trunc(totalAmount * rakePerc);
 
-    // let rakeCap = this.playerCount > this.rakeCap.length ? this.rakeCap[this.rakeCap.length - 1] : this.rakeCap[this.playerCount - 1];
-    // if (rakeCap != 0) {
-    //   rake = Math.min(rakeCap, rake);
-    // }
-
-    // if(this.flopRake == false && this.centerCardState == eCommunityCardStep.PRE_FLOP){
-    //   rake = 0;
-    // }
-
-    // logger.info("Start Rake Calculate RakePercent : " + rakePerc + " / Rake Cap : " + rakeCap + " / Rake : " + rake + " / Pot Total : " + totalAmount);
-
     let tempCopare: number = 0;
 
-    //리턴팟 관련 처리 해야함
     this.pots.forEach(element => {
 
       if (element.isReturnPot == true) {
-        //Return Pot
         return;
       }
 
-      if(rake == 0){
+      if( rake == 0 ){
         element.rake = undefined;
         return;
       }

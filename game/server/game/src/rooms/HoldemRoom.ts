@@ -120,7 +120,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
-					this.conf["ante"] = 1000;
+					this.conf["ante"] = roomInfo['ante'];
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -681,13 +681,6 @@ export class HoldemRoom extends Room<RoomState> {
 		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 		const MAX_RE_BUY_COUNT: number = this.conf["limitReBuyCount"];
 		logger.info("seat:%d, amount:%d, reBuy: %d", e.seat, max, reBuy);
-		// res code
-		// 0: no error
-		// 1: use Re-Buy = false
-		// 2: already Request Re-Buy
-		// 3: already Enough Chips
-		// 4: re-Buy Count Over
-		// 5: not Enough Balance
 
 		if ( null === e || undefined === e) {
 			logger.error("checkReBuyCondition null" );
@@ -1705,28 +1698,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	blindBet() {
-		let player: number[] = [];
-		for( let i = 0; i < this.state.entities.length; i++ ) {
-			let e = this.state.entities[ i ];
-			if ( null === e || undefined === e ) {
-				continue;
-			}
-
-			if ( true === e.wait || true === e.isSitOut) {
-				continue;
-			}
-
-			let ante = this.conf['ante'];
-			if ( ante > 0) {
-				e.ante = ante;
-				e.chips -= e.ante;
-				this.state.pot += ante;
-				this.potCalc.SetAnte( e.ante );
-			}
-
-			player.push(e.seat);
-		}
-
 		let smallBlind = this.getEntity( this.state.sbSeat );
 		let bigBlind = this.getEntity( this.state.bbSeat );
 		let missSb: any[] = [];
@@ -1784,7 +1755,7 @@ export class HoldemRoom extends Room<RoomState> {
 						this.state.pot += val;
 						missSb.push(e);
 
-						this.potCalc.AddDeadBlind(val);
+						this.potCalc.DeadBlind(val);
 					} else {
 						e.currBet = sbBet;
 						e.roundBet = sbBet;
@@ -1812,15 +1783,34 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
+		let player: number[] = [];
+		let ante = this.conf['ante'];		
+		for( let i = 0; i < this.state.entities.length; i++ ) {
+			let e = this.state.entities[ i ];
+			if ( null === e || undefined === e ) {
+				continue;
+			}
+
+			if ( true === e.wait || true === e.isSitOut) {
+				continue;
+			}
+
+			this.state.pot += ante;
+			e.totalBet += ante;
+			e.chips -= ante;
+			player.push(e.seat);
+			this.potCalc.SetAnte( e.seat, e.totalBet, e.eval.value, false );
+		}
+
 		this.state.maxBet = this.state.startBet;
 		this.state.minRaise = this.state.maxBet;
 		this._initPot = this.state.pot;
 
 		this.broadcast( "BLIND_BET", {
-			smallBlind: smallBlind, // this.state.startBet / 2,
-			bigBlind: bigBlind,// this.state.startBet,
+			smallBlind: smallBlind,
+			bigBlind: bigBlind,
 			maxBet: this.state.maxBet,
-			pot: this.state.pot /*- this.potCalc.rakeTotal*/,
+			pot: this.state.pot,
 			missSb: missSb,
 			missBb: missBb,
 			player: player,
@@ -2006,6 +1996,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let fold = e.statics.fold;
 		e.statics.fold = fold + 1;
+		console.log( e.statics.fold );
 
 		switch ( this.centerCardState ) {
 			case eCommunityCardStep.PRE_FLOP:
@@ -2113,6 +2104,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	private ShowdownProcedure() {
+		console.error('ShowdownProcedure');
 		let folders: number[] = [];
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			if( true === this.state.entities[ i ].wait ) {
@@ -2152,7 +2144,7 @@ export class HoldemRoom extends Room<RoomState> {
 		
 		let rakeInfo = this.potCalc.userRakeInfo;
 		let pots = this.potCalc.GetPots(true);
-		let winners = [];
+		let winners: any[] = [];
 		let folders: number[] = [];
 
 		if (null != rakeInfo) {
@@ -2172,31 +2164,43 @@ export class HoldemRoom extends Room<RoomState> {
 
 		for(let i = 0; i < pots.length; i++){
 			let pot : any = pots[i];
-			let potWinners : any[] = pot.winner;
+			let potPlayers: any = pot.players.length;
+			let isReturn: boolean = false;
+			if ( skip == false && potPlayers == 1) {
+				isReturn = true;
+			}
+
+			let isDraw: boolean = false;
+			let potWinners: any[] = pot.winner;
+			if ( potWinners.length > 1 ) {
+				isDraw = true;
+			}
+
 			let potAmount = pot.rake == undefined ? pot.total : pot.total - pot.rake;
 			let winAmount = potAmount / potWinners.length;
 
 			for(let j = 0; j < potWinners.length; j++){
-				let entity = this.getEntity(potWinners[j]);
+				let entity = this.getEntity( potWinners[j] );
 
-				if(null === entity || undefined === entity){
-					logger.error("[ finishProc] no entity Found SeatNumber : " + potWinners[j]);
-					continue;
+				if ( entity !== null && entity !== undefined ) {
+
+					entity.chips += winAmount;
+					entity.winAmount += winAmount;
+					entity.winHandRank = entity.eval.handName;
+	
+					winners.push( {
+						seat: entity.seat,
+						potNo: i,
+						cards: entity.cardIndex,
+						nickname: entity.nickname,
+						eval: entity.eval,
+						chips: entity.chips,
+						winAmount: entity.winAmount,
+						fold : entity.fold,
+						return: isReturn,
+						draw: isDraw
+					} );
 				}
-
-				entity.chips += winAmount;
-				entity.winAmount += winAmount;
-				entity.winHandRank = entity.eval.handName;
-
-				winners.push( {
-					seat: entity.seat,
-					cards: entity.cardIndex,
-					nickname: entity.nickname,
-					eval: entity.eval,
-					chips: entity.chips,
-					winAmount: entity.winAmount,
-					fold : entity.fold
-				} );
 			}
 		}
 
@@ -2221,9 +2225,8 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			playerCards[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
-		}		
+		}
 
-		logger.debug("WINNERS");
 		this.broadcast( "WINNERS", {
 			skip: skip,
 			winners: winners,
@@ -2233,6 +2236,111 @@ export class HoldemRoom extends Room<RoomState> {
 			playerCards: playerCards,
 			folders: folders,
 			isAllInMatch : isAllIn
+		} );
+
+		let mainPot: number = 0;
+		pots[mainPot].winner.forEach( (e: any)=> {
+
+			let w = winners.find( (element )=>{
+				return ( element.seat == e ) && ( element.potNo == mainPot );
+			} );
+
+			if ( w != null ) {
+				let seat = w.seat;
+				let entity = this.getEntity(  seat );
+				if ( entity != null ) {
+					if ( w.draw == true ) {
+						let c = entity.statics.draw;
+						entity.statics.draw = c + 1;						
+					} else {
+						let c = entity.statics.win;
+						entity.statics.win = c + 1;						
+					}
+
+					if ( skip == true ) {
+
+					} else {
+
+						if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
+							entity.statics.win_allin += 1;
+						}
+
+						if ( entity.isDealer == true ) {
+							entity.statics.win_dealer += 1;
+						}
+
+						if ( entity.isSb == true ) {
+							entity.statics.win_smallBlind += 1;
+						}
+
+						if ( entity.isBb == true ) {
+							entity.statics.win_bigBlind += 1;
+						}
+
+						let best_rank = entity.statics.best_rank;
+						let handValue = w.eval.value;
+
+						if ( handValue > best_rank ) {
+							entity.statics.best_rank = handValue;
+
+							let cards: number[] = [];
+							this.communityCardIndex.forEach((cc)=>{
+								cards.push ( cc );
+							} );
+
+							w.cards.forEach( (cc: any )=>{
+								cards.push( cc );
+							});
+
+							let s = cards.toString();
+							entity.statics.best_hands = s;
+						}
+					}
+
+					switch( this.centerCardState ) {
+						case eCommunityCardStep.PRE_FLOP:
+							entity.statics.win_preflop += 1;
+							break;
+						case eCommunityCardStep.FLOP:
+							entity.statics.win_flop += 1;
+							break;
+						case eCommunityCardStep.TURN:
+							entity.statics.win_turn += 1;
+							break;
+						case eCommunityCardStep.RIVER:
+							entity.statics.win_river += 1;
+							break;
+					}
+										
+					if ( entity.isDealer == true ) {
+						entity.statics.win_dealer += 1;
+					}
+
+					if ( entity.isSb == true ) {
+						entity.statics.win_smallBlind += 1;
+					}
+
+					if ( entity.isBb == true ) {
+						entity.statics.win_bigBlind += 1;
+					}
+
+					let amount = w.winAmount - entity.totalBet;
+					let maxPots = entity.statics.maxPots;
+
+					if ( amount > maxPots ) {
+						entity.statics.maxPots = amount;
+					}
+				}
+			}
+		});
+
+		this.state.entities.forEach( (et)=>{
+			let entity = this.getEntity( et.seat );
+			if ( entity != null ) {
+				this._dao.UpdateStatics( entity.id, entity.statics, ( err: any, res: any )=>{
+
+				});
+			}
 		} );
 	}
 

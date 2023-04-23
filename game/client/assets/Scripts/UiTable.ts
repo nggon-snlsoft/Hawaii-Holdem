@@ -23,6 +23,7 @@ import { UiShowDownEffect } from './Game/UiShowDownEffect';
 import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 import { UiCommunityCards } from './Game/UiCommunityCards';
 import { PlayerActionInformation } from './Game/PlayerActionInformation';
+import { ENUM_BET_SOUND } from './HoldemDefines';
 
 const { ccclass, property } = _decorator;
 
@@ -885,15 +886,6 @@ export class UiTable extends Component {
 
 		this.SetSitoutButtons( this.isSitout );
 
-        // if ( myEntity.isSitOut == true ) {
-		// 	this.buttonSitout.node.active = false;
-		// 	this.buttonSitback.node.active = true;
-
-        // } else {
-		// 	this.buttonSitout.node.active = true;
-		// 	this.buttonSitback.node.active = false;
-        // }
-
 		this.scheduleOnce(()=>{
 			AudioController.instance.PlaySound('VOICE_WELCOME');
 		}, 0.5);
@@ -954,7 +946,7 @@ export class UiTable extends Component {
     }
 
     private ClearEntitiesButtons() {
-		this.ENTITY_ELEMENTS.forEach( element => element.ClearBetValue() );        
+		this.ENTITY_ELEMENTS.forEach( element => element.ClearButtons() );        
     }
 
 	private SetUiCommunityCards( cards: number[] ) {
@@ -1087,6 +1079,7 @@ export class UiTable extends Component {
 
     private onYOUR_TURN( msg ) {
 		console.log('onYOUR_TURN');
+		console.log(msg);
 
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
@@ -1545,7 +1538,6 @@ export class UiTable extends Component {
 		this.clearUiEntitiesAction();
 
 		let cards = msg[ "cards" ];
-		console.log('onSHOW_TURN');
 
 		this.uiCommunityCards.ShowTurnCard( cards, ()=>{
 			if ( this.isEnableSeat( this.mySeat ) == true ) {
@@ -1849,51 +1841,59 @@ export class UiTable extends Component {
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
 			uiEntity.endTurn();
-			uiEntity.setUiAction( "check" );			
+			uiEntity.SetAction( "check" );			
 		}
 
 		this.SetCurrentPot( this.curPotValue );
     }
 
     private onRAISE( msg ) {
-
-		// this.clearUiEntitiesAction();
 		this.curPotValue = msg[ "pot" ];
-		this.labelCurrentPot.string = CommonUtil.getKoreanNumber( this.curPotValue );
 		this.uiPlayerActionReservation.showCheck( false );
-
 		let seat = msg[ "seat" ];
-		let uiEntity = this.GetEntityFromSeat( seat );
+		let chips = Number.parseInt( msg[ "chips" ] );
+		let sound = Number.parseInt( msg['sound'] );
 
+		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
 			uiEntity.endTurn();
-		}
+			uiEntity?.SetChips( chips );
 
-		if( null == uiEntity ) {
-			return;
-		}
-
-		let chips = Number.parseInt( msg[ "chips" ] );
-
-		uiEntity?.SetChips( chips );
-		if( this.mySeat == seat ) {
-			this.myChips = chips;
-		}
-
-		if( true == msg[ "allin" ] ) {
-			uiEntity?.setUiAllIn();			
-				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
-		}
-		else {
-			uiEntity?.setUiAction( "raise" );
-				AudioController.instance.PlaySound('BET_CHIPS');							
+			if( this.mySeat == seat ) {
+				this.myChips = chips;
 			}
+
+			if( true == msg[ "allin" ] ) {
+				uiEntity.SetAllIn();			
+				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
+			}
+			else {
+				uiEntity.SetAction( "raise" );
+				switch ( sound) {
+					case Number( ENUM_BET_SOUND.BET_QUATER ) :	//quater
+						AudioController.instance.PlaySound('VOICE_BETTING_QUATER');					
+						break;
+					case Number( ENUM_BET_SOUND.BET_HALF) :	//half
+						AudioController.instance.PlaySound('VOICE_BETTING_HALF');					
+						break;
+					case Number( ENUM_BET_SOUND.BET_FULL) :	//full
+						AudioController.instance.PlaySound('VOICE_BETTING_FULL');
+					break;
+	
+					case Number( ENUM_BET_SOUND.BET_MAX) :	//max
+						AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+					break;
+	
+					default:
+						AudioController.instance.PlaySound('BET_CHIPS');
+				}
+			}
+			uiEntity.SetBetValue( msg[ "bet" ] );
+		}
 
 		this.setUiPot(msg["dpPot"]);
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 		this.SetCurrentPot( this.curPotValue );
-
-		uiEntity.SetBetValue( msg[ "bet" ] );
     }
 
     private onFOLD( msg ) {
@@ -1927,11 +1927,11 @@ export class UiTable extends Component {
 			uiEntity.SetChips( chips );
 
 			if( true == msg[ "allin" ] ) {
-				uiEntity?.setUiAllIn();
+				uiEntity?.SetAllIn();
 				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
 			}
 			else {
-				uiEntity?.setUiAction( "call" );
+				uiEntity?.SetAction( "call" );
 				AudioController.instance.PlaySound('VOICE_ACTION_CALL');
 			}
 			uiEntity.SetBetValue( msg[ "bet" ] );
@@ -1940,6 +1940,7 @@ export class UiTable extends Component {
 		if( this.mySeat == seat ) {
 			this.myChips = chips;
 		}
+
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 		this.SetCurrentPot( this.curPotValue );
     }
@@ -1950,35 +1951,47 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.showCheck( false );
 
 		let seat = msg[ "seat" ];
+		let sound = Number.parseInt( msg['sound'] );
+		let chips = Number.parseInt( msg[ "chips" ] );
+		console.log('onBet sound: ' + sound );
+
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
 			uiEntity.endTurn();
-		}
+			uiEntity.SetChips( chips );
+			if ( seat == this.mySeat ) {
+				this.myChips = chips;
+			}
 
-		if( null == uiEntity ) {
-			return;
-		}
-
-		let chips = Number.parseInt( msg[ "chips" ] );
-		uiEntity?.SetChips( chips );
-
-		if( this.mySeat == seat ) {
-			this.myChips = chips;
-		}
-
-			if( true == msg[ "allin" ] ) {
-			uiEntity?.setUiAllIn();
+			if ( msg['allin'] == true ) {
+				uiEntity.SetAllIn();
 				AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+			} else {
+				uiEntity.SetAction( "bet" );
+				switch ( sound) {
+					case Number( ENUM_BET_SOUND.BET_QUATER ) :	//quater
+						AudioController.instance.PlaySound('VOICE_BETTING_QUATER');					
+						break;
+					case Number( ENUM_BET_SOUND.BET_HALF) :	//half
+						AudioController.instance.PlaySound('VOICE_BETTING_HALF');					
+						break;
+					case Number( ENUM_BET_SOUND.BET_FULL) :	//full
+						AudioController.instance.PlaySound('VOICE_BETTING_FULL');
+					break;
+	
+					case Number( ENUM_BET_SOUND.BET_MAX) :	//max
+						AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+					break;
+	
+					default:
+						AudioController.instance.PlaySound('BET_CHIPS');
+				}
 			}
-			else {
-			uiEntity?.setUiAction( "bet" );
-				AudioController.instance.PlaySound('BET_CHIPS');
-			}
+			uiEntity.SetBetValue( msg[ "bet" ] );
+		}
 
 		this.uiPot.UpdatePotTotal(this.curPotValue);
 		this.SetCurrentPot( this.curPotValue );
-
-		uiEntity?.SetBetValue( msg[ "bet" ] );
     }
 
     private onSIT_OUT( msg: any ) {
@@ -1995,8 +2008,6 @@ export class UiTable extends Component {
 			uiEntity.endTurn();
 			uiEntity.SetSitout();
 		}
-
-		console.log('seat: ' + seat );
 
 		if ( seat == this.mySeat ) {
 			this.buttonSitout.interactable = true;
@@ -2108,8 +2119,10 @@ export class UiTable extends Component {
     }
 
     private onWINNERS ( msg ) {
-		this.msgWINNERS = msg;
+		console.log('onWINNERS');
+		console.log(msg);
 
+		this.msgWINNERS = msg;
 		this.uiPlayerActionReservation.reset();
 		this.uiPlayerAction.hide();
 

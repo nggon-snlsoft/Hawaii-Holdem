@@ -101,7 +101,7 @@ export class UiEntityAvatar extends Component {
 
     }
 
-    public setUiAction( action: string ) {
+    public SetAction( action: string ) {
         let keys = Object.keys( this.actions );
         keys.forEach( (e)=> {
             let v: Node = this.actions[ e ];
@@ -177,7 +177,7 @@ export class UiEntityAvatar extends Component {
             this.rootSelected.active = false;
 
             this.SetStatus( ENUM_STATUS_TYPE.FOLD );
-            this.setUiAction('fold');
+            this.SetAction('fold');
         } else {
             this.SetStatus( ENUM_STATUS_TYPE.NONE );
             // this.rootFoldCover.active = false;
@@ -210,14 +210,14 @@ export class UiEntityAvatar extends Component {
         }
     }
 
-    public setUiAllin() {
-        this.clearUiAction();
+    public SetAllIn() {
+        this.ClearAction();
 
         this.spriteTimer.fillRange = 0;
         this.spriteTimer.node.active = false;
         this.rootSelected.active = false;
 
-        this.setUiAction('allin');
+        this.SetAction('allin');
     }
 
     public SetSitout() {

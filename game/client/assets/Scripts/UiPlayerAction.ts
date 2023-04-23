@@ -289,28 +289,12 @@ export class UiPlayerAction extends Component {
 				this.betStart = this.turnBet * 2;
 			}
 
-			console.log( 'this.myChips: ' + this.myChips );
-			console.log( 'this.maxChips: ' + this.maxChips );
-
 			this.betRange = Math.min( this.myChips, this.maxChips );
-			console.log( 'this.betRange: ' + this.betRange );
 
 			if ( this.turnBet != 0 && this.turnBet >= this.betRange ) {
 				this.buttonAllIn.node.active = true;
 			} else {
 				this.buttonAllIn.node.active = false;
-			}
-
-			if (isLast == true) {
-				if (this.buttonCall.node.active == true) {
-					this.buttonAllIn.node.active = false;
-				}
-			}
-	
-			if (hasAction == false) {
-				if ( this.buttonCall.node.active == true ) {
-					this.buttonAllIn.node.active = false;
-				}
 			}
 	
 			if ( this.buttonAllIn.node.active == true ) {
@@ -358,6 +342,27 @@ export class UiPlayerAction extends Component {
 				this.buttonHalf.node.active = true;
 				this.buttonFull.node.active = true;
 				this.buttonMax.node.active = true;				
+			}
+
+			if ( isLast == true ) {
+				console.log('isLast == true');
+
+				if (this.buttonCall.node.active == true) {
+					this.buttonAllIn.node.active = false;
+
+					this.buttonQuater.node.active = false;
+					this.buttonHalf.node.active = false;
+					this.buttonFull.node.active = false;
+					this.buttonMax.node.active = false;
+				}
+			}
+	
+			if ( hasAction == false ) {
+				console.log('hasAction == false');				
+
+				if ( this.buttonCall.node.active == true ) {
+					this.buttonAllIn.node.active = false;
+				}
 			}
 		}
 		

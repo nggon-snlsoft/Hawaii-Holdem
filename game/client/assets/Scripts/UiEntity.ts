@@ -405,8 +405,8 @@ export class UiEntity extends Component {
         this.rootButtons.active = false;
     }
 
-    setUiAction( action: string ) {
-        this.uiEntityAvatar.setUiAction( action );
+    SetAction( action: string ) {
+        this.uiEntityAvatar.SetAction( action );
     }
 
     ClearAction() {
@@ -426,7 +426,9 @@ export class UiEntity extends Component {
             });
         }
         else {
-            done();
+            if ( done != null ) {
+                done();
+            }
         }
     }
 
@@ -527,8 +529,8 @@ export class UiEntity extends Component {
         this.timerDeltaTime = 0;
     }
 
-    setUiAllIn() {
-        this.uiEntityAvatar.setUiAllin();
+    SetAllIn() {
+        this.uiEntityAvatar.SetAllIn();
         this.timerDeltaTime = 0;
     }
 
