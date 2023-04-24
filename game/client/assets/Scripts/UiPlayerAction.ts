@@ -43,22 +43,6 @@ export class UiPlayerAction extends Component {
 	private isBet: boolean = false;
 	private maxChips: number = 0;
 
-
-
-
-	// private numberTurnBet: number = 0;
-	// private numberMyBet: number = 0;
-	// private numberMyChips: number = 0;
-	// private numberPot: number = 0;
-	// private numberBetMin: number = 0;
-	// private numberRaiseMin: number = 0;
-	// private numberBetStart: number = 0;
-	// private numberRaiseStart: number = 0;
-	// private numberBetRange: number = 0;
-	// private numberRaiseRange: number = 0;
-	// private numberBetDisplayValue: number = 0;
-	// private numberRaiseDisplayValue: number = 0;
-
 	private buttonQuater: Button = null;
 	private buttonHalf: Button = null;
 	private buttonFull: Button = null;
@@ -289,7 +273,8 @@ export class UiPlayerAction extends Component {
 				this.betStart = this.turnBet * 2;
 			}
 
-			this.betRange = Math.min( this.myChips, this.maxChips );
+			// this.betRange = Math.min( this.myChips, this.maxChips );
+			this.betRange = this.myChips;
 
 			if ( this.turnBet != 0 && this.turnBet >= this.betRange ) {
 				this.buttonAllIn.node.active = true;
@@ -320,7 +305,12 @@ export class UiPlayerAction extends Component {
 				this.quaterValue  = quater + this.callValue;
 				this.halfValue = half + this.callValue;
 				this.fullValue = full + this.callValue;
-				this.maxValue = max + this.callValue;
+
+				console.log( 'this.maxChips' + this.maxChips )
+
+				// this.maxValue = Math.min( max + this.callValue, this.maxChips );
+
+				this.maxValue = this.maxChips;
 
 				if ( this.isBet == true ) {
 					this.betType = ENUM_BETTING_TYPE.Bet;
@@ -394,11 +384,13 @@ export class UiPlayerAction extends Component {
     private onClickAllin() {
 		let value = this.myChips + this.myBet;
 		if ( this.buttonCall.node.active == false ) {
-			value = this.turnBet - this.myBet;
-			if ( value > this.maxChips ) {
-				value = this.myChips;
-			}
-			value = value + this.myChips;
+
+			// value = this.turnBet - this.myBet;
+			// if ( value > this.maxChips ) {
+			// 	value = this.myChips;
+			// }
+			// value = value + this.myChips;
+
 			this.cbCall ( value );
 
 		} else {
@@ -485,7 +477,8 @@ export class UiPlayerAction extends Component {
 	}
 
 	private onClickMax( button: Button ) {
-		let value = this.betRange + this.myBet;
+		let value = this.maxValue;// + this.myBet;
+		console.log( 'onClickMax: ' + value );
 		if ( this.isBet == true ) {
 			this.cbBet( value, ENUM_BET_SOUND.BET_MAX );
 

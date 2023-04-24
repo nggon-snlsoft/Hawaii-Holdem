@@ -57,6 +57,19 @@ export class CommonUtil {
         });
     }
 
+    static setCardSprite( type: number, number:number, sf: Sprite, cb: ()=>void = null ) {
+        let url = 'Cards/' + 'type' + type.toString() + '/'+number.toString() + '/spriteFrame'
+
+        resources.load<SpriteFrame>( url, ( err, res ) => {
+            sf.spriteFrame = res;
+            //sf.sizeMode = 
+            
+            if (cb != null) {
+                cb();
+            }
+        });
+    }    
+
     static setEmoticonSprite( type: number, sf: Sprite, cb: ()=>void = null ) {
         let url = `Emoticon/emoji_${type.toString()}/spriteFrame`;
 

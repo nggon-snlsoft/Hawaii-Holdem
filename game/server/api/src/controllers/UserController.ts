@@ -38,6 +38,8 @@ export class UserController {
         this.router.post( '/getUserInfo', this.getUserInfo.bind(this));        
         this.router.post( '/getSetting', this.getSetting.bind(this));
         this.router.post( '/updateSetting', this.updateSetting.bind(this));
+
+        this.router.post( '/getStatics', this.getStatics.bind(this));
     }
 
     private async getIp( req: any, next: (ip: string )=>void ) {
@@ -211,7 +213,6 @@ export class UserController {
                 return;
             }
         }
-
         let _statics = ClientUserData.getClientStaticsData(statics);
 
         let conf = gameConf['game'];
@@ -460,6 +461,35 @@ export class UserController {
             msg: 'SUCCESS',
             affected: affected,
             setting: _setting,
+        });
+    }
+
+    public async getStatics( req: any, res: any ) {
+        let id = req.body.id;
+
+        if ( id == null || id <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
+        if (statics == undefined) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NO_EXIST_ID'
+            });
+            return;
+        }
+
+        let _stactics = ClientUserData.getClientStaticsData( statics );
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            statics: _stactics,
         });
     }
 

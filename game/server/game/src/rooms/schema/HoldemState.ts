@@ -28,11 +28,11 @@ export class EntityState extends Schema {
 	winHandRank : string = '';
 	@type( "boolean" ) enoughChip : boolean = true;
 	@type( "number" ) balance : number = 0;
+	@type( "number" ) ante : number = 0;	
+	@type( "number" ) totalBet : number = 0;		
 
 	waitReconnection : boolean = false;
 	lastPingTime : number = -1;
-	totalBet : number = 0;
-	ante: number = 0;
 	
 	@type("boolean") isSitOut : boolean = false;
 	@type("boolean") isSitBack : boolean = false;
@@ -40,9 +40,10 @@ export class EntityState extends Schema {
 	timeLimitCount : number = 0;
 	@type("boolean") dealable: boolean = false;
 
-	isDealer:boolean = false;
-	isSb: boolean = false;
-	isBb: boolean = false;
+	@type('boolean') isDealer:boolean = false;
+	@type('boolean') isSb:boolean = false;
+	@type('boolean') isBb:boolean = false;
+
 	isNew: boolean = false;
 	longSitOut: boolean = false;
 	reBuyCount: number = 0;

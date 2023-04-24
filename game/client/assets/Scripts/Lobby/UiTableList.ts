@@ -11,10 +11,11 @@ const { ccclass, property } = _decorator;
 export class TableListUiElement {
     @property(Node) nodeRoot: Node = null;
     @property(Label) labelTableName: Label = null;
-    @property(Label) labelTableMax: Label = null;    
+    @property(Label) labelTableMax: Label = null;
     @property(Label) labelBlind: Label = null;
+    @property(Label) labelAnte: Label = null;
     @property(Label) labelBuyIn: Label = null;
-    @property(Label) labelPlayers: Label = null;    
+    @property(Label) labelPlayers: Label = null;
     @property(Button) buttonJoin: Button = null;
 
     private table: any = null;
@@ -28,6 +29,7 @@ export class TableListUiElement {
         copyObject.labelTableName = newObject.getChildByPath("LABEL_TABLE_NAME")?.getComponent(Label);
         copyObject.labelTableMax = newObject.getChildByPath("LABEL_TABLE_MAX")?.getComponent(Label);        
         copyObject.labelBlind = newObject.getChildByPath("VALUES/LABEL_BLIND")?.getComponent(Label);
+        copyObject.labelAnte = newObject.getChildByPath("VALUES/LABEL_ANTE")?.getComponent(Label);        
         copyObject.labelBuyIn = newObject.getChildByPath("VALUES/LABEL_MIN_BUYIN")?.getComponent(Label);
         copyObject.labelPlayers = newObject.getChildByPath("VALUES/LABEL_PLAYERS")?.getComponent(Label);        
         copyObject.buttonJoin = newObject.getChildByPath("BUTTON_JOIN")?.getComponent(Button);
@@ -39,6 +41,7 @@ export class TableListUiElement {
         this.labelTableName.string = "";
         this.labelTableMax.string = "";        
         this.labelBlind.string = "";
+        this.labelAnte.string = '';
         this.labelBuyIn.string = "";
 
         if ( this.cbJoinTable != null ) {
@@ -60,6 +63,7 @@ export class TableListUiElement {
         this.labelBlind.string = 
             CommonUtil.getNumberStringWithComma( this.table.smallBlind )  + " / " + 
             CommonUtil.getNumberStringWithComma( this.table.bigBlind );
+        this.labelAnte.string = CommonUtil.getNumberStringWithComma ( this.table.ante );
         this.labelBuyIn.string = CommonUtil.getNumberStringWithComma( this.table.minBuyIn );
         this.labelPlayers.string = table.players;
 

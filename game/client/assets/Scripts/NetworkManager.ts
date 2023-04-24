@@ -43,6 +43,7 @@ export class NetworkManager extends cc.Component {
 
 	private userInfo : any = null;
 	private userSetting: any = null;
+	private userStatics: any = null;
 	private gameSetting: any = null;	
 
     public static Instance() : NetworkManager
@@ -238,6 +239,43 @@ export class NetworkManager extends cc.Component {
 		if (obj.conf != null ) {
 			this.gameSetting = obj.conf;
 		} 
+
+		onSuccess(obj);
+	}
+	
+    async reqLOAD_STATICS( id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+		let result: string = null;
+		let error: string = null;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getStatics", {
+			id: id,
+
+		} ).then(( res: string ) => {
+			result = res;
+			}
+		).catch( function( err: any ) {
+			err = JSON.parse( err );
+			error = err.msg;
+		} );
+
+		if( null !== error ) {
+			return onFail( error );
+		}
+
+		if( null === result ) {
+			return onFail("USER_DATA_IS_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+
+		if(null == obj){
+			onFail("JSON_PARSE_ERROR");
+			return;
+		}
+
+		if (obj.statics != null ) {
+			this.userStatics = obj.static;
+		}
 
 		onSuccess(obj);
 	}	

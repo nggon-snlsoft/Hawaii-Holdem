@@ -370,13 +370,11 @@ export class UiEntity extends Component {
         }
 
         if ( true == isBB || true == isSB ) {
-            this.timeOutId = setTimeout(() => {
-                clearTimeout( this.timeOutId);
+            this.scheduleOnce(()=>{
                 if ( this.uiEntityAvatar != null ) {
                     this.uiEntityAvatar.SetChips( chips );
                 }
-
-            }, 2000);
+            }, 2);
         } else {
             if ( this.uiEntityAvatar != null ) {
                 this.uiEntityAvatar.SetChips( chips );

@@ -1247,8 +1247,8 @@ export class UiTable extends Component {
 
 		let PLAYERS = msg["player"];
 
-		let sb = msg[ "smallBlind" ];
-		let bb = msg[ "bigBlind" ];
+		let sb = msg[ "sb" ];
+		let bb = msg[ "bb" ];
 		let missSb = msg["missSb"];
 		let missBb = msg["missBb"];
 		let ante: number = msg['ante'];
@@ -1261,49 +1261,72 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.showCheck( false );
 
 		for ( let i: number = 0 ; i < PLAYERS.length ; i++ ) {
-			let seat = PLAYERS[i];
+			let seat = PLAYERS[i].seat;
 			if ( seat < 0 ) {
 				continue;
 			}
 
 			let uiEntity = this.GetEntityFromSeat( seat );
 			if ( uiEntity != null ) {
-				console.log('onBLIND_BET: uiEntity != null ');
-				let missBlind = 0;
-				let missedSb = missSb.find( (e)=>{
-					return e == seat;
-				});
 
-				let missedBB = missBb.find( (e)=>{
-					return e == seat;
-				});
+				uiEntity.SetBetValue( PLAYERS[i].totalBet );
 
-				if ( missedSb != null ) {
-					missBlind += missSb[i].chips;
-
+				if ( PLAYERS[i].seat == sb.seat ) {
+					console.log('sb');
+					uiEntity.SetBlindBet( PLAYERS[i].chips, true, false);
 				}
 
-				if ( missedBB != null ) {
-					missBlind += missBb[i].chips;
+				if ( PLAYERS[i].seat == bb.seat ) {
+					console.log('bb');					
+					uiEntity.SetBlindBet( PLAYERS[i].chips, false, true )
 				}
 
-				if ( seat == sb.seat ) {
-					uiEntity.SetBetValue( sb.currBet + missBlind + ante );
-					uiEntity.SetBlindBet( sb.chips, true, false );
-				} else if ( seat == bb.seat ) {
-					uiEntity.SetBetValue( bb.currBet + missBlind + ante );
-					uiEntity.SetBlindBet( bb.chips, false, true );
-				}
-				else {
-					uiEntity.SetBetValue( missBlind + ante );
+				if ( PLAYERS[i].seat != sb.seat && PLAYERS[i].seat != bb.seat ) {
+					uiEntity.SetChips( PLAYERS[i].chips );
 				}
 
 				if ( seat == this.mySeat ) {
 					this.myChips == PLAYERS[i].chips;
-					if ( seat == bb.seat ) {
-						this.uiPlayerActionReservation.showCheck( true );
-					}
+					if ( PLAYERS[i].isBB == true) {
+						this.uiPlayerActionReservation.showCheck( true );						
+					}					
 				}
+
+			// 	console.log('onBLIND_BET: uiEntity != null ');
+			// 	let missBlind = 0;
+			// 	let missedSb = missSb.find( (e)=>{
+			// 		return e == seat;
+			// 	});
+
+			// 	let missedBB = missBb.find( (e)=>{
+			// 		return e == seat;
+			// 	});
+
+			// 	if ( missedSb != null ) {
+			// 		missBlind += missSb[i].chips;
+
+			// 	}
+
+			// 	if ( missedBB != null ) {
+			// 		missBlind += missBb[i].chips;
+			// 	}
+
+			// 	// uiEntity.SetBetValue( sb.currBet + missBlind + ante );				
+
+			// 	if ( seat == sb.seat ) {
+			// 		uiEntity.SetBetValue( sb.currBet + missBlind + ante );
+			// 		uiEntity.SetBlindBet( sb.chips, true, false );
+			// 	} else if ( seat == bb.seat ) {
+			// 		uiEntity.SetBetValue( bb.currBet + missBlind + ante );
+			// 		uiEntity.SetBlindBet( bb.chips, false, true );
+			// 	}
+
+			// 	if ( seat == this.mySeat ) {
+			// 		this.myChips == PLAYERS[i].chips;
+			// 		if ( seat == bb.seat ) {
+			// 			this.uiPlayerActionReservation.showCheck( true );
+			// 		}
+			// 	}
 			}
 		}
 

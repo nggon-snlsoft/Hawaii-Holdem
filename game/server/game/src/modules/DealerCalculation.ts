@@ -63,7 +63,6 @@ export class DealerCalculation {
                 if ( false === e.wait ) {
                     dealer = e.seat;
                     e.isDealer = true;
-                    //e.isBb = true;
                     e.dealable = true;
                     return dealer;
                 }
@@ -136,6 +135,7 @@ export class DealerCalculation {
                         return sb;
                     } else {
                         e.missSb = true;
+                        // e.dealable = true;
                         e.dealable = false;
                     }
                 }
@@ -168,8 +168,9 @@ export class DealerCalculation {
                         return sb;
                     } else {
                         if ( true === e.isNew || true === e.isSitBack ) {
-                            e.wait = true;
+                            // e.wait = true;
                             e.dealable = false;
+
                             if (true === e.isSitBack ) {
                                 e.missSb = true;
                             }

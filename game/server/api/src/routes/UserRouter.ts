@@ -8,6 +8,6 @@ router.post( '/', ( req, res )=>{
     res.send('Ok');
 });
 
-router.post( '/auth', UserController.auth);
+// router.post( '/auth', UserController.auth);
 
 export default router;

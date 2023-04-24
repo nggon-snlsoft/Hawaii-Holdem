@@ -158,6 +158,7 @@ export class UiLobby extends Component {
                     
                     Board.isPublic = true;
                     Board.id = res.info.id;
+                    Board.ante = res.info.ante;
 
                     Board.setInfo( res.info );
                     Board.room = room;

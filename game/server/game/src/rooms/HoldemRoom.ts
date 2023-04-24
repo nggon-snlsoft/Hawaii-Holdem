@@ -267,6 +267,10 @@ export class HoldemRoom extends Room<RoomState> {
 			chips: auth.chip,
 			rake: auth.rake,
 			wait: true,
+			isDealer: false,
+			isSb: false,
+			isBb: false,
+			ante: this.conf['ante'],
 			hasAction: true,
 			seat: -1,
 			currBet: 0,
@@ -1634,7 +1638,6 @@ export class HoldemRoom extends Room<RoomState> {
 		this.state.entities.forEach( e => {
 			e.currBet = 0;
 			e.roundBet = 0;
-			e.totalBet = 0;
 			e.fold = false;
 			e.hasAction = true;
 			e.allIn = 0;
@@ -1698,44 +1701,43 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	blindBet() {
-		let smallBlind = this.getEntity( this.state.sbSeat );
-		let bigBlind = this.getEntity( this.state.bbSeat );
+		let sb = this.getEntity( this.state.sbSeat );
+		let bb = this.getEntity( this.state.bbSeat );
 		let missSb: any[] = [];
 		let missBb: any[] = [];
 
 		let sbBet = this.conf["smallBlind"];
 
-		if ( null != smallBlind  ) {
-			logger.debug( "[ blindBet ] small. seat : %s // wait : %s ", this.state.sbSeat, smallBlind.wait );
-			if( smallBlind.chips > sbBet &&
-				smallBlind.wait === false ) {
-				smallBlind.currBet = sbBet;
-				smallBlind.roundBet = sbBet;
-				smallBlind.totalBet = sbBet;
-				smallBlind.chips -= smallBlind.currBet;
-				this.state.pot += smallBlind.currBet;
+		if ( sb != null ) {
+			if( sb.chips > sbBet &&
+				sb.wait === false ) {
+				sb.currBet = sbBet;
+				sb.roundBet = sbBet;
+				sb.totalBet = sbBet;
+				sb.isSb = true;
+				sb.chips -= sb.currBet;
+				sb.ante = 0;
+				this.state.pot += sb.currBet;
 
-				this.potCalc.SetBet(this.state.sbSeat,smallBlind.totalBet,smallBlind.eval.value,false);
+				this.potCalc.SetBet( this.state.sbSeat, sb.totalBet, sb.eval.value, false);
 			}
-			logger.debug( "[ blindBet ] smallBlind. curr bet : %s // chip : %s", smallBlind.currBet, smallBlind.chips );
 		}
 
-		if ( null != bigBlind ) {
-			logger.debug( "[ blindBet ] big. seat : %s // wait : %s ", this.state.bbSeat, bigBlind.wait );
-			if( bigBlind.chips > this.state.startBet &&
-				bigBlind.wait === false ) {
-				bigBlind.currBet = this.state.startBet;
-				bigBlind.roundBet = this.state.startBet;
-				bigBlind.totalBet = this.state.startBet;
-				bigBlind.chips -= bigBlind.currBet;
-				this.state.pot += bigBlind.currBet;
+		if ( null != bb ) {
+			if( bb.chips > this.state.startBet &&
+				bb.wait === false ) {
+				bb.currBet = this.state.startBet;
+				bb.roundBet = this.state.startBet;
+				bb.totalBet = this.state.startBet;
+				bb.isBb = true;
+				bb.ante = 0;
+				bb.chips -= bb.currBet;
+				this.state.pot += bb.currBet;
 
-				this.potCalc.SetBet(this.state.bbSeat,bigBlind.totalBet,bigBlind.eval.value,false);
+				this.potCalc.SetBet( this.state.bbSeat, bb.totalBet, bb.eval.value, false);
 			}
-			logger.debug( "[ blindBet ] bigBlind. curr bet : %s // chip : %s", bigBlind.currBet, bigBlind.chips );
 		}
 
-		//check miss button
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
 			if ( null === e || undefined === e ) {
@@ -1747,43 +1749,43 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			if ( true === e.missSb ) {
-				let val = sbBet;
-				if( e.chips > val ) {
-					if ( true === e.missBb ) {
-						e.chips -= val;
-						e.missSb = false;
-						this.state.pot += val;
-						missSb.push(e);
+				// let val = sbBet;
+				// if( e.chips > val ) {
+				// 	if ( true === e.missBb ) {
+				// 		e.chips -= val;
+				// 		e.missSb = false;
+				// 		this.state.pot += val;
+				// 		missSb.push(e);
 
-						this.potCalc.DeadBlind(val);
-					} else {
-						e.currBet = sbBet;
-						e.roundBet = sbBet;
-						e.totalBet = sbBet;
-						e.chips -= e.currBet;
-						this.state.pot += e.currBet;
-						missSb.push(e);
-						this.potCalc.SetBet(this.state.sbSeat,e.totalBet,e.eval.value,false);
-					}
-				}
+				// 		this.potCalc.DeadBlind(val);
+				// 	} else {
+				// 		e.currBet = sbBet;
+				// 		e.roundBet = sbBet;
+				// 		e.totalBet = sbBet;
+				// 		e.chips -= e.currBet;
+				// 		this.state.pot += e.currBet;
+				// 		missSb.push(e);
+				// 		this.potCalc.SetBet(this.state.sbSeat,e.totalBet,e.eval.value,false);
+				// 	}
+				// }
 			}
 
 			if ( true === e.missBb) {
-				let val = this.state.startBet;
-				if( e.chips > val ) {
-					e.currBet = this.state.startBet;
-					e.roundBet = this.state.startBet;
-					e.totalBet = this.state.startBet;
-					e.chips -= e.currBet;
-					e.missBb = false;
-					this.state.pot += e.currBet;
-					missBb.push(e);
-					this.potCalc.SetBet(e.seat,e.totalBet,e.eval.value,false);
-				}
+				// let val = this.state.startBet;
+				// if( e.chips > val ) {
+				// 	e.currBet = this.state.startBet;
+				// 	e.roundBet = this.state.startBet;
+				// 	e.totalBet = this.state.startBet;
+				// 	e.chips -= e.currBet;
+				// 	e.missBb = false;
+				// 	this.state.pot += e.currBet;
+				// 	missBb.push(e);
+				// 	this.potCalc.SetBet(e.seat,e.totalBet,e.eval.value,false);
+				// }
 			}
 		}
 
-		let player: number[] = [];
+		let player: any[] = [];
 		let ante = this.conf['ante'];		
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
@@ -1795,11 +1797,18 @@ export class HoldemRoom extends Room<RoomState> {
 				continue;
 			}
 
-			this.state.pot += ante;
-			e.totalBet += ante;
-			e.chips -= ante;
-			player.push(e.seat);
-			this.potCalc.SetAnte( e.seat, e.totalBet, e.eval.value, false );
+			if ( e.isSb != true && e.isBb != true ) {
+				this.state.pot += ante;
+				sb.currBet = ante;
+				sb.roundBet = ante;				
+				e.totalBet = ante;
+				e.ante = ante;
+				e.chips -= ante;
+				this.potCalc.SetAnte( e.seat, e.totalBet, e.eval.value, false );
+			}
+
+			// player.push(e.seat);
+			player.push(e);
 		}
 
 		this.state.maxBet = this.state.startBet;
@@ -1807,8 +1816,8 @@ export class HoldemRoom extends Room<RoomState> {
 		this._initPot = this.state.pot;
 
 		this.broadcast( "BLIND_BET", {
-			smallBlind: smallBlind,
-			bigBlind: bigBlind,
+			sb: sb,
+			bb: bb,
 			maxBet: this.state.maxBet,
 			pot: this.state.pot,
 			missSb: missSb,
@@ -2283,13 +2292,13 @@ export class HoldemRoom extends Room<RoomState> {
 						if ( handValue > best_rank ) {
 							entity.statics.best_rank = handValue;
 
-							let cards: number[] = [];
-							this.communityCardIndex.forEach((cc)=>{
+							let cards: string[] = [];
+							this.communityCardString.forEach( (cc)=>{
 								cards.push ( cc );
 							} );
 
 							w.cards.forEach( (cc: any )=>{
-								cards.push( cc );
+								cards.push( this.totalCards[cc] );
 							});
 
 							let s = cards.toString();
@@ -2324,7 +2333,16 @@ export class HoldemRoom extends Room<RoomState> {
 						entity.statics.win_bigBlind += 1;
 					}
 
-					let amount = w.winAmount - entity.totalBet;
+					let ws = winners.filter( (elem )=>{
+						return (w.seat == elem.seat);
+					});
+
+					let ta: number = 0;
+					ws.forEach( ( l )=>{
+						ta += l.winAmount;
+					});
+
+					let amount = ta - entity.totalBet;
 					let maxPots = entity.statics.maxPots;
 
 					if ( amount > maxPots ) {

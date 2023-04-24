@@ -61,7 +61,6 @@ export class UiEffectShowRiver extends Component {
     }
 
     onFinished() {
-        AudioController.instance.PlaySound('CARD_FLIP');        
         this.scheduleOnce(()=>{
             if ( this.done != null ) {
                 this.done();

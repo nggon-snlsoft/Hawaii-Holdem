@@ -17,6 +17,7 @@ export class Board {
 	static reserveSeat: number = -1;
 	static isPublic: boolean = false;
 	static info: any = null;
+	static ante: number = 0;
 
 	static setInfo( info: any ) {
 		Board.info = info;
@@ -24,6 +25,7 @@ export class Board {
 
 		Board.small = info.smallBlind;
 		Board.big = info.bigBlind;
+		Board.ante = info.ante;
 	}
 }
 

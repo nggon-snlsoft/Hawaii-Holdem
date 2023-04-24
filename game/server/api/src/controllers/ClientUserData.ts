@@ -48,6 +48,7 @@ export class ClientUserData{
 			betTimeLimit: dbRoomData.betTimeLimit,
 			bigBlind: dbRoomData.bigBlind,
 			smallBlind: dbRoomData.smallBlind,
+			ante: dbRoomData.ante,
 			minBuyIn: dbRoomData.minStakePrice,
 			maxBuyIn: dbRoomData.maxStakePrice,
 			alive: dbRoomData.alive,
@@ -56,7 +57,7 @@ export class ClientUserData{
         return room;
     }
 
-	static getClientStaticsData(dbStaticsData: any): any {
+	static getClientStaticsData( dbStaticsData: any): any {
         let statics: any = {
 			id: dbStaticsData.id,
 			hands: dbStaticsData.hands,
@@ -66,17 +67,19 @@ export class ClientUserData{
 			win: dbStaticsData.win,
 			fold: dbStaticsData.fold,
 			draw: dbStaticsData.draw,
+			win_allin: dbStaticsData.win_allin,
 			win_preflop: dbStaticsData.win_preflop,
 			win_flop: dbStaticsData.win_flop,
-			win_turn: dbStaticsData.turn,
-			win_river: dbStaticsData.river,
+			win_turn: dbStaticsData.win_turn,
+			win_river: dbStaticsData.win_river,
 			win_dealer: dbStaticsData.win_dealer,
-			win_smallBlind: dbStaticsData.smallBlind,
-			win_bigBlind: dbStaticsData.bigBlind,
+			win_smallBlind: dbStaticsData.win_smallBlind,
+			win_bigBlind: dbStaticsData.win_bigBlind,
 			fold_preflop: dbStaticsData.fold_preflop,
 			fold_flop: dbStaticsData.fold_flop,
 			fold_turn: dbStaticsData.fold_turn,
 			fold_river: dbStaticsData.fold_river,
+			best_rank: dbStaticsData.best_rank,
 			best_hands: dbStaticsData.best_hands,
         }
         return statics;

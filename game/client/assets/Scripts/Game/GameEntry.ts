@@ -21,6 +21,7 @@ export class GameEntry extends Component {
     private _table: UiTable = null;
     private _rootInformation: Node = null;
     private _labelID: Label = null;    
+    private _labelAnte: Label = null;    
     private _labelSB: Label = null;
     private _labelBB: Label = null;
 
@@ -56,7 +57,7 @@ export class GameEntry extends Component {
         if ( this._rootInformation != null ) {
             if ( this._labelID != null ) {
                 this._labelID.string = (Board.id).toString();
-                this._labelID.node.active = true;
+                this._labelID.node.active = false;
             }
 
             if ( this._labelSB != null ) {
@@ -65,8 +66,13 @@ export class GameEntry extends Component {
             }
 
             if ( this._labelBB != null ) {
-                this._labelBB.string = (Board.big).toString();
+                this._labelBB.string = ( Board.big ).toString();
                 this._labelBB.node.active = true;
+            }
+
+            if ( this._labelAnte != null ) {
+                this._labelAnte.string = ( Board.ante).toString();
+                this._labelAnte.node.active = true;
             }
 
             this._rootInformation.active = true;
@@ -86,7 +92,6 @@ export class GameEntry extends Component {
             this._popup.node.active = false;
         }
 
-
         this._controls = this._root.getChildByPath('GLOBAL_BUTTONS').getComponent(UiControls);
         if ( this._controls != null ) {
             this._controls.node.active = false;
@@ -105,6 +110,12 @@ export class GameEntry extends Component {
             if ( this._labelID != null ) {
                 this._labelID.node.active = false;
                 this._labelID.string = '0';
+            }
+
+            this._labelAnte = this._rootInformation.getChildByPath('LABEL_ANTE').getComponent(Label);
+            if ( this._labelAnte != null ) {
+                this._labelAnte.node.active = false;
+                this._labelAnte.string = '0';
             }
             
             this._labelSB = this._rootInformation.getChildByPath('LABEL_SB').getComponent(Label);
