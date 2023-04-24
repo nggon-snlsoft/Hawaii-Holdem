@@ -321,7 +321,7 @@ export class UiPlayerAction extends Component {
 				this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
 				this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
 				this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
-				this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue );
+				this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
 
 				this.labelQuaterValue.node.active = true;
 				this.labelHalfValue.node.active = true;
