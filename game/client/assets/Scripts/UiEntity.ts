@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Sprite, Label, Vec3, Color, Tween, SpriteFrame, UITransform, 
-    resources, tween, Quat, bezier, Animation, Button, animation, UIOpacity } from 'cc';
+    resources, tween, Quat, bezier, Animation, Button, animation, UIOpacity, color } from 'cc';
 import { Board } from './Board';
 
 import { CommonUtil } from './CommonUtil';
@@ -56,16 +56,12 @@ export class UiEntity extends Component {
 
     private uiBettingChips: UiBettingChips = null;
     private uiResultEffect: UiResultEffect = null;
-
-    private rootCardDeck: Node = null;
-    private rootPotChips: Node = null;
-    private vecPotChips: Vec3 = null;
     
     private timeOutId = -1;
     private uiPotChips: UiPotChips = null;
 
-    callbackProfileOpen: (e: any) => void = null;
-    callbackProfileClose: () => void = null;
+    private cbProfileOpen: (id: number, seat: number) => void = null;
+    private cbProfileClose: (seat: number) => void = null;
 
     public isPlaying: boolean = false;
 
@@ -75,6 +71,7 @@ export class UiEntity extends Component {
     private rootHiddenCards: Node = null;
     private hiddenCards: Card[] = [ null, null ];
     private rootCardDispensing: Node = null;
+    private seat: number = -1;
     
 
     childRegistered() {
@@ -198,19 +195,30 @@ export class UiEntity extends Component {
             this.uiPotChips.node.active = false;
         }
 
-
-        this.rootCardDeck = this.node.getChildByPath('NODE_CARD_DECK');
+        this.buttonAvatar = this.node.getChildByPath('AVATAR').getComponent(Button);
+        if ( this.buttonAvatar != null ) {
+            this.buttonAvatar.node.off( 'click' );
+            this.buttonAvatar.node.on( 'click', this.onClickAvatar.bind(this), this );
+        }
     }
 
     onClickAvatar( button: Button ) {
-    
+        console.log('onClickAvatar');
+        if ( this.cbProfileOpen != null ) {
+            this.cbProfileOpen( this.id, this.seat );
+        }
     }
 
     public Init() {
+        this.cbProfileOpen = null;
+        this.cbProfileClose = null;
+
         this.childRegistered();
     }
 
-    public SetEntity( entity: any ) {
+    public SetEntity( entity: any, cbOpen: ( id: number, seat:number )=>void, cbClose:( seat: number )=>void ) {
+        this.cbProfileOpen = null;
+        this.cbProfileClose = null;        
         this.childRegistered();
 
         if ( entity == null || entity == undefined ) {
@@ -218,7 +226,16 @@ export class UiEntity extends Component {
             return;
         }
 
+        if ( cbOpen != null ) {
+            this.cbProfileOpen = cbOpen;
+        }
+
+        if ( cbClose != null ) {
+            this.cbProfileClose = cbClose;
+        }
+
         this.id = entity.id;
+        this.seat = entity.seat;
         this.uiEntityAvatar.SetAvatar( this, entity, this.isMe );
 
         this.endTurn();
@@ -232,8 +249,9 @@ export class UiEntity extends Component {
         this.isWait = entity.wait;
         this.isSitout = entity.isSitOut;
 
-        this.callbackProfileOpen = null;
-        this.callbackProfileClose = null;
+        // this.callbackProfileOpen = null;
+        // this.callbackProfileClose = null;
+
         this.node.active = true;
 
         if ( this.isSitout == true ) {
@@ -315,8 +333,8 @@ export class UiEntity extends Component {
 
         this.uiBettingChips.hide();
 
-        this.callbackProfileOpen = null;
-        this.callbackProfileClose = null;
+        this.cbProfileOpen = null;
+        this.cbProfileClose = null;        
 
         this.isPlaying = false;
         this.node.active = false;

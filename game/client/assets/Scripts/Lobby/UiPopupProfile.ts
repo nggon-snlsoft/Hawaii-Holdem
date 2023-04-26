@@ -196,7 +196,7 @@ export class UiPopupProfile extends Component {
 
     private onClickExit(button: Button) {
         if ( this.cbExit != null ) {
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
 
             this.cbExit();
         }
@@ -204,7 +204,7 @@ export class UiPopupProfile extends Component {
 
     private onClickChangeAvatar( button: Button ) {
         if ( this.cbChangeAvatar != null ) {
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
                         
             this.cbChangeAvatar();
         }

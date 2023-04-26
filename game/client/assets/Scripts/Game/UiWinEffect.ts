@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, resources, SpriteFrame } from 'cc';
+import { _decorator, Component, Node, Sprite, resources, SpriteFrame, Label } from 'cc';
 import { Board } from '../Board';
 import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
@@ -11,14 +11,40 @@ export class UiWinEffect extends Component {
     @property(Sprite) spriteWinEffectBackGround: Sprite = null;
     @property(Sprite) spriteWinEffectRank: Sprite = null;
 
+    @property(Node) rootInfo: Node = null;
+    @property(Label) labelWinners: Label = null;
+    @property(Label) labelHands: Label = null;
+
+
     init() {
         this.spriteWinEffectBackGround.node.active = false;
         this.spriteWinEffectRank.node.active = false;
+
+        this.rootInfo.active = false;
+        this.labelWinners.string = '';
+        this.labelWinners.node.active = false;
+
+        this.labelHands.string = '';
+        this.labelHands.node.active = false;
+
         this.node.active = false;
     }
 
-    show( type: number ) {
+    show( winners: any, type: number, e: any ) {
+        this.labelWinners.string = '';
+        this.labelHands.string = '';
 
+        let wns: string[] = [];
+        winners.forEach( (e)=>{
+            wns.push( e.nickname );
+        });
+
+        let ws = wns.toString();
+        this.labelWinners.string = ws;
+        this.labelHands.string = e.descr;
+
+        this.labelWinners.node.active = true;
+        this.labelHands.node.active = true;
 
         if ( type > 0 ) {
             type = ( type - 1 );
@@ -61,6 +87,7 @@ export class UiWinEffect extends Component {
                 break;
        }
 
+        this.rootInfo.active = true;
         this.node.active = true;
     }
 

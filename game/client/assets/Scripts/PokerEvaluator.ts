@@ -618,7 +618,7 @@ class FourOfAKind extends Hand {
         this.cards.length = 4;
       }
 
-      this.descr = this.name + ', ' + this.cards[0].toString().slice(0, -1) + '\'s';
+      this.descr = '[ ' + this.cards[0].toString().slice(0, -1) + ' ] 포카드';
     }
 
     return this.cards.length >= 4;
@@ -785,8 +785,8 @@ class FullHouse extends Hand {
     }
 
     if (this.cards.length >= 5) {
-      var type = this.cards[0].toString().slice(0, -1) + '\'s over ' + this.cards[3].toString().slice(0, -1) + '\'s';
-      this.descr = '풀하우스' + ', ' + type;
+      var type = this.cards[0].toString().slice(0, -1) + ', ' + this.cards[3].toString().slice(0, -1);
+      this.descr = '[ ' + type + ' ] 풀 하우스';
     }
 
     return this.cards.length >= 5;

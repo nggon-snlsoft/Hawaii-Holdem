@@ -35,6 +35,8 @@ export class UiPopupSetting extends Component {
             this.cbApply = cbApply;
         }
 
+        this.initSetting = false;
+
         this.togglesCard.toggleItems.forEach( (e)=>{
             e.node.on('toggle', this.onToggleCardsChanged.bind(this) );            
         } );
@@ -63,7 +65,6 @@ export class UiPopupSetting extends Component {
         this.selectTable = 0;
         this.selectBackground = 0;
 
-        this.initSetting = false;
         this.node.active = false;
     }
 
@@ -73,11 +74,13 @@ export class UiPopupSetting extends Component {
     }
 
     private onToggleCardsChanged( toggle: Toggle ) {
-        if ( toggle.isChecked == false || this.initSetting == true ) {
+        if ( toggle.isChecked == false ) {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        if ( this.initSetting == true ) {
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
         for ( let index = 0; index < this.togglesCard.toggleItems.length; index++ ) {
             if ( this.togglesCard.toggleItems[index].isChecked == true ) {
@@ -88,11 +91,13 @@ export class UiPopupSetting extends Component {
     }
 
     private onToggleBackgroundChanged( toggle: Toggle ) {
-        if ( toggle.isChecked == false || this.initSetting == true ) {
+        if ( toggle.isChecked == false ) {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        if ( this.initSetting == true ) {
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
         for ( let index = 0; index < this.togglesBackground.toggleItems.length; index++ ) {
             if ( this.togglesBackground.toggleItems[index].isChecked == true ) {
@@ -102,11 +107,13 @@ export class UiPopupSetting extends Component {
     }
 
     private onToggleTablesChanged( toggle: Toggle ) {
-        if ( toggle.isChecked == false || this.initSetting == true) {
+        if ( toggle.isChecked == false ) {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        if ( this.initSetting == true ) {
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
         for ( let index = 0; index < this.togglesTable.toggleItems.length; index++ ) {
             if ( this.togglesTable.toggleItems[index].isChecked == true ) {
@@ -119,6 +126,8 @@ export class UiPopupSetting extends Component {
         let info = NetworkManager.Instance().getUserInfo();
 
         NetworkManager.Instance().reqSetting( info.id, (res)=>{
+            this.initSetting = false;
+
             let setting = res.setting;
 
             this.node.active = true;
@@ -133,6 +142,8 @@ export class UiPopupSetting extends Component {
             this.volumn = setting.sound;
             this.labelVolumn.string = ( this.volumn ).toString();
             this.sliderVolumn.progress = ( this.volumn / VOLUMNE_MULTIPLIER);
+
+            this.initSetting = true;
             
         }, (err)=>{
             LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
@@ -142,12 +153,13 @@ export class UiPopupSetting extends Component {
     }
 
     public hide() {
+        this.initSetting = false;        
         this.node.active = false;
     }
 
     private onClickExit( button: Button ) {
         if ( this.cbExit != null ) {
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
 
             this.cbExit();
         }
@@ -158,7 +170,7 @@ export class UiPopupSetting extends Component {
     private onClickApply( button: Button ) {
 
         if ( this.cbApply != null ) {
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
             this.cbApply( {
                 sound: this.volumn,
                 card: this.selectCard,

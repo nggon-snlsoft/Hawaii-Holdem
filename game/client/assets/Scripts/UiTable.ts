@@ -24,6 +24,7 @@ import { UiEffectShowRiver } from './Game/UiEffectShowRiver';
 import { UiCommunityCards } from './Game/UiCommunityCards';
 import { PlayerActionInformation } from './Game/PlayerActionInformation';
 import { ENUM_BET_SOUND } from './HoldemDefines';
+import { UiPopupGameProfile } from './Game/UiPopupGameProfile';
 
 const { ccclass, property } = _decorator;
 
@@ -59,6 +60,7 @@ export class UiTable extends Component {
     @property(UiSeats) uiSeats: UiSeats = null;
 	@property(UiPot) uiPot : UiPot = null;
 	@property(UiBuyIn) uiBuyIn: UiBuyIn = null;
+	@property(UiPopupGameProfile) uiProfile: UiPopupGameProfile = null;	
 	@property(UiPlayerActionReservation) uiPlayerActionReservation: UiPlayerActionReservation = null;
 	@property(UiCommunityCards) uiCommunityCards: UiCommunityCards = null;
 
@@ -88,7 +90,6 @@ export class UiTable extends Component {
 
     private roundState: string = "";
     private spritePotRoot: Sprite = null;
-    // private entityUiElements: UiEntity[] = [];
 
     private uiPlayerAction: UiPlayerAction = null;
     private nodeCardDispensingRoot: Node = null;
@@ -113,10 +114,6 @@ export class UiTable extends Component {
 	private seatDealer: number = -1;
 	private seatSB: number = -1;
 	private seatBB: number = -1;
-
-    // private dealerSeatPosition: number = -1;
-    // private smallBlindSeatPosition: number = -1;
-    // private bigBlindSeatPosition: number = -1;
 
     private room: Colyseus.Room = null;
     private msgWINNERS: string = "";
@@ -154,6 +151,8 @@ export class UiTable extends Component {
 
         this.uiSeats.init(this.seatMax, this.onClickSeatSelect.bind(this));
 		this.uiBuyIn.init();
+		this.uiProfile.init();
+
 		this.uiGameChatting.init( this.onClickEmoticon.bind(this), this.onClickEmticonExit.bind(this));
 		this.setEmoticonButtinInteractive(true);
 		this.uiPlayerActionReservation.init();
@@ -472,8 +471,12 @@ export class UiTable extends Component {
     onClickExit() {
 		if ( this.uiSeats.node.active == true ) {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-				this.uiSeats.end();
-				this.room?.leave( false );
+				// this.uiSeats.end();
+				// this.room?.leave( false );
+
+				this.sendMsg("EXIT_TABLE", {
+					seat : this.mySeat
+				});				
 
 				UiGameSystemPopup.instance.closePopup();
 			}, ()=>{
@@ -555,7 +558,11 @@ export class UiTable extends Component {
         room.onMessage( "SHOW_SELECT_SEAT", this.onSHOW_SELECT_SEAT.bind(this));
         room.onMessage( "UPDATE_SELECT_SEAT", this.onUPDATE_SELECT_SEAT.bind(this));
 		room.onMessage( "SELECT_SEAT_ERROR", this.onSELECT_SEAT_ERROR.bind(this));
-		room.onMessage( "SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));		
+		room.onMessage( "SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));
+		room.onMessage( "SHOW_PROFILE", this.onSHOW_PROFILE.bind(this));
+
+		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));		
+
         
         this.room.onMessage( "JOIN", msg => {
             this.onJOIN(room, msg);
@@ -599,6 +606,25 @@ export class UiTable extends Component {
 				uiEntity.setEmoticon(EMOTICON_TYPE.Chatting, id);
 			}
 		}
+	}
+
+	private onSHOW_PROFILE(msg) {
+		let statics = msg['statics'];
+		let entity = msg['entity']
+
+		if ( statics != null ) {
+			this.uiProfile.show( entity, statics );
+		} else {
+
+			UiGameSystemPopup.instance.showOkPopup('프로필', '정보를 불러올 수 없습니다.', ()=>{
+				UiGameSystemPopup.instance.closePopup();
+			} );
+		}
+	}
+	
+	private onEXIT_TABLE( msg ) {
+		this.uiSeats.end();
+		this.room?.leave( false );
 	}
 
 	public LoadLobby() {
@@ -750,6 +776,7 @@ export class UiTable extends Component {
 		this.uiPot.Hide();
 		this.uiPotChips.hide();
 		this.uiRoundPotValue.hide();
+		this.uiProfile.hide();
 
 		this.msgWINNERS = '';
 
@@ -912,12 +939,7 @@ export class UiTable extends Component {
 
             let uiEntity = this.GetEntityFromSeat( seat );
 			if ( uiEntity != null ) {
-				uiEntity.SetEntity( entity );
-
-				if ( uiEntity != undefined ) {
-					uiEntity.callbackProfileOpen = ( e ) => {}
-					uiEntity.callbackProfileClose = () => {}	
-				}
+				uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
 			}
         }
     }
@@ -927,7 +949,7 @@ export class UiTable extends Component {
             let seat = this.SEAT_PLAYERS[ i ];
             let uiEntity = this.GetEntityFromSeat( seat );
 			if ( uiEntity != null ) {
-				uiEntity.SetEntity( null );
+				uiEntity.SetEntity( null, null, null );
 			}
         }
     }
@@ -1065,7 +1087,7 @@ export class UiTable extends Component {
 		let entity = msg[ "newEntity" ];
 		let uiEntity = this.GetEntityFromSeat( entity.seat );
 		if ( uiEntity != null ) {
-			uiEntity.SetEntity( entity );
+			uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
 		}
     }
 
@@ -1332,8 +1354,11 @@ export class UiTable extends Component {
 
 		this.curPotValue = msg[ "pot" ];
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-		this.uiPotChips.show( this.curPotValue );
-		this.uiRoundPotValue.show( this.curPotValue );
+		// this.uiPotChips.show( this.curPotValue );
+		// this.uiRoundPotValue.show( this.curPotValue );
+		this.uiPotChips.show( 0 );
+		this.uiRoundPotValue.show( 0 );
+
 		this.SetCurrentPot( this.curPotValue );
     }
 
@@ -2311,11 +2336,6 @@ export class UiTable extends Component {
 				}
 			}
 
-			info = winners.find((elem) => {return elem.seat == pot.winner[0];});
-			if ( info != null ) {
-				this.uiWinEffect.show( info.eval.handType );
-			}
-
 			let wns: any[] = [];
 			for ( let w: number = 0 ; w < pot.winner.length ; w++ ) {
 				let e = winners.find ( (elem) => { 
@@ -2325,6 +2345,14 @@ export class UiTable extends Component {
 				if ( e != null ) {
 					wns.push(e);
 				}
+			}
+
+			info = winners.find((elem) => {return elem.seat == pot.winner[0];});
+			if ( info != null ) {
+				let cards: any = this.msgWINNERS['cards'];
+
+				let ev = this.GetHandsEval( wns[0].cards, cards );
+				this.uiWinEffect.show( wns, info.eval.handType, ev );
 			}
 
 			this.ShowWinningCards(wns);
@@ -2358,7 +2386,7 @@ export class UiTable extends Component {
 			}
 
 			this.uiPot.HidePotInfo();
-			await new Promise(ret => setTimeout(ret, 2000));
+			await new Promise(ret => setTimeout(ret, 2500));
 		}
     }
 
@@ -2826,6 +2854,8 @@ export class UiTable extends Component {
     }
 
     public leave() {
+		this.uiProfile.hide();
+
 		this.room?.leave();
     }
 
@@ -2858,8 +2888,11 @@ export class UiTable extends Component {
 		return ret;
     }
 
-	public openUserProfile(id :number ) {
-
+	public OpenUserProfile( id :number, seat: number ) {
+		this.sendMsg("SHOW_PROFILE", { 
+			id: id,
+			seat: seat,
+		});
 	}
 
 	public onEVENT_SHOW() {
@@ -2885,6 +2918,14 @@ export class UiTable extends Component {
 			this.buttonSitout.node.active = true;
 			this.labelSitout.string = '자리비움';
 		}
+	}
+
+	private OpenProfile(id: number, seat: number) {
+		this.OpenUserProfile(id, seat )
+	}
+
+	private CloseProfile( seat: number ) {
+		console.log('CloseProfile')
 	}
 }
 

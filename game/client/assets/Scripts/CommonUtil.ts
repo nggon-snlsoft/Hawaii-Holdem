@@ -7,7 +7,11 @@ export class CommonUtil {
 
     static setting: any = null;
 
-    static getNumberStringWithComma(num: number, showCurrency: boolean = false): string {
+    static getNumberStringWithComma( num: number, showCurrency: boolean = false ): string {
+        if ( num == null || num <= 0 ) {
+            return '0';
+        }
+
         let currency: string;
         currency = "₩";
         let result = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -21,6 +25,10 @@ export class CommonUtil {
     }
 
     static getKoreanNumber(num: number): string {
+        if ( num == null || num <= 0 ) {
+            return '0';
+        }
+                
         const koreanUnits = ['', '만', '억', '조'];
         let answer = '';
         let unit = 10000;

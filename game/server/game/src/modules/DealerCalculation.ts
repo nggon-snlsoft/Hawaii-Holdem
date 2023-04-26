@@ -174,6 +174,7 @@ export class DealerCalculation {
                             if (true === e.isSitBack ) {
                                 e.missSb = true;
                             }
+                            
                             this.players = this.countPlayablePlayers(entities);
                             if (this.players == 2) {
                                 sb = this.dealer;
@@ -274,10 +275,9 @@ export class DealerCalculation {
                 if (entity.missBb == false) {
                     entity.missBb = true;
                 } else {
-                    // logger.error("This player(seat:%s, name:%s)  may be leave",
-                    //     entity.seat.toString(), entity.name);
-                    // entity.leave = true;
-                    // entity.longSitOut = true;
+                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    entity.leave = true;
+                    entity.longSitOut = true;
                 }
             }
         }

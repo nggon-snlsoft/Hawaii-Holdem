@@ -29,8 +29,13 @@ export class PopUpElement {
     private onNo : () => void = null;
 
     public init(){
+        this.btnOk.node.off("click");
         this.btnOk.node.on("click", this.onClickOk.bind(this), this);
+
+        this.btnYes.node.off("click");
         this.btnYes.node.on("click", this.onClickYes.bind(this), this);
+
+        this.btnNo.node.off("click");
         this.btnNo.node.on("click", this.onClickNo.bind(this), this);
     }
 
@@ -38,7 +43,7 @@ export class PopUpElement {
         this.hide();
 
         if(null != this.onClose){
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
             this.onClose();
         }
     }
@@ -47,7 +52,7 @@ export class PopUpElement {
         this.hide();
 
         if(null != this.onYes){
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
             this.onYes();
         }
     }
@@ -56,7 +61,7 @@ export class PopUpElement {
         this.hide();
 
         if(null != this.onNo){
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
             this.onNo();
         }
     }

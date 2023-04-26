@@ -39,7 +39,7 @@ export class UiPlayer extends Component {
     }
 
     private onClickAvatar(button: Button) {
-        LobbyAudioContoller.instance.playButtonClick();
+        // LobbyAudioContoller.instance.playButtonClick();
 
         this.cbClickAvatar();
     }

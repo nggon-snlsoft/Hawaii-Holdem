@@ -1,58 +1,52 @@
-import { _decorator, Component, Node, color } from 'cc';
+import { _decorator, Component, Node, color, Button } from 'cc';
 import { LobbySystemPopup } from '../LobbySystemPopup';
 import { NetworkManager } from '../NetworkManager';
 import { UiLobby } from '../UiLobby';
 import { UiPopupChangeAvatar } from './UiPopupChangeAvatar';
-import { UiPopupCharge } from './UiPopupCharge';
-import { UiPopupJoinTable } from './UiPopupJoinTable';
-import { UiPopupMakeRoom } from './UiPopupMakeRoom';
-import { UiPopupPoint } from './UiPopupPoint';
 import { UiPopupProfile } from './UiPopupProfile';
-import { UiPopupQuickJoin } from './UiPopupQuickJoin';
-import { UiPopupRanking } from './UiPopupRanking';
 import { UiPopupSetting } from './UiPopupSetting';
-import { UiPopupTransfer } from './UiPopupTransfer';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
+import { UiLOBBY_POPUP_POINT } from './UiLOBBY_POPUP_POINT';
+import { UiLOBBY_POPUP_RANKING } from './UiLOBBY_POPUP_RANKING';
+import { UiLOBBY_POPUP_CHARGE } from './UiLOBBY_POPUP_CHARGE';
+import { UiLOBBY_POPUP_TRANSFER } from './UiLOBBY_POPUP_TRANSFER';
+import { UiLOBBY_POPUP_QnA } from './UiLOBBY_POPUP_QnA';
+import { UiLOBBY_POPUP_NOTICE } from './UiLOBBY_POPUP_NOTICE';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyPopup')
 export class UiLobbyPopup extends Component {
-    @property (UiPopupMakeRoom) uiPopupMakeRoom: UiPopupMakeRoom = null;
+
     @property (UiPopupProfile) uiPopupProfile: UiPopupProfile = null;
     @property (UiPopupSetting) uiPopupSetting: UiPopupSetting = null;    
     @property (UiPopupChangeAvatar) uiPopupChangeAvatar: UiPopupChangeAvatar = null;
-    @property (UiPopupQuickJoin) uiPopupQuickJoin: UiPopupQuickJoin = null;
-    @property (UiPopupPoint) uiPopupPoint: UiPopupPoint = null;
-    @property (UiPopupRanking) uiPopupRanking: UiPopupRanking = null;
-    @property (UiPopupCharge) uiPopupCharge: UiPopupCharge = null;
-    @property (UiPopupTransfer) uiPopupTransfer: UiPopupTransfer = null;
+
+    @property (UiLOBBY_POPUP_POINT) uiLOBBY_POPUP_POINT: UiLOBBY_POPUP_POINT = null;
+    @property (UiLOBBY_POPUP_RANKING) uiLOBBY_POPUP_RANKING: UiLOBBY_POPUP_RANKING = null;
+    @property (UiLOBBY_POPUP_CHARGE) uiLOBBY_POPUP_CHARGE: UiLOBBY_POPUP_CHARGE = null;
+    @property (UiLOBBY_POPUP_TRANSFER) uiLOBBY_POPUP_TRANFER: UiLOBBY_POPUP_TRANSFER = null;
+    @property (UiLOBBY_POPUP_QnA) uiLOBBY_POPUP_QNA: UiLOBBY_POPUP_QnA = null;
+    @property (UiLOBBY_POPUP_NOTICE) uiLOBBY_POPUP_NOTICE: UiLOBBY_POPUP_NOTICE = null;
 
     private uiLobby: UiLobby = null;
 
     init( uiLobby:UiLobby ) {
-
-        this.uiPopupMakeRoom.init();
         this.uiPopupProfile.init( this.hide.bind(this), this.openChargeAvatar.bind(this) );
         this.uiPopupSetting.init( this.hide.bind(this), this.applySetting.bind(this) );
         this.uiPopupChangeAvatar.init( this.hideChangeAvatar.bind(this), this.applyChangeAvatar.bind(this));
-        this.uiPopupQuickJoin.init( this.hide.bind(this) );
-        this.uiPopupPoint.init( this.hide.bind(this) );
-        this.uiPopupRanking.init( this.hide.bind(this) );
-        this.uiPopupCharge.init( this.hide.bind(this) );
-        this.uiPopupTransfer.init( this.hide.bind(this) );
 
         if ( uiLobby != null ) {
             this.uiLobby = uiLobby;
         }
 
-        this.closeAllPopup();
-    }
+        this.uiLOBBY_POPUP_POINT.Init( this.ClosePoint.bind(this), null );
+        this.uiLOBBY_POPUP_RANKING.Init( this.CloseRanking.bind(this), null );
+        this.uiLOBBY_POPUP_CHARGE.Init( this.CloseCharge.bind(this), null );
+        this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), null );
+        this.uiLOBBY_POPUP_QNA.Init( this.CloseQNA.bind(this), null );
+        this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this), null );
 
-    public openMakeRoom() {
         this.closeAllPopup();
-        
-        this.uiPopupMakeRoom.show();
-        this.node.active = true;
     }
 
     public openProfile() {
@@ -76,46 +70,6 @@ export class UiLobbyPopup extends Component {
         this.node.active = true;
     }
 
-    public openQuickJoin() {
-        this.closeAllPopup();
-
-        this.uiPopupQuickJoin.show();
-        this.node.active = true;
-    }
-
-    public openPoint() {
-        this.closeAllPopup();
-
-        this.uiPopupPoint.show();
-        this.node.active = true;
-    }
-
-    public openRanking() {
-        this.closeAllPopup();
-
-        this.uiPopupRanking.show();
-        this.node.active = true;
-    }
-
-    public openCharge() {
-        this.closeAllPopup();
-
-        this.uiPopupCharge.show();
-        this.node.active = true;
-    }
-
-    public openTransfer() {
-        this.closeAllPopup();
-
-        this.uiPopupTransfer.show();
-        this.node.active = true;
-    }
-
-    public closeMakeRoom() {
-        this.uiPopupMakeRoom.hide();
-        this.node.active = true;
-    }
-
     public closeProfile() {
         this.uiPopupProfile.hide();
    }
@@ -130,36 +84,17 @@ export class UiLobbyPopup extends Component {
         this.uiPopupChangeAvatar.hide();
     }
 
-    public closeQuickJoin() {
-        this.uiPopupQuickJoin.hide();
-    }
-
-    public closePoint() {
-        this.uiPopupPoint.hide();
-    }
-
-    public closeRanking() {
-        this.uiPopupRanking.hide();
-    }
-
-    public closeCharge() {
-        this.uiPopupCharge.hide();
-    }
-
-    public closeTransfer() {
-        this.uiPopupTransfer.hide();
-    }    
-
     public closeAllPopup() {
-        this.uiPopupMakeRoom.hide();
         this.uiPopupProfile.hide();
         this.uiPopupSetting.hide();
         this.uiPopupChangeAvatar.hide();
-        this.uiPopupQuickJoin.hide();
-        this.uiPopupPoint.hide();
-        this.uiPopupRanking.hide();
-        this.uiPopupCharge.hide();
-        this.uiPopupTransfer.hide();
+
+        this.uiLOBBY_POPUP_POINT.Hide();
+        this.uiLOBBY_POPUP_RANKING.Hide();
+        this.uiLOBBY_POPUP_CHARGE.Hide();
+        this.uiLOBBY_POPUP_TRANFER.Hide();
+        this.uiLOBBY_POPUP_QNA.Hide();
+        this.uiLOBBY_POPUP_NOTICE.Hide();
 
         this.hide();
     }
@@ -167,6 +102,81 @@ export class UiLobbyPopup extends Component {
     private hideChangeAvatar() {
         this.openProfile();
     }
+
+    public OpenPoint( button: Button ) {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_POINT.Show( button );
+
+        this.node.active = true;
+    }
+
+    public OpenRanking( button: Button ) {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_RANKING.Show( button );
+
+        this.node.active = true;
+    }
+
+    public OpenCharge( button: Button ) {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_CHARGE.Show( button );
+
+        this.node.active = true;        
+    }
+
+    public OpenTransfer( button: Button ) {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_TRANFER.Show( button );
+
+        this.node.active = true;        
+    }
+
+    public OpenQNA( button: Button ) {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_QNA.Show( button );
+
+        this.node.active = true;
+    }
+
+    public OpenNotice( button: Button ) {
+        this.closeAllPopup();
+        this.uiLOBBY_POPUP_NOTICE.Show( button );
+
+        this.node.active = true;
+    }
+
+    public ClosePoint() {
+        this.uiLOBBY_POPUP_POINT.Hide();
+        this.hide();
+    }
+
+    public CloseRanking() {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_RANKING.Hide();
+        this.hide();
+    }
+
+    public CloseCharge() {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_CHARGE.Hide();
+        this.hide();
+    }
+
+    public CloseTransfer() {
+        this.closeAllPopup();        
+        this.uiLOBBY_POPUP_TRANFER.Hide();
+        this.hide();
+    }
+
+    public CloseQNA() {
+        this.uiLOBBY_POPUP_QNA.Hide();
+        this.hide();
+    }
+
+    public CloseNotice() {
+        this.uiLOBBY_POPUP_NOTICE.Hide();
+        this.hide();
+    }    
 
     private applyChangeAvatar( num: number ) {
         NetworkManager.Instance().updateUserAvatar(num, (res)=>{            

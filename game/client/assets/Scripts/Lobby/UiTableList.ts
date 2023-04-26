@@ -83,7 +83,7 @@ export class TableListUiElement {
     }
 
     private onClickJoinTable( button: Button ) {
-        LobbyAudioContoller.instance.playButtonClick();
+        LobbyAudioContoller.instance.PlayButtonClick();
 
         this.cbJoinTable( button, this.table )
     }
@@ -125,7 +125,7 @@ export class UiTableList extends Component {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        LobbyAudioContoller.instance.PlayButtonClick();
     }
 
     private onToggleTournament( toggle: Toggle ) {
@@ -133,7 +133,7 @@ export class UiTableList extends Component {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        LobbyAudioContoller.instance.PlayButtonClick();
     }
 
     private clearList() {
@@ -202,7 +202,7 @@ export class UiTableList extends Component {
             return;
         }
 
-        LobbyAudioContoller.instance.playButtonClick();
+        LobbyAudioContoller.instance.PlayButtonClick();
 
         button.interactable = true;
         this.cbJoinTable( table );

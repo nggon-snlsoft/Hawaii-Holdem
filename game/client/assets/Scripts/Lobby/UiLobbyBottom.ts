@@ -4,35 +4,68 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyBottom')
 export class UiLobbyBottom extends Component {
-    @property(Button) buttonQuickJoin: Button = null;
-    @property(Button) buttonPoint: Button = null;    
+    @property(Button) buttonPoint: Button = null;
     @property(Button) buttonRanking: Button = null;
     @property(Button) buttonCharge: Button = null;
-    @property(Button) buttonTransfer: Button = null;
+    @property(Button) buttonTransfer: Button = null;    
+    @property(Button) buttonQNA: Button = null;
+    @property(Button) buttonNotice: Button = null;
 
-    private cbQuickJoin: (button: Button)=>void = null;
-    private cbPoint: (button: Button)=>void = null;    
-    private cbRanking: (button: Button)=>void = null;
-    private cbCharge: (button: Button)=>void = null;
-    private cbTransfer: (button: Button)=>void = null;
+    private cbPOINT: ( button:Button )=> void = null;
+    private cbRANKING: ( button:Button )=> void = null;
+    private cbCHARGE: ( button:Button )=> void = null;
+    private cbTRANSFER: ( button:Button )=> void = null;
+    private cbQNA: ( button:Button )=> void = null;
+    private cbNOTICE: ( button:Button )=> void = null;
 
-    public init( cbQuickJoin:( button:Button )=>void,
-                 cbPoint:( button:Button )=>void, 
-                 cbRanking: ( button:Button )=>void, 
-                 cbCharge: (button: Button )=>void,
-                 cbTransfer: (button: Button )=>void ) {
+    public init( cbPOINT: any, cbRANKING: any, cbCHARGE: any, cbTRANSFER: any, cbQNA: any, cbNOTICE: any ) {
+        if ( cbPOINT != null ) {
+            this.cbPOINT = null;
+            this.cbPOINT = cbPOINT;
+        }
+
+        if ( cbRANKING != null ) {
+            this.cbRANKING = null;
+            this.cbRANKING = cbRANKING;
+        }
+
+        if ( cbCHARGE != null ) {
+            this.cbCHARGE = null;
+            this.cbCHARGE = cbCHARGE;            
+        }
+
+        if ( cbTRANSFER != null ) {
+            this.cbTRANSFER = null;
+            this.cbTRANSFER = cbTRANSFER;
+        }
+
+        if ( cbQNA != null ) {
+            this.cbQNA = null;
+            this.cbQNA = cbQNA;
+        }
+
+        if ( cbNOTICE != null ) {
+            this.cbNOTICE = null;
+            this.cbNOTICE = cbNOTICE;
+        }
         
-        this.cbQuickJoin = cbQuickJoin;
-        this.cbPoint = cbPoint;        
-        this.cbRanking = cbRanking;
-        this.cbCharge = cbCharge;
-        this.cbTransfer = cbTransfer;
+        this.buttonPoint.node.off('click');
+        this.buttonPoint.node.on('click', this.onCLICK_POINT.bind(this), null);
 
-        this.buttonQuickJoin.node.on("click", this.onClickQuickJoin.bind(this), this);
-        this.buttonPoint.node.on("click", this.onClickPoint.bind(this), this);        
-        this.buttonRanking.node.on("click", this.onClickRanking.bind(this), this);
-        this.buttonCharge.node.on("click", this.onClickCharge.bind(this), this);
-        this.buttonTransfer.node.on("click", this.onClickTransfer.bind(this), this);
+        this.buttonRanking.node.off('click');
+        this.buttonRanking.node.on('click', this.onCLICK_RANKING.bind(this), null);
+
+        this.buttonCharge.node.off('click');
+        this.buttonCharge.node.on('click', this.onCLICK_CHARGE.bind(this), null);        
+
+        this.buttonTransfer.node.off('click');
+        this.buttonTransfer.node.on('click', this.onCLICK_TRANSFER.bind(this), null);
+
+        this.buttonQNA.node.off('click');
+        this.buttonQNA.node.on('click', this.onCLICK_QNA.bind(this), null);
+
+        this.buttonNotice.node.off('click');
+        this.buttonNotice.node.on('click', this.onCLICK_NOTICE.bind(this), null);
 
         this.node.active = false;
     }
@@ -41,52 +74,69 @@ export class UiLobbyBottom extends Component {
         this.node.active = true;
     }
 
-    test() {
-        this.node.active = true;        
-    }
-
-    private onClickQuickJoin( button: Button ) {
+    private onCLICK_POINT( button: Button ) {
         if ( button != null ) {
             button.interactable = false;
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
-            this.cbQuickJoin( button );
+        if ( this.cbPOINT != null ) {
+            this.cbPOINT( button );
         }
     }
 
-    private onClickPoint(button: Button) {
+    private onCLICK_RANKING( button: Button ) {
         if ( button != null ) {
             button.interactable = false;
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
-            this.cbPoint( button );
+        if ( this.cbRANKING != null ) {
+            this.cbRANKING( button );
         }
     }
 
-    private onClickRanking( button: Button ) {
+    private onCLICK_CHARGE( button: Button ) {
         if ( button != null ) {
             button.interactable = false;
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
-            this.cbRanking( button );
+        if ( this.cbCHARGE != null ) {
+            this.cbCHARGE( button );
         }
     }
 
-    private onClickCharge( button: Button ) {
+    private onCLICK_TRANSFER( button: Button ) {
         if ( button != null ) {
             button.interactable = false;
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
-            this.cbCharge( button );
+        if ( this.cbTRANSFER != null ) {
+            this.cbTRANSFER( button );
         }
     }
 
-    private onClickTransfer( button: Button ) {
+    private onCLICK_QNA( button: Button ) {
         if ( button != null ) {
             button.interactable = false;
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
 
-            this.cbTransfer( button );
+        if ( this.cbQNA != null ) {
+            this.cbQNA( button );
+        }
+    }
+
+    private onCLICK_NOTICE( button: Button ) {
+        if ( button != null ) {
+            button.interactable = false;
+            LobbyAudioContoller.instance.PlayButtonClick();
+        }
+
+        if ( this.cbNOTICE != null ) {
+            this.cbNOTICE( button );
         }
     }
 }

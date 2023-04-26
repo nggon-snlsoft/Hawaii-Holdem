@@ -20,6 +20,7 @@ export class UiSeat extends Component {
     private info: any = null;
     private isSet: boolean = false;
     private id: number = -1;
+    private seat: number = -1;
 
     onLoad() {
         this.childRegistered();
@@ -62,9 +63,9 @@ export class UiSeat extends Component {
             this.setEscapee();
         }
 
-        this.id = entity.id;
-
         this.info = entity;
+        this.id = entity.id;
+        this.seat = entity.seat;
 
         this.clearUiPosSymbol();
         this.setNickname( entity.nickname );
@@ -81,11 +82,6 @@ export class UiSeat extends Component {
         let s = Number(entity.avatar);
         this.spriteAvatar.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
         this.spriteAvatar.node.active = true;
-
-        // CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
-        //     this.spriteAvatar.node.active = true;
-        // });
-
         this.isSet = true;
     }
 
@@ -152,7 +148,9 @@ export class UiSeat extends Component {
             return;
         }
 
-        Board.table.openUserProfile( this.id );
+        if ( this.seat > -1 ) {
+            Board.table.OpenUserProfile( this.id, this.seat );
+        }
     }
 }
 

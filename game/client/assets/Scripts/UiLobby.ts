@@ -5,8 +5,8 @@ import { UiPlayer } from './Lobby/UiPlayer';
 import { UiTableList } from './Lobby/UiTableList';
 import { LobbySystemPopup } from './LobbySystemPopup';
 import { NetworkManager } from "./NetworkManager";
-import {Board} from "./Board";
-import {UiTable} from "./UiTable";
+import { Board } from "./Board";
+import { UiTable } from "./UiTable";
 import { UiLobbyLoading } from './Lobby/UiLobbyLoading';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 const { ccclass, property } = _decorator;
@@ -34,16 +34,14 @@ export class UiLobby extends Component {
         this.uiTableList.init( this.onJoinTable.bind(this) );
         this.uiLobbyLoading.init();
         
-        this.uiLobbyBottom.init( 
-            this.onShowQuickJoin.bind(this), 
-            this.onShowPoint.bind(this), 
-            this.onShowRanking.bind(this), 
-            this.onShowCharge.bind(this), 
-            this.onShowTransfer.bind(this));
+        this.uiLobbyBottom.init( this.onSHOW_POINT.bind(this), this.onSHOW_RANKING.bind(this), this.onSHOW_CHARGE.bind(this), 
+            this.onSHOW_TRANSFER.bind(this), this.onSHOW_QND.bind(this), this.onSHOW_NOTICE.bind(this) );
 
+        this.buttonSetting.node.off("click");
         this.buttonSetting.node.on("click", this.onShowSetting.bind(this), this);
-        this.buttonExit.node.on('click', this.onClickExit.bind(this), this);
 
+        this.buttonExit.node.off('click');
+        this.buttonExit.node.on('click', this.onClickExit.bind(this), this);
         this.node.active = true;
     }
 
@@ -87,7 +85,8 @@ export class UiLobby extends Component {
     }
 
     private onClickExit( button: Button ) {
-        LobbyAudioContoller.instance.playButtonClick();
+        console.log('onClickExit');
+        LobbyAudioContoller.instance.PlayButtonClick();
 
         LobbySystemPopup.instance.showPopUpYesOrNo('로그아웃', '로그아웃 하시겠습니까?', ()=>{
             this.uiTableList.end();
@@ -113,35 +112,10 @@ export class UiLobby extends Component {
     }
 
     private onShowSetting( button: Button ) {
-        LobbyAudioContoller.instance.playButtonClick();
+        LobbyAudioContoller.instance.PlayButtonClick();
 
         button.interactable = true;
         this.uiLobbyPopup.openSetting();
-    }
-
-    private onShowQuickJoin( button: Button ) {
-        button.interactable = true;        
-        this.uiLobbyPopup.openQuickJoin();
-    }
-
-    private onShowPoint( button: Button ) {
-        button.interactable = true;        
-        this.uiLobbyPopup.openPoint();
-    }
-
-    private onShowRanking( button: Button ) {
-        button.interactable = true;        
-        this.uiLobbyPopup.openRanking();
-    }
-
-    private onShowCharge( button: Button ) {
-        button.interactable = true;
-        this.uiLobbyPopup.openCharge();
-    }
-
-    private onShowTransfer( button: Button ) {
-        button.interactable = true;
-        this.uiLobbyPopup.openTransfer();
     }
 
     private onJoinTable(table: any) {
@@ -194,6 +168,31 @@ export class UiLobby extends Component {
                 });
             }
         }
+    }
+
+    private onSHOW_POINT( button: Button ) {
+        this.uiLobbyPopup.OpenPoint( button );
+    }
+
+    private onSHOW_RANKING( button: Button ) {
+        this.uiLobbyPopup.OpenRanking( button );
+    }
+
+    private onSHOW_CHARGE( button: Button ) {
+        this.uiLobbyPopup.OpenCharge( button );
+    }
+
+    private onSHOW_TRANSFER( button: Button ) {
+        this.uiLobbyPopup.OpenTransfer( button );
+    }
+
+    private onSHOW_QND( button: Button ) {
+        this.uiLobbyPopup.OpenQNA( button );
+    }
+
+    private onSHOW_NOTICE( button: Button ) {
+
+        this.uiLobbyPopup.OpenNotice( button );
     }
 
     public onEVENT_SHOW() {

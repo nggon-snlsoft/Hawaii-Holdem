@@ -13,7 +13,9 @@ export class LobbyAudioContoller extends Component {
     private volumn: number = 0;
 
     init() {
-        LobbyAudioContoller.instance = this;
+        if ( LobbyAudioContoller.instance == null) {
+            LobbyAudioContoller.instance = this;
+        }
 
         this.volumn = NetworkManager.Instance().getUserSetting().sound;
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;
@@ -24,10 +26,10 @@ export class LobbyAudioContoller extends Component {
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;
     }
 
-    playButtonClick() {
-        this.audioSource.playOneShot( this.clipButtonClick );
+    PlayButtonClick() {
+        console.log('playButtonClick');
+        this.audioSource.playOneShot( this.clipButtonClick );        
     }
-
 }
 
 

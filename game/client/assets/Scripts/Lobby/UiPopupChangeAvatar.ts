@@ -63,7 +63,7 @@ export class PlayerAvatarElement {
     private onToggle(toggle: Toggle ) {
         if ( this.cb != null ) {
             if ( toggle.isChecked == true ) {
-                LobbyAudioContoller.instance.playButtonClick();
+                LobbyAudioContoller.instance.PlayButtonClick();
 
                 this.cb( this.id, toggle );
             }
@@ -141,7 +141,7 @@ export class UiPopupChangeAvatar extends Component {
 
     public onClickExit(button: Button) {
         if ( this.cbExit != null ) {
-            LobbyAudioContoller.instance.playButtonClick();
+            LobbyAudioContoller.instance.PlayButtonClick();
 
             this.cbExit();
         }
@@ -150,14 +150,14 @@ export class UiPopupChangeAvatar extends Component {
     public onClickApply( button: Button) {
         if ( this.currentId != this.selectId ) {
             if ( this.cbApply != null ) {
-                LobbyAudioContoller.instance.playButtonClick();
+                LobbyAudioContoller.instance.PlayButtonClick();
 
                 this.cbApply ( this.selectId );
             }
         }
         else {
             if ( this.cbExit != null ) {
-                LobbyAudioContoller.instance.playButtonClick();
+                LobbyAudioContoller.instance.PlayButtonClick();
                 this.cbExit();
             }
         }

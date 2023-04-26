@@ -155,6 +155,8 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage("SEAT_SELECT", this.onSEAT_SELECT.bind(this));
 				this.onMessage("CANCEL_BUY_IN", this.onCANCEL_BUY_IN.bind(this));
 				this.onMessage("SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));
+				this.onMessage("SHOW_PROFILE", this.onSHOW_PROFILE.bind(this));
+				this.onMessage("EXIT_TABLE", this.onEXIT_TABLE.bind(this));
 
 				this.potCalc = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"] );
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
@@ -759,12 +761,12 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
-		logger.info( '[ onDispose ]');		
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
 
 		this.state.entities.forEach( (e) => {
 			this._dao.clearActiveSessionID(e.id);
+			this._dao.clearPendingSessionID( e.id );
 		});
 
 		this.state.entities.forEach( (e) => {
@@ -781,9 +783,16 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this._dao.chipOut(e.chips, e.id);
 			e.chips = 0;
+
+			this._dao.UpdateStatics( e.id, e.statics, ( err: any, res: boolean  )=> {
+				if ( err != null ) {
+					logger.error( err );
+				} else {
+					console.log( ' statics saved ');
+				}
+			});
 		});
 	}
-
 
 	update( dt: any ) {
 
@@ -1340,7 +1349,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 			case eGameState.Result:
 				logger.info( "[ changeState ] RESULT" );
-				this.showdownTime = this.conf[ "showDownTerm" ];
+				this.showdownTime = 3000;//this.conf[ "showDownTerm" ];
 				let isAllIn = false;
 
 				if( this.isAllFold() == false ) {
@@ -1354,7 +1363,7 @@ export class HoldemRoom extends Room<RoomState> {
 						return;
 
 					} else {
-						this.showdownTime += pots.length * 2000;
+						this.showdownTime += pots.length * 2500;
 						this.broadPlayerCards( isAllIn );						
 					}
 				}
@@ -1415,17 +1424,17 @@ export class HoldemRoom extends Room<RoomState> {
 					} else if ( this.centerCardState == eCommunityCardStep.FLOP ) {						
 
 						next = ENUM_SHOWDOWN_STEP.SHOW_TURN;
-						delay = 3000;
+						delay = 4000;
 
 					} else if ( this.centerCardState == eCommunityCardStep.TURN ) {
 
 						next = ENUM_SHOWDOWN_STEP.SHOW_RIVER;
-						delay = 3000;
+						delay = 4000;
 
 					} else if ( this.centerCardState == eCommunityCardStep.RIVER ) {
 
 						next = ENUM_SHOWDOWN_STEP.SHOWDOWN_END;
-						delay = 3000;
+						delay = 4000;
 					}
 
 					this.bufferTimerID = setTimeout( () => {
@@ -1487,8 +1496,8 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.elapsedTick = 0;
 
-				this.showdownTime = 2000; //this.conf[ "showDownTerm" ];
-				this.showdownTime += (pots.length * 1500);
+				this.showdownTime = 3000; //this.conf[ "showDownTerm" ];
+				this.showdownTime += ( pots.length * 2500 );
 				this.state.gameState = eGameState.Result;
 				break;
 		}
@@ -1799,8 +1808,8 @@ export class HoldemRoom extends Room<RoomState> {
 
 			if ( e.isSb != true && e.isBb != true ) {
 				this.state.pot += ante;
-				sb.currBet = ante;
-				sb.roundBet = ante;				
+				e.currBet = ante;
+				e.roundBet = ante;				
 				e.totalBet = ante;
 				e.ante = ante;
 				e.chips -= ante;
@@ -1988,9 +1997,6 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 	}
 
-
-
-
 	funcFold( seat: number ) {
 		let e = this.getEntity( seat );
 		e.fold = true;
@@ -2044,7 +2050,7 @@ export class HoldemRoom extends Room<RoomState> {
 			logger.info( "[ funcFold ] all fold" );
 			this.bufferTimerID = setTimeout( () => {
 				this.changeState( eGameState.Result );
-			}, 500 );
+			}, 1000 );
 			return false;
 		}
 
@@ -2052,7 +2058,7 @@ export class HoldemRoom extends Room<RoomState> {
 			logger.info( "[ funcFold ] not player." );
 			this.bufferTimerID = setTimeout( () => {
 				this.changeState( eGameState.Result );
-			}, 500 );
+			}, 1000 );
 			return false;
 		}
 
@@ -3698,5 +3704,28 @@ export class HoldemRoom extends Room<RoomState> {
 		this.broadcast( "SHOW_EMOTICON", { seat: msg['seat'],
 		type: msg['type'],
 		id: msg['id']} );
+	}
+
+	onSHOW_PROFILE( client: Client, msg: any ) {
+		let id = msg['id'];
+		let seat = msg['seat'];
+		let _statics: any = null;
+
+		let entity = this.getEntity( seat );
+		if ( entity != null ) {
+			_statics = entity.statics;
+		}
+
+		client.send( "SHOW_PROFILE", {
+			id: id,
+			seat: seat,
+			entity: entity,
+			statics: _statics,
+		} );
+	}
+
+	onEXIT_TABLE( client: Client, msg: any ) {
+		client.send( "EXIT_TABLE", {
+		} );
 	}
 }
