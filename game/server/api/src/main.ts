@@ -13,6 +13,7 @@ const cors = require('cors');
 
 import UserController from './controllers/UserController';
 import TableController from './controllers/TableController';
+import StoreController from './controllers/StoreController';
 
 const devDBInfo: any = {
     "host": "127.0.0.1",
@@ -36,6 +37,7 @@ export enum ENUM_RESULT_CODE {
 export class HoldemApiServer {
     public app: express.Application;
     private userController: UserController = null;
+    private storeController: StoreController = null;
     private tableController: TableController = null;
     private conf: any = null;
 
@@ -48,7 +50,9 @@ export class HoldemApiServer {
 
         this.initMiddleWares();
         this.userController = new UserController(this.sqlClient);
+        this.storeController = new StoreController( this.sqlClient );
         this.tableController = new TableController(this.sqlClient, devServerInfo);
+
         this.initRoutes();
 
         this.Init();
@@ -63,6 +67,7 @@ export class HoldemApiServer {
     private initRoutes() {
 
         this.app.use( '/users', this.userController.router );
+        this.app.use( '/store', this.storeController.router );        
         this.app.use( '/tables', this.tableController.router );        
         this.app.get( '/', (req, res)=>{
 			res.send( "It could not be a better day to die" );

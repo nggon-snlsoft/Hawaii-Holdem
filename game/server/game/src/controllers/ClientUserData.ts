@@ -6,24 +6,33 @@ export class ClientUserData{
 		}
 
 		let user : any = {
-			name : dbUserData.firstName + " " + dbUserData.lastName,
+            id: dbUserData.id,
+			uid: dbUserData.uid,
+			nickname: dbUserData.nickname,
 			avatar: dbUserData.avatar,
-			balance : dbUserData.balance,
-			uuid : dbUserData.id,
-			tableID : dbUserData.tableID,
-			remainTime : dbUserData.remainTime,
-			chip: dbUserData.chip
+			grade: dbUserData.grade,
+            balance: dbUserData.balance,
+            chip: dbUserData.chip,
+			roomID: dbUserData.roomID,
+			rake: dbUserData.rake,
+			store: dbUserData.store,
+            bank: dbUserData.bank,
+            holder: dbUserData.holder,
+            account: dbUserData.account,			
 		}
+
 
 		return user;
 	}
 
 	static  getClientSettingData(dbSettingData: any): any {
 		let setting: any = {
-			uuid: dbSettingData.userId,
-			cardFront: dbSettingData.card_type1,
+			id: dbSettingData.userId,
+			sound: dbSettingData.sound,
+			card: dbSettingData.card_type1,
 			cardBack: dbSettingData.card_type2,
 			board: dbSettingData.board_type,
+			background: dbSettingData.bg_type,			
 			bestHand: dbSettingData.best_hands,
 		}
 
@@ -74,6 +83,17 @@ export class ClientUserData{
 			fold_river: dbStaticsData.fold_river,
 			best_rank: dbStaticsData.best_rank,
 			best_hands: dbStaticsData.best_hands,
+        }
+        return statics;
+    }
+
+	static getClientStoreData( dbStoreData: any): any {
+        let statics: any = {
+			uid: dbStoreData.uid,
+			name: dbStoreData.name,
+			bank: dbStoreData.bank,
+			holder: dbStoreData.holder,
+			account: dbStoreData.account,
         }
         return statics;
     }

@@ -212,4 +212,97 @@ dao.selectTables = function ( cb: any ) {
 	});
 };
 
+dao.SelectStoreByStoreID = function ( sid: any, cb: any ) {
+	console.log('dao.SelectStoreByStoreID: ' + sid.toString() );
+
+	let sql = 'SELECT * FROM STORES WHERE ID = ?';
+	let args = [sid];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.SelectChargeRequestsByID = function ( uid: any, cb: any ) {
+
+	let sql = 'SELECT * FROM CHARGES WHERE UID = ? AND ALIVE = 1';
+	let args = [uid];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.CreateChargeRequest = function ( data: any, cb: any ) {
+	let amount = data.amount;
+	let user = data.user;
+
+	let sql = 'INSERT INTO CHARGES ( uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ? )';
+	let args = [ user.id, user.nickname, user.holder, amount, 1, 1 ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true );
+			} else {
+				cb(null, false );
+			}
+		}
+	});	
+}
+
 export default dao;
+
+// dao.insertUserStatics = ( id: any, cb: any )=> {
+// 	console.log('insertUserStatics: ', id);
+
+// 	let sql = "INSERT INTO STATICS(userID) VALUES (?)";
+// 	let args = [id];
+
+// 	_client.query(sql, args, function (err: any, res: any) {        
+// 		if (!!err) {
+// 			console.log('err');			
+// 			if (!!cb) {
+// 				cb(err, null);
+// 			}
+// 			return;
+// 		}
+
+// 		cb?.(null, {
+//             code: ENUM_RESULT_CODE.SUCCESS,
+//          });
+// 	});
+// }
+
+// let sql = "INSERT INTO setting ( userId, sound, card_type1, card_type2, board_type, bg_type, best_hands) values ( ?,?,?,?,?,?,? )";
+// let args = [ id, '7', '0', '0', '0', '0', ' '];
+
+// _client.query(sql, args, function (err: any, res: any) {        
+// 	if (!!err) {
+// 		if (!!cb) {
+// 			cb(err, null);
+// 		}
+// 		return;
+// 	}
+
+// 	cb?.(null, {
+// 		code: ENUM_RESULT_CODE.SUCCESS,
+// 	 });
+// });

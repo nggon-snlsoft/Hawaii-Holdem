@@ -15,9 +15,11 @@ export class ClientUserData{
             chip: dbUserData.chip,
 			roomID: dbUserData.roomID,
 			rake: dbUserData.rake,
+			store: dbUserData.store,
             bank: dbUserData.bank,
             holder: dbUserData.holder,
             account: dbUserData.account,
+			phone: dbUserData.phone,			
 		}
 
 		return user;
@@ -84,4 +86,15 @@ export class ClientUserData{
         }
         return statics;
     }
+
+	static getClientStoreData( dbStoreData: any): any {
+        let statics: any = {
+			uid: dbStoreData.uid,
+			name: dbStoreData.name,
+			bank: dbStoreData.bank,
+			holder: dbStoreData.holder,
+			account: dbStoreData.account,
+        }
+        return statics;
+    }	
 }

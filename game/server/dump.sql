@@ -81,6 +81,37 @@ INSERT INTO `buyins` VALUES (1,1,1,13132123,13130123,0,2000,2000,'2023-03-22 15:
 UNLOCK TABLES;
 
 --
+-- Table structure for table `charges`
+--
+
+DROP TABLE IF EXISTS `charges`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `charges` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `amount` int unsigned NOT NULL DEFAULT '0',
+  `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `alive` tinyint(1) NOT NULL DEFAULT '1',
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `charges`
+--
+
+LOCK TABLES `charges` WRITE;
+/*!40000 ALTER TABLE `charges` DISABLE KEYS */;
+INSERT INTO `charges` VALUES (1,'1','nggon','남궁곤',50000,'2023-04-27 16:50:55','2023-04-27 16:50:55',1,1),(2,'1','nggon','남궁곤',40000,'2023-04-27 16:53:52','2023-04-27 16:53:52',1,1),(3,'1','nggon','남궁곤',50000,'2023-04-27 17:44:24','2023-04-27 17:44:24',1,1),(4,'1','nggon','남궁곤',100000,'2023-04-27 17:48:20','2023-04-27 17:48:20',1,1),(5,'1','nggon','남궁곤',1000000,'2023-04-27 17:48:44','2023-04-27 17:48:44',1,1),(6,'1','nggon','남궁곤',30000,'2023-04-27 17:50:15','2023-04-27 17:50:15',1,1);
+/*!40000 ALTER TABLE `charges` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `credit_chip`
 --
 
@@ -246,8 +277,42 @@ CREATE TABLE `statics` (
 
 LOCK TABLES `statics` WRITE;
 /*!40000 ALTER TABLE `statics` DISABLE KEYS */;
-INSERT INTO `statics` VALUES (1,1,89,0,0,86403,29,39,7,25,2,0,0,13,16,33,34,4,1,0,1,20483,'7h,6h,2h,5d,9c,4d,3s','2023-04-25 18:47:40','2023-03-24 11:52:55'),(2,2,76,0,0,68236,33,29,10,21,5,2,1,24,15,43,27,2,0,0,2,28720,'Jd,5h,Ah,9h,Ad,5d,5s','2023-04-25 18:47:40','2023-03-24 15:42:26'),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,' ','2023-03-26 17:00:38','2023-03-26 17:00:38'),(4,4,60,0,0,37000,26,18,3,20,2,0,2,6,4,28,17,1,0,0,1,28759,'Ad,9h,4d,Qh,9s,4s,9c','2023-04-25 18:47:40','2023-04-11 17:27:21');
+INSERT INTO `statics` VALUES (1,1,89,0,0,86403,29,39,7,25,2,0,0,13,16,33,34,4,1,0,1,20483,'7h,6h,2h,5d,9c,4d,3s','2023-04-27 17:07:10','2023-03-24 11:52:55'),(2,2,76,0,0,68236,33,29,10,21,5,2,1,24,15,43,27,2,0,0,2,28720,'Jd,5h,Ah,9h,Ad,5d,5s','2023-04-25 18:47:40','2023-03-24 15:42:26'),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,' ','2023-03-26 17:00:38','2023-03-26 17:00:38'),(4,4,60,0,0,37000,26,18,3,20,2,0,2,6,4,28,17,1,0,0,1,28759,'Ad,9h,4d,Qh,9s,4s,9c','2023-04-25 18:47:40','2023-04-11 17:27:21');
 /*!40000 ALTER TABLE `statics` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stores`
+--
+
+DROP TABLE IF EXISTS `stores`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stores` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `name` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `bank` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `account` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `balance` int unsigned NOT NULL DEFAULT '0',
+  `point` int unsigned NOT NULL DEFAULT '0',
+  `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `alive` tinyint(1) NOT NULL DEFAULT '1',
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stores`
+--
+
+LOCK TABLES `stores` WRITE;
+/*!40000 ALTER TABLE `stores` DISABLE KEYS */;
+INSERT INTO `stores` VALUES (1,'elektra','House','KaKao','Hawaii','000-111-2222-3333',10000000,10000000,'2023-04-27 13:06:38','2023-04-27 13:06:38',1,0);
+/*!40000 ALTER TABLE `stores` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -297,6 +362,69 @@ INSERT INTO `tables` VALUES (1,'123123','ashjdsad',0,0,'',9,10,500,1000,1000,200
 UNLOCK TABLES;
 
 --
+-- Table structure for table `tickets`
+--
+
+DROP TABLE IF EXISTS `tickets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tickets` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `charge` int unsigned NOT NULL DEFAULT '0',
+  `transfer` int unsigned NOT NULL DEFAULT '0',
+  `oldBalance` int unsigned NOT NULL DEFAULT '0',
+  `newBalance` int unsigned NOT NULL DEFAULT '0',
+  `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `alive` tinyint(1) NOT NULL DEFAULT '1',
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tickets`
+--
+
+LOCK TABLES `tickets` WRITE;
+/*!40000 ALTER TABLE `tickets` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tickets` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `transfers`
+--
+
+DROP TABLE IF EXISTS `transfers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transfers` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `amount` int unsigned NOT NULL DEFAULT '0',
+  `oldBalance` int unsigned NOT NULL DEFAULT '0',
+  `newBalance` int unsigned NOT NULL DEFAULT '0',
+  `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `alive` tinyint(1) NOT NULL DEFAULT '1',
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `transfers`
+--
+
+LOCK TABLES `transfers` WRITE;
+/*!40000 ALTER TABLE `transfers` DISABLE KEYS */;
+/*!40000 ALTER TABLE `transfers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 
@@ -314,6 +442,7 @@ CREATE TABLE `users` (
   `chip` int unsigned NOT NULL DEFAULT '0',
   `tableID` int DEFAULT NULL,
   `rake` int unsigned NOT NULL DEFAULT '0',
+  `store` int NOT NULL DEFAULT '0',
   `transferpassword` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `phone` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `bank` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
@@ -345,7 +474,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'gonii','nggon','972130',16,1,10672526,0,-1,360301,'972130','01099599771','우리','남궁곤','01099599771','XMDEDF',0,0,0,0,'','',1682415969055,0,'2023-04-25 18:46:09','2023-03-20 12:17:50','2023-04-25 18:47:40','2023-03-20 12:17:50',0,1,0),(2,'nggon','elektra','972130',7,0,2029989,0,-1,331299,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',1682415970332,0,'2023-04-25 18:46:10','2023-03-20 12:45:47','2023-04-25 18:47:40','2023-03-20 12:45:47',0,1,0),(3,'nggon1','elektra1','972130',0,0,37838,0,-1,55111,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',0,0,'2023-04-13 17:59:24','2023-03-20 12:48:23','2023-04-13 18:01:19','2023-03-20 12:48:23',0,1,0),(4,'nggon2','elektra2','972130',0,0,1549944,0,-1,101749,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',1682415971448,0,'2023-04-25 18:46:11','2023-03-20 12:59:25','2023-04-25 18:47:40','2023-03-20 12:59:25',0,1,0),(5,'nggon4','nggon4','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:00:18','2023-03-20 13:00:18','2023-03-20 13:00:18','2023-03-20 13:00:18',0,1,1),(6,'nggon5','nggon5','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:01:54','2023-03-20 13:01:54','2023-03-20 13:01:54','2023-03-20 13:01:54',0,1,1),(7,'nggon6','nggon6','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:03:27','2023-03-20 13:03:27','2023-03-20 13:03:27','2023-03-20 13:03:27',0,1,1),(8,'nggon7','nggon7','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:04:33','2023-03-20 13:04:33','2023-03-20 13:04:33','2023-03-20 13:04:33',0,1,1),(9,'nggon8','nggon8','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:14:09','2023-03-20 13:14:09','2023-03-20 13:14:09','2023-03-20 13:14:09',0,1,1),(10,'nggon9','nggon9','972130',0,0,0,0,-1,0,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:15:11','2023-03-20 13:15:11','2023-03-20 13:15:11','2023-03-20 13:15:11',0,1,1),(11,'ghghgh','asdsadsad','12312dsad',0,0,0,0,-1,0,'132312sad','1023123213','123123','123123','123123','23123213',0,0,0,0,'','',0,0,'2023-03-20 13:15:50','2023-03-20 13:15:50','2023-03-20 13:15:50','2023-03-20 13:15:50',0,1,1),(12,'ghghgh1','asdsadsad1','12312dsad',0,0,0,0,-1,0,'132312sad','1023123213','123123','123123','123123','23123213',0,0,0,0,'','',0,0,'2023-03-20 13:22:34','2023-03-20 13:22:34','2023-03-20 13:22:34','2023-03-20 13:22:34',0,1,1),(13,'saddwqe','wqewqsad','123123',0,0,0,0,-1,0,'123213','1232131','13123','sadsa','sad123123','132123213',0,0,0,0,'','',0,0,'2023-03-20 13:22:57','2023-03-20 13:22:57','2023-03-20 13:22:57','2023-03-20 13:22:57',0,1,1),(14,'sad123123','sad21321','asdsa123213',0,0,0,0,-1,0,'assadd','123213213','123123123','12312312','sad213123213','132123123',0,0,0,0,'','',0,0,'2023-03-20 13:24:21','2023-03-20 13:24:21','2023-03-20 13:24:21','2023-03-20 13:24:21',0,1,1);
+INSERT INTO `users` VALUES (1,'gonii','nggon','972130',16,1,10672526,0,-1,360301,1,'972130','01099599771','우리','남궁곤','01099599771','XMDEDF',0,0,0,0,'','',1682582827118,0,'2023-04-27 17:07:07','2023-03-20 12:17:50','2023-04-27 17:07:10','2023-03-20 12:17:50',0,1,0),(2,'nggon','elektra','972130',7,0,2029989,0,-1,331299,1,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',0,0,'2023-04-25 18:46:10','2023-03-20 12:45:47','2023-04-25 18:47:40','2023-03-20 12:45:47',0,1,0),(3,'nggon1','elektra1','972130',0,0,37838,0,-1,55111,1,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',0,0,'2023-04-13 17:59:24','2023-03-20 12:48:23','2023-04-13 18:01:19','2023-03-20 12:48:23',0,1,0),(4,'nggon2','elektra2','972130',0,0,1549944,0,-1,101749,1,'972130','01099599771','우리은행','남궁곤','01099599771','SHOWME',0,0,0,0,'','',0,0,'2023-04-25 18:46:11','2023-03-20 12:59:25','2023-04-25 18:47:40','2023-03-20 12:59:25',0,1,0),(5,'nggon4','nggon4','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:00:18','2023-03-20 13:00:18','2023-03-20 13:00:18','2023-03-20 13:00:18',0,1,1),(6,'nggon5','nggon5','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:01:54','2023-03-20 13:01:54','2023-03-20 13:01:54','2023-03-20 13:01:54',0,1,1),(7,'nggon6','nggon6','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:03:27','2023-03-20 13:03:27','2023-03-20 13:03:27','2023-03-20 13:03:27',0,1,1),(8,'nggon7','nggon7','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:04:33','2023-03-20 13:04:33','2023-03-20 13:04:33','2023-03-20 13:04:33',0,1,1),(9,'nggon8','nggon8','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:14:09','2023-03-20 13:14:09','2023-03-20 13:14:09','2023-03-20 13:14:09',0,1,1),(10,'nggon9','nggon9','972130',0,0,0,0,-1,0,1,'972130','01099599771','카카오뱅크','남궁곤','010-9599-9771','XMSMDS',0,0,0,0,'','',0,0,'2023-03-20 13:15:11','2023-03-20 13:15:11','2023-03-20 13:15:11','2023-03-20 13:15:11',0,1,1),(11,'ghghgh','asdsadsad','12312dsad',0,0,0,0,-1,0,1,'132312sad','1023123213','123123','123123','123123','23123213',0,0,0,0,'','',0,0,'2023-03-20 13:15:50','2023-03-20 13:15:50','2023-03-20 13:15:50','2023-03-20 13:15:50',0,1,1),(12,'ghghgh1','asdsadsad1','12312dsad',0,0,0,0,-1,0,1,'132312sad','1023123213','123123','123123','123123','23123213',0,0,0,0,'','',0,0,'2023-03-20 13:22:34','2023-03-20 13:22:34','2023-03-20 13:22:34','2023-03-20 13:22:34',0,1,1),(13,'saddwqe','wqewqsad','123123',0,0,0,0,-1,0,1,'123213','1232131','13123','sadsa','sad123123','132123213',0,0,0,0,'','',0,0,'2023-03-20 13:22:57','2023-03-20 13:22:57','2023-03-20 13:22:57','2023-03-20 13:22:57',0,1,1),(14,'sad123123','sad21321','asdsa123213',0,0,0,0,-1,0,1,'assadd','123213213','123123123','12312312','sad213123213','132123123',0,0,0,0,'','',0,0,'2023-03-20 13:24:21','2023-03-20 13:24:21','2023-03-20 13:24:21','2023-03-20 13:24:21',0,1,1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -358,4 +487,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-04-25 18:54:38
+-- Dump completed on 2023-04-27 19:47:28

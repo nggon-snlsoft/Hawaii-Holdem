@@ -44,7 +44,8 @@ export class NetworkManager extends cc.Component {
 	private userInfo : any = null;
 	private userSetting: any = null;
 	private userStatics: any = null;
-	private gameSetting: any = null;	
+	private gameSetting: any = null;
+	private storeInfo: any = null;	
 
     public static Instance() : NetworkManager
 	{
@@ -118,6 +119,7 @@ export class NetworkManager extends cc.Component {
 		this.userInfo = null;
 		this.userSetting = null;
 		this.gameSetting = null;
+		this.storeInfo = null;
 		
 		this.pin = '';
 	}
@@ -389,34 +391,145 @@ export class NetworkManager extends cc.Component {
 					});	
 			}
 		}
+	}
+	
+	async reqGET_STORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let store = this.userInfo.store;
 
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getStore', {
+			store: store,
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
 
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
 
-		// if ( obj.code == ENUM_RESULT_CODE.SUCCESS ) {
-		// 	onSuccess( {
-		// 		code: ENUM_RESULT_CODE.SUCCESS,
-		// 		obj: obj,
-		// 	});
-		// } else {
-		// 	switch ( obj.msg ) {
-		// 		case 'DUPLICATE_LOGIN':
-		// 		break;
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
 
-		// 		case 'INCORRECT_TABLE_INFO':
-		// 		break;
-				
-		// 		case 'TABLE_IS_FULL':
-		// 		break;								
+		let obj : any = JSON.parse( result );
 
-		// 		default:
-		// 			onFail({
-		// 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-		// 				msg: 'UNKNOWN_ERROR',
-		// 			});
-		// 	}
-		// }
+		if(null == obj){
+			onFail("JSON_PARSE_FAIL");
+			return;
+		}
 
+		this.storeInfo = obj.store;
+
+		onSuccess(obj);
+	}
+	
+	async reqGET_CHARGE_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let id = this.userInfo.id;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getChargeRequest', {
+			id: id,
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
+
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
+
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+
+		if(null == obj){
+			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		onSuccess(obj);
 	}		
+
+	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let id = this.userInfo.id;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqCharge', {
+			id: id,
+			amount: amount
+
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
+
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
+
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+		onSuccess(obj);
+	}
+	
+	async reqTANSFER_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let id = this.userInfo.id;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqTransfer', {
+			// id: id,
+			// amount: amount
+
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
+
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
+
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+		onSuccess(obj);
+	}			
 
 	async reqSetting( id: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
