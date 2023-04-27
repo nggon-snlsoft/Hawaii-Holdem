@@ -40,6 +40,7 @@ export class LobbyEntry extends Component {
     }
 
     private Init() {
+        this.AudioContoller.init();        
         if ( this._lobby != null ) {
             this._lobby.init();
         }
@@ -48,7 +49,7 @@ export class LobbyEntry extends Component {
             this._popup.initialize();
         }
 
-        this.AudioContoller.init();
+
         this._lobby.show( ()=>{
             this.end();
         });

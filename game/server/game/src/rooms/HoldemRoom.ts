@@ -735,6 +735,11 @@ export class HoldemRoom extends Room<RoomState> {
 			runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
 
 		runaway.leave = true;
+		if ( runaway.fold == true || runaway.wait == true ) {
+			this.handleEscapee();			
+			return;
+		}
+
 		if( eGameState.Suspend === this.state.gameState ) {
 			this.handleEscapee();
 			return;
@@ -995,7 +1000,6 @@ export class HoldemRoom extends Room<RoomState> {
 						logger.error( err );
 					} else {
 						console.log( ' statics saved ');
-
 					}
 				})
 			}
@@ -3725,7 +3729,30 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onEXIT_TABLE( client: Client, msg: any ) {
-		client.send( "EXIT_TABLE", {
-		} );
+		let id = msg['id'];
+		let seat = msg['seat'];
+
+		if ( seat < 0 ) {
+			if ( id != null && id > 0 ) {
+				this._dao.clearActiveSessionID(id);
+				this._dao.clearPendingSessionID(id );
+				this._dao.updateTableID( {
+					tableID: -1,
+					id: id
+				}, (err: any, res: boolean) => {
+					if (null != err) {
+						logger.error(err);
+					}
+				});
+			}
+
+			client.send( "EXIT_TABLE", {
+
+			} );
+		}
+		else {
+			let entity = this.getEntity( seat );
+			console.log( entity );			
+		}
 	}
 }

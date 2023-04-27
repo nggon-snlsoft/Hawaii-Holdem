@@ -5,7 +5,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('LobbyAudioContoller')
 export class LobbyAudioContoller extends Component {
-    static instance: LobbyAudioContoller;
+    static instance: LobbyAudioContoller = null ;
     @property(AudioClip) clipButtonClick: AudioClip = null;
 
     @property(AudioSource) audioSource: AudioSource = null;
@@ -13,9 +13,7 @@ export class LobbyAudioContoller extends Component {
     private volumn: number = 0;
 
     init() {
-        if ( LobbyAudioContoller.instance == null) {
-            LobbyAudioContoller.instance = this;
-        }
+        LobbyAudioContoller.instance = this;
 
         this.volumn = NetworkManager.Instance().getUserSetting().sound;
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;

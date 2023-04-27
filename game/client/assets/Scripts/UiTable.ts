@@ -471,12 +471,11 @@ export class UiTable extends Component {
     onClickExit() {
 		if ( this.uiSeats.node.active == true ) {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-				// this.uiSeats.end();
-				// this.room?.leave( false );
-
+				let user = NetworkManager.Instance().getUserInfo();
 				this.sendMsg("EXIT_TABLE", {
-					seat : this.mySeat
-				});				
+					seat : this.mySeat,
+					id : user.id,
+				});
 
 				UiGameSystemPopup.instance.closePopup();
 			}, ()=>{
