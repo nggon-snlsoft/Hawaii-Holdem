@@ -136,6 +136,24 @@ dao.updateTableID = function ( data: any, cb: any ){
 	});
 };
 
+dao.ResetTableID = function ( tableId: number, cb: any ){
+	let sql = 'UPDATE USERS SET TABLEID = ?, UPDATEDATE = ? WHERE TABLEID = ?';
+	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
+	let args = [ -1, now, tableId ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
+};
+
 dao.updateActiveSessionID = function (sid: any, cb: any) {
 	let sql = 'UPDATE USERS SET ACTIVESESSIONID = ?, PENDINGSESSIONID = ?, UPDATEDATE = ?, LOGINDATE = ? WHERE PENDINGSESSIONID = ?';
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");

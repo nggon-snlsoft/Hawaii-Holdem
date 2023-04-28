@@ -13,7 +13,7 @@ export class TableController {
 
     private initRouter() {
         this.router.post( '/getTables', this.getTableList.bind(this));
-        this.router.post( '/enterTable', this.enterTable.bind(this));        
+        this.router.post( '/enterTable', this.enterTable.bind(this));
     }
 
     public async getTableList( req: any, res: any ) {
@@ -204,6 +204,8 @@ export class TableController {
             } );
         } );
     }
+
+
 
 }
 

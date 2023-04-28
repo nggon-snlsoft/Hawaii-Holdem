@@ -103,6 +103,7 @@ dao.updateSettingByID = function ( id: any, setting: any, cb: any ) {
 };
 
 dao.selectStaticsByID = function ( id: any, cb: any ) {
+	console.log('id: ' + id);
 
 	let sql = 'SELECT * FROM STATICS WHERE USERID = ?';
 	let args = [id];
@@ -114,8 +115,8 @@ dao.selectStaticsByID = function ( id: any, cb: any ) {
 			}
 			return;
 		}
-
 		cb?.(null, res);
+
 	});
 };
 

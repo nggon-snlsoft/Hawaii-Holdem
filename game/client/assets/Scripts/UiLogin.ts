@@ -89,47 +89,57 @@ export class UiLogin extends Component {
     }
 
     RegistEditboxEvent() {
-		const uidEditBoxReturn = new EventHandler();
-		uidEditBoxReturn.target = this.node;
-		uidEditBoxReturn.component = "UiLogin";
-		uidEditBoxReturn.handler = "onUIDEditboxReturn";
-		uidEditBoxReturn.customEventData = "???";
-		this.editBoxUID.editingReturn.push( uidEditBoxReturn );
+		// const uidEditBoxReturn = new EventHandler();
+		// uidEditBoxReturn.target = this.node;
+		// uidEditBoxReturn.component = "UiLogin";
+		// uidEditBoxReturn.handler = "onUIDEditboxReturn";
+		// uidEditBoxReturn.customEventData = "???";
+		// this.editBoxUID.editingReturn.push( uidEditBoxReturn );
 
-		const uidEditBoxChanged = new EventHandler();
-		uidEditBoxChanged.target = this.node;
-		uidEditBoxChanged.component = "UiLogin";
-		uidEditBoxChanged.handler = "onUIDEditboxChanged";
-		uidEditBoxChanged.customEventData = "???";
-		this.editBoxUID?.textChanged.push( uidEditBoxChanged );
+		// const uidEditBoxChanged = new EventHandler();
+		// uidEditBoxChanged.target = this.node;
+		// uidEditBoxChanged.component = "UiLogin";
+		// uidEditBoxChanged.handler = "onUIDEditboxChanged";
+		// uidEditBoxChanged.customEventData = "???";
+		// this.editBoxUID?.textChanged.push( uidEditBoxChanged );
 
-		const uidEditBoxDidBegan = new EventHandler();
-		uidEditBoxDidBegan.target = this.node;
-		uidEditBoxDidBegan.component = "UiLogin";
-		uidEditBoxDidBegan.handler = "onUIDEditboxDidBegan";
-		uidEditBoxDidBegan.customEventData = "???";
-		this.editBoxUID.editingDidBegan.push( uidEditBoxDidBegan );
+		// const uidEditBoxDidBegan = new EventHandler();
+		// uidEditBoxDidBegan.target = this.node;
+		// uidEditBoxDidBegan.component = "UiLogin";
+		// uidEditBoxDidBegan.handler = "onUIDEditboxDidBegan";
+		// uidEditBoxDidBegan.customEventData = "???";
+		// this.editBoxUID.editingDidBegan.push( uidEditBoxDidBegan );
 
-		const passwordEditBoxReturn = new EventHandler();
-		passwordEditBoxReturn.target = this.node;
-		passwordEditBoxReturn.component = "UiLogin";
-		passwordEditBoxReturn.handler = "onPasswordEditboxReturn";
-		passwordEditBoxReturn.customEventData = "???";
-		this.editBoxPassword.editingReturn.push( passwordEditBoxReturn );
+		// const passwordEditBoxReturn = new EventHandler();
+		// passwordEditBoxReturn.target = this.node;
+		// passwordEditBoxReturn.component = "UiLogin";
+		// passwordEditBoxReturn.handler = "onPasswordEditboxReturn";
+		// passwordEditBoxReturn.customEventData = "???";
+		// this.editBoxPassword.editingReturn.push( passwordEditBoxReturn );
 
-		const passwordEditBoxChanged = new EventHandler();
-		passwordEditBoxChanged.target = this.node;
-		passwordEditBoxChanged.component = "UiLogin";
-		passwordEditBoxChanged.handler = "onPasswordEditboxChanged";
-		passwordEditBoxChanged.customEventData = "???";
-		this.editBoxPassword?.textChanged.push( passwordEditBoxChanged );
+		// const passwordEditBoxChanged = new EventHandler();
+		// passwordEditBoxChanged.target = this.node;
+		// passwordEditBoxChanged.component = "UiLogin";
+		// passwordEditBoxChanged.handler = "onPasswordEditboxChanged";
+		// passwordEditBoxChanged.customEventData = "???";
+		// this.editBoxPassword?.textChanged.push( passwordEditBoxChanged );
 
-		const passwordEditBoxDidBegan = new EventHandler();
-		passwordEditBoxDidBegan.target = this.node;
-		passwordEditBoxDidBegan.component = "UiLogin";
-		passwordEditBoxDidBegan.handler = "onPasswordEditboxDidBegan";
-		passwordEditBoxDidBegan.customEventData = "???";
-		this.editBoxPassword.editingDidBegan.push( passwordEditBoxDidBegan );
+		// const passwordEditBoxDidBegan = new EventHandler();
+		// passwordEditBoxDidBegan.target = this.node;
+		// passwordEditBoxDidBegan.component = "UiLogin";
+		// passwordEditBoxDidBegan.handler = "onPasswordEditboxDidBegan";
+		// passwordEditBoxDidBegan.customEventData = "???";
+		// this.editBoxPassword.editingDidBegan.push( passwordEditBoxDidBegan );
+
+        this.editBoxUID.node.on('editing-did-began', this.onUID_EDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxUID.node.on('editing-return', this.onUID_EDITBOX_RETURN.bind(this), this);
+        this.editBoxUID.node.on('text-changed', this.onUID_EDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxUID.node.on('editing-did-ended', this.onUID_EDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxPassword.node.on('editing-did-began', this.onPASSWORD_EDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxPassword.node.on('editing-return', this.onPASSWORD_EDITBOX_RETURN.bind(this), this);
+        this.editBoxPassword.node.on('text-changed', this.onPASSWORD_EDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxPassword.node.on('editing-did-ended', this.onPASSWORD_EDITBOX_DID_ENDED.bind(this), this);
     }
 
     onUIDEditboxReturn() {
@@ -153,7 +163,8 @@ export class UiLogin extends Component {
         this.editBoxUID.string = '';
     }
 
-    onPasswordEditboxReturn() {        
+    onPasswordEditboxReturn() {
+
         if ( this.editBoxPassword.string.length > 0 && this.editBoxUID.string.length > 0 ) {
             this.audioSource.playOneShot(this.soundButtonClick, 1);
             this.onLogin();
@@ -305,5 +316,63 @@ export class UiLogin extends Component {
 
     hide() {
         this.node.active = false;
+    }
+
+    private onUID_EDITBOX_RETURN( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+
+        editbox.string = editbox.string.trim();
+    }
+
+    private onUID_EDITBOX_DID_BEGAN( editbox, customEventData ) {
+        editbox.string = '';
+    }
+
+    private onUID_EDITBOX_DID_ENDED( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+    }
+
+    private onUID_EDITBOX_TEXT_CHANGED( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+
+        editbox.string = editbox.string.trim();
+    }
+
+    private onPASSWORD_EDITBOX_RETURN( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+
+        editbox.string = editbox.string.trim();
+        if ( editbox.string.length > 0 && editbox.string.length > 0 ) {
+            this.audioSource.playOneShot(this.soundButtonClick, 1);
+            this.onLogin();
+        }
+
+    }
+
+    private onPASSWORD_EDITBOX_DID_BEGAN( editbox, customEventData ) {
+        editbox.string = '';
+    }
+
+    private onPASSWORD_EDITBOX_DID_ENDED( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+    }
+
+    private onPASSWORD_EDITBOX_TEXT_CHANGED( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
     }
 }

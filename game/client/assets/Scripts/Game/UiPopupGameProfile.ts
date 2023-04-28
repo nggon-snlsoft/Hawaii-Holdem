@@ -130,6 +130,7 @@ export class UiPopupGameProfile extends Component {
 
     private SetHandRank() {
         let hands = this.statics.best_hands;
+        hands = hands.trim();
         if ( hands == null || hands.length <= 0 ) {
             this.ResetCards();
             this.labelHandRankDesc.string = '등록된 핸드가 없습니다.';

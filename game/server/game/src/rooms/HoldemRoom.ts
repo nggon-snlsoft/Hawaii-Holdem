@@ -78,6 +78,7 @@ export class HoldemRoom extends Room<RoomState> {
 	seatWaitingList : string[] = [];
 	_roomConf: any = null;
 	_initPot: number = 0;
+	_id: number = -1;
 
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
@@ -166,9 +167,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.potCalc = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"] );
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
+
+				this._id = options["serial"];
 			}
 		};
-		await this._dao.selectTableInfo(options["serial"], onDBFinish);
+		await this._dao.selectTableInfo( options["serial"], onDBFinish);
 	}
 
 	init() {
@@ -803,6 +806,14 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			});
 		});
+
+		this._dao.ResetTableID( this._id, ( err: any, res: boolean )=>{
+			if ( err != null ) {
+				logger.error( err );
+			} else {
+				console.log( ' clear room ids ');
+			}
+		})
 	}
 
 	update( dt: any ) {

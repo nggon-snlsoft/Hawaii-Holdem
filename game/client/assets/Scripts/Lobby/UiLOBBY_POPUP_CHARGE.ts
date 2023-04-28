@@ -154,7 +154,16 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         })
     }
 
-    private onEDITBOX_RETURN( ditbox, customEventData ) {
+    private onEDITBOX_RETURN( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+
+        editbox.string = editbox.string.trim();        
+
+        let s = CommonUtil.getKoreanNumber( Number(editbox.string) );
+        this.labelKorValue.string = s;
+        this.labelKorValue.node.active = true;
 
     }
 
@@ -163,6 +172,14 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     }
 
     private onEDITBOX_DID_ENDED( editbox, customEventData ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+
+        let s = CommonUtil.getKoreanNumber( Number(editbox.string) );
+        this.labelKorValue.string = s;
+        this.labelKorValue.node.active = true;
 
     }
 
@@ -171,8 +188,11 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
             return;
         }
 
+        editbox.string = editbox.string.trim();
+
         let s = CommonUtil.getKoreanNumber( Number(editbox.string) );
         this.labelKorValue.string = s;
+        this.labelKorValue.node.active = true;
 
     }
 }

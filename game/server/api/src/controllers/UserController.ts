@@ -485,7 +485,6 @@ export class UserController {
         }
 
         let _stactics = ClientUserData.getClientStaticsData( statics );
-
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',

@@ -106,6 +106,7 @@ export class UiPopupProfile extends Component {
 
     private SetInformation( res: any ) {
         this.statics = res.statics;
+        console.log(this.statics);
         let hands = this.statics.hands;
         this.labelHandCount.string = hands.toString();
 
@@ -113,8 +114,9 @@ export class UiPopupProfile extends Component {
         this.labelMaxPots.string = maxPots;
 
         let win = this.statics.win;
-        this.labelWin.string = win.toString() + '  (' + ( win / hands * 100.0 ).toFixed(1) +  '%)';
+
         if ( win == 0 || win == undefined ) {
+            this.labelWin.string =          (0).toString() + ' (0%)';         
             this.labelWinPreflop.string =   (0).toString() + ' (0%)';
             this.labelWinFlop.string =      (0).toString() + ' (0%)';
             this.labelWinTurn.string =      (0).toString() + ' (0%)';
@@ -124,7 +126,8 @@ export class UiPopupProfile extends Component {
             let winFlop = this.statics.win_flop;
             let winTurn = this.statics.win_turn;
             let winRiver = this.statics.win_river;
-    
+
+            this.labelWin.string = win.toString() + '  (' + ( win / hands * 100.0 ).toFixed(1) +  '%)';    
             this.labelWinPreflop.string = winPreflop.toString() + '  (' + ( winPreflop / win * 100.0 ).toFixed(1) +  '%)';
             this.labelWinFlop.string = winFlop.toString() + '  (' + ( winFlop / win * 100.0 ).toFixed(1) +  '%)';
             this.labelWinTurn.string = winTurn.toString() + '  (' + ( winTurn / win * 100.0 ).toFixed(1) +  '%)';
@@ -160,6 +163,8 @@ export class UiPopupProfile extends Component {
 
     private SetHandRank() {
         let hands = this.statics.best_hands;
+        hands = hands.trim();
+
         if ( hands == null || hands.length <= 0 ) {
             this.ResetCards();
             this.labelHandRankDesc.string = '등록된 핸드가 없습니다.';

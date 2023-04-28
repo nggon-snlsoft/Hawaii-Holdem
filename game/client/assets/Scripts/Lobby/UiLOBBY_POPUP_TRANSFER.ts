@@ -204,8 +204,8 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         }
     }
 
-    private onAMOUNT_EDITBOX_RETURN( ditbox, customEventData ) {
-
+    private onAMOUNT_EDITBOX_RETURN( editbox, customEventData ) {
+        editbox.string = editbox.string.trim();
     }
 
     private onAMOUNT_EDITBOX_DID_BEGAN( editbox, customEventData ) {
@@ -217,13 +217,15 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     }
 
     private onAMOUNT_EDITBOX_DID_ENDED( editbox, customEventData ) {
-
+        editbox.string = editbox.string.trim();
     }
 
     private onAMOUNT_EDITBOX_TEXT_CHANGED( editbox, customEventData ) {
         if ( editbox.string.length == 0 ) {
             return;
         }
+
+        editbox.string = editbox.string.trim();
 
         let n = Number( editbox.string );
         let s = CommonUtil.getKoreanNumber( n );
@@ -240,8 +242,8 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         }
     }
 
-    private onPASSWORD_EDITBOX_RETURN( ditbox, customEventData ) {
-
+    private onPASSWORD_EDITBOX_RETURN( editbox, customEventData ) {
+        editbox.string = editbox.string.trim();
     }
 
     private onPASSWORD_EDITBOX_DID_BEGAN( editbox, customEventData ) {
@@ -249,13 +251,14 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     }
 
     private onPASSWORD_EDITBOX_DID_ENDED( editbox, customEventData ) {
-
+        editbox.string = editbox.string.trim();
     }
 
     private onPASSWORD_EDITBOX_TEXT_CHANGED( editbox, customEventData ) {
         if ( editbox.string.length == 0 ) {
             return;
         }
+        editbox.string = editbox.string.trim();        
 
         // let s = CommonUtil.getKoreanNumber( Number(editbox.string) );
         // this.labelKorValue.string = s;
