@@ -136,12 +136,12 @@ export class GameEntry extends Component {
 
     private onEVENT_SHOW() {
         console.log('onEVENT_SHOW');
-        this._table.onEVENT_SHOW();
+        this._table.onEVENT_FOREGROUND();
     }
 
     private onEVENT_HIDE() {
         console.log('onEVENT_HIDE');        
-        this._table.onEVENT_HIDE();
+        this._table.onEVENT_BACKGROUND();
     }
 }
 

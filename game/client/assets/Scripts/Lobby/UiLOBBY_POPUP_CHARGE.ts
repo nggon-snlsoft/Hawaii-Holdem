@@ -46,6 +46,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
 
     public Show( button: Button ) {
         button.interactable = true;
+        this.Reset();
 
         NetworkManager.Instance().reqGET_CHARGE_REQUEST_COUNT( ( res )=>{
             let charges = res.charges;
@@ -77,6 +78,12 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
                 }
             });
         });
+    }
+
+    private Reset() {
+        this.labelHolder.string = '';
+        this.labelKorValue.string = '';
+        this.labelKorValue.node.active = false;
     }
 
     private GetStoreInfo() {

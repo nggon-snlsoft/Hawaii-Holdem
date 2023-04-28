@@ -7262,7 +7262,7 @@
         "__id__": 200
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 203
@@ -7277,7 +7277,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -475,
+      "x": -190,
       "y": 0,
       "z": 0
     },
@@ -7538,7 +7538,7 @@
         "__id__": 207
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 210
@@ -7553,7 +7553,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -285,
+      "x": -95,
       "y": 0,
       "z": 0
     },
@@ -8366,7 +8366,7 @@
         "__id__": 228
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 231
@@ -8381,7 +8381,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 285,
+      "x": 380,
       "y": 0,
       "z": 0
     },
@@ -8642,7 +8642,7 @@
         "__id__": 235
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 238
@@ -8917,7 +8917,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1070,
+      "width": 310,
       "height": 86
     },
     "_anchorPoint": {
@@ -40976,7 +40976,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "변경",
+    "_string": "출금신청",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 40,

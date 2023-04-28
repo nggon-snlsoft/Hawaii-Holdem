@@ -138,6 +138,7 @@ export class UiTable extends Component {
 	private isSitoutable: boolean = false;
 	private labelReservationSitout: Label = null;
 	private rootCurrentPot: Node = null;
+	private reserveLeave: boolean = false;
 
     init() {
         this.seatMax = UiTable.seatMaxFromServer;
@@ -171,7 +172,7 @@ export class UiTable extends Component {
 
         this.registRoomEvent(NetworkManager.Instance().room);
 
-		UiControls.instance.setExitCallback( this.onClickExit.bind(this) );
+		UiControls.instance.setExitCallback( this.onCLICK_EXIT.bind(this) );
 		UiControls.instance.show();
 
 		let bg: Sprite = this.node.getChildByPath('SPRITE_BACKGROUND').getComponent(Sprite);
@@ -468,10 +469,44 @@ export class UiTable extends Component {
 		this.sendMsg( "ADD_CHIPS_REQUEST", {seat: this.mySeat } );
     }
 
-    onClickExit() {
+    onCLICK_EXIT() {
+		// if ( this.reserveLeave == true ) {
+		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "나가기 예약중입니다. \n최소하시겠습니까?", ()=>{
+
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	}, ()=>{
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	});
+		// } else {
+		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
+		// 		let user = NetworkManager.Instance().getUserInfo();
+		// 		this.sendMsg("EXIT_TABLE", {
+		// 			seat : this.mySeat,
+		// 			id : user.id,
+		// 		});
+
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	}, ()=>{
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	});
+		// }
+	
+		// UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
+		// 	let user = NetworkManager.Instance().getUserInfo();
+		// 	this.sendMsg("EXIT_TABLE", {
+		// 		seat : this.mySeat,
+		// 		id : user.id,
+		// 	});
+
+		// 	UiGameSystemPopup.instance.closePopup();
+		// }, ()=>{
+		// 	UiGameSystemPopup.instance.closePopup();
+		// });
+
+		let user = NetworkManager.Instance().getUserInfo();
 		if ( this.uiSeats.node.active == true ) {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-				let user = NetworkManager.Instance().getUserInfo();
+
 				this.sendMsg("EXIT_TABLE", {
 					seat : this.mySeat,
 					id : user.id,
@@ -483,7 +518,13 @@ export class UiTable extends Component {
 			});
 		} else {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-				this.room?.leave( false );
+
+				this.sendMsg("EXIT_TABLE", {
+					seat : this.mySeat,
+					id : user.id,
+				});
+
+
 
 				UiGameSystemPopup.instance.closePopup();
 			}, ()=>{
@@ -560,6 +601,8 @@ export class UiTable extends Component {
 		room.onMessage( "SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));
 		room.onMessage( "SHOW_PROFILE", this.onSHOW_PROFILE.bind(this));
 
+
+		room.onMessage( "SYNC_TABLE", this.onSYNC_TABLE.bind(this));
 		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));		
 
         
@@ -622,8 +665,27 @@ export class UiTable extends Component {
 	}
 	
 	private onEXIT_TABLE( msg ) {
+
 		this.uiSeats.end();
 		this.room?.leave( false );
+
+		// let reserve = msg['reserve'];
+		// let leave = msg['leave'];
+
+		// console.log('reserve: ' + reserve );
+		// console.log('leave: ' + leave );		
+
+		// this.reserveLeave = reserve;
+		// if ( this.reserveLeave == true ) {
+		// 	let uiEntity = this.GetEntityFromSeat( this.mySeat );
+		// 	if ( uiEntity != null ) {
+		// 		uiEntity.SetReserveLeave();
+		// 	}
+		// }
+	}
+
+	private onSYNC_TABLE( msg ) {
+
 	}
 
 	public LoadLobby() {
@@ -918,7 +980,7 @@ export class UiTable extends Component {
 
     }
 
-    leaveRoom(code: any) {
+    leaveRoom( code: any ) {
         this.room = null;
         this.ClearEntities();
 		this.ClearPot();
@@ -2894,12 +2956,18 @@ export class UiTable extends Component {
 		});
 	}
 
-	public onEVENT_SHOW() {
-
+	public onEVENT_FOREGROUND() {
+		console.log('onEVENT_FOREGROUND');
+		this.sendMsg("FORE_GROUND", { 
+			seat: this.mySeat,
+		});
 	}
 
-	public onEVENT_HIDE() {
-
+	public onEVENT_BACKGROUND() {
+		console.log('onEVENT_BACKGROUND');		
+		this.sendMsg("BACK_GROUND", { 
+			seat: this.mySeat,			
+		});
 	}
 
 	private SetSitoutButtons( isSitout: boolean, reservable: boolean = false ) {

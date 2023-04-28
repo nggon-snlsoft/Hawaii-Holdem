@@ -8,7 +8,7 @@ export enum ENUM_DEVICE_TYPE {
     PC_LANDSCAPE = 1,
 }
 
-const CLIENT_VERSION: string = '3';
+const CLIENT_VERSION: string = '4';
 
 @ccclass('GameManager')
 export class GameManager extends cc.Component {

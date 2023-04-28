@@ -53,6 +53,8 @@ export class EntityState extends Schema {
 	tableInitChips: number = 0;
 	tableBuyInAmount: number = 0;
 	tableBuyInCount: number = 0;
+	background: boolean = false;
+	backgroundTimestamp: number = 0;
 	
 	statics: any = null;
 

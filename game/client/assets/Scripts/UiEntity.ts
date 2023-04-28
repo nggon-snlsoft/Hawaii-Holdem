@@ -351,6 +351,10 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.SetWait();
     }
 
+    SetReserveLeave() {
+        this.uiEntityAvatar.SetReserveLeave();
+    }
+
     setUiWait() {
         this.uiEntityAvatar.setUiWait();
 

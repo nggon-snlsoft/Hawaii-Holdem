@@ -42,7 +42,7 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_POINT.Init( this.ClosePoint.bind(this), null );
         this.uiLOBBY_POPUP_RANKING.Init( this.CloseRanking.bind(this), null );
         this.uiLOBBY_POPUP_CHARGE.Init( this.CloseCharge.bind(this), null );
-        this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), null );
+        this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), this.onAPPLY_TRANSFER.bind(this) );
         this.uiLOBBY_POPUP_QNA.Init( this.CloseQNA.bind(this), null );
         this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this), null );
 
@@ -165,6 +165,14 @@ export class UiLobbyPopup extends Component {
     public CloseTransfer() {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_TRANFER.Hide();
+        this.hide();
+    }
+
+    private onAPPLY_TRANSFER() {
+        this.closeAllPopup();
+        this.uiLOBBY_POPUP_TRANFER.Hide();
+        this.uiLobby.refreshUiPlayer();
+
         this.hide();
     }
 

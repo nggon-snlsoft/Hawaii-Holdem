@@ -1,3 +1,4 @@
+import { userInfo } from "os";
 import { ENUM_RESULT_CODE } from "../main";
 
 let _client: any = null;
@@ -230,10 +231,27 @@ dao.SelectStoreByStoreID = function ( sid: any, cb: any ) {
 	});
 };
 
-dao.SelectChargeRequestsByID = function ( uid: any, cb: any ) {
+dao.SelectChargeRequestsByID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM CHARGES WHERE UID = ? AND ALIVE = 1';
-	let args = [uid];
+	let sql = 'SELECT * FROM CHARGES WHERE USERID = ? AND ALIVE = 1';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.SelectTransferRequestsByID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM TRANSFERS WHERE USERID = ? AND ALIVE = 1';
+	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -251,8 +269,8 @@ dao.CreateChargeRequest = function ( data: any, cb: any ) {
 	let amount = data.amount;
 	let user = data.user;
 
-	let sql = 'INSERT INTO CHARGES ( uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ? )';
-	let args = [ user.id, user.nickname, user.holder, amount, 1, 1 ];
+	let sql = 'INSERT INTO CHARGES ( userId, uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user.id, user.uid, user.nickname, user.holder, amount, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 
@@ -268,41 +286,69 @@ dao.CreateChargeRequest = function ( data: any, cb: any ) {
 	});	
 }
 
+dao.CreateTransferRequest = function ( data: any, cb: any ) {
+	console.log('dao.CreateTransferRequest');
+	let value = data.value;
+	console.log('value: ' + value );
+	let user = data.user;
+	console.log('user: ' + user );
+
+	let oldBalance = user.balance;
+	console.log('oldBalance: ' +  oldBalance);
+
+	let newBalance = oldBalance - value;
+	console.log('newBalance: ' +  newBalance);
+
+	let sql = 'INSERT INTO TRANSFERS ( userId, uid, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user.id, user.uid, user.nickname, value, oldBalance, newBalance, 1, 1 ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, {
+					affected: res.affectedRows,
+					balance: newBalance,
+				} );
+			} else {
+				cb(null, {
+					affected: 0,
+					balance: newBalance,
+				} );
+			}
+		}
+	});	
+}
+
+dao.UpdateUserBalance = function ( data: any, cb: any ) {
+	let id = data.id;
+	let value = data.newBalance;
+
+	let sql = "UPDATE USERS SET BALANCE = ? WHERE ID = ? ";
+	let args = [ value , id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				sql = 'SELECT * FROM USERS WHERE ID = ?';
+				args = [id];
+
+				_client.query( sql, args, function ( err: any, user: any ) {
+					if ( !!err ) {
+						cb( err, user );
+					} else {
+						cb(null, user );
+					}
+				});
+			} else {
+				cb( null, null );
+			}
+		}
+	});    
+}
+
 export default dao;
-
-// dao.insertUserStatics = ( id: any, cb: any )=> {
-// 	console.log('insertUserStatics: ', id);
-
-// 	let sql = "INSERT INTO STATICS(userID) VALUES (?)";
-// 	let args = [id];
-
-// 	_client.query(sql, args, function (err: any, res: any) {        
-// 		if (!!err) {
-// 			console.log('err');			
-// 			if (!!cb) {
-// 				cb(err, null);
-// 			}
-// 			return;
-// 		}
-
-// 		cb?.(null, {
-//             code: ENUM_RESULT_CODE.SUCCESS,
-//          });
-// 	});
-// }
-
-// let sql = "INSERT INTO setting ( userId, sound, card_type1, card_type2, board_type, bg_type, best_hands) values ( ?,?,?,?,?,?,? )";
-// let args = [ id, '7', '0', '0', '0', '0', ' '];
-
-// _client.query(sql, args, function (err: any, res: any) {        
-// 	if (!!err) {
-// 		if (!!cb) {
-// 			cb(err, null);
-// 		}
-// 		return;
-// 	}
-
-// 	cb?.(null, {
-// 		code: ENUM_RESULT_CODE.SUCCESS,
-// 	 });
-// });

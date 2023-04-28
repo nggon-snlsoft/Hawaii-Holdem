@@ -405,7 +405,7 @@ export class NetworkManager extends cc.Component {
 		}
 		).catch( function( err: any ) {
 			if( 0 === err.length ) {
-				return errMessage = "NETWORD_ERROR";
+				return errMessage = "NETWORK_ERROR";
 			}
 			err = JSON.parse( err );
 			errMessage = err.msg;
@@ -436,7 +436,7 @@ export class NetworkManager extends cc.Component {
 		let errMessage: string = null;
 		let id = this.userInfo.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getChargeRequest', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getChargeRequests', {
 			id: id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -465,7 +465,43 @@ export class NetworkManager extends cc.Component {
 		}
 
 		onSuccess(obj);
-	}		
+	}
+	
+	async reqGET_TRANSFER_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let id = this.userInfo.id;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getTransferRequests', {
+			id: id,
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORD_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
+
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
+
+		if( null === result ) {
+			return onFail( "SETTING_DATA_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+
+		if(null == obj){
+			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		onSuccess(obj);
+	}			
 
 	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
@@ -505,8 +541,9 @@ export class NetworkManager extends cc.Component {
 		let id = this.userInfo.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqTransfer', {
-			// id: id,
-			// amount: amount
+			id: id,
+			value: data.value,
+			password: data.password,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -528,6 +565,8 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result );
+		this.userInfo = obj.user;
+
 		onSuccess(obj);
 	}			
 
