@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Response, Request, NextFunction } from 'express';
 import bodyParser from 'body-parser';
-import passport from 'passport';
+// import passport from 'passport';
 import session from 'express-session';
 import { sqlProxy } from './modules/sqlProxy';
 import dao from './modules/dao';
@@ -72,7 +72,6 @@ export class HoldemApiServer {
         this.app.get( '/', (req, res)=>{
 			res.send( "It could not be a better day to die" );
         });
-
         this.app.use( '/check', this.CheckVersion.bind(this) );
     }
 
@@ -96,10 +95,16 @@ export class HoldemApiServer {
 
     private initMiddleWares() {
         this.app.use ( cors() );
+        this.app.use ( express.json() );
         this.app.use ( bodyParser.json() );
         this.app.use ( bodyParser.urlencoded({
             extended: true 
         }));
+
+        this.app.use((req: Request, res: Response, next: NextFunction) => {
+            console.log(`Request occur! ${req.method}, ${req.url}`);
+            next();
+        });
 
         this.app.use ( session ( {
             secret: `@#@$MYSIGN#@$#$`,
@@ -107,8 +112,8 @@ export class HoldemApiServer {
             saveUninitialized: true            
         }));
 
-        this.app.use( passport.initialize());
-        this.app.use( passport.session() );
+        // this.app.use( passport.initialize());
+        // this.app.use( passport.session() );
 
         this.app.set( 'DAO', dao );
     }

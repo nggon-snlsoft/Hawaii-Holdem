@@ -288,17 +288,12 @@ dao.CreateChargeRequest = function ( data: any, cb: any ) {
 }
 
 dao.CreateTransferRequest = function ( data: any, cb: any ) {
-	console.log('dao.CreateTransferRequest');
 	let value = data.value;
-	console.log('value: ' + value );
 	let user = data.user;
-	console.log('user: ' + user );
 
 	let oldBalance = user.balance;
-	console.log('oldBalance: ' +  oldBalance);
 
 	let newBalance = oldBalance - value;
-	console.log('newBalance: ' +  newBalance);
 
 	let sql = 'INSERT INTO TRANSFERS ( userId, uid, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
 	let args = [ user.id, user.uid, user.nickname, value, oldBalance, newBalance, 1, 1 ];

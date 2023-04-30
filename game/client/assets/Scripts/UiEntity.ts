@@ -144,7 +144,6 @@ export class UiEntity extends Component {
 
         this.rootButtons = this.node.getChildByPath('BUTTONS');
         if ( this.rootButtons != null ) {
-            console.log('this.rootButtons != null');
 
             this.buttons['DEALER'] = this.rootButtons.getChildByPath('DEALER').getComponent(Sprite);
             if ( this.buttons['DEALER'] != null) {

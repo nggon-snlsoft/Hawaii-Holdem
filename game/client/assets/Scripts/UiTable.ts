@@ -1291,6 +1291,7 @@ export class UiTable extends Component {
 			};
 
 			this.uiPlayerAction.cbFold = () => {
+				console.log('this.uiPlayerAction.cbFold = () => {');
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
 
 				let obj = {

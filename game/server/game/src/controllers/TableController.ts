@@ -17,8 +17,9 @@ export class TableController {
     }
 
     public async getTableList( req: any, res: any ) {
+        let store = req.body.store;
 
-        let tables = await this.getTableListFromDB( req.app.get('DAO'));
+        let tables = await this.getTableListFromDB( req.app.get('DAO'), store );
         if ( tables == undefined ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -28,10 +29,10 @@ export class TableController {
         }
 
         let _tables: any[] = [];
-        let rooms: RoomListingData<any>[] = await matchMaker.query({private: false});
+        let rooms: RoomListingData<any>[] = await matchMaker.query({ private: false });
 
         for (let i = 0; i < tables.length; i++ ) {
-            let t = ClientUserData.getClientTableData( tables[i]);
+            let t = ClientUserData.getClientTableData( tables[i] );
 
             let r = rooms.find( (e)=> {
                 return e.serial == t.id;
@@ -160,9 +161,9 @@ export class TableController {
         } );
     }
 
-    private async getTableListFromDB( dao: any ) {
+    private async getTableListFromDB( dao: any, store: number  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.selectTables((err: any, res: any)=>{
+            dao.selectTables( store, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

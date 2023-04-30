@@ -14,6 +14,7 @@
     "@types/body-parser": "^1.19.2",
     "@types/cors": "^2.8.13",
     "@types/express-session": "^1.17.6",
+    "@types/jsonwebtoken": "^9.0.2",
     "@types/mysql": "^2.15.21",
     "@types/passport": "^1.0.12",
     "@types/passport-local": "^1.0.35",

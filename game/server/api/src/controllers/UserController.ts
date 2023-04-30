@@ -1,7 +1,7 @@
 import express from 'express';
 import { sqlProxy } from '../modules/sqlProxy';
-import passport, { deserializeUser } from 'passport';
-import passportLocal from 'passport-local';
+// import passport, { deserializeUser } from 'passport';
+// import passportLocal from 'passport-local';
 import { ENUM_RESULT_CODE } from '../main';
 import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
@@ -10,7 +10,7 @@ import { rejects } from 'assert';
 
 const requestIp = require('request-ip');
 
-const LocalStrategy = passportLocal.Strategy;
+// const LocalStrategy = passportLocal.Strategy;
 const gameConf = require('../config/gameConf.json');
 
 export class UserController {
@@ -22,7 +22,7 @@ export class UserController {
         this.sql = sql;
 
         this.initRouter();
-        this.initPassport();
+        // this.initPassport();
 
         console.log('USER_CONTROLLER_INITIALIZED');
     }
@@ -47,47 +47,47 @@ export class UserController {
         next( ip );
     }
 
-    private initPassport() {
-        passport.use( new LocalStrategy({
-            usernameField: 'uid',
-            passwordField: 'password'
-        }, ( uid, password, done )=>{
+    // private initPassport() {
+    //     passport.use( new LocalStrategy({
+    //         usernameField: 'uid',
+    //         passwordField: 'password'
+    //     }, ( uid, password, done )=>{
  
-            let query = 'SELECT * FROM USERS WHERE UID=? AND PASSWORD=?';
-            let args = [uid, password];
-            this.sql.query(query, args, ( err: any , result: any )=>{
+    //         let query = 'SELECT * FROM USERS WHERE UID=? AND PASSWORD=?';
+    //         let args = [uid, password];
+    //         this.sql.query(query, args, ( err: any , result: any )=>{
 
-                if ( result == undefined || result == null || result.length <= 0 ) {
-                    return done(null, false, { message: 'INCORRECT' });
-                }
+    //             if ( result == undefined || result == null || result.length <= 0 ) {
+    //                 return done(null, false, { message: 'INCORRECT' });
+    //             }
         
-                let user: any = null;
+    //             let user: any = null;
         
-                if ( result != null ) {
-                    let j = JSON.stringify( result[0] );
-                    if ( result[0] != null ) {
-                        user = JSON.parse(j);            
-                    }
-                }
+    //             if ( result != null ) {
+    //                 let j = JSON.stringify( result[0] );
+    //                 if ( result[0] != null ) {
+    //                     user = JSON.parse(j);            
+    //                 }
+    //             }
         
-                return done(null, user);
+    //             return done(null, user);
         
-            } );
+    //         } );
 
-            return done (null, null);
+    //         return done (null, null);
 
-        }) );
+    //     }) );
 
-        passport.serializeUser( (user: any, done: any )=>{
-            console.log('serializeUser');
-            done( null, user.ID );
-        } );
+    //     passport.serializeUser( (user: any, done: any )=>{
+    //         console.log('serializeUser');
+    //         done( null, user.ID );
+    //     } );
         
-        passport.deserializeUser( (id: any, done: any )=>{
-            console.log('deserializeUser');    
-            done(null, null );
-        });
-    }
+    //     passport.deserializeUser( (id: any, done: any )=>{
+    //         console.log('deserializeUser');    
+    //         done(null, null );
+    //     });
+    // }
 
     public async login( req: any, res: any ) {
         let uid = req.body.uid;

@@ -29,10 +29,12 @@ dao.init = function ( sql: any ) {
     return dao;
 };
 
-dao.selectTables = function( cb: any ) {
-	let sql = 'SELECT * FROM TABLES WHERE DISABLE = 0 AND ALIVE = 1';
+dao.selectTables = function( store: any, cb: any ) {
 
-	_client.query( sql, null, (err: any, res: any) => {
+	let sql = 'SELECT * FROM TABLES WHERE DISABLE = 0 AND ALIVE = 1 AND STORE = ?';
+	let args = [ store ];
+
+	_client.query( sql, args, (err: any, res: any) => {
 		if(err != null){
 			cb(err, null);
 			return;
@@ -412,4 +414,142 @@ dao.UpdateStatics = ( id: any, statics: any, cb: any ) => {
 			}
 		}
 	});
+}
+
+dao.SelectSalesUserInfo = (data: any, cb: any ) => {
+	console.log('dao.SelectSalesUserInfo');
+	console.log( data );
+
+	let id = data.id;
+	let date = data.date;
+
+	let query = 'SELECT * FROM SALES_USER WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND USERID = ?';
+	let args = [ date.year, date.month, date.day, id ];
+
+	_client.query( query, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb( err, null );
+			}
+			return;
+		}
+
+		cb?.(null, res[0] );
+	});	
+}
+
+dao.UpdateSalesUserInfo = (data: any, cb: any ) => {
+	console.log('dao.UpdateSalesUserInfo');
+	console.log( data );
+
+	let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ? WHERE ID = ?";
+	let args = [ data.win, data.rake, data.index ];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
+			}
+		}
+	});	
+}
+
+dao.CreateSalesUserInfo = function ( data: any, cb: any ) {
+	console.log('dao.CreateSalesUserInfo');
+	console.log( data );
+
+	let id = data.id;
+	let store = data.store;
+	let win = data.win;
+	let rake = data.rake;
+	let date = data.date;
+
+	let sql = 'INSERT INTO SALES_USER ( userId, store, year, month, day, timestamp, wins, rakes ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ id, store, date.year, date.month, date.day, date.timestamp, win, rake ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows );
+			} else {
+				cb(null, 0 );
+			}
+		}
+	});	
+}
+
+dao.SelectSalesTableInfo = (data: any, cb: any ) => {
+	console.log('dao.SelectSalesTableInfo');
+	console.log( data );
+
+	let tableId = data.table;
+	let date = data.date;
+
+	let query = 'SELECT * FROM SALES_TABLE WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND TABLEID = ?';
+	let args = [ date.year, date.month, date.day, tableId ];
+
+	_client.query( query, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb( err, null );
+			}
+			return;
+		}
+
+		cb?.(null, res[0] );
+	});	
+}
+
+dao.UpdateSalesTableInfo = (data: any, cb: any ) => {
+	console.log('dao.UpdateSalesTableInfo');
+	console.log( data );
+
+	let query = "UPDATE SALES_TABLE SET RAKES = RAKES + ? WHERE ID = ?";
+	let args = [ data.rake, data.index ];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
+			}
+		}
+	});	
+}
+
+dao.CreateSalesTableInfo = function ( data: any, cb: any ) {
+	console.log('dao.CreateSalesTableInfo');
+	console.log( data );
+
+	let id = data.table;
+	let store = data.store;
+	let win = data.win;
+	let rake = data.rake;
+	let date = data.date;
+
+	let sql = 'INSERT INTO SALES_TABLE ( tableId, store, year, month, day, timestamp, rakes ) values ( ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ id, store, date.year, date.month, date.day, date.timestamp, rake ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows );
+			} else {
+				cb(null, 0 );
+			}
+		}
+	});	
 }
