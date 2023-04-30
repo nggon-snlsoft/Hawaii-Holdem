@@ -337,6 +337,7 @@ export class PotCalculation {
     let results: any[] = [];
 
     if (null === this.pots || undefined === this.pots) {
+      return;
     }
 
     this.pots.forEach(element => {
@@ -358,6 +359,9 @@ export class PotCalculation {
   }
 
   public IsWinner(seat: number): boolean {
+    if (null === this.pots || undefined === this.pots) {
+      return;
+    }
 
     for (let i = 0; i < this.pots.length; i++) {
       let element = this.pots[i];
