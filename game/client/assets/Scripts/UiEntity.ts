@@ -72,6 +72,7 @@ export class UiEntity extends Component {
     private hiddenCards: Card[] = [ null, null ];
     private rootCardDispensing: Node = null;
     private seat: number = -1;
+    private rootReserveExit: Node = null;
     
 
     childRegistered() {
@@ -198,6 +199,11 @@ export class UiEntity extends Component {
         if ( this.buttonAvatar != null ) {
             this.buttonAvatar.node.off( 'click' );
             this.buttonAvatar.node.on( 'click', this.onClickAvatar.bind(this), this );
+        }
+
+        this.rootReserveExit = this.node.getChildByPath('RESERVE_EXIT');
+        if ( this.rootReserveExit != null ) {
+            this.rootReserveExit.active = false;
         }
     }
 

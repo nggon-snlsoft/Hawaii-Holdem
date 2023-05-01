@@ -36,10 +36,10 @@ export class EntityState extends Schema {
 	
 	@type("boolean") isSitOut : boolean = false;
 	@type("boolean") isSitBack : boolean = false;
+	sitoutTimestamp: number = 0;
 
 	timeLimitCount : number = 0;
 	@type("boolean") dealable: boolean = false;
-
 	@type('boolean') isDealer:boolean = false;
 	@type('boolean') isSb:boolean = false;
 	@type('boolean') isBb:boolean = false;

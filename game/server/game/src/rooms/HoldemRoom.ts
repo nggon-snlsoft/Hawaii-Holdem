@@ -8,6 +8,7 @@ import { ENUM_RESULT_CODE } from "../arena.config";
 import { ClientUserData } from "../controllers/ClientUserData";
 import { levels } from "../util/logger";
 import { SalesReport } from "../modules/SalesReport";
+import { application } from "express";
 
 const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
@@ -114,17 +115,17 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["bigBlind"] = roomInfo["bigBlind"];
 					this.conf["minStakePrice"] = roomInfo["minStakePrice"];
 					this.conf["maxStakePrice"] = roomInfo["maxStakePrice"];
-					this.conf["passTerm"] = roomInfo["timePassTerm"] * 60 * 1000;
+					this.conf["passTerm"] = roomInfo["timePassTerm"] * 60 * 1000;					
 					this.conf["passPrice"] = roomInfo["timePassPrice"];
 					this.conf["private"] = options["private"];
-
+					this.conf['longSitoutTerm'] = 60000 * 5;
 					this.conf["useTimePass"] = roomInfo["useTimePass"] == 1;
 					this.conf["useRake"] = roomInfo["useRake"] == 1;
 					this.conf["useRakeCap"] = roomInfo["useRakeCap"] == 1;
 					this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
-					this.conf["ante"] = roomInfo['ante'];
+					this.conf["ante"] = roomInfo['ante'];					
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -173,7 +174,12 @@ export class HoldemRoom extends Room<RoomState> {
 				this._id = options["serial"];
 			}
 		};
-		await this._dao.selectTableInfo( options["serial"], onDBFinish);
+
+		try {
+			await this._dao.selectTableInfo( options["serial"], onDBFinish);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	init() {
@@ -301,6 +307,7 @@ export class HoldemRoom extends Room<RoomState> {
 			missSb: false,
 			missBb: false,
 			longSitOut: false,
+			sitoutTimestamp: 0,
 			oldChips: auth.chip,			
 			oldRake: auth.rake,			
 			reBuyCount: 0,
@@ -746,10 +753,10 @@ export class HoldemRoom extends Room<RoomState> {
 			runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
 
 		runaway.leave = true;
-		// if ( runaway.fold == true || runaway.wait == true ) {
-		// 	this.handleEscapee();			
-		// 	return;
-		// }
+		if ( runaway.fold == true || runaway.wait == true ) {
+			this.handleEscapee();			
+			return;
+		}
 
 		if( eGameState.Suspend === this.state.gameState ) {
 			this.handleEscapee();
@@ -777,6 +784,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
+		console.log('onDispose');
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
 
@@ -900,6 +908,9 @@ export class HoldemRoom extends Room<RoomState> {
 					// if( timeoutPlayer.timeLimitCount == this.conf["timeoutExitLimit"]){
 						timeoutPlayer.isSitOut = true;
 						timeoutPlayer.wait = true;
+						timeoutPlayer.sitoutTimestamp = Number( Date.now() );
+						console.log('timeoutPlayer.sitoutTimestamp: ' + timeoutPlayer.sitoutTimestamp);
+						
 						this.UpdateSeatInfo();						
 						this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
 					// }
@@ -926,30 +937,21 @@ export class HoldemRoom extends Room<RoomState> {
 				logger.info( "[ update ] CLEAR_ROUND STATE TIME OVER. duration : %s", this.conf[ "clearTerm" ] );
 				this.elapsedTick = 0;
 
+				this.state.entities.forEach( (e)=>{
+					if ( e.isSitOut == true ) {
+						let pasteTime = Number( Date.now() ) - e.sitoutTimestamp;
+						if ( pasteTime > this.conf['longSitoutTerm'] ) {
+							e.leave = true;
+							e.longSitOut = true;
+						}
+					}
+				});
+
 				this.handleEscapee();
 				this.updatePlayerEligible();
 				let isStart = this.checkStartCondition();
 				if ( true == isStart ) {
 					this.updateButtons();
-
-					// this.state.entities.forEach( e => {
-					// 	if ( e.isSitBack === true && e.wait === false) {
-					// 		logger.info("EXIT_SIT_OUT");
-					// 		e.isSitBack = false;
-					// 		e.isSitOut = false;
-					// 		this.broadcast("SIT_BACK", { seat: e.seat });
-					// 		return;
-					// 	}
-					// } );
-
-					this.state.entities.forEach( e => {
-						if ( e.longSitOut === true) {
-							e.longSitOut = false;
-							this.kickPlayer(e.client.sessionId, 4001);
-							return;
-						}
-					} );
-
 					isStart = this.checkStartCondition();
 					if ( isStart == true ) {
 						logger.info( "[ update ] GAME STATE TO PREPARE" );
@@ -979,6 +981,33 @@ export class HoldemRoom extends Room<RoomState> {
 				} else {
 					this.changeState( eGameState.Suspend );
 				}
+			}
+		} else if ( eGameState.Suspend === this.state.gameState ) {
+			this.elapsedTick += dt;
+			if ( this.elapsedTick >= 10000 ) {	//1분마다 체크할게 있다면 여기서 하자!!!
+				console.log('check long sitout ');
+				let term = this.conf['longSitoutTerm'];
+				console.log('longSitoutTerm: ' + term );
+
+
+				let checkLongSitout: boolean = false;
+				this.state.entities.forEach( (e)=>{
+					if ( e.isSitOut == true ) {
+						let pasteTime: number = Number( Date.now() ) - e.sitoutTimestamp;
+						console.log( 'sitout paste time: ' + pasteTime );
+						if ( pasteTime > term ) {
+							e.leave = true;
+							e.longSitOut = true;
+							checkLongSitout = true;
+						}
+					}
+				});
+
+				if ( checkLongSitout ) {
+					this.handleEscapee();
+				}
+
+				this.elapsedTick = 0;
 			}
 		}
 	}
@@ -1019,7 +1048,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 					}
 				})
-			}
+			}			
 		}
 
 		for( let m = 0; m < escapees.length; m++ ) {
@@ -1028,7 +1057,16 @@ export class HoldemRoom extends Room<RoomState> {
 				return e.seat === s;
 			} );
 			if( idx > -1 ) {
-				this.state.entities.splice( idx, 1 );
+				let entry = this.state.entities[idx];
+				if ( entry != null ) {
+					if ( entry.longSitOut == true ) {
+						entry.longSitOut = false;
+						let sessionId = entry.client.sessionId;
+						this.kickPlayer( sessionId, 4001 );
+					} else {
+						this.state.entities.splice( idx, 1 );
+					}
+				}
 			}
 			else {
 				logger.error( "[ handleEscapee ] why??. seat : %s", s );
@@ -1262,7 +1300,9 @@ export class HoldemRoom extends Room<RoomState> {
 
 		switch( state ) {
 			case eGameState.Suspend:
-				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;				
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
+				this.elapsedTick = 0;
+
 				this.broadcast( "SUSPEND_ROUND", {
 					entities: this.state.entities,
 					dealerPos: this.state.dealerSeat,
@@ -1270,7 +1310,8 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.Ready:
-				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;				
+				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
+
 				this.broadcast( "READY_ROUND", {
 					msg: "READY_ROUND", timeMS: this.conf[ "readyTerm" ], entities: this.state.entities
 				} );
@@ -1402,6 +1443,7 @@ export class HoldemRoom extends Room<RoomState> {
 						logger.error("ENTER_SIT_OUT");
 						e.isSitBack = false;
 						e.isSitOut = true;
+						e.sitoutTimestamp = Number( Date.now() );
 						e.wait = true;
 						this.broadcast("SIT_OUT", { seat: e.seat });
 						return;
@@ -2067,6 +2109,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( true === e.isSitOut && false === e.wait ) {
 			e.wait = true;
+			e.sitoutTimestamp = Number ( Date.now() );
 			this.broadcast("SIT_OUT", {seat : e.seat});
 			this.UpdateSeatInfo();
 		}
@@ -2570,7 +2613,7 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		runaway.client?.leave(returnCode);
+		runaway.client?.leave( returnCode );
 		runaway.leave = true;
 
 		this.handleEscapee();
@@ -3572,6 +3615,7 @@ export class HoldemRoom extends Room<RoomState> {
 		sitOutPlayer.isSitOut = true;
 		
 		if(sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
+			sitOutPlayer.sitoutTimestamp = Number( Date.now() );
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
 			return;
@@ -3582,6 +3626,7 @@ export class HoldemRoom extends Room<RoomState> {
 			this.state.gameState === eGameState.ClearRound ){
 
 			sitOutPlayer.wait = true;
+			sitOutPlayer.sitoutTimestamp = Number( Date.now() );			
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
 		} else {
@@ -3637,11 +3682,13 @@ export class HoldemRoom extends Room<RoomState> {
 
 		sitOutPlayer.isSitOut = false;
 		sitOutPlayer.isSitBack = true;
+		sitOutPlayer.sitoutTimestamp = 0;
 		sitOutPlayer.wait = true;
 
 		if( eGameState.Suspend === this.state.gameState ) {
 			sitOutPlayer.isSitBack = false;
 			sitOutPlayer.isSitOut = false;
+			sitOutPlayer.sitoutTimestamp = 0;			
 
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", {seat : seatNumber});
@@ -3656,11 +3703,13 @@ export class HoldemRoom extends Room<RoomState> {
 			eGameState.ClearRound === this.state.gameState) {
 			sitOutPlayer.isSitBack = false;
 			sitOutPlayer.isSitOut = false;
+			sitOutPlayer.sitoutTimestamp = 0;			
 
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", { seat : seatNumber });
 		}
 		else {
+			sitOutPlayer.sitoutTimestamp = 0;						
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", {seat : seatNumber});
 		}
