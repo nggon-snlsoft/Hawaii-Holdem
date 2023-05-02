@@ -43,6 +43,41 @@ dao.selectAccountByUID = function ( uid: any, cb: any ) {
 	});
 };
 
+dao.selectJoinUserByUID = function ( uid: any, cb: any ) {
+
+	let sql = 'SELECT * FROM JOINS WHERE UID = ?';
+	let args = [uid];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.selectJoinUserByNickname = function ( nickname: any, cb: any ) {
+	console.log( nickname );
+
+	let sql = 'SELECT * FROM JOINS WHERE NICKNAME = ?';
+	let args = [nickname];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.selectAccountByNickname = function ( nickname: any, cb: any ) {
 
 	let sql = 'SELECT * FROM USERS WHERE NICKNAME = ?';
@@ -124,6 +159,28 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 	let sql = 'INSERT INTO USERS (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, disable, alive, pending ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [user.uid, user.nickname, user.password, user.trans, user.phone, user.bank, user.holder, user.account, user.recommender, 0, 1, 1 ];
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+        console.log( res );
+
+		cb?.(null, {
+            code: ENUM_RESULT_CODE.SUCCESS,
+         });
+	});
+}
+
+dao.insertJoinMember = function ( user: any, cb: any ) {
+
+	let sql = 'INSERT INTO JOINS (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, store, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let args = [ user.uid, user.nickname, user.password, user.trans, user.phone, 
+		user.bank, user.holder, user.account, user.recommender, user.store, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {

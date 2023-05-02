@@ -11,11 +11,7 @@ export class UiJoinPlayer extends Component {
     @property(Button) buttonCancel: Button = null;
 
     @property (EditBox) editBoxID: EditBox = null;
-    @property(Button) buttonIDCheck: Button = null;
-
-    @property (EditBox) editBoxNickname: EditBox = null;
-    @property(Button) buttonNicknameCheck: Button = null;
-
+    @property (EditBox) editBoxNickname: EditBox = null;    
     @property (EditBox) editBoxPassword: EditBox = null;
     @property (EditBox) editBoxPasswordConfirm: EditBox = null;
     @property (EditBox) editBoxTransferPassword: EditBox = null;
@@ -24,6 +20,9 @@ export class UiJoinPlayer extends Component {
     @property (EditBox) editBoxHolder: EditBox = null;
     @property (EditBox) editBoxAccount: EditBox = null;
     @property (EditBox) editBoxRecommender: EditBox = null;
+
+    @property(Button) buttonIDCheck: Button = null;
+    @property(Button) buttonNicknameCheck: Button = null;
 
     private main: Main = null;
 
@@ -35,11 +34,61 @@ export class UiJoinPlayer extends Component {
             this.main = main;
         }
 
-        this.buttonJoin.node.on('click', this.onClickJoin.bind(this));
-        this.buttonCancel.node.on('click', this.onClickCancel.bind(this));
+        this.buttonJoin.node.on('click', this.onCLICK_JOIN.bind(this));
+        this.buttonCancel.node.on('click', this.onCLICK_CANCEL.bind(this));
 
-        this.buttonIDCheck.node.on('click', this.onClickIDCheck.bind(this));
-        this.buttonNicknameCheck.node.on('click', this.onClickNicknameCheck.bind(this));
+        this.buttonIDCheck.node.on('click', this.onCLICK_CHECK_ID.bind(this));
+        this.buttonNicknameCheck.node.on('click', this.onCLICK_CHECK_NICKNAME.bind(this));
+
+        this.editBoxID.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxID.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxID.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxID.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxNickname.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxNickname.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxNickname.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxNickname.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxPassword.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxPassword.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxPassword.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxPassword.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxPasswordConfirm.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxPasswordConfirm.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxPasswordConfirm.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxPasswordConfirm.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxTransferPassword.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxTransferPassword.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxTransferPassword.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxTransferPassword.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxPhone.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxPhone.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxPhone.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxPhone.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxBank.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxBank.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxBank.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxBank.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxHolder.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxHolder.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxHolder.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxHolder.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxAccount.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxAccount.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxAccount.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxAccount.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+
+        this.editBoxRecommender.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxRecommender.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
+        this.editBoxRecommender.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxRecommender.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
 
         this.node.active = false;
     }
@@ -68,13 +117,15 @@ export class UiJoinPlayer extends Component {
         this.node.active = true;
     }
 
-    onClickJoin( button: Button ) {
+    onCLICK_JOIN( button: Button ) {
         button.interactable = false;
 
         let isValid = this.validate();
         if ( isValid == true ) {
             LoginSystemPopup.instance.showPopUpYesOrNo('회원가입', '회원가입을 신청 하겠습니까? \n', ()=>{
-                NetworkManager.Instance().reqJoinMember({
+                button.interactable = true;
+
+                NetworkManager.Instance().reqJOIN_MEMBER( {
                     uid: this.editBoxID.string,
                     nickname: this.editBoxNickname.string,                        
                     password: this.editBoxPassword.string,
@@ -84,6 +135,7 @@ export class UiJoinPlayer extends Component {
                     holder: this.editBoxHolder.string,
                     account: this.editBoxAccount.string,
                     recommender: this.editBoxRecommender.string,
+                    store: 1
         
                 }, (res)=>{
                     button.interactable = true;
@@ -125,21 +177,33 @@ export class UiJoinPlayer extends Component {
                     });
                 });
             }, ()=>{
+                button.interactable = true;                
                 LoginSystemPopup.instance.closePopup();
             });
         }
         else {
-            button.interactable = true;            
+            button.interactable = true;
         }
     }
 
-    onClickCancel( button: Button ) {        
+    onCLICK_CANCEL( button: Button ) {        
         this.main.onShowLogin();
     }
 
-    onClickIDCheck( button: Button ) {
+    onCLICK_CHECK_ID( button: Button ) {
         button.interactable = false;
-        NetworkManager.Instance().reqCheckUID( this.editBoxID.string, (res)=>{
+
+        if ( this.validateID() == false ) {
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 형식이 잘못됬습니다.\n숫자, 영어 4~10자', ()=>{
+                this.isCheckID = true;
+                button.interactable = true;                            
+                LoginSystemPopup.instance.closePopup();
+            });
+            return;
+        }
+
+        NetworkManager.Instance().reqCHECK_UID( this.editBoxID.string, (res)=>{
+            button.interactable = true;
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 있는 아이디 입니다.', ()=>{
                     this.isCheckID = true;
@@ -147,14 +211,25 @@ export class UiJoinPlayer extends Component {
                     LoginSystemPopup.instance.closePopup();
                 });
             } else {
-                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 아이디 입니다.', ()=>{
-                    this.editBoxID.string = '';
-                    this.isCheckID = false;
-                    button.interactable = true;
-                    LoginSystemPopup.instance.closePopup();
-                });
+                if ( res.msg == 'DUPLICATE_USERS' || res.msg == 'DUPLICATE_JOIN_USERS') {
+                    LoginSystemPopup.instance.showPopUpOk('회원가입', '중복된 아이디가 있습니다.', ()=>{
+                        this.editBoxID.string = '';
+                        this.isCheckID = false;
+
+                        LoginSystemPopup.instance.closePopup();
+                    });
+                } else {
+                    LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 아이디 입니다.', ()=>{
+                        this.editBoxID.string = '';
+                        this.isCheckID = false;
+
+                        LoginSystemPopup.instance.closePopup();
+                    });
+    
+                }
             }
         }, (err)=>{
+            button.interactable = true;
             LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 확인에 실패했습니다.', ()=>{
                 this.isCheckID = false;
                 button.interactable = true;
@@ -163,9 +238,21 @@ export class UiJoinPlayer extends Component {
         });
     }
 
-    onClickNicknameCheck( button: Button ) {
+    private onCLICK_CHECK_NICKNAME( button: Button ) {
         button.interactable = false;
-        NetworkManager.Instance().reqCheckNickname( this.editBoxNickname.string, (res)=>{
+
+        if ( this.validateNickname() == false ) {
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 형식이 잘못됬습니다.\n숫자, 영어 4~10자', ()=>{
+                this.isCheckID = true;
+                button.interactable = true;                            
+                LoginSystemPopup.instance.closePopup();
+            });
+            return;
+        }        
+
+        NetworkManager.Instance().reqCHECK_NICKNAME( this.editBoxNickname.string, (res)=>{
+            button.interactable = true;
+
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 있는 닉네임 입니다.', ()=>{
                     this.isCheckNickname = true;
@@ -173,20 +260,31 @@ export class UiJoinPlayer extends Component {
                     LoginSystemPopup.instance.closePopup();
                 });
             } else {
-                LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 닉네임 입니다.', ()=>{
-                    this.editBoxNickname.string = '';
-                    this.isCheckNickname = false;
-                    button.interactable = true;
-                    LoginSystemPopup.instance.closePopup();
-                });
+                if ( res.msg == 'DUPLICATE_USERS' || res.msg == 'DUPLICATE_JOIN_USERS') {
+                    LoginSystemPopup.instance.showPopUpOk('회원가입', '중복된 닉네임이 있습니다.', ()=>{
+                        this.editBoxNickname.string = '';
+                        this.isCheckNickname = true;
+
+                        LoginSystemPopup.instance.closePopup();
+                    });
+                } else {
+                    LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 없는 닉네임 입니다.', ()=>{
+                        this.editBoxNickname.string = '';
+                        this.isCheckNickname = false;
+
+                        LoginSystemPopup.instance.closePopup();
+                    });    
+                }
             }
         }, (err)=>{
+            button.interactable = true;
+
             LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 확인에 실패했습니다.', ()=>{
                 this.isCheckNickname = false;
-                button.interactable = true;
                 LoginSystemPopup.instance.closePopup();
             });            
         });
+
     }
 
     validate(): boolean {
@@ -198,13 +296,6 @@ export class UiJoinPlayer extends Component {
             return false;
         }
 
-        // if ( this.isCheckID == false ) {
-        //     LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 중복체크 해주세요.', ()=>{
-        //         LoginSystemPopup.instance.closePopup();
-        //     });
-        //     return false;
-        // }
-
         if ( this.validateNickname() != true ) {
             LoginSystemPopup.instance.showPopUpOk('회원가입', '잘못된 닉네임 형식 입니다. ( 4~10자 영문/숫자/한글만 )', ()=>{
                 this.editBoxNickname.string = '';
@@ -212,14 +303,6 @@ export class UiJoinPlayer extends Component {
             });
             return false;
         }
-
-        // if ( this.isCheckNickname == false ) {
-        //     LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 중복체크 해주세요.', ()=>{
-        //         LoginSystemPopup.instance.closePopup();
-        //     });
-        //     return false;
-        // }
-
 
         if ( this.validatePassword() != true ) {
             LoginSystemPopup.instance.showPopUpOk('회원가입', '잘못된 비밀번호 형식 입니다. ( 4~15자 영문/숫자만 )', ()=>{
@@ -354,10 +437,9 @@ export class UiJoinPlayer extends Component {
     validatePhone(): boolean {
         let l = this.editBoxPhone.string.length;
 
-        if ( l >= 10 &&  l <= 15 ) {
+        if ( l >= 5 ) {
             let regex1 = /^[a-zA-Z0-9]*$/;
             let regex2 = /^\d{2,3}-\d{3,4}-\d{4}$/;
-
             let c1 = regex1.test(this.editBoxPhone.string);
             let c2 = regex2.test(this.editBoxPhone.string);
             
@@ -365,7 +447,7 @@ export class UiJoinPlayer extends Component {
                 return false;
             } 
         } else {
-            return false;
+            return false;            
         }
         return true;
     }
@@ -373,35 +455,37 @@ export class UiJoinPlayer extends Component {
     validateBank(): boolean {
         let l = this.editBoxBank.string.length;
 
-        if ( l < 3 ) {
+        if ( l >= 2 ) {
+            return true;
+        } else {
             return false;
-        } 
-        return true;
+        }
     }
 
     validateHolder(): boolean {
         let l = this.editBoxHolder.string.length;
 
-        if ( l < 1 ) {
-            return false;
+        if ( l >= 2 ) {
+            return true;
         } 
-        return true;
+        return false;
     }
 
     validateAccount(): boolean {
         let l = this.editBoxAccount.string.length;
 
-        if ( l >= 10 &&  l <= 20 ) {
+        if ( l >= 10 ) {
             let regex1 = /^[a-zA-Z0-9]*$/;
             let regex2 = /^\d{2,3}-\d{3,4}-\d{4}$/;
 
             let c1 = regex1.test(this.editBoxAccount.string);
             let c2 = regex2.test(this.editBoxAccount.string);
-            
+
             if ( c1 != true && c2 != true) {
                 return false;
-            } 
-        } else {
+            }             
+        }
+        else {
             return false;
         }
         return true;
@@ -422,6 +506,33 @@ export class UiJoinPlayer extends Component {
             return false;
         }
         return true;
+    }
+
+
+    private onEDITBOX_DID_BEGAN( editbox ) {
+        editbox.string = '';
+        console.log('onEDITBOX_DID_BEGAN');
+    }    
+
+    private onEDITBOX_RETURN( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+    }
+
+    private onEDITBOX_DID_ENDED( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+    }
+
+    private onEDITBOX_TEXT_CHANGED( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
     }
 }
 

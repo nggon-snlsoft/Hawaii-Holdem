@@ -7,6 +7,7 @@ import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
 import { resolve } from 'path';
 import { rejects } from 'assert';
+import { use } from 'passport';
 
 const requestIp = require('request-ip');
 
@@ -29,13 +30,15 @@ export class UserController {
 
     private initRouter() {
         this.router.post( '/login', this.login.bind(this));
-        this.router.post( '/join', this.join.bind(this));
-        this.router.post( '/checkUID', this.checkUID.bind(this));
-        this.router.post( '/checkNickname', this.checkNickname.bind(this));
+        this.router.post( '/join', this.reqJOIN.bind(this));
+
+        this.router.post( '/check/uid', this.checkUSER_ID.bind(this));
+        this.router.post( '/check/nickname', this.checkUSER_NICKNAME.bind(this));
+
         this.router.post( '/getInitialData', this.getInitialData.bind(this));
         this.router.post( '/updateAvatar', this.updateAvatar.bind(this));
 
-        this.router.post( '/getUserInfo', this.getUserInfo.bind(this));        
+        this.router.post( '/getUserInfo', this.getUserInfo.bind(this));
         this.router.post( '/getSetting', this.getSetting.bind(this));
         this.router.post( '/updateSetting', this.updateSetting.bind(this));
 
@@ -227,7 +230,7 @@ export class UserController {
         });
     }    
 
-    public async join( req: any, res: any) {
+    public async reqJOIN( req: any, res: any) {
         let user = req.body.user;
         if ( user.uid == null || user.uid.length < 1 ) {
             res.status( 200 ).json({
@@ -248,40 +251,103 @@ export class UserController {
         }
 
         let uid: string = user.uid;
-        let nickname: string = user.nickname;
+        let nickname: string = user.nickname;        
+        let data: any = null;
 
-        let data: any = await this.getUserByUID( req.app.get('DAO'), uid );
-        if (data != undefined) {
+        try {
+            data = await this.getUserByUID( req.app.get('DAO'), uid );
+            if ( data != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_UID'
+                });
+                return;                
+            }
+        } catch (error) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'DUPLICATE_UID'
+                msg: 'ERROR_GET_USER'
             });
-            return;
+            return;            
         }
 
-        data = await this.getUserByNickname( req.app.get('DAO'), nickname );
-        if (data != undefined) {
+        data = null;
+        try {
+            data = await this.getJoinUserByUID( req.app.get('DAO'), uid );
+            if ( data != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_JOIN_UID'
+                });
+                return;                
+            }
+        } catch (error) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'DUPLICATE_NICKNAME'
+                msg: 'ERROR_GET_JOIN_USER'
             });
-            return;
+            return;            
         }
 
-        let result: any = await this.createNewUserAccount( req.app.get('DAO'), user );
+        data = null;
+        try {
+            data = await this.getUserByNickname( req.app.get('DAO'), nickname );
+            if ( data != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_NICKNAME'
+                });
+                return;                
+            }
+        } catch (error) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'ERROR_GET_USER'
+            });
+            return;            
+        }
 
-        if ( result == undefined ) {
+        data = null;
+        try {
+            data = await this.getJoinUserByNickname( req.app.get('DAO'), nickname );
+            if ( data != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_NICKNAME'
+                });
+                return;                
+            }
+        } catch (error) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'ERROR_GET_JOIN_USER'
+            });
+            return;            
+        }
+
+        let result: any = null;
+        try {
+            result = await this.joinMember( req.app.get('DAO'), user );
+            if ( result != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.SUCCESS,
+                    msg: 'SUCCESS'
+                });        
+            } else {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DB_ERROR'
+                });
+                return;    
+            }
+            
+        } catch (error) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'DB_ERROR'
             });
             return;
         }
-
-        res.status( 200 ).json({
-            code: ENUM_RESULT_CODE.SUCCESS,
-            msg: 'SUCCESS'
-        });
     }
 
     public async checkUID( req: any, res: any) {
@@ -309,29 +375,116 @@ export class UserController {
         });
     }
 
-    public async checkNickname( req: any, res: any) {
+    public async checkUSER_ID( req: any, res: any) {
+        let uid = req.body.uid;
+        if ( uid == null || uid.length < 1 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let user: any = null;
+        try {
+            user = await this.getUserByUID( req.app.get('DAO'), uid );            
+            if ( user != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_USERS'
+                });
+                return;
+            }
+
+        } catch( error )
+        {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        let join: any = null;
+        try {
+            join = await this.getJoinUserByUID( req.app.get('DAO'), uid );            
+            if ( join != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_JOIN_USERS'
+                });
+                return;
+            }
+
+        } catch( error )
+        {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }        
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS'
+        });
+        return;
+    }
+    
+    public async checkUSER_NICKNAME( req: any, res: any) {
         let nickname = req.body.nickname;
         if ( nickname == null || nickname.length < 1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_NICKNAME'
+                msg: 'INVALID_UID'
             });
             return;
         }
 
-        let data: any = await this.getUserByNickname( req.app.get('DAO'), nickname );
-        if (data == undefined) {
+        let user: any = null;
+        try {
+            user = await this.getUserByNickname( req.app.get('DAO'), nickname );            
+            if ( user != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_USERS'
+                });
+                return;
+            }
+
+        } catch( error ) {
             res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.SUCCESS,
-                msg: 'SUCCESS'
-            });
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
             return;
         }
+
+        let join: any = null;
+        try {
+            join = await this.getJoinUserByNickname( req.app.get('DAO'), nickname );            
+            if ( join != null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'DUPLICATE_JOIN_USERS'
+                });
+                return;
+            }
+
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }        
 
         res.status( 200 ).json({
-            code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-            msg: 'DUPLICATE'
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS'
         });
+        return;
     }
 
     public async updateAvatar( req: any, res: any ) {
@@ -528,6 +681,36 @@ export class UserController {
         });
     }
 
+    private async getJoinUserByUID( dao: any, uid: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.selectJoinUserByUID ( uid, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res[0]);
+                }
+            });
+        });
+    }
+    
+    private async getJoinUserByNickname( dao: any, nickname: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.selectJoinUserByNickname ( nickname, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res[0]);
+                }
+            });
+        });
+    }        
+
     private async getUserByNickname( dao: any, nickname: string ) {
         return new Promise( (resolve, reject )=>{
             dao.selectAccountByNickname ( nickname, function(err: any, res: any ) {
@@ -588,6 +771,21 @@ export class UserController {
             });
         });
     }
+
+    private async joinMember( dao: any, user: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.insertJoinMember ( user, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });        
+    }    
 
     private async createNewUserAccount( dao: any, user: any ) {
         return new Promise( (resolve, reject )=>{

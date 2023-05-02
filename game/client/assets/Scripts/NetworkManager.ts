@@ -611,72 +611,122 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async reqJoinMember( user: any, onSuccess:(user: any)=>void, onFail:(err: any)=>void) {
+	public async reqJOIN_MEMBER( user: any, onSUCCESS:(user: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/join", {
-			user: user,
-		}).then(( res: string ) => {
-			result = res;
-		}).catch( function( err: any ) {
-			if ( err.length == 0 ) {
-				return error = 'NETWORK_ERROR'
+		try {
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/join", {
+				user: user,
+			}).then(( res: string ) => {
+				result = res;
+			}).catch( function( err: any ) {
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR'
+				}	
+				err = JSON.parse( err );
+				error = err.msg;
+			});
+				
+		} catch (error) {
+			if ( error != null ) {
+				return onFAIL(error);
 			}
+			return onFAIL(error);						
+		}
 
-			err = JSON.parse( err );
-			error = err.msg;
-		});
 
 		if ( error !== null ) {
-			return onFail(error);
+			return onFAIL(error);
 		}
 
 		if ( result == null ) {
-			return onFail('CREATE_USER_ERROR');
+			return onFAIL('CREATE_USER_ERROR');
 		}
 
 		let obj: any = JSON.parse( result );
 		if ( obj == null ) {
-			return onFail('JSON_PARSE_ERROR');
+			return onFAIL('JSON_PARSE_ERROR');
 		}
 
-		onSuccess(obj);
+		onSUCCESS(obj);
 	}
 
-	public async reqCheckUID( uid: string, onSuccess:(res: any)=>void, onFail:(err: any)=>void) {
+	public async reqCHECK_UID( uid: string, onSUCCESS:( res: any )=>void, onFAIL:( err: any )=>void ) {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post(HOLDEM_SERVER_TYPE.API_SERVER, '/users/checkUID', {
-			uid: uid,
-		}).then(( res: string ) => {
-			result = res;
+		try {
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/uid', { uid: uid }
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
 
-		}).catch( function( err: any ) {
-			if ( err.length == 0 ) {
-				return error = 'NETWORK_ERROR'
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
 			}
-
-			err = JSON.parse( err );
-			error = err.msg;
-		});
-
-		if ( error !== null ) {
-			return onFail(error);
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
 		}
-
-		if ( result == null ) {
-			return onFail('CHECK_USER_ERROR');
-		}
-
-		let obj: any = JSON.parse( result );
-		if ( obj == null ) {
-			return onFail('JSON_PARSE_ERROR');
-		}
-
-		onSuccess(obj);
 	}
+
+	public async reqCHECK_NICKNAME( nickname: string, onSUCCESS:( res: any )=>void, onFAIL:( err: any )=>void ) {
+		let result: string = null;
+		let error: string = null;
+
+		try {
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/nickname', { nickname: nickname }
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
+
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
+			}
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
+		}
+	}	
 	
 	public async reqCheckNickname( nickname: string, onSuccess:(res: any)=>void, onFail:(err: any)=>void) {
 		let result: string = null;

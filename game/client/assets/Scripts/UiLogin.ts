@@ -345,6 +345,10 @@ export class UiLogin extends Component {
         editbox.string = editbox.string.trim();
     }
 
+    private onPASSWORD_EDITBOX_DID_BEGAN( editbox, customEventData ) {
+        editbox.string = '';
+    }    
+
     private onPASSWORD_EDITBOX_RETURN( editbox, customEventData ) {
         if ( editbox.string.length == 0 ) {
             return;
@@ -356,10 +360,6 @@ export class UiLogin extends Component {
             this.onLogin();
         }
 
-    }
-
-    private onPASSWORD_EDITBOX_DID_BEGAN( editbox, customEventData ) {
-        editbox.string = '';
     }
 
     private onPASSWORD_EDITBOX_DID_ENDED( editbox, customEventData ) {
