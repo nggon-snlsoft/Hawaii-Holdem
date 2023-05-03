@@ -233,7 +233,6 @@ export class UiTable extends Component {
 		let entitiesRoot6 = this.node.getChildByPath( `ENTITIES_6` );
 
 		let entitiesRootPath = `ENTITIES_${ this.seatMax }`;
-		console.log(entitiesRootPath);
 
 		if( entitiesRoot9.name === entitiesRootPath ) {
 			entitiesRoot9.active = true;
@@ -818,7 +817,6 @@ export class UiTable extends Component {
 
     public onJOIN( room, msg) {
 		console.log('onJOIN');
-		console.log( msg );
 
 		Board.big = msg["big"];
 		Board.small = msg["small"];
@@ -1162,7 +1160,6 @@ export class UiTable extends Component {
 
     private onYOUR_TURN( msg ) {
 		console.log('onYOUR_TURN');
-		console.log(msg);
 
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
@@ -1291,7 +1288,6 @@ export class UiTable extends Component {
 			};
 
 			this.uiPlayerAction.cbFold = () => {
-				console.log('this.uiPlayerAction.cbFold = () => {');
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
 
 				let obj = {
@@ -1325,7 +1321,6 @@ export class UiTable extends Component {
 
     private onBLIND_BET( msg ) {
 		console.log('onBLIND_BET');
-		console.log( msg );
 
 		this.roundState = "BLIND_BET";
 
@@ -1356,12 +1351,10 @@ export class UiTable extends Component {
 				uiEntity.SetBetValue( PLAYERS[i].totalBet );
 
 				if ( PLAYERS[i].seat == sb.seat ) {
-					console.log('sb');
 					uiEntity.SetBlindBet( PLAYERS[i].chips, true, false);
 				}
 
 				if ( PLAYERS[i].seat == bb.seat ) {
-					console.log('bb');					
 					uiEntity.SetBlindBet( PLAYERS[i].chips, false, true )
 				}
 
@@ -1416,8 +1409,6 @@ export class UiTable extends Component {
 
 		this.curPotValue = msg[ "pot" ];
 		this.uiPot.UpdatePotTotal(this.curPotValue);
-		// this.uiPotChips.show( this.curPotValue );
-		// this.uiRoundPotValue.show( this.curPotValue );
 		this.uiPotChips.show( 0 );
 		this.uiRoundPotValue.show( 0 );
 
@@ -1426,7 +1417,6 @@ export class UiTable extends Component {
 
     private onSUSPEND_ROUND( msg ) {
 		console.log('onSUSPEND_ROUND');
-		console.log( msg );
 		clearInterval(this.readyMessageHandler);
 
 		this.roundState = "SUSPEND_ROUND";
@@ -1491,7 +1481,6 @@ export class UiTable extends Component {
 
     private onPREPARE_ROUND( msg ) {
 		console.log('onPREPARE_ROUND');
-		console.log( msg );
 		this.roundState = "PREPARE_ROUND";
 
 		this.nodeCardShuffleMessage.active = false;
@@ -1882,8 +1871,6 @@ export class UiTable extends Component {
 				if( seat == this.mySeat ) {
 					this.myChips = entity.chips;
 					this.isSitout = entity.isSitOut;
-
-					console.log('this.isSitout: ' + this.isSitout );
 				}	
 			} else {
 				uiEntity.SetEscape();
@@ -2063,7 +2050,6 @@ export class UiTable extends Component {
 		let seat = msg[ "seat" ];
 		let sound = Number.parseInt( msg['sound'] );
 		let chips = Number.parseInt( msg[ "chips" ] );
-		console.log('onBet sound: ' + sound );
 
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
@@ -2230,7 +2216,6 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
-		console.log(msg);
 
 		this.msgWINNERS = msg;
 		this.uiPlayerActionReservation.reset();
@@ -2287,7 +2272,6 @@ export class UiTable extends Component {
 								this.uiRoundPotValue.show( potValue );
 
 								this.scheduleOnce(()=>{
-									console.log('this.ResultSkipAnimation');
 									this.ResultSkipAnimation( entities, this.msgWINNERS["dpPot"] );
 								}, 1.0 );
 							}
@@ -2993,7 +2977,6 @@ export class UiTable extends Component {
 	}
 
 	private CloseProfile( seat: number ) {
-		console.log('CloseProfile')
 	}
 }
 

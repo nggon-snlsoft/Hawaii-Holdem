@@ -32,47 +32,6 @@ export class UiLogin extends Component {
 
         this.RegistEditboxEvent();
 
-        // input.on( Input.EventType.KEY_DOWN, (event: EventKeyboard )=>{
-        //     switch ( event.keyCode ) {
-        //         case KeyCode.TAB:
-        //             console.log('TAB!!');
-        //             if ( this.editBoxUID.isFocused() == true ) {
-        //                 this.editBoxPassword.setFocus();
-        //             }
-        //             break;
-        //     }
-        // }, this );
-
-
-
-        // this.editBoxUID.node.on('editing-did-began', ( editbox, customEventData )=>{
-        //     editbox.string = '';
-        // }, this);
-
-        // this.editBoxUID.node.on('editing-did-end', ( editbox, customEventData )=>{
-        //     this.editBoxPassword.setFocus();            
-        //     editbox.string = '';
-        // }, this);        
-
-        // this.editBoxUID.node.on('editing-return', ( editbox, customEventData )=>{
-        //     this.editBoxPassword.setFocus();
-        // }, this);
-
-
-        // this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
-        //     editbox.string = '';
-
-        // }, this);
-
-        // this.editBoxPassword.node.on('editing-did-began', ( editbox, customEventData )=>{
-        //     this.onLogin();
-
-        // }, this);
-
-        // this.editBoxPassword.node.on('editing-return', ( editbox, customEventData )=>{
-        //     this.onLogin();
-        // }, this);
-
         this.spriteEventBlocker.node.active = false;
 
         this.buttonLogin.node.on( "click", this.onClickLogin.bind( this ), this );
@@ -89,47 +48,6 @@ export class UiLogin extends Component {
     }
 
     RegistEditboxEvent() {
-		// const uidEditBoxReturn = new EventHandler();
-		// uidEditBoxReturn.target = this.node;
-		// uidEditBoxReturn.component = "UiLogin";
-		// uidEditBoxReturn.handler = "onUIDEditboxReturn";
-		// uidEditBoxReturn.customEventData = "???";
-		// this.editBoxUID.editingReturn.push( uidEditBoxReturn );
-
-		// const uidEditBoxChanged = new EventHandler();
-		// uidEditBoxChanged.target = this.node;
-		// uidEditBoxChanged.component = "UiLogin";
-		// uidEditBoxChanged.handler = "onUIDEditboxChanged";
-		// uidEditBoxChanged.customEventData = "???";
-		// this.editBoxUID?.textChanged.push( uidEditBoxChanged );
-
-		// const uidEditBoxDidBegan = new EventHandler();
-		// uidEditBoxDidBegan.target = this.node;
-		// uidEditBoxDidBegan.component = "UiLogin";
-		// uidEditBoxDidBegan.handler = "onUIDEditboxDidBegan";
-		// uidEditBoxDidBegan.customEventData = "???";
-		// this.editBoxUID.editingDidBegan.push( uidEditBoxDidBegan );
-
-		// const passwordEditBoxReturn = new EventHandler();
-		// passwordEditBoxReturn.target = this.node;
-		// passwordEditBoxReturn.component = "UiLogin";
-		// passwordEditBoxReturn.handler = "onPasswordEditboxReturn";
-		// passwordEditBoxReturn.customEventData = "???";
-		// this.editBoxPassword.editingReturn.push( passwordEditBoxReturn );
-
-		// const passwordEditBoxChanged = new EventHandler();
-		// passwordEditBoxChanged.target = this.node;
-		// passwordEditBoxChanged.component = "UiLogin";
-		// passwordEditBoxChanged.handler = "onPasswordEditboxChanged";
-		// passwordEditBoxChanged.customEventData = "???";
-		// this.editBoxPassword?.textChanged.push( passwordEditBoxChanged );
-
-		// const passwordEditBoxDidBegan = new EventHandler();
-		// passwordEditBoxDidBegan.target = this.node;
-		// passwordEditBoxDidBegan.component = "UiLogin";
-		// passwordEditBoxDidBegan.handler = "onPasswordEditboxDidBegan";
-		// passwordEditBoxDidBegan.customEventData = "???";
-		// this.editBoxPassword.editingDidBegan.push( passwordEditBoxDidBegan );
 
         this.editBoxUID.node.on('editing-did-began', this.onUID_EDITBOX_DID_BEGAN.bind(this), this);
         this.editBoxUID.node.on('editing-return', this.onUID_EDITBOX_RETURN.bind(this), this);
@@ -159,7 +77,6 @@ export class UiLogin extends Component {
     }
 
     onUIDEditboxDidBegan() {
-        console.log('onUIDEditboxDidBegan');
         this.editBoxUID.string = '';
     }
 

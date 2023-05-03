@@ -208,7 +208,6 @@ export class UiEntity extends Component {
     }
 
     onClickAvatar( button: Button ) {
-        console.log('onClickAvatar');
         if ( this.cbProfileOpen != null ) {
             this.cbProfileOpen( this.id, this.seat );
         }

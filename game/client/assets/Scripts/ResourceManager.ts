@@ -129,7 +129,6 @@ export class ResourceManager extends Component {
 		this.preloadCardsResource = {};
 
 		let type = NetworkManager.Instance().getUserSetting().card;
-		console.log('type:' + type);
 		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
 			const url = 'Cards/'+'type' + type.toString() + '/' + i.toString() + '/spriteFrame';
 

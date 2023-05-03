@@ -255,6 +255,27 @@ dao.updateAvatar = function ( id: any, avatar: any, cb: any ) {
 	});    
 }
 
+dao.updateTransferPoint = function ( data: any, cb: any ) {
+	let id = data.id;
+	let balance = data.balance;
+	let point = data.point;
+
+	let sql = "UPDATE USERS SET BALANCE = ?, POINT = ? WHERE ID = ? ";
+	let args = [ balance, point, id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, 0);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
+			}
+		}
+	});    
+}
+
 dao.selectTables = function ( cb: any ) {
     let alive = 1;
 	let sql = 'SELECT * FROM TABLES WHERE ALIVE = ?';
@@ -402,6 +423,80 @@ dao.UpdateUserBalance = function ( data: any, cb: any ) {
 			}
 		}
 	});    
+}
+
+dao.insertPointTransfer = ( data: any, cb: any )=> {
+	let id = data.id;
+	let oldPoint = data.oldPoint;
+	let newPoint = data.newPoint;
+	let point = data.point;
+	let oldBalance = data.oldBalance;
+	let newBalance = data.newBalance;
+
+	let sql = 'INSERT INTO POINT_TRANSFERS ( userId, oldPoint, newPoint, point, oldBalance, newBalance ) VALUES ( ?, ?, ?, ?, ?, ? )';
+	// let sql = 'INSERT INTO CHARGES ( userId, uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ id, oldPoint, newPoint, point, oldBalance, newBalance];
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			cb(err, null);
+			return;
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				console.log('res.affectedRows > 0');
+				sql = 'SELECT * FROM POINT_TRANSFERS WHERE USERID = ? ORDER BY createDate DESC';
+				args = [ id ];
+
+				_client.query( sql, args, function ( err: any, logs: any ) {
+					if ( !!err ) {
+						cb( err, null );
+					} else {
+						cb(null, logs );
+					}
+				});
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+}
+
+dao.selectPointTransferLog = ( id: any, cb: any )=> {
+	let sql = 'SELECT * FROM POINT_TRANSFERS WHERE USERID = ? ORDER BY createDate DESC';
+	let args = [ id ];	
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			cb(err, null);
+			return;
+		} else {
+			console.log( res );
+			if ( res != null ) {
+				cb(null, res );
+			} else {
+				cb(null, null );
+			}
+		}
+	});
+}
+
+dao.selectPointReceiveLog = ( id: any, cb: any )=> {
+	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USERID = ? ORDER BY createDate DESC';
+	let args = [ id ];	
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			cb(err, null);
+			return;
+		} else {
+			console.log( res );
+			if ( res != null ) {
+				cb(null, res );
+			} else {
+				cb(null, null );
+			}
+		}
+	});
 }
 
 export default dao;

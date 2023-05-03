@@ -35,6 +35,10 @@ export class UserController {
         this.router.post( '/check/uid', this.checkUSER_ID.bind(this));
         this.router.post( '/check/nickname', this.checkUSER_NICKNAME.bind(this));
 
+        this.router.post( '/point/transfer', this.transferPOINT.bind(this));
+        this.router.post( '/point/transferLog', this.getPOINT_TRANSFER_LOG.bind(this));
+        this.router.post( '/point/receiveLog', this.getPOINT_RECEIVE_LOG.bind(this));        
+
         this.router.post( '/getInitialData', this.getInitialData.bind(this));
         this.router.post( '/updateAvatar', this.updateAvatar.bind(this));
 
@@ -487,6 +491,211 @@ export class UserController {
         return;
     }
 
+    public async transferPOINT( req: any, res: any) {
+        let userId = req.body.id;
+        let value = req.body.value;
+        let desc = req.body.desc;
+        if ( desc == null ) {
+            desc = "";
+        }
+
+        if ( userId == null || value == null || value <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let user: any = null;
+        try {
+            user = await this.getUserByID( req.app.get('DAO'), userId );            
+            if ( user != null ) {
+                if ( user.point < value ) {
+                    res.status( 200 ).json({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'NOT_ENOUGH_POINT'
+                    });
+                }
+            } else {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+                return;        
+            }
+
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        let point = user.point;
+        let balance = user.balance;
+        let remainPoint = point - value;
+        let newBalance = user.balance + value;
+
+        if ( remainPoint < 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        try {
+            let affected = await this.updatePointTransfer( req.app.get('DAO'), {
+                id: user.id,
+                point: remainPoint,
+                balance: newBalance,
+            } );
+
+            if ( Number( affected ) < 1 ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+            }
+
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        user = null;
+        try {
+            user = await this.getUserByID( req.app.get('DAO'), userId );
+
+            if ( user == null ) {
+                // res.status( 200 ).json({
+                //     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                //     msg: 'NOT_ENOUGH_POINT'
+                // });
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        let logs: any = null;
+        try {
+            logs = await this.insertPointTransferLog( req.app.get('DAO'), {
+                id: user.id,
+                oldPoint: point,
+                newPoint: user.point,
+                point: value,
+                oldBalance: balance,
+                newBalance: user.balance,
+                desc: desc,
+            } );
+
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        let _user = ClientUserData.getClientUserData(user);
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            user: user,
+            logs: logs
+
+        });
+        return;
+    }
+    
+    public async getPOINT_TRANSFER_LOG( req: any, res: any) {
+        let id = req.body.id;
+        console.log('getPOINT_TRANSFER_LOG id: ' + id);
+
+        if ( id == null || id < 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let logs: any = null;
+        try {
+            logs = await this.getTransferLog( req.app.get('DAO'), id );
+            if ( logs == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });                
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            logs: logs
+
+        });
+
+        return;
+    }
+    
+    public async getPOINT_RECEIVE_LOG( req: any, res: any) {
+        let id = req.body.id;
+
+        if ( id == null || id < 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let logs: any = null;
+        try {
+            logs = await this.getPointReceiveLog( req.app.get('DAO'), id );
+            if ( logs == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });                
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            logs: logs
+
+        });
+
+        return;
+    }        
+
+
     public async updateAvatar( req: any, res: any ) {
         let id = req.body.id;
         let avatar = req.body.avatar;
@@ -666,6 +875,36 @@ export class UserController {
         });
     }
 
+    private async getTransferLog( dao: any, id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.selectPointTransferLog ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async getPointReceiveLog( dao: any, id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.selectPointReceiveLog ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
     private async getUserByUID( dao: any, uid: string ) {
         return new Promise( (resolve, reject )=>{
             dao.selectAccountByUID ( uid, function(err: any, res: any ) {
@@ -787,21 +1026,6 @@ export class UserController {
         });        
     }    
 
-    private async createNewUserAccount( dao: any, user: any ) {
-        return new Promise( (resolve, reject )=>{
-            dao.insertAccountForPending ( user, function(err: any, res: any ) {
-                if ( !!err ) {
-                    reject({
-                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                        msg: 'BAD_ACCESS_TOKEN'
-                    });
-                } else {
-                    resolve ( res );
-                }
-            });
-        });        
-    }
-
     private async createUserSetting( dao: any, id: any ) {
         return new Promise ( (resolve, reject ) =>{
             dao.insertInitialSetting( id, function( err: any, res: any ) {
@@ -829,7 +1053,6 @@ export class UserController {
                 } else {
                     resolve ( res );
                 }
-
             });
         });
     }    
@@ -848,6 +1071,39 @@ export class UserController {
             });
         });
     }
+
+    private async updatePointTransfer( dao: any, data: any ) {
+        return new Promise ( (resolve, reject ) =>{
+            dao.updateTransferPoint( data, function( err: any, res: any ) {
+                if (!!err ) {
+                    reject( {
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+    
+    private async insertPointTransferLog( dao: any, data: any ) {
+        return new Promise ( (resolve, reject ) =>{
+            dao.insertPointTransfer( data, function( err: any, res: any ) {
+                if (!!err ) {
+                    console.log(err);
+                    reject( {
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
+
+
 }
 
 export default UserController;

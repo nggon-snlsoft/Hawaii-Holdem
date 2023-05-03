@@ -38,13 +38,6 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadTable() {
-        // if ( ResourceManager.Instance().getTablePreloadState() == true ) {
-        //     console.log('loadTable complete');            
-        //     this.progressBar.progress = 0.1;
-        //     this.loadBackground();
-        //     return;
-        // }
-
         ResourceManager.Instance().loadTables( ()=>{
             this.progressBar.progress = 0.1;
             this.loadBackground();
@@ -52,13 +45,6 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadBackground() {
-        // if ( ResourceManager.Instance().getBackgroundPreloadState() == true ) {
-        //     console.log('loadBackground complete');            
-        //     this.progressBar.progress = 0.2;
-        //     this.loadSounds();
-        //     return;
-        // }
-
         ResourceManager.Instance().loadBackground( ()=>{
             this.progressBar.progress = 0.2;
 

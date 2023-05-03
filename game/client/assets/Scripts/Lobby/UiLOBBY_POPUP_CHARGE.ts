@@ -138,8 +138,6 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         let amount = Number( this.editboxChargeAmount.string );
         let desc = CommonUtil.getKoreanNumber(amount);
         NetworkManager.Instance().reqCHARGE_REQUEST( amount, (res)=>{
-            console.log( 'RequestCharge' );            
-            console.log( res );
             LobbySystemPopup.instance.showPopUpOk('충전 신청', desc + ' 충전 신청 했습니다.', ()=>{
                 if ( this.cbEXIT != null ) {
                     this.cbEXIT();

@@ -25,7 +25,6 @@ export class LobbyAudioContoller extends Component {
     }
 
     PlayButtonClick() {
-        console.log('playButtonClick');
         this.audioSource.playOneShot( this.clipButtonClick );        
     }
 }

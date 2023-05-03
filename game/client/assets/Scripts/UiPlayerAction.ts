@@ -360,10 +360,6 @@ export class UiPlayerAction extends Component {
 				this.halfValue = half + this.callValue;
 				this.fullValue = full + this.callValue;
 
-				console.log( 'this.maxChips' + this.maxChips )
-
-				// this.maxValue = Math.min( max + this.callValue, this.maxChips );
-
 				this.maxValue = this.maxChips;
 
 				if ( this.isBet == true ) {
@@ -383,7 +379,6 @@ export class UiPlayerAction extends Component {
 				this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
 
 				let m = this.maxValue - this.myBet;
-				console.log('let m = this.maxValue - this.myBet: ' + m.toString() );
 				if ( this.quaterValue > m ) {
 					this.labelQuaterValue.node.active = false;
 					this.buttonQuater.node.active = false;
@@ -440,7 +435,6 @@ export class UiPlayerAction extends Component {
 			}
 
 			if ( isLast == true ) {
-				console.log('isLast == true');
 
 				if (this.buttonCall.node.active == true) {
 					this.buttonAllIn.node.active = false;
@@ -458,7 +452,6 @@ export class UiPlayerAction extends Component {
 			}
 	
 			if ( hasAction == false ) {
-				console.log('hasAction == false');				
 
 				if ( this.buttonCall.node.active == true ) {
 					this.buttonAllIn.node.active = false;
@@ -588,7 +581,6 @@ export class UiPlayerAction extends Component {
 
 	private onClickMax( button: Button ) {
 		let value = this.maxValue;// + this.myBet;
-		console.log( 'onClickMax: ' + value );
 		if ( this.isBet == true ) {
 			this.cbBet( value, ENUM_BET_SOUND.BET_MAX );
 
@@ -596,7 +588,6 @@ export class UiPlayerAction extends Component {
 			this.cbRaise( value, ENUM_BET_SOUND.BET_MAX );
 		}
 
-		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');				
-		// this.cbBetAnnounce( ENUM_BETTING_KIND.MAX );
+		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
 	}
 }

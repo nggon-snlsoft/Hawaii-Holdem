@@ -13,6 +13,7 @@ export class ClientUserData{
 			grade: dbUserData.grade,
             balance: dbUserData.balance,
             chip: dbUserData.chip,
+			point: dbUserData.point,
 			roomID: dbUserData.roomID,
 			rake: dbUserData.rake,
 			store: dbUserData.store,

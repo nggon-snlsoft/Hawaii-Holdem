@@ -508,7 +508,6 @@ export class UiJoinPlayer extends Component {
         return true;
     }
 
-
     private onEDITBOX_DID_BEGAN( editbox ) {
         editbox.string = '';
         console.log('onEDITBOX_DID_BEGAN');

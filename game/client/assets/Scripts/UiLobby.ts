@@ -93,7 +93,6 @@ export class UiLobby extends Component {
     }
 
     private onClickExit( button: Button ) {
-        console.log('onClickExit');
         LobbyAudioContoller.instance.PlayButtonClick();
 
         LobbySystemPopup.instance.showPopUpYesOrNo('로그아웃', '로그아웃 하시겠습니까?', ()=>{

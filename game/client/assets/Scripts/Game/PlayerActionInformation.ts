@@ -26,7 +26,6 @@ export class PlayerActionInformation extends Component {
     }
 
     public Set(minBet: number, info: any ) {
-        console.log(info);
 
         this.labelMinBet.string = 'minBet: ' + minBet.toString() + ', ';
         this.labelCurBet.string = 'currBet: ' + info.currBet.toString() + ', ';
@@ -34,32 +33,6 @@ export class PlayerActionInformation extends Component {
         this.labelMaxBet.string = 'maxBet: ' + info.maxBet.toString() + ', ';
         this.labelMaxChips.string = 'maxChip: ' + info.maxChip.toString() + ', ';
         this.labelMinRaise.string = 'minRaise: ' + info.minRaise.toString() + ', ';
-
-        // currBet: currPlayer.currBet,
-        // chips: currPlayer.chips,
-        // maxBet: this.state.maxBet,
-        // minRaise: this.state.minRaise,
-        // currPot: this.state.pot,
-        // maxChip: maxChip,
-
-
-        // betMin: this.betMin,
-        // curBet: curBet,
-        // myBet: myBet,
-        // minRaise: minRaise,
-        // chips: chips,
-        // curPot: curPot,
-        // maxChip: maxChip,
-        
-        // this.labelMinBet.string = 'minBet: ' + info.betMin.toString();            
-        // this.labelCurBet.string = 'curBet: ' + info.curBet.toString();
-
-        // this.labelPlayerChips.string = 'chips: ' + info.chips.toString();
-        // this.labelMaxChips.string = 'maxChips: ' + info.maxChip.toString();
-        // this.labelMaxBet.string = 'maxBet: ' + info.betMin.toString();
-        // this.labelMinRaise.string = 'minRaise: ' + info.minRaise.toString();
-        // this.labelCurrentPot.string = 'currentPot: ' + info.curPot.toString();
-        // this.labelCurrentBet.string = 'currentBet: ' + info.curBet.toString();
     }
 
 
