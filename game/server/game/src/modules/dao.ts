@@ -352,14 +352,7 @@ dao.UpdateHandsCount = ( id: any, cb: any )=> {
 }
 
 dao.UpdateFoldCount = ( id: any, state: any, cb: any ) => {
-	// export enum eCommunityCardStep {
-	// 	PREPARE,
-	// 	PRE_FLOP,
-	// 	FLOP,
-	// 	TURN,
-	// 	RIVER,
-	// 	RESULT
-	// }
+
 	let query: string = '';
 	switch ( state ) {
 		case eCommunityCardStep.PRE_FLOP:

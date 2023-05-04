@@ -56,7 +56,6 @@ export class UiLobbyLoading extends Component {
 
     private loadSounds() {
         if ( ResourceManager.Instance().getSoundsPreloadState() == true ) {
-            console.log('loadSounds complete');
             this.progressBar.progress = 0.4;
             this.loadCards();
             return;
@@ -72,12 +71,6 @@ export class UiLobbyLoading extends Component {
     }
 
     private loadCards() {
-        // if ( ResourceManager.Instance().getCardPreloadState() == true ) {
-        //     console.log('loadCards complete');
-        //     this.progressBar.progress = 0.6;
-        //     this.loadChips();
-        //     return;
-        // }
 
         ResourceManager.Instance().loadCards(( progress: number )=>{
             this.progressBar.progress = 0.4 + (progress * 0.2) ;
@@ -90,7 +83,7 @@ export class UiLobbyLoading extends Component {
 
     private loadChips() {
         if ( ResourceManager.Instance().getChipPreloadState() == true ) {
-            console.log('loadChips complete');            
+
             this.progressBar.progress = 0.8;
             this.launch();
             return;

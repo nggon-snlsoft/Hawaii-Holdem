@@ -1,13 +1,10 @@
 import express from 'express';
 import { sqlProxy } from '../modules/sqlProxy';
-// import passport, { deserializeUser } from 'passport';
-// import passportLocal from 'passport-local';
 import { ENUM_RESULT_CODE } from '../main';
 import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
 import { resolve } from 'path';
 import { rejects } from 'assert';
-import { use } from 'passport';
 
 const requestIp = require('request-ip');
 
@@ -29,24 +26,24 @@ export class UserController {
     }
 
     private initRouter() {
-        this.router.post( '/login', this.login.bind(this));
+        this.router.post( '/login', this.reqLOGIN.bind(this));
         this.router.post( '/join', this.reqJOIN.bind(this));
 
-        this.router.post( '/check/uid', this.checkUSER_ID.bind(this));
+        this.router.post( '/check/login_id', this.checkLOGIN_ID.bind(this));
         this.router.post( '/check/nickname', this.checkUSER_NICKNAME.bind(this));
 
         this.router.post( '/point/transfer', this.transferPOINT.bind(this));
         this.router.post( '/point/transferLog', this.getPOINT_TRANSFER_LOG.bind(this));
         this.router.post( '/point/receiveLog', this.getPOINT_RECEIVE_LOG.bind(this));        
 
-        this.router.post( '/getInitialData', this.getInitialData.bind(this));
-        this.router.post( '/updateAvatar', this.updateAvatar.bind(this));
+        this.router.post( '/getInitData', this.getINIT_DATA.bind(this));
+        this.router.post( '/updateAvatar', this.updateAVATAR.bind(this));
 
-        this.router.post( '/getUserInfo', this.getUserInfo.bind(this));
-        this.router.post( '/getSetting', this.getSetting.bind(this));
-        this.router.post( '/updateSetting', this.updateSetting.bind(this));
+        this.router.post( '/getUserInfo', this.getUSER.bind(this));
+        this.router.post( '/getSetting', this.getSETTING.bind(this));
+        this.router.post( '/updateSetting', this.updateSETTING.bind(this));
 
-        this.router.post( '/getStatics', this.getStatics.bind(this));
+        this.router.post( '/getStatics', this.getSTATICS.bind(this));
     }
 
     private async getIp( req: any, next: (ip: string )=>void ) {
@@ -54,51 +51,9 @@ export class UserController {
         next( ip );
     }
 
-    // private initPassport() {
-    //     passport.use( new LocalStrategy({
-    //         usernameField: 'uid',
-    //         passwordField: 'password'
-    //     }, ( uid, password, done )=>{
- 
-    //         let query = 'SELECT * FROM USERS WHERE UID=? AND PASSWORD=?';
-    //         let args = [uid, password];
-    //         this.sql.query(query, args, ( err: any , result: any )=>{
-
-    //             if ( result == undefined || result == null || result.length <= 0 ) {
-    //                 return done(null, false, { message: 'INCORRECT' });
-    //             }
-        
-    //             let user: any = null;
-        
-    //             if ( result != null ) {
-    //                 let j = JSON.stringify( result[0] );
-    //                 if ( result[0] != null ) {
-    //                     user = JSON.parse(j);            
-    //                 }
-    //             }
-        
-    //             return done(null, user);
-        
-    //         } );
-
-    //         return done (null, null);
-
-    //     }) );
-
-    //     passport.serializeUser( (user: any, done: any )=>{
-    //         console.log('serializeUser');
-    //         done( null, user.ID );
-    //     } );
-        
-    //     passport.deserializeUser( (id: any, done: any )=>{
-    //         console.log('deserializeUser');    
-    //         done(null, null );
-    //     });
-    // }
-
-    public async login( req: any, res: any ) {
-        let uid = req.body.uid;
-        let pass = req.body.password;
+    public async reqLOGIN( req: any, res: any ) {
+        let login_id = req.body.login_id;
+        let password = req.body.password;
         if ( req.body.version == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -111,7 +66,7 @@ export class UserController {
         console.log( 'CLIENT_VERSION: ' + version );
         // let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-        if ( uid == null || uid.length < 4 ) {
+        if ( login_id == null || login_id.length < 4 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -134,7 +89,7 @@ export class UserController {
             return;
         }
 
-        if ( pass != data.password ) {
+        if ( password != data.password ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'NO_MATCH_PASSWORD'
@@ -166,10 +121,10 @@ export class UserController {
         });
     }
 
-    public async getInitialData( req: any, res: any ) {
-        let id = req.body.id;
+    public async getINIT_DATA( req: any, res: any ) {
+        let user_id = req.body.user_id;
 
-        if ( id == null || id <= 0 ) {
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
@@ -177,7 +132,7 @@ export class UserController {
             return;
         }
 
-        let user: any = await this.getUserByID( req.app.get('DAO'), id );
+        let user: any = await this.getUserByID( req.app.get('DAO'), user_id );
         if (user == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -188,11 +143,11 @@ export class UserController {
 
         let _user = ClientUserData.getClientUserData(user);
 
-        let setting: any = await this.getSettingByUserID( req.app.get('DAO'), id );
+        let setting: any = await this.getSettingByUserID( req.app.get('DAO'), user_id );
 
         if ( setting == undefined ) {
-            const r: any = await this.createUserSetting( req.app.get('DAO'), id );
-            setting = await this.getSettingByUserID( req.app.get('DAO'), id );
+            const r: any = await this.createUserSetting( req.app.get('DAO'), user_id );
+            setting = await this.getSettingByUserID( req.app.get('DAO'), user_id );
 
             if ( setting == undefined ) {
                 res.status( 200 ).json({
@@ -205,12 +160,12 @@ export class UserController {
 
         let _setting = ClientUserData.getClientSettingData(setting);
 
-        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
+        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), user_id );
         if ( statics == undefined ) {
             console.log('statics == undefined');
-            const r: any = await this.createUserStatics( req.app.get('DAO'), id );
+            const r: any = await this.createUserStatics( req.app.get('DAO'), user_id );
 
-            statics = await this.getStaticsByUserID( req.app.get('DAO'), id );
+            statics = await this.getStaticsByUserID( req.app.get('DAO'), user_id );
 
             if ( setting == undefined ) {
                 res.status( 200 ).json({
@@ -354,32 +309,7 @@ export class UserController {
         }
     }
 
-    public async checkUID( req: any, res: any) {
-        let uid = req.body.uid;
-        if ( uid == null || uid.length < 1 ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_UID'
-            });
-            return;
-        }
-
-        let data: any = await this.getUserByUID( req.app.get('DAO'), uid );
-        if (data == undefined) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.SUCCESS,
-                msg: 'SUCCESS'
-            });
-            return;
-        }
-
-        res.status( 200 ).json({
-            code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-            msg: 'DUPLICATE'
-        });
-    }
-
-    public async checkUSER_ID( req: any, res: any) {
+    public async checkLOGIN_ID( req: any, res: any) {
         let uid = req.body.uid;
         if ( uid == null || uid.length < 1 ) {
             res.status( 200 ).json({
@@ -696,7 +626,7 @@ export class UserController {
     }        
 
 
-    public async updateAvatar( req: any, res: any ) {
+    public async updateAVATAR( req: any, res: any ) {
         let id = req.body.id;
         let avatar = req.body.avatar;
 
@@ -736,7 +666,7 @@ export class UserController {
         });
     }
 
-    public async getUserInfo( req: any, res: any ) {
+    public async getUSER( req: any, res: any ) {
         let id = req.body.id;
 
         if ( id == null || id <= 0 ) {
@@ -765,7 +695,7 @@ export class UserController {
         });
     }    
     
-    public async getSetting( req: any, res: any ) {
+    public async getSETTING( req: any, res: any ) {
         let id = req.body.id;
 
         if ( id == null || id <= 0 ) {
@@ -794,7 +724,7 @@ export class UserController {
         });
     }
     
-    public async updateSetting( req: any, res: any ) {
+    public async updateSETTING( req: any, res: any ) {
         let id = req.body.id;
         let selected = req.body.setting;
 
@@ -826,7 +756,7 @@ export class UserController {
         });
     }
 
-    public async getStatics( req: any, res: any ) {
+    public async getSTATICS( req: any, res: any ) {
         let id = req.body.id;
 
         if ( id == null || id <= 0 ) {

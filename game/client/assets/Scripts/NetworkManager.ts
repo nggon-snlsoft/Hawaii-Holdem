@@ -1,8 +1,7 @@
 // @ts-ignore
 import ColySeus from "db://colyseus-sdk/colyseus.js"
 import * as cc from "cc";
-import { _decorator, Component, Node } from 'cc';
-import { ENUM_BETTING_TYPE } from "./Game/UiBettingControl";
+import { _decorator } from 'cc';
 import { GameManager } from "./GameManager";
 const { ccclass } = cc._decorator;
 
@@ -33,7 +32,6 @@ const gamePort: number = 2568;
 @ccclass('NetworkManager')
 export class NetworkManager extends cc.Component {
     private static _instance : NetworkManager = null;
-    private pin : string = "";
 
     useSSL = false;
 	client!: Colyseus.Client;
@@ -79,25 +77,6 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		// await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
-		// 	version: version,
-		// } )
-		// .then( (res: string)=> {
-		// 	result_api = res;
-		// })
-		// .catch( (err: any)=>{
-		// 	err = JSON.parse( err );
-		// 	error = err.msg;
-		// });
-
-		// if( error != null ) {
-		// 	onFail({
-		// 		code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-		// 		msg: error,
-		// 	});
-		// 	return;
-		// }
-
 		let obj : any = JSON.parse( result_api );
 		if(null == obj){
 			onFail( 'JSON_PARSE_ERROR' );
@@ -120,8 +99,6 @@ export class NetworkManager extends cc.Component {
 		this.userSetting = null;
 		this.gameSetting = null;
 		this.storeInfo = null;
-		
-		this.pin = '';
 	}
 
 	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
@@ -136,14 +113,14 @@ export class NetworkManager extends cc.Component {
 		});
 	}
 
-    public async reqLOGIN_HOLDEM( uid: string, password: string, onSuccess : (res : any) => void, onFail : (err : any) => void) {
+    public async reqLOGIN_HOLDEM( login_id: string, password: string, onSuccess : (res : any) => void, onFail : (err : any) => void) {
 		let result: string = null;
 		let error: string = null;
 		let isConnect: boolean = true;
 		let version: string = GameManager.Instance().GetVersion();
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/login', {
-			uid: uid,
+			login_id: login_id,
 			password: password,
 			version: version,
 
@@ -200,12 +177,12 @@ export class NetworkManager extends cc.Component {
 		});
 	}
 
-    async reqLOAD_INITIAL_DATA( id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+    async getINIT_DATA( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
 		let error: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getInitialData", {
-			id: id,
+			user_id: user_id,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -245,12 +222,12 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 	
-    async reqLOAD_STATICS( id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+    async getSTATICS( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
 		let error: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getStatics", {
-			id: id,
+			user_id: user_id,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -283,12 +260,11 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}	
 
-	public async reqTABLE_LIST( store: number, onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
+	public async getTABLE_LIST( onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
 		let result: any = null;
 		let isConnect = false;
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/getTables", {
-			store: store,
 
 		}).then((res: string)=>{
 			isConnect = true;
@@ -312,14 +288,14 @@ export class NetworkManager extends cc.Component {
 		onSuccess(result);
 	}
 
-	public async reqENTER_TABLE( tableID: number, onSuccess : ( room: ColySeus.Room, res: any ) => void, onFail : ( err ) => void){
+	public async reqENTER_TABLE( table_id: number, onSuccess : ( room: ColySeus.Room, res: any ) => void, onFail : ( err ) => void){
 		let result: any = null;
 		let reservation: string = null;
 		let error: string = null;
 
 		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enterTable", {
-			tableID: tableID,
-			userID: this.userInfo.id,
+			table_id: table_id,
+			user_id: this.userInfo.user_id,
 
 		}).then((res: string) => {
 			result = res;
@@ -396,13 +372,13 @@ export class NetworkManager extends cc.Component {
 		}
 	}
 	
-	async reqGET_STORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async getSTORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let store = this.userInfo.store;
+		let store_id = this.userInfo.store_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getStore', {
-			store: store,
+			store_id: store_id,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -437,10 +413,10 @@ export class NetworkManager extends cc.Component {
 	async reqGET_CHARGE_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getChargeRequests', {
-			id: id,
+			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -473,10 +449,10 @@ export class NetworkManager extends cc.Component {
 	async reqGET_TRANSFER_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getTransferRequests', {
-			id: id,
+			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -509,10 +485,10 @@ export class NetworkManager extends cc.Component {
 	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqCharge', {
-			id: id,
+			user_id: user_id,
 			amount: amount
 
 		} ).then(( res: string ) => {
@@ -541,10 +517,10 @@ export class NetworkManager extends cc.Component {
 	async reqTANSFER_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqTransfer', {
-			id: id,
+			user_id: user_id,
 			value: data.value,
 			password: data.password,
 
@@ -573,12 +549,12 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}			
 
-	async reqSetting( id: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async getSETTING( user_id: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/getSetting', {
-			id: id,
+			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -651,12 +627,12 @@ export class NetworkManager extends cc.Component {
 		onSUCCESS(obj);
 	}
 
-	public async reqCHECK_UID( uid: string, onSUCCESS:( res: any )=>void, onFAIL:( err: any )=>void ) {
+	public async reqCHECK_LOGIN_ID( login_id: string, onSUCCESS:( res: any )=>void, onFAIL:( err: any )=>void ) {
 		let result: string = null;
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/uid', { uid: uid }
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/login_id', { login_id: login_id }
 			).then( ( res: string )=>{
 				result = res;
 			}).catch( ( err: any )=>{
@@ -729,13 +705,13 @@ export class NetworkManager extends cc.Component {
 
 	public async reqPOINT_TRANSFER( data: any, onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
-		let id = data.id;
+		let user_id = data.user_id;
 		let value = data.value;
 		let error: string = null;
 
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transfer', { 
-				id: id,
+				user_id: user_id,
 				value: value, 
 			}
 			).then( ( res: string )=>{
@@ -771,14 +747,14 @@ export class NetworkManager extends cc.Component {
 		}
 	}
 
-	public async getPOINT_TRANSFERS(onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
+	public async getPOINT_TRANSFERS( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
 		let result: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 		let error: string = null;
 
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transferLog', { 
-				id: id,
+				user_id: user_id,
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -814,12 +790,12 @@ export class NetworkManager extends cc.Component {
 
 	public async getPOINT_RECEIVES(onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
-		let id = this.userInfo.id;
+		let user_id = this.userInfo.user_id;
 		let error: string = null;
 
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/receiveLog', { 
-				id: id,
+				user_id: user_id,
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -873,318 +849,21 @@ export class NetworkManager extends cc.Component {
 		return b;
 	};
 
-    public isLogin() : boolean{
-		return this.pin != "" && this.userInfo != null;
-	}
-
-    public getUserInfo() : any{
+    public GetUser() : any{
 		return this.userInfo;
 	}
 
-	public getUserSetting() : any {
+	public GetSetting() : any {
 		return this.userSetting;
 	}
 
-	public async refreshUser(onSuccess: (res)=>void, onFail: (err)=>void ) {
-		let uuid = this.userInfo.uuid;
-		let resultString: string = null;
-		let errMsg: string = null;		
-
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, '/users/getUserInfoByDB', {
-			uuid: uuid,
-			pin: this.pin
-
-		}).then((res: string) => {
-			resultString = res;
-
-		}
-		).catch(function (err: any) {
-			if( 0 === err.length ) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse( err );
-			errMsg = err.msg;
-		});
-
-		if( null !== errMsg ) {
-			return onFail( errMsg );
-		}
-
-		if( null === resultString ) {
-			return onFail( "USER_DATA_IS_INVALID" );
-		}
-
-		let resultObject : any = JSON.parse( resultString );
-
-		if(null == resultObject){
-			onFail("JSON_PARSE_FAIL");
-			return;
-		}
-		
-		this.userInfo = resultObject.info;
-		this.userSetting = resultObject.setting;
-
-		onSuccess(resultObject);
-	}
-
-	public async reqJoinPublicRoom(roomID : number, onSuccess : (room : Colyseus.Room, seatCount : number) => void, onFail : (message : string, exitLobby : boolean) => void){
-		if (this.pin == "") {
-			onFail("user not Logined", true);
-			return;
-		}
-
-		let reservation: string = null;
-		let errMsg: string = null;
-
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinPublicRoom", {
-			pinCode: this.pin,
-			roomID : roomID
-		}).then((res: string) => {
-			reservation = res;
-		}
-		).catch(function (err: any) {
-			if (0 === err.length) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse(err);
-			errMsg = err.msg;
-		});
-
-		if (null !== errMsg) {
-			return onFail(errMsg, false);
-		}
-
-		if (null === reservation) {
-			return onFail("reservation data is invalid.", false);
-		}
-
-		reservation = JSON.parse(reservation);
-
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
-			80].includes( gamePort ) || this.useSSL) ? "" : `:${ gamePort }`}`);
-
-		this.client.consumeSeatReservation(reservation["seatReservation"]).then(room => {
-			this.room = room;
-			onSuccess(this.room, reservation["seatCount"]);
-		}).catch(e => {
-			onFail(e.message, true);
-		});
-	}
-
-	public async reqJoinTable( id: number, onSuccess : (room : Colyseus.Room, info: any, seatCount : number) => void, onFail : ( message : string, code: number, exitLobby : boolean ) => void){
-		if (this.pin == "") {
-			onFail("user not Logined", 100001, true);
-			return;
-		}
-
-		let reservation: string = null;
-		let errMsg: string = null;
-
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinRoom", {
-			id: id,
-			pins: this.pin,
-
-		}).then((res: string) => {
-			reservation = res;
-			
-		}).catch(function (err: any) {
-			if (0 === err.length) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse(err);
-			errMsg = err.msg;
-		});
-
-		if (null !== errMsg) {
-			return onFail(errMsg, 100002, false);
-		}
-
-		if (null === reservation) {
-			return onFail("reservation data is invalid.", 100003, false);
-		}
-
-		reservation = JSON.parse(reservation);
-
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${ gameHost}${([443,
-			80].includes( gamePort ) || this.useSSL) ? "" : `:${ gamePort }`}`);
-
-		this.client.consumeSeatReservation( reservation["seatReservation"]).then( (room) => {
-
-			this.room = room;
-			onSuccess(this.room, reservation["info"], reservation["count"]);
-		}).catch(e => {
-
-			onFail( e.message, e.code , false);
-		});
-	}
-
-	public async reqJoinRoom( id: number, onSuccess : (room : Colyseus.Room, info: any, seatCount : number) => void, onFail : ( message : string, code: number, exitLobby : boolean ) => void){
-		if (this.pin == "") {
-			onFail("user not Logined", 100001, true);
-			return;
-		}
-
-		let reservation: string = null;
-		let errMsg: string = null;
-
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/joinRoom", {
-			id: id,
-			pins: this.pin,
-
-		}).then((res: string) => {
-			reservation = res;
-			
-		}).catch(function (err: any) {
-			if (0 === err.length) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse(err);
-			errMsg = err.msg;
-		});
-
-		if (null !== errMsg) {
-			return onFail(errMsg, 100002, false);
-		}
-
-		if (null === reservation) {
-			return onFail("reservation data is invalid.", 100003, false);
-		}
-
-		reservation = JSON.parse(reservation);
-
-		this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443,
-			80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
-
-		this.client.consumeSeatReservation( reservation["reservation"]).then( (room) => {
-
-			this.room = room;
-			onSuccess(this.room, reservation["info"], reservation["count"]);
-		}).catch(e => {
-
-			onFail( e.message, e.code , false);
-		});
-	}
-
-	public async reqPublicRoomList(onSuccess : (result : any[]) => void, onFail : (message : string) => void) {
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/roomList", { pinCode : this.pin }).then((res : string) => {
-			let jsonObject = JSON.parse(res);
-
-			if(null == jsonObject || null == jsonObject.result){
-				onFail("fail to parse result");
-				return;
-			}
-			
-			this.userInfo = jsonObject.userData;
-			onSuccess(jsonObject.result);
-		}).catch((err : string) => {
-			onFail("fail to get RoomList : " + err);
-		});
-	}
-
-	public async reqPublicRoomInfo(roomID : number, onSuccess : (result : any) => void, onFail : (message : string) => void){
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/roomInfo", {roomID : roomID}).then((res : string) => {
-			let jsonObject = JSON.parse(res);
-
-			if(null == jsonObject || null == jsonObject.result){
-				onFail("fail to parse result");
-				return;
-			}
-
-			onSuccess(jsonObject.result);
-		}).catch((err : string) => {
-			onFail("Fail to Get RoomInfo : " + err);
-		});
-	}
-
-    async login( pin: string, onSuccess : (user : any) => void, onFail : (message : string) => void) {
-		let parseIntPinCode = parseInt( pin );
-
-		let resultString: string = null;
-		let errMsg: string = null;
-		let version: string = GameManager.Instance().GetVersion();
-
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/auth", {
-			pinCode: parseIntPinCode,
-		} ).then(( res: string ) => {
-				this.pin = pin;
-				resultString = res;
-			}
-		).catch( function( err: any ) {
-			if( 0 === err.length ) {
-				return errMsg = "NETWORK ERROR";
-			}
-			err = JSON.parse( err );
-			errMsg = err.msg;
-		} );
-
-		if( null !== errMsg ) {
-			return onFail( errMsg );
-		}
-
-		if( null === resultString ) {
-			return onFail( "reservation data is invalid." );
-		}
-
-		let resultObject : any = JSON.parse( resultString );
-
-		if(null == resultObject){
-			onFail("Json Parse Fail");
-			return;
-		}
-
-		this.userInfo = resultObject.user;
-
-		onSuccess(resultObject);
-	}
-
-	async setting( uuid: string, onSuccess : ( setting : any) => void, onFail : (message : string) => void ) {
-		let parseIntId = parseInt( uuid );
-
-		let result: string = null;
-		let errMessage: string = null;
-
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/users/setting", {
-			uuid: uuid,
-		} ).then(( res: string ) => {
-			result = res;
-		}
-		).catch( function( err: any ) {
-			if( 0 === err.length ) {
-				return errMessage = "NETWORD_ERROR";
-			}
-			err = JSON.parse( err );
-			errMessage = err.msg;
-		} );
-
-		if( null !== errMessage ) {
-			return onFail( errMessage );
-		}
-
-		if( null === result ) {
-			return onFail( "SETTING_DATA_INVALID" );
-		}
-
-		let obj : any = JSON.parse( result );
-
-		if(null == obj){
-			onFail("JSON_PARSE_FAIL");
-			return;
-		}
-
-		this.userSetting = obj.setting;
-
-		onSuccess(obj);
-	}
-
-
-
-	public async updateUserAvatar(avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
-		let id = Number(this.userInfo.id);
+	public async updateUSER_AVATAR( avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
+		let user_id = Number( this.userInfo.user_id );
 		let result: string = null;
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateAvatar', {
-			id: id,
+			user_id: user_id,
 			avatar: avatar
 		} ).then(( res: string ) => {
 			result = res;
@@ -1217,14 +896,14 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async updateUserSetting( selected: any, onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let id = this.userInfo.id;
+	public async updateUSER_SETTING( selected: any, onSuccess: (res)=> void, onFail: (err)=> void ) {
+		let user_id = this.userInfo.user_id;
 		let result: string = '';
 		let setting: any = selected;
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateSetting', {
-			id: id,
+			user_id: user_id,
 			setting: setting
 
 		} ).then(( res: string ) => {
@@ -1257,13 +936,13 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async getUserInfoFromDB( onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let id = this.userInfo.id;
+	public async getUSER_FromDB( onSuccess: (res)=> void, onFail: (err)=> void ) {
+		let user_id = this.userInfo.user_id;
 		let result: string = '';
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/getUserInfo', {
-			id: id,
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/get', {
+			user_id: user_id,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -1295,13 +974,12 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async getPlayerProfile(id: number, onSuccess: (res)=>void, onFail: (err)=>void ) {
-		let userId = id;
+	public async getPLAYER_PROFILE( user_id: number, onSuccess: (res)=>void, onFail: (err)=>void ) {
 		let result: string = '';
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, '/users/getPlayerProfile', {
-			uuid: userId,
+			user_id: user_id,
 
 		} ).then(( res: string ) => {
 			result = res;

@@ -502,7 +502,7 @@ export class UiTable extends Component {
 		// 	UiGameSystemPopup.instance.closePopup();
 		// });
 
-		let user = NetworkManager.Instance().getUserInfo();
+		let user = NetworkManager.Instance().GetUser();
 		if ( this.uiSeats.node.active == true ) {
 			UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
 
@@ -667,20 +667,6 @@ export class UiTable extends Component {
 
 		this.uiSeats.end();
 		this.room?.leave( false );
-
-		// let reserve = msg['reserve'];
-		// let leave = msg['leave'];
-
-		// console.log('reserve: ' + reserve );
-		// console.log('leave: ' + leave );		
-
-		// this.reserveLeave = reserve;
-		// if ( this.reserveLeave == true ) {
-		// 	let uiEntity = this.GetEntityFromSeat( this.mySeat );
-		// 	if ( uiEntity != null ) {
-		// 		uiEntity.SetReserveLeave();
-		// 	}
-		// }
 	}
 
 	private onSYNC_TABLE( msg ) {
