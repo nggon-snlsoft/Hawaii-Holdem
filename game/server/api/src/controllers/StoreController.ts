@@ -32,6 +32,23 @@ export class StoreController {
 
     public async onGET_STORE( req: any, res: any ) {
         let store_id = req.body.store_id;
+        let user_id = req.body.user_id;
+        let token = req.body.token;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
 
         if ( store_id == null || store_id <= 0 ) {
             res.status( 200 ).json({
@@ -67,7 +84,23 @@ export class StoreController {
 
     public async onREQ_CHARGE( req: any, res: any ) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
         let amount = req.body.amount;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
 
         if ( user_id == null || user_id <= 0 || amount < 10000 ) {
             res.status( 200 ).json({
@@ -119,6 +152,22 @@ export class StoreController {
         let user_id = req.body.user_id;
         let value = req.body.value;
         let password = req.body.password;
+        let token = req.body.token;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
 
         if ( user_id == null || user_id <= 0 || value < 10000 ) {
             res.status( 200 ).json({
@@ -204,8 +253,24 @@ export class StoreController {
     }
 
     public async onGET_CHARGE_REQUESTS( req: any, res: any ) {
-
         let user_id = req.body.user_id;
+        let token = req.body.token;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
+
         if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -236,6 +301,22 @@ export class StoreController {
 
     public async onGET_TRANSFER_REQUESTS( req: any, res: any ) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
 
         if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
@@ -373,6 +454,21 @@ export class StoreController {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_TRANSFER_REQUEST_ByUSER_ID ( id, function(err: any, res: any ) {
 
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqTOKEN_VERIFY( dao: any, user_id: string, token: string  ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_USERS_BY_USER_ID_TOKEN ( user_id, token, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

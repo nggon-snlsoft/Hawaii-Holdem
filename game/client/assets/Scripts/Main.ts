@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canv
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
-import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 import { NetworkManager } from './NetworkManager';
 const { ccclass, property } = _decorator;
 
@@ -59,8 +59,11 @@ export class Main extends Component {
 		}
 
 		if ( this._lableVersion != null ) {
+			this._lableVersion.string = 'VERSION: ' + GameManager.Instance().GetVersion();			
 			this._lableVersion.node.active = true;
 		}
+
+		GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
 
 		NetworkManager.Instance().Init( this.version, (res: any)=>{
 			this._login.show();			

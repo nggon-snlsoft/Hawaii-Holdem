@@ -334,56 +334,6 @@ dao.SELECT_STATICS_ByUSER_ID = ( user_id: any, cb: any)=> {
 	});
 };
 
-dao.UpdateHandsCount = ( id: any, cb: any )=> {
-	let query = "UPDATE STATICS SET HANDS = HANDS + 1 WHERE USER_ID = ?";
-	let args = [id];
-
-	_client.query(query, args, function (err: any, res: any) {
-		if (err !== null) {
-			cb(err, null);
-		} else {
-			if (!!res && res.affectedRows > 0) {
-				cb(null, true);
-			} else {
-				cb(null, false);
-			}
-		}
-	});	
-}
-
-dao.UpdateFoldCount = ( id: any, state: any, cb: any ) => {
-
-	let query: string = '';
-	switch ( state ) {
-		case eCommunityCardStep.PRE_FLOP:
-		query = "UPDATE STATICS SET FOLD_PREFLOP = FOLD_PREFLOP + 1 WHERE USER_ID = ?";
-		break;
-		case eCommunityCardStep.FLOP:
-		query = "UPDATE STATICS SET FOLD_FLOP = FOLD_FLOP + 1 WHERE USER_ID = ?";
-		break;
-		case eCommunityCardStep.TURN:
-		query = "UPDATE STATICS SET FOLD_TURN = FOLD_TURN + 1 WHERE USER_ID = ?";
-		break;
-		case eCommunityCardStep.RIVER:
-		query = "UPDATE STATICS SET FOLD_RIVER = FOLD_RIVER + 1 WHERE USER_ID = ?";			
-		break;		
-	}
-
-	let args = [id];
-	_client.query(query, args, function (err: any, res: any) {
-		if (err !== null) {
-			cb(err, null);
-		} else {
-			if (!!res && res.affectedRows > 0) {
-				cb(null, true);
-			} else {
-				cb(null, false);
-			}
-		}
-	});	
-
-}
-
 dao.UPDATE_STATICS = ( id: any, statics: any, cb: any ) => {
 	let query = 'UPDATE STATICS SET HANDS = ?, RAKES = ?, ROLLINGS = ?, MAXPOTS = ?, ' + 
 	'WIN = ?, WIN_ALLIN = ?, WIN_PREFLOP = ?, WIN_FLOP = ?, WIN_TURN = ?, WIN_RIVER = ?, WIN_DEALER = ?, WIN_SMALLBLIND = ?, WIN_BIGBLIND = ?, ' + 
@@ -448,7 +398,6 @@ dao.UPDATE_SALES_USER = (data: any, cb: any ) => {
 }
 
 dao.INSERT_SALES_USER = function ( data: any, cb: any ) {
-	//store id 잘못들어가는거 수정
 
 	let id = data.id;
 	let store_id = data.store_id;
@@ -535,3 +484,29 @@ dao.INSERT_SALES_TABLE = function ( data: any, cb: any ) {
 		}
 	});	
 }
+
+dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any ) {
+
+	let sql = 'SELECT * FROM USERS WHERE ID = ? AND TOKEN = ? ';
+	let args = [user_id, token];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res != null ) {
+			if ( res.length > 0 ) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+
+		} else {
+			cb(null, false);
+		}
+	});
+};

@@ -3,9 +3,12 @@ import { sqlProxy } from '../modules/sqlProxy';
 import { ENUM_RESULT_CODE } from '../main';
 import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
+import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { resolve } from 'path';
 import { rejects } from 'assert';
 import { use } from 'passport';
+import { SECRET_KEY } from '../routes/JwtMiddleware';
+import { compileFunction } from 'vm';
 
 const requestIp = require('request-ip');
 
@@ -113,21 +116,28 @@ export class UserController {
                 msg: 'DISABLE_ACCOUNT'
             });
             return;
-        }        
+        }
 
-        // if ( data.pending == 1 ) {
-        //     res.status( 200 ).json({
-        //         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-        //         msg: 'PENDING_ACCOUNT'
-        //     });
-        //     return;
-        // }
+        let token = sign({
+            login_id: login_id,
+            password: password
+        }, SECRET_KEY, {
+
+        });
+
+        let affected: any = null;
+        try {
+            affected = await this.reqTOKEN_ByLOGIN_ID( req.app.get('DAO'), token, login_id );            
+        } catch (error) {
+            console.log(error);
+        }
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
             id: data.id,
             ip: clientIp,
+            token: token,
         });
     }
 
@@ -265,7 +275,7 @@ export class UserController {
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'DUPLICATE_UID'
                 });
-                return;                
+                return;
             }
         } catch (error) {
             res.status( 200 ).json({
@@ -470,6 +480,8 @@ export class UserController {
         let user_id = req.body.user_id;
         let value = req.body.value;
         let desc = req.body.desc;
+        let token = req.body.token;
+
         if ( desc == null ) {
             desc = "";
         }
@@ -478,6 +490,21 @@ export class UserController {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -595,11 +622,27 @@ export class UserController {
     
     public async getPOINT_TRANSFER_LOG( req: any, res: any) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
 
         if ( user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -633,11 +676,27 @@ export class UserController {
     
     public async getPOINT_RECEIVE_LOG( req: any, res: any) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
 
         if ( user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -670,13 +729,29 @@ export class UserController {
     }
 
     public async updateAVATAR( req: any, res: any ) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
         let avatar = req.body.avatar;
+        let token = req.body.token;
 
-        if ( id == null || id <= 0 ) {
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -691,14 +766,14 @@ export class UserController {
 
         let affected: any = null;
         try {
-            affected = await this.changeUSER_AVATAR( req.app.get('DAO'), id, avatar );            
+            affected = await this.changeUSER_AVATAR( req.app.get('DAO'), user_id, avatar );            
         } catch (error) {
             console.log( error );
         }
 
         let user: any = null;
         try {
-            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), id );            
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );            
         } catch (error) {
             console.log( error );           
         }
@@ -723,11 +798,27 @@ export class UserController {
 
     public async getUSER( req: any, res: any ) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
 
         if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -752,11 +843,27 @@ export class UserController {
     
     public async getSETTING( req: any, res: any ) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
 
-        if ( user_id == null || user_id <= 0 ) {
+        if ( user_id == null || user_id <= 0 || token == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -789,12 +896,27 @@ export class UserController {
     public async updateSETTING( req: any, res: any ) {
         let user_id = req.body.user_id;
         let selected = req.body.setting;
+        let token = req.body.token;
 
-
-        if ( user_id == null || user_id <= 0 ) {
+        if ( user_id == null || user_id <= 0 || token == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -833,11 +955,27 @@ export class UserController {
 
     public async getSTATICS( req: any, res: any ) {
         let user_id = req.body.user_id;
+        let token = req.body.token;
 
         if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -935,6 +1073,21 @@ export class UserController {
         });
     }
 
+    private async reqTOKEN_ByLOGIN_ID( dao: any, token: string, login_id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_USERS_TOKEN_LOGIN_ID ( token, login_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
+
     private async getJOIN_USER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_JOINS_BY_LOGIN_ID ( login_id, function(err: any, res: any ) {
@@ -975,6 +1128,21 @@ export class UserController {
                     });
                 } else {
                     resolve ( res[0]);
+                }
+            });
+        });
+    }
+
+    private async reqTOKEN_VERIFY( dao: any, user_id: string, token: string  ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_USERS_BY_USER_ID_TOKEN ( user_id, token, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
                 }
             });
         });

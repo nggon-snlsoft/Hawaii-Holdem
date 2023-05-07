@@ -4,6 +4,7 @@ import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { ResourceManager } from './ResourceManager';
+import { ENUM_LEAVE_REASON, GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLogin')
@@ -228,6 +229,18 @@ export class UiLogin extends Component {
     }
 
     show() {
+        console.log('SHOW');
+        let leaveReason = GameManager.Instance().GetLeaveReason();
+        console.log(leaveReason);
+
+        if ( leaveReason == ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE ) {
+            LoginSystemPopup.instance.showPopUpOk('로그인', '중복 로그인이 발생했습니다.', ()=>{
+                LoginSystemPopup.instance.closePopup();
+
+                this.exitGame();
+            });
+        }
+
         this.node.active = true;
     }
 

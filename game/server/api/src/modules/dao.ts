@@ -1,5 +1,6 @@
 import { userInfo } from "os";
 import { ENUM_RESULT_CODE } from "../main";
+import { error } from "console";
 
 let _client: any = null;
 const dao = module.exports;
@@ -41,6 +42,23 @@ dao.SELECT_USERS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 
 		cb?.(null, res);
 	});
+};
+
+dao.UPDATE_USERS_TOKEN_LOGIN_ID = function ( token: any, login_id: any, cb: any ) {
+	let sql = "UPDATE USERS SET TOKEN = ? WHERE LOGIN_ID = ? ";
+	let args = [ token, login_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});    
 };
 
 dao.SELECT_JOINS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
@@ -92,6 +110,33 @@ dao.SELECT_USERS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 		}
 
 		cb?.(null, res);
+	});
+};
+
+dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any ) {
+	console.log( user_id, token );
+
+	let sql = 'SELECT * FROM USERS WHERE ID = ? AND TOKEN = ? ';
+	let args = [user_id, token];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res != null ) {
+			if ( res.length > 0 ) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+
+		} else {
+			cb(null, false);
+		}
 	});
 };
 

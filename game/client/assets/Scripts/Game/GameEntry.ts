@@ -2,7 +2,7 @@ import { _decorator, Component, Node, game, Game, Label } from 'cc';
 import {UiGameSystemPopup} from "./UiGameSystemPopup";
 import { UiControls } from './UiControls';
 import { AudioController } from './AudioController';
-import { ENUM_DEVICE_TYPE, GameManager } from '../GameManager';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from '../GameManager';
 import { UiTable } from '../UiTable';
 import { Board } from '../Board';
 const { ccclass, property } = _decorator;
@@ -50,6 +50,8 @@ export class GameEntry extends Component {
         this._popup.init();
         this._controls.init();
         this.audioController.init();
+
+        GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.GAME_SCENE );
 
         this._table.init();
         this._table.show();

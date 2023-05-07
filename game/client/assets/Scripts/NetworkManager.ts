@@ -2,7 +2,7 @@
 import ColySeus from "db://colyseus-sdk/colyseus.js"
 import * as cc from "cc";
 import { _decorator } from 'cc';
-import { GameManager } from "./GameManager";
+import { ENUM_LEAVE_REASON, GameManager } from "./GameManager";
 const { ccclass } = cc._decorator;
 
 export enum ENUM_RESULT_CODE {
@@ -44,6 +44,7 @@ export class NetworkManager extends cc.Component {
 	private userStatics: any = null;
 	private gameSetting: any = null;
 	private storeInfo: any = null;	
+	private token: string = null;
 
     public static Instance() : NetworkManager
 	{
@@ -57,6 +58,7 @@ export class NetworkManager extends cc.Component {
 	public async Init( version: string, onSuccess: ( res: any )=>void, onFail: (msg: any )=> void ) {
 		let result_api: string = null;
 		let error: string = null;
+		this.token = '';
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
 			version: version,
@@ -99,6 +101,7 @@ export class NetworkManager extends cc.Component {
 		this.userSetting = null;
 		this.gameSetting = null;
 		this.storeInfo = null;
+		this.token = '';
 	}
 
 	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
@@ -171,6 +174,10 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( obj.token != null ) {
+			this.token = obj.token;
+		}
+
 		onSuccess( {
 			code: obj.code,
 			msg: obj.msg,
@@ -229,6 +236,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/statics/get", {
 			user_id: user_id,
+			token: this.token,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -253,6 +261,11 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}		
+
 		if (obj.statics != null ) {
 			this.userStatics = obj.static;
 		}
@@ -263,8 +276,11 @@ export class NetworkManager extends cc.Component {
 	public async getTABLE_LIST( onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
 		let result: any = null;
 		let isConnect = false;
+		let user_id = this.userInfo.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/get", {
+			user_id: user_id,
+			token: this.token,
 
 		}).then((res: string)=>{
 			isConnect = true;
@@ -285,6 +301,11 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( result.msg != null && result.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		onSuccess(result);
 	}
 
@@ -292,10 +313,12 @@ export class NetworkManager extends cc.Component {
 		let result: any = null;
 		let reservation: string = null;
 		let error: string = null;
+		let user_id = this.userInfo.id;
 
 		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
-			user_id: this.userInfo.id,
+			user_id: user_id,
+			token: this.token,
 
 		}).then((res: string) => {
 			result = res;
@@ -329,6 +352,11 @@ export class NetworkManager extends cc.Component {
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
 				msg: 'JSON_PARSE_ERROR'
 			});
+		}
+
+		if ( result.msg != null && result.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
 		}
 
 		if ( result.code == ENUM_RESULT_CODE.SUCCESS ) {
@@ -375,10 +403,13 @@ export class NetworkManager extends cc.Component {
 	async getSTORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
+		let user_id = this.userInfo.id;
 		let store_id = this.userInfo.store_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/get', {
 			store_id: store_id,
+			user_id: user_id,
+			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -405,6 +436,11 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		this.storeInfo = obj.store;
 
 		onSuccess(obj);
@@ -417,6 +453,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/chargeRequest/get', {
 			user_id: user_id,
+			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -440,6 +477,11 @@ export class NetworkManager extends cc.Component {
 
 		if(null == obj){
 			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 			return;
 		}
 
@@ -454,6 +496,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transferRequest/get', {
 			user_id: user_id,
+			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -480,6 +523,11 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		onSuccess(obj);
 	}			
 
@@ -490,7 +538,8 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/charge/req', {
 			user_id: user_id,
-			amount: amount
+			amount: amount,
+			token: this.token,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -512,6 +561,12 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result );
+
+		if ( obj != null && obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		onSuccess(obj);
 	}
 	
@@ -524,6 +579,7 @@ export class NetworkManager extends cc.Component {
 			user_id: user_id,
 			value: data.value,
 			password: data.password,
+			token: this.token,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -545,6 +601,11 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result );
+		if ( obj != null && obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		this.userInfo = obj.user;
 
 		onSuccess(obj);
@@ -556,6 +617,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/get', {
 			user_id: user_id,
+			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -576,9 +638,13 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result );
-
 		if(null == obj){
 			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 			return;
 		}
 
@@ -712,7 +778,8 @@ export class NetworkManager extends cc.Component {
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transfer', { 
 				user_id: user_id,
-				value: value, 
+				value: value,
+				token: this.token, 
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -736,6 +803,11 @@ export class NetworkManager extends cc.Component {
 		if ( result != null ) {
 			let obj: any = JSON.parse( result );
 			if ( obj != null ) {
+				if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+					return;
+				}
+
 				this.userInfo = obj.user;				
 				onSUCCESS(obj);
 			} else {
@@ -755,6 +827,7 @@ export class NetworkManager extends cc.Component {
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transferLog', { 
 				user_id: user_id,
+				token: this.token,
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -778,6 +851,11 @@ export class NetworkManager extends cc.Component {
 		if ( result != null ) {
 			let obj: any = JSON.parse( result );
 			if ( obj != null ) {
+				if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+					return;
+				}
+
 				onSUCCESS(obj);
 			} else {
 				return onFAIL('JSON_PARSE_ERROR');
@@ -796,6 +874,7 @@ export class NetworkManager extends cc.Component {
 		try {
 			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/receiveLog', { 
 				user_id: user_id,
+				token: this.token,
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -819,6 +898,11 @@ export class NetworkManager extends cc.Component {
 		if ( result != null ) {
 			let obj: any = JSON.parse( result );
 			if ( obj != null ) {
+				if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+					return;
+				}
+
 				onSUCCESS(obj);
 			} else {
 				return onFAIL('JSON_PARSE_ERROR');
@@ -827,9 +911,7 @@ export class NetworkManager extends cc.Component {
 		} else {
 			return onFAIL('CHECK_USER_ERROR');			
 		}
-	}		
-
-
+	}
 
     getQueryStringParams = function() {
 		let a = window.location.search.substr( 1 ).split( "&" );
@@ -858,13 +940,14 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async updateUSER_AVATAR( avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
-		let id = Number( this.userInfo.id );
+		let user_id = this.userInfo.id;
 		let result: string = null;
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateAvatar', {
-			id: id,
-			avatar: avatar
+			user_id: user_id,
+			avatar: avatar,
+			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -888,6 +971,11 @@ export class NetworkManager extends cc.Component {
 
 		if(null == obj){
 			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 			return;
 		}
 
@@ -906,7 +994,8 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/update', {
 			user_id: user_id,
-			setting: setting
+			setting: setting,
+			token: this.token,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -934,6 +1023,11 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
 		if ( obj.setting != null ) {
 			this.userSetting = obj.setting;
 		}
@@ -948,6 +1042,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/get', {
 			user_id: user_id,
+			token: this.token,
 
 		} ).then(( res: string ) => {
 			result = res;
@@ -975,44 +1070,12 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userInfo = obj.user;
-		onSuccess(obj);
-	}
-
-	public async getPLAYER_PROFILE( user_id: number, onSuccess: (res)=>void, onFail: (err)=>void ) {
-		let result: string = '';
-		let errMessage: string = null;
-
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, '/users/getPlayerProfile', {
-			user_id: user_id,
-
-		} ).then(( res: string ) => {
-			result = res;
-		}
-		).catch( function( err: any ) {
-			if( 0 === err.length ) {
-				return errMessage = "NETWORD_ERROR";
-			}
-			err = JSON.parse( err );
-			errMessage = err.msg;
-		} );
-
-		if( null !== errMessage ) {
-			return onFail( errMessage );
-		}
-
-		if( null === result ) {
-			return onFail( "SETTING_DATA_INVALID" );
-		}
-
-		let obj : any = JSON.parse( result );
-
-		if(null == obj){
-			onFail("JSON_PARSE_FAIL");
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 			return;
 		}
 
-		this.userSetting = obj.setting;
+		this.userInfo = obj.user;
 		onSuccess(obj);
 	}
 

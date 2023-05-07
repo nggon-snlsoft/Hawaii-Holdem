@@ -83,6 +83,8 @@ export class HoldemRoom extends Room<RoomState> {
 	_initPot: number = 0;
 	_id: number = -1;
 
+	private participants: any[] = [];
+
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
 	async onCreate( options: any ) : Promise<any> {
@@ -172,6 +174,8 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
 				this._id = options["serial"];
+
+				this.participants = [];
 			}
 		};
 
@@ -195,6 +199,8 @@ export class HoldemRoom extends Room<RoomState> {
 		this.state.shuffle = "";
 		this.state.pot = 0;
 		this.pingTimerID = 0;
+
+		this.participants = [];
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
@@ -427,7 +433,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.broadcast("NEW_ENTITY", { newEntity: entity });
 	}
 	
-	UpdateSeatInfo(){
+	UpdateSeatInfo() {
 		
 		let clients : Client[] = [];
 
@@ -828,10 +834,10 @@ export class HoldemRoom extends Room<RoomState> {
 
 	update( dt: any ) {
 
-		for (let i = 0; i < this.state.entities.length; i++) {
+		for ( let i = 0; i < this.state.entities.length; i++ ) {
 			let entity = this.state.entities[i];
-			if(entity != null) {
-				if(entity.chips != entity.oldChips) {
+			if( entity != null ) {
+				if( entity.chips != entity.oldChips ) {
 					this._dao.UPDATE_USERS_CHIP(entity.id, entity.chips, (err: any, res: any) => {
 						if (!!err) {
 							logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
@@ -842,9 +848,9 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		for (let i = 0; i < this.state.entities.length; i++) {
+		for ( let i = 0; i < this.state.entities.length; i++ ) {
 			let entity = this.state.entities[i];
-			if(entity != null) {
+			if( entity != null ) {
 				if(entity.rake != entity.oldRake) {
 					this._dao.UPDATE_USERS_RAKE( entity.id, entity.rake, ( err: any, res: any ) => {
 						if( !!err ) {
@@ -894,15 +900,12 @@ export class HoldemRoom extends Room<RoomState> {
 
 				if(null != timeoutPlayer){
 					timeoutPlayer.timeLimitCount += 1;
-
-					// if( timeoutPlayer.timeLimitCount == this.conf["timeoutExitLimit"]){
-						timeoutPlayer.isSitOut = true;
-						timeoutPlayer.wait = true;
-						timeoutPlayer.sitoutTimestamp = Number( Date.now() );
-						
-						this.UpdateSeatInfo();						
-						this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
-					// }
+					timeoutPlayer.isSitOut = true;
+					timeoutPlayer.wait = true;
+					timeoutPlayer.sitoutTimestamp = Number( Date.now() );
+					
+					this.UpdateSeatInfo();						
+					this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
 				}
 			}
 		}
@@ -1439,6 +1442,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this.processPendingAddChips();
 				this.processReBuyInRequest();
 				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
+				this.participants = [];
 
 				this.broadcast( "CLEAR_ROUND", {
 					msg: "CLEAR_ROUND", timeMS: this.conf[ "clearTerm" ] * 1000, entities: this.state.entities
@@ -1763,6 +1767,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let bb = this.getEntity( this.state.bbSeat );
 		let missSb: any[] = [];
 		let missBb: any[] = [];
+		this.participants = [];
 
 		let sbBet = this.conf["smallBlind"];
 
@@ -1866,7 +1871,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			// player.push(e.seat);
-			player.push(e);
+			player.push( e );
 		}
 
 		this.state.maxBet = this.state.startBet;
@@ -4083,4 +4088,19 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		} 
 	}
+
+	private async reqTOKEN_VERIFY( user_id: string, token: string  ) {
+        return new Promise( (resolve, reject )=>{
+            this._dao.SELECT_USERS_BY_USER_ID_TOKEN ( user_id, token, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
 }
