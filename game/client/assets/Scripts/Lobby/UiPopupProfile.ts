@@ -88,7 +88,7 @@ export class UiPopupProfile extends Component {
         this.labeNickname.string = info.nickname;
         this.labeNickname.node.active = true;
         this.labelChips.string = CommonUtil.getKoreanNumber(info.balance);
-        this.labelPoints.string = CommonUtil.getKoreanNumber(info.chip);
+        this.labelPoints.string = CommonUtil.getKoreanNumber(info.point );
         this.avatar.spriteFrame = ResourceManager.Instance().getAvatarImage(info.avatar);
         this.avatar.node.active = true;
         this.statics = null;

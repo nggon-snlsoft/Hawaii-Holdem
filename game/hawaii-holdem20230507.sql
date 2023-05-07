@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.27, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.30, for Win64 (x86_64)
 --
 -- Host: localhost    Database: holdem
 -- ------------------------------------------------------
--- Server version	8.0.27
+-- Server version	8.0.30
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -25,9 +25,9 @@ DROP TABLE IF EXISTS `admins`;
 CREATE TABLE `admins` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `store_id` int NOT NULL DEFAULT '-1',
-  `login_id` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `password` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `login_id` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `password` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `name` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `type` int NOT NULL DEFAULT '0',
   `status` tinyint(1) NOT NULL DEFAULT '0',
   `loginCount` int unsigned NOT NULL DEFAULT '0',
@@ -89,8 +89,8 @@ CREATE TABLE `charges` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `login_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `nickname` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `holder` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `amount` int unsigned NOT NULL DEFAULT '0',
   `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -119,16 +119,16 @@ DROP TABLE IF EXISTS `joins`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `joins` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `login_id` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `login_id` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `store_id` int NOT NULL DEFAULT '-1',
-  `nickname` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `password` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `transferpassword` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `phone` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `bank` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `holder` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `account` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `recommender` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `password` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `transferpassword` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `bank` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `account` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `recommender` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `alive` tinyint(1) NOT NULL DEFAULT '1',
@@ -156,7 +156,7 @@ DROP TABLE IF EXISTS `point_receives`;
 CREATE TABLE `point_receives` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `sender` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `sender` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT '',
   `oldPoint` int unsigned NOT NULL DEFAULT '0',
   `newPoint` int unsigned NOT NULL DEFAULT '0',
   `point` int unsigned NOT NULL DEFAULT '0',
@@ -218,9 +218,9 @@ DROP TABLE IF EXISTS `popups`;
 CREATE TABLE `popups` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `type` tinyint(1) NOT NULL,
-  `title` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
-  `url` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
-  `desc` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
+  `title` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
+  `url` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
+  `desc` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
   `disable` tinyint(1) NOT NULL DEFAULT '0',
   `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -363,8 +363,8 @@ CREATE TABLE `statics` (
   `fold_river` int unsigned NOT NULL DEFAULT '0',
   `draw` int unsigned NOT NULL DEFAULT '0',
   `best_rank` int unsigned DEFAULT '0',
-  `best_hands` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ' ',
-  `maxPot_hands` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ' ',
+  `best_hands` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT ' ',
+  `maxPot_hands` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT ' ',
   `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`,`user_id`)
@@ -382,6 +382,33 @@ INSERT INTO `statics` VALUES (1,1,20,0,0,12150,11,5,0,8,2,1,0,5,5,11,3,2,0,0,0,0
 UNLOCK TABLES;
 
 --
+-- Table structure for table `store_code`
+--
+
+DROP TABLE IF EXISTS `store_code`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `store_code` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `store_id` int NOT NULL DEFAULT '-1',
+  `code` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `expireDate` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updateDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `store_code`
+--
+
+LOCK TABLES `store_code` WRITE;
+/*!40000 ALTER TABLE `store_code` DISABLE KEYS */;
+/*!40000 ALTER TABLE `store_code` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `stores`
 --
 
@@ -390,10 +417,10 @@ DROP TABLE IF EXISTS `stores`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stores` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `bank` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `holder` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `account` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `name` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `bank` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `account` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `balance` int unsigned NOT NULL DEFAULT '0',
   `point` int unsigned NOT NULL DEFAULT '0',
   `transfer_percent` int DEFAULT NULL,
@@ -427,10 +454,10 @@ DROP TABLE IF EXISTS `tables`;
 CREATE TABLE `tables` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `store_id` int NOT NULL DEFAULT '-1',
-  `name` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `name` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT '',
   `type` int unsigned NOT NULL DEFAULT '0',
   `grade` int unsigned NOT NULL DEFAULT '0',
-  `password` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
+  `password` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
   `maxPlayers` int unsigned NOT NULL,
   `betTimeLimit` int unsigned NOT NULL,
   `ante` int unsigned NOT NULL DEFAULT '0',
@@ -474,7 +501,7 @@ CREATE TABLE `tickets` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `login_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `nickname` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `charge` int unsigned NOT NULL DEFAULT '0',
   `transfer` int unsigned NOT NULL DEFAULT '0',
   `return` int unsigned NOT NULL DEFAULT '0',
@@ -509,7 +536,7 @@ CREATE TABLE `transfers` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `login_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `nickname` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `amount` int unsigned NOT NULL DEFAULT '0',
   `oldBalance` int unsigned NOT NULL DEFAULT '0',
   `newBalance` int unsigned NOT NULL DEFAULT '0',
@@ -540,9 +567,9 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `login_id` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `nickname` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `password` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `login_id` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `nickname` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `password` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `avatar` int NOT NULL DEFAULT '0',
   `grade` int NOT NULL DEFAULT '0',
   `balance` int unsigned NOT NULL DEFAULT '0',
@@ -551,12 +578,12 @@ CREATE TABLE `users` (
   `table_id` int DEFAULT NULL,
   `rake` int unsigned NOT NULL DEFAULT '0',
   `store_id` int NOT NULL DEFAULT '0',
-  `transferpassword` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `phone` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `bank` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `holder` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `account` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `recommender` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `transferpassword` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `bank` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `holder` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `account` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `recommender` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `first_charge` int unsigned NOT NULL DEFAULT '0',
   `charges` bigint unsigned NOT NULL DEFAULT '0',
   `transfers` bigint unsigned NOT NULL DEFAULT '0',
@@ -564,8 +591,8 @@ CREATE TABLE `users` (
   `charge_count` int unsigned NOT NULL DEFAULT '0',
   `transfer_count` int unsigned NOT NULL DEFAULT '0',
   `transfer_fee_count` int unsigned NOT NULL DEFAULT '0',
-  `activeSessionId` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
-  `pendingSessionId` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
+  `activeSessionId` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
+  `pendingSessionId` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '',
   `pendingSessionTimestamp` bigint DEFAULT '0',
   `loginCount` int unsigned NOT NULL DEFAULT '0',
   `loginDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -598,4 +625,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-05-07 13:31:36
+-- Dump completed on 2023-05-07 15:02:26
