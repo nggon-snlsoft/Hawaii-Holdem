@@ -222,12 +222,7 @@ export class UiTableList extends Component {
     }
 
     public getTableList() {
-        let store = NetworkManager.Instance().getUserInfo().store;
-        if ( store == null ) {
-            return;
-        } 
-
-        NetworkManager.Instance().reqTABLE_LIST( store, (res)=>{
+        NetworkManager.Instance().getTABLE_LIST( (res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 this.showTableList(res.tables);
             } else {

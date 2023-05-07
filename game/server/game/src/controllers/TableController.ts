@@ -12,39 +12,50 @@ export class TableController {
     }
 
     private initRouter() {
-        this.router.post( '/getTables', this.getTableList.bind(this));
-        this.router.post( '/enterTable', this.enterTable.bind(this));
+        this.router.post( '/get', this.getTABLE_LIST.bind(this));
+        this.router.post( '/enter', this.enterTABLE.bind(this));
     }
 
-    public async getTableList( req: any, res: any ) {
-        let store = req.body.store;
-
-        let tables = await this.getTableListFromDB( req.app.get('DAO'), store );
-        if ( tables == undefined ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'NO_TABLES',
-            });
-            return;            
+    public async getTABLE_LIST( req: any, res: any ) {
+        let tables: any[] = [];
+        try {
+            tables = await this.getTABLE_LIST_FromDB( req.app.get('DAO') );            
+            if ( tables == null || tables == undefined || tables.length <= 0 ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'NO_TABLES',
+                });
+                return;            
+            }
+    
+        } catch (error) {
+            console.log( error);
+            return;
         }
 
         let _tables: any[] = [];
-        let rooms: RoomListingData<any>[] = await matchMaker.query({ private: false });
 
-        for (let i = 0; i < tables.length; i++ ) {
-            let t = ClientUserData.getClientTableData( tables[i] );
+        let rooms: RoomListingData<any>[] = [];
 
-            let r = rooms.find( (e)=> {
-                return e.serial == t.id;
-            });
-
-            if ( r != null ) {
-            }
-
-            let p = (r == null) ? 0 : r.clients;
-            t.players = p;
-            _tables.push(t);
-        }        
+        try {
+            rooms = await matchMaker.query({ private: false });
+            for (let i = 0; i < tables.length; i++ ) {
+                let t = ClientUserData.getClientTableData( tables[i] );
+    
+                let r = rooms.find( (e)=> {
+                    return e.serial == t.id;
+                });
+    
+                if ( r != null ) {
+                }
+    
+                let p = (r == null) ? 0 : r.clients;
+                t.players = p;
+                _tables.push(t);
+            }                                
+        } catch (error) {
+            console.log ( error );            
+        }
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
@@ -53,12 +64,12 @@ export class TableController {
         });        
     }
 
-    public async enterTable( req: any, res: any ) {
+    public async enterTABLE( req: any, res: any ) {
 
-        let tableID = req.body.tableID;
-        let userID = req.body.userID;
+        let table_id = req.body.table_id;
+        let user_id = req.body.user_id;
 
-        if ( tableID == null || userID == null ) {
+        if ( table_id == null || user_id == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'TABLEID_OR_USER_ID_NULL',
@@ -66,7 +77,14 @@ export class TableController {
             return;
         }
 
-        let user: any = await this.getAccount( req.app.get('DAO'), userID);
+        let user: any = null;
+
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id);            
+        } catch (error) {
+            console.log( error );
+        }
+
         if ( user == undefined ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -75,7 +93,7 @@ export class TableController {
             return;
         }
 
-        if ( user.tableID != -1 ) {
+        if ( user.table_id != -1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'DUPLICATE_LOGIN',
@@ -83,7 +101,13 @@ export class TableController {
             return;            
         }
 
-        let table: any = await this.getTableInfoFromDB( req.app.get('DAO'), tableID );
+        let table: any = null;
+        try {
+            table = await this.getTABLE_ByTABLE_ID( req.app.get('DAO'), table_id );
+        } catch (error) {
+            console.log( error );
+        }
+
         if ( table == undefined ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -93,12 +117,11 @@ export class TableController {
         }
 
         let _tables = ClientUserData.getClientTableData(table);
-        let seatReservation: matchMaker.SeatReservation = null;
         let gameSize = (_tables.maxPlayers == 9) ? 'holdem_full' : 'holdem_full';
         let room = await matchMaker.query({
             private: false,
             name: gameSize,
-            serial: tableID
+            serial: _tables.id
         });
 
         if ( room != null && room.length > 0) {
@@ -111,14 +134,45 @@ export class TableController {
             }
         }
 
-        seatReservation = await matchMaker.joinOrCreate( gameSize, { private: false, serial: tableID });
+        let seatReservation: matchMaker.SeatReservation = null;
+        try {
+            seatReservation = await matchMaker.joinOrCreate( gameSize, { private: false, serial: _tables.id });            
+        } catch (error) {
+            console.log( error);            
+        }
+
+        if ( seatReservation == null || seatReservation == undefined ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'TABLE_JOIN_FAIL',
+            });
+            return;
+        }
 
         user.pendingSessionId = seatReservation.sessionId;
         user.pendingSessionTimestamp = Date.now();
-        user.tableID = tableID;
+        user.table_id = _tables.id;
 
-        await this.updatePendingState( req.app.get('DAO'), user);
-        await this.updateTableID( req.app.get('DAO'), user);
+        console.log('reqPENDING_STATE');
+
+        try {
+            await this.reqPENDING_STATE( req.app.get('DAO'), user);            
+        } catch (error) {
+            console.log( error );
+        }
+
+        console.log('reqTABLE_ID');
+
+        try {
+            let tb = await this.reqTABLE_ID( req.app.get('DAO'), user);
+            console.log( 'await this.reqTABLE_ID');
+            console.log( tb );
+
+        } catch (error) {
+            console.log ( error );
+        }
+
+        console.log('reqTABLE_ID: ');
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
@@ -129,10 +183,10 @@ export class TableController {
         });
     }
 
-    private async updatePendingState( dao: any, data: any ) {
+    private async reqPENDING_STATE( dao: any, data: any ) {
 
         return new Promise( ( resolve, reject ) => {
-            dao.updateAccountPending( data, ( err: any, res: any )=>{
+            dao.UPDATE_USERS_PENDING( data, ( err: any, res: any )=>{
 
                 if( !!err ) {
                     reject({
@@ -146,9 +200,9 @@ export class TableController {
         } );
     }
 
-    private async updateTableID( dao: any, data: any ) {
+    private async reqTABLE_ID( dao: any, data: any ) {
         return new Promise( ( resolve, reject ) => {
-            dao.updateTableID( data, function( err: any, res: any ) {
+            dao.UPDATE_USERS_TABLE_ID_ByUSER( data, function( err: any, res: any ) {
 
                 if( !!err ) {
                     reject({
@@ -161,9 +215,9 @@ export class TableController {
         } );
     }
 
-    private async getTableListFromDB( dao: any, store: number  ) {
+    private async getTABLE_LIST_FromDB( dao: any ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.selectTables( store, (err: any, res: any)=>{
+            dao.SELECT_TABLES( (err: any, res: any)=>{
                 if ( err != null ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -176,9 +230,9 @@ export class TableController {
         });
     }
 
-    private async getTableInfoFromDB( dao: any, id: any  ) {
+    private async getTABLE_ByTABLE_ID( dao: any, table_id: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.selectTableInfo(id, (err: any, res: any)=>{
+            dao.SELECT_TABLES_ByTABLE_ID(table_id, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -191,9 +245,9 @@ export class TableController {
         });
     }
 
-    private async getAccount( dao: any, id: string ) {
+    private async getUSER_ByUSER_ID( dao: any, id: string ) {
         return new Promise( ( resolve, reject ) => {
-            dao.selectAccountByID( id, function( err: any, res: any ) {
+            dao.SELECT_USERS_ByUSER_ID( id, function( err: any, res: any ) {
                 if( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -205,9 +259,6 @@ export class TableController {
             } );
         } );
     }
-
-
-
 }
 
 export default TableController;

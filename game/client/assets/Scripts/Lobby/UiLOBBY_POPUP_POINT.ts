@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, EditBox, instantiate, Label, Layout, log, Node, ScrollView, Toggle } from 'cc';
+import { _decorator, Button, CapsuleColliderComponent, Component, EditBox, instantiate, Label, Layout, log, Node, ScrollView, Toggle } from 'cc';
 import { NetworkManager } from '../NetworkManager';
 import { CommonUtil } from '../CommonUtil';
 import { LobbySystemPopup } from '../LobbySystemPopup';
@@ -186,7 +186,7 @@ export class UiLOBBY_POPUP_POINT extends Component {
         this.originPointTransfer.rootNode.active = false;
         this.originPointGift.rootNode.active = false;
 
-        NetworkManager.Instance().getUserInfoFromDB( (res: any)=>{
+        NetworkManager.Instance().getUSER_FromDB( (res: any)=>{
             button.interactable = true;
             this.user = res.user;
 
@@ -342,12 +342,12 @@ export class UiLOBBY_POPUP_POINT extends Component {
     }
 
     private PointTransfer(value: number,  oldBalance: number, oldPoint: number, done: (logs)=>void ) {
-        let id = this.user.id;        
+        let user_id = this.user.id;
         NetworkManager.Instance().reqPOINT_TRANSFER( {
-            id: id,
+            user_id: user_id,
             value: value
         }, (res: any)=>{
-            this.user = NetworkManager.Instance().getUserInfo();
+            this.user = NetworkManager.Instance().GetUser();
 
             let newBalance = this.user.balance;
             let newPoint = this.user.point;

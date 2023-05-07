@@ -5,6 +5,7 @@ import { send } from 'process';
 import { ClientUserData } from './ClientUserData';
 import { resolve } from 'path';
 import { rejects } from 'assert';
+import { use } from 'passport';
 
 const requestIp = require('request-ip');
 
@@ -39,11 +40,12 @@ export class UserController {
         this.router.post( '/getInitData', this.getINIT_DATA.bind(this));
         this.router.post( '/updateAvatar', this.updateAVATAR.bind(this));
 
-        this.router.post( '/getUserInfo', this.getUSER.bind(this));
-        this.router.post( '/getSetting', this.getSETTING.bind(this));
-        this.router.post( '/updateSetting', this.updateSETTING.bind(this));
+        this.router.post( '/get', this.getUSER.bind(this));
 
-        this.router.post( '/getStatics', this.getSTATICS.bind(this));
+        this.router.post( '/setting/get', this.getSETTING.bind(this));
+        this.router.post( '/setting/update', this.updateSETTING.bind(this));
+
+        this.router.post( '/statics/get', this.getSTATICS.bind(this));
     }
 
     private async getIp( req: any, next: (ip: string )=>void ) {
@@ -63,9 +65,6 @@ export class UserController {
         }
 
         let version: string = req.body.version;
-        console.log( 'CLIENT_VERSION: ' + version );
-        // let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
         if ( login_id == null || login_id.length < 4 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -76,15 +75,26 @@ export class UserController {
 
         let clientIp: string = '';
 
-        await this.getIp( req, ( ip: string )=>{
-            clientIp = ip;
-        });
+        try {
+            await this.getIp( req, ( ip: string )=>{
+                clientIp = ip;
+            });            
+        } catch (error) {
+            clientIp = '';
+        }
 
-        let data: any = await this.getUserByUID( req.app.get('DAO'), uid );
+        let data: any = null;
+        try {
+            data = await this.getUSER_ByLOGIN_ID( req.app.get('DAO'), login_id );            
+        } catch (error) {
+            console.log(error);
+            return;
+        }
+
         if (data == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'NO_EXIST_UID'
+                msg: 'NO_EXIST_LOGIN_ID'
             });
             return;
         }
@@ -105,13 +115,13 @@ export class UserController {
             return;
         }        
 
-        if ( data.pending == 1 ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'PENDING_ACCOUNT'
-            });
-            return;
-        }
+        // if ( data.pending == 1 ) {
+        //     res.status( 200 ).json({
+        //         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+        //         msg: 'PENDING_ACCOUNT'
+        //     });
+        //     return;
+        // }
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
@@ -132,7 +142,13 @@ export class UserController {
             return;
         }
 
-        let user: any = await this.getUserByID( req.app.get('DAO'), user_id );
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );            
+        } catch (error) {
+            console.log( error );
+        }
+
         if (user == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -143,11 +159,26 @@ export class UserController {
 
         let _user = ClientUserData.getClientUserData(user);
 
-        let setting: any = await this.getSettingByUserID( req.app.get('DAO'), user_id );
+        let setting: any = null;
+        try {
+            setting = await this.getSETTING_BY_USER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );            
+        }
 
-        if ( setting == undefined ) {
-            const r: any = await this.createUserSetting( req.app.get('DAO'), user_id );
-            setting = await this.getSettingByUserID( req.app.get('DAO'), user_id );
+        let affected: any = 0;
+        if ( setting == null || setting == undefined ) {
+            try {
+                affected = await this.createSETTING( req.app.get('DAO'), user_id );                
+            } catch (error) {
+                console.log( error );
+            }
+
+            try {
+                setting = await this.getSETTING_BY_USER_ID( req.app.get('DAO'), user_id );                
+            } catch (error) {
+                console.log(error);
+            }
 
             if ( setting == undefined ) {
                 res.status( 200 ).json({
@@ -160,12 +191,26 @@ export class UserController {
 
         let _setting = ClientUserData.getClientSettingData(setting);
 
-        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), user_id );
-        if ( statics == undefined ) {
-            console.log('statics == undefined');
-            const r: any = await this.createUserStatics( req.app.get('DAO'), user_id );
+        let statics: any = null;
+        try {
+            statics = await this.getSTATICS_ByUSER_ID( req.app.get('DAO'), user_id );            
+        } catch (error) {
+            console.log( error );
+        }
 
-            statics = await this.getStaticsByUserID( req.app.get('DAO'), user_id );
+        if ( statics == null || statics == undefined ) {
+            let affected: any = null;
+            try {
+                affected = await this.createSTATICS( req.app.get('DAO'), user_id );                
+            } catch (error) {
+                console.log(error);
+            }
+
+            try {
+                statics = await this.getSTATICS_ByUSER_ID( req.app.get('DAO'), user_id );                
+            } catch (error) {
+                console.log(error);                
+            }
 
             if ( setting == undefined ) {
                 res.status( 200 ).json({
@@ -191,7 +236,7 @@ export class UserController {
 
     public async reqJOIN( req: any, res: any) {
         let user = req.body.user;
-        if ( user.uid == null || user.uid.length < 1 ) {
+        if ( user.login_id == null || user.login_id.length < 1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -199,9 +244,9 @@ export class UserController {
             return;
         }
 
-        if ( user.uid.length <= 0 || user.nickname <= 0 || user.password.length <= 0  ||
-            user.trans.length <= 0 || user.phone.length <= 0 || user.bank.length <= 0 ||
-            user.holder.length <= 0 || user.account.length <= 0 || user.recommender.length <= 0 ) {
+        if ( user.login_id.length <= 0 || user.nickname <= 0 || user.password.length <= 0  ||
+            user.transfer_password.length <= 0 || user.phone.length <= 0 || user.bank.length <= 0 ||
+            user.holder.length <= 0 || user.account.length <= 0 || user.recommender.length <= 0 || user.store_id < 0 ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'INVALID_FORM'
@@ -209,12 +254,12 @@ export class UserController {
                 return;
         }
 
-        let uid: string = user.uid;
+        let login_id: string = user.login_id;
         let nickname: string = user.nickname;        
         let data: any = null;
 
         try {
-            data = await this.getUserByUID( req.app.get('DAO'), uid );
+            data = await this.getUSER_ByLOGIN_ID( req.app.get('DAO'), login_id );
             if ( data != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -232,7 +277,7 @@ export class UserController {
 
         data = null;
         try {
-            data = await this.getJoinUserByUID( req.app.get('DAO'), uid );
+            data = await this.getJOIN_USER_ByLOGIN_ID( req.app.get('DAO'), login_id );
             if ( data != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -250,7 +295,7 @@ export class UserController {
 
         data = null;
         try {
-            data = await this.getUserByNickname( req.app.get('DAO'), nickname );
+            data = await this.getUSER_ByNICKNAME( req.app.get('DAO'), nickname );
             if ( data != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -268,7 +313,7 @@ export class UserController {
 
         data = null;
         try {
-            data = await this.getJoinUserByNickname( req.app.get('DAO'), nickname );
+            data = await this.getJOIN_USER_ByNICKNAME( req.app.get('DAO'), nickname );
             if ( data != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -286,7 +331,7 @@ export class UserController {
 
         let result: any = null;
         try {
-            result = await this.joinMember( req.app.get('DAO'), user );
+            result = await this.createJOIN_MEMBER( req.app.get('DAO'), user );
             if ( result != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.SUCCESS,
@@ -310,8 +355,8 @@ export class UserController {
     }
 
     public async checkLOGIN_ID( req: any, res: any) {
-        let uid = req.body.uid;
-        if ( uid == null || uid.length < 1 ) {
+        let login_id = req.body.login_id;
+        if ( login_id == null || login_id.length < 1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -321,7 +366,7 @@ export class UserController {
 
         let user: any = null;
         try {
-            user = await this.getUserByUID( req.app.get('DAO'), uid );            
+            user = await this.getUSER_ByLOGIN_ID( req.app.get('DAO'), login_id );
             if ( user != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -341,7 +386,7 @@ export class UserController {
 
         let join: any = null;
         try {
-            join = await this.getJoinUserByUID( req.app.get('DAO'), uid );            
+            join = await this.getJOIN_USER_ByLOGIN_ID( req.app.get('DAO'), login_id );            
             if ( join != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -378,7 +423,7 @@ export class UserController {
 
         let user: any = null;
         try {
-            user = await this.getUserByNickname( req.app.get('DAO'), nickname );            
+            user = await this.getUSER_ByNICKNAME( req.app.get('DAO'), nickname );            
             if ( user != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -397,7 +442,7 @@ export class UserController {
 
         let join: any = null;
         try {
-            join = await this.getJoinUserByNickname( req.app.get('DAO'), nickname );            
+            join = await this.getJOIN_USER_ByNICKNAME( req.app.get('DAO'), nickname );            
             if ( join != null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -422,14 +467,14 @@ export class UserController {
     }
 
     public async transferPOINT( req: any, res: any) {
-        let userId = req.body.id;
+        let user_id = req.body.user_id;
         let value = req.body.value;
         let desc = req.body.desc;
         if ( desc == null ) {
             desc = "";
         }
 
-        if ( userId == null || value == null || value <= 0 ) {
+        if ( user_id == null || value == null || value <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -439,7 +484,7 @@ export class UserController {
 
         let user: any = null;
         try {
-            user = await this.getUserByID( req.app.get('DAO'), userId );            
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );            
             if ( user != null ) {
                 if ( user.point < value ) {
                     res.status( 200 ).json({
@@ -477,8 +522,8 @@ export class UserController {
         }
 
         try {
-            let affected = await this.updatePointTransfer( req.app.get('DAO'), {
-                id: user.id,
+            let affected = await this.reqPOINT_TRANSFER( req.app.get('DAO'), {
+                user_id: user_id,
                 point: remainPoint,
                 balance: newBalance,
             } );
@@ -500,7 +545,7 @@ export class UserController {
 
         user = null;
         try {
-            user = await this.getUserByID( req.app.get('DAO'), userId );
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
 
             if ( user == null ) {
                 // res.status( 200 ).json({
@@ -518,8 +563,8 @@ export class UserController {
 
         let logs: any = null;
         try {
-            logs = await this.insertPointTransferLog( req.app.get('DAO'), {
-                id: user.id,
+            logs = await this.reqPOINT_TRANSFER_LOG( req.app.get('DAO'), {
+                user_id: user_id,
                 oldPoint: point,
                 newPoint: user.point,
                 point: value,
@@ -541,7 +586,7 @@ export class UserController {
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
-            user: user,
+            user: _user,
             logs: logs
 
         });
@@ -549,10 +594,9 @@ export class UserController {
     }
     
     public async getPOINT_TRANSFER_LOG( req: any, res: any) {
-        let id = req.body.id;
-        console.log('getPOINT_TRANSFER_LOG id: ' + id);
+        let user_id = req.body.user_id;
 
-        if ( id == null || id < 0 ) {
+        if ( user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -562,7 +606,7 @@ export class UserController {
 
         let logs: any = null;
         try {
-            logs = await this.getTransferLog( req.app.get('DAO'), id );
+            logs = await this.getTRANSFER_LOGS( req.app.get('DAO'), user_id );
             if ( logs == null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -588,9 +632,9 @@ export class UserController {
     }
     
     public async getPOINT_RECEIVE_LOG( req: any, res: any) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
 
-        if ( id == null || id < 0 ) {
+        if ( user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
@@ -600,7 +644,7 @@ export class UserController {
 
         let logs: any = null;
         try {
-            logs = await this.getPointReceiveLog( req.app.get('DAO'), id );
+            logs = await this.getRECEIVE_LOGS( req.app.get('DAO'), user_id );
             if ( logs == null ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -623,8 +667,7 @@ export class UserController {
         });
 
         return;
-    }        
-
+    }
 
     public async updateAVATAR( req: any, res: any ) {
         let id = req.body.id;
@@ -646,9 +689,21 @@ export class UserController {
             return;
         }
 
-        let affected = await this.updateUserAvatar( req.app.get('DAO'), id, avatar );
-        let user: any = await this.getUserByID( req.app.get('DAO'), id );
-        if (user == undefined) {
+        let affected: any = null;
+        try {
+            affected = await this.changeUSER_AVATAR( req.app.get('DAO'), id, avatar );            
+        } catch (error) {
+            console.log( error );
+        }
+
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), id );            
+        } catch (error) {
+            console.log( error );           
+        }
+
+        if ( user == null || user == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'NO_EXIST_ID'
@@ -667,9 +722,9 @@ export class UserController {
     }
 
     public async getUSER( req: any, res: any ) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
 
-        if ( id == null || id <= 0 ) {
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
@@ -677,7 +732,7 @@ export class UserController {
             return;
         }
 
-        let user: any = await this.getUserByID( req.app.get('DAO'), id );
+        let user: any = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
         if (user == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -696,9 +751,9 @@ export class UserController {
     }    
     
     public async getSETTING( req: any, res: any ) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
 
-        if ( id == null || id <= 0 ) {
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
@@ -706,8 +761,15 @@ export class UserController {
             return;
         }
 
-        let setting: any = await this.getSettingByUserID( req.app.get('DAO'), id );
-        if (setting == undefined) {
+        let setting: any = null;
+        try {
+            setting = await this.getSETTING_BY_USER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.error();
+        }
+
+
+        if ( setting == null || setting == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'NO_EXIST_ID'
@@ -725,10 +787,11 @@ export class UserController {
     }
     
     public async updateSETTING( req: any, res: any ) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
         let selected = req.body.setting;
 
-        if ( id == null || id <= 0 ) {
+
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
@@ -736,8 +799,20 @@ export class UserController {
             return;
         }
 
-        let affected = await this.updateSettingByUserID( req.app.get('DAO'), id, selected );
-        let setting: any = await this.getSettingByUserID( req.app.get('DAO'), id );
+        let affected: any = null;
+        try {
+            affected = await this.setSETTING_ByUSER_ID( req.app.get('DAO'), user_id, selected );            
+        } catch (error) {
+            console.log( error );            
+        }
+
+        let setting: any = null;
+        try {
+            setting = await this.getSETTING_BY_USER_ID( req.app.get('DAO'), user_id );            
+        } catch (error) {
+            console.log( error );
+        }
+
         if (setting == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -757,9 +832,9 @@ export class UserController {
     }
 
     public async getSTATICS( req: any, res: any ) {
-        let id = req.body.id;
+        let user_id = req.body.user_id;
 
-        if ( id == null || id <= 0 ) {
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_ID'
@@ -767,8 +842,15 @@ export class UserController {
             return;
         }
 
-        let statics: any = await this.getStaticsByUserID( req.app.get('DAO'), id );
-        if (statics == undefined) {
+        let statics: any = null;
+        try {
+            statics = await this.getSTATICS_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );            
+        }
+
+
+        if ( statics == null || statics == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'NO_EXIST_ID'
@@ -790,9 +872,9 @@ export class UserController {
         });
     }
 
-    private async getUserByID( dao: any, id: string ) {
+    private async getUSER_ByUSER_ID( dao: any, user_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectAccountByID ( id, function(err: any, res: any ) {
+            dao.SELECT_USER_BY_USER_ID ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -805,9 +887,12 @@ export class UserController {
         });
     }
 
-    private async getTransferLog( dao: any, id: string ) {
+    private async getTRANSFER_LOGS( dao: any, user_id: string ) {
+        console.log('getTRANSFER_LOGS');
+        console.log(user_id);
+
         return new Promise( (resolve, reject )=>{
-            dao.selectPointTransferLog ( id, function(err: any, res: any ) {
+            dao.SELECT_POINT_TRANSFER_LOG ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -820,9 +905,9 @@ export class UserController {
         });
     }
 
-    private async getPointReceiveLog( dao: any, id: string ) {
+    private async getRECEIVE_LOGS( dao: any, user_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectPointReceiveLog ( id, function(err: any, res: any ) {
+            dao.SELECT_POINT_RECEIVE_LOG ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -835,9 +920,9 @@ export class UserController {
         });
     }
 
-    private async getUserByUID( dao: any, uid: string ) {
+    private async getUSER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectAccountByUID ( uid, function(err: any, res: any ) {
+            dao.SELECT_USERS_BY_LOGIN_ID ( login_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -850,9 +935,9 @@ export class UserController {
         });
     }
 
-    private async getJoinUserByUID( dao: any, uid: string ) {
+    private async getJOIN_USER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectJoinUserByUID ( uid, function(err: any, res: any ) {
+            dao.SELECT_JOINS_BY_LOGIN_ID ( login_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -865,9 +950,9 @@ export class UserController {
         });
     }
     
-    private async getJoinUserByNickname( dao: any, nickname: string ) {
+    private async getJOIN_USER_ByNICKNAME( dao: any, nickname: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectJoinUserByNickname ( nickname, function(err: any, res: any ) {
+            dao.SELECT_JOINS_BY_NICKNAME ( nickname, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -880,9 +965,9 @@ export class UserController {
         });
     }        
 
-    private async getUserByNickname( dao: any, nickname: string ) {
+    private async getUSER_ByNICKNAME ( dao: any, nickname: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectAccountByNickname ( nickname, function(err: any, res: any ) {
+            dao.SELECT_USERS_BY_NICKNAME ( nickname, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -895,9 +980,9 @@ export class UserController {
         });
     }
 
-    private async getSettingByUserID( dao: any, id: string ) {
+    private async getSETTING_BY_USER_ID( dao: any, user_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectSettingByID ( id, function(err: any, res: any ) {
+            dao.SELECT_SETTING_BY_USER_ID ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -910,10 +995,9 @@ export class UserController {
         });
     }
 
-    private async updateSettingByUserID( dao: any, id: string, setting: any ) {
-        console.log(setting);
+    private async setSETTING_ByUSER_ID( dao: any, user_id: string, setting: any ) {
         return new Promise( (resolve, reject )=>{
-            dao.updateSettingByID ( id, setting, function(err: any, res: any ) {
+            dao.UPDATE_SETTING ( user_id, setting, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -926,9 +1010,9 @@ export class UserController {
         });
     }
 
-    private async getStaticsByUserID( dao: any, id: string ) {
+    private async getSTATICS_ByUSER_ID( dao: any, user_id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectStaticsByID ( id, function(err: any, res: any ) {
+            dao.SELECT_STATICS_BY_USER_ID ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -941,9 +1025,9 @@ export class UserController {
         });
     }
 
-    private async joinMember( dao: any, user: any ) {
+    private async createJOIN_MEMBER( dao: any, user: any ) {
         return new Promise( (resolve, reject )=>{
-            dao.insertJoinMember ( user, function(err: any, res: any ) {
+            dao.insertJOIN_MEMBER ( user, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -956,9 +1040,9 @@ export class UserController {
         });        
     }    
 
-    private async createUserSetting( dao: any, id: any ) {
+    private async createSETTING( dao: any, user_id: any ) {
         return new Promise ( (resolve, reject ) =>{
-            dao.insertInitialSetting( id, function( err: any, res: any ) {
+            dao.INSERT_SETTING( user_id, function( err: any, res: any ) {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -972,9 +1056,9 @@ export class UserController {
         });
     }
 
-    private async createUserStatics( dao: any, id: any ) {
+    private async createSTATICS( dao: any, user_id: any ) {
         return new Promise ( (resolve, reject ) =>{
-            dao.insertUserStatics( id, ( err: any, res: any )=> {
+            dao.INSERT_STATICS( user_id, ( err: any, res: any )=> {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -987,9 +1071,10 @@ export class UserController {
         });
     }    
 
-    private async updateUserAvatar( dao: any, id: any, avatar: any ) {
+    private async changeUSER_AVATAR( dao: any, id: any, avatar: any ) {
+        console.log('changeUSER_AVATAR');        
         return new Promise ( (resolve, reject ) =>{
-            dao.updateAvatar( id, avatar, function( err: any, res: any ) {
+            dao.UPDATE_AVATAR( id, avatar, function( err: any, res: any ) {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -1002,9 +1087,9 @@ export class UserController {
         });
     }
 
-    private async updatePointTransfer( dao: any, data: any ) {
+    private async reqPOINT_TRANSFER( dao: any, data: any ) {
         return new Promise ( (resolve, reject ) =>{
-            dao.updateTransferPoint( data, function( err: any, res: any ) {
+            dao.UPDATE_POINT_TRANSFER( data, function( err: any, res: any ) {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -1017,9 +1102,9 @@ export class UserController {
         });
     }
     
-    private async insertPointTransferLog( dao: any, data: any ) {
+    private async reqPOINT_TRANSFER_LOG( dao: any, data: any ) {
         return new Promise ( (resolve, reject ) =>{
-            dao.insertPointTransfer( data, function( err: any, res: any ) {
+            dao.INSERT_POINT_TRANSFER_LOG( data, function( err: any, res: any ) {
                 if (!!err ) {
                     console.log(err);
                     reject( {
@@ -1031,9 +1116,7 @@ export class UserController {
                 }
             });
         });
-    }    
-
-
+    }
 }
 
 export default UserController;

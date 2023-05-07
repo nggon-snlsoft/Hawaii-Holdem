@@ -50,23 +50,18 @@ export class UiPlayer extends Component {
     }
 
     public refresh() {
-        let user = NetworkManager.Instance().getUserInfo();
+        let user = NetworkManager.Instance().GetUser();
         if (user != null)
         {
             this.labelNickname.string = user.nickname;
             this.labelChips.string = CommonUtil.getKoreanNumber(user.balance + user.chip);
-            this.labelPoints.string = (0).toString();
+            this.labelPoints.string = CommonUtil.getKoreanNumber(user.point);
 
             let s = Number( user.avatar );
             let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage( s );
             this.spriteAvatar.spriteFrame = sf;
 
             this.spriteAvatar.node.active = true;
-
-
-            // CommonUtil.setAvatarSprite(s, this.spriteAvatar, ()=>{
-            //     this.spriteAvatar.node.active = true;
-            // });
         }
         this.node.active = true;
     }

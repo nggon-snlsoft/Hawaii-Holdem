@@ -15,12 +15,12 @@ export class LobbyAudioContoller extends Component {
     init() {
         LobbyAudioContoller.instance = this;
 
-        this.volumn = NetworkManager.Instance().getUserSetting().sound;
+        this.volumn = NetworkManager.Instance().GetSetting().sound;
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;
     }
 
     ApplyVolumn() {
-        this.volumn = NetworkManager.Instance().getUserSetting().sound;
+        this.volumn = NetworkManager.Instance().GetSetting().sound;
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;
     }
 

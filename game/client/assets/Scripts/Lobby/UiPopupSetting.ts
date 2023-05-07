@@ -123,33 +123,36 @@ export class UiPopupSetting extends Component {
     }
 
     public show() {
-        let info = NetworkManager.Instance().getUserInfo();
+        let info = NetworkManager.Instance().GetUser();
+        if ( info != null ) {
 
-        NetworkManager.Instance().reqSetting( info.id, (res)=>{
-            this.initSetting = false;
+            NetworkManager.Instance().getSETTING( info.id, (res)=>{
+                this.initSetting = false;
+    
+                let setting = res.setting;
+    
+                this.node.active = true;
+                this.togglesCard.toggleItems[ setting.card ].isChecked = true;
+                this.togglesTable.toggleItems[ setting.board ].isChecked = true;
+                this.togglesBackground.toggleItems[ setting.background ].isChecked = true;
+    
+                this.selectCard = setting.card;
+                this.selectTable = setting.board;
+                this.selectBackground = setting.background;
+    
+                this.volumn = setting.sound;
+                this.labelVolumn.string = ( this.volumn ).toString();
+                this.sliderVolumn.progress = ( this.volumn / VOLUMNE_MULTIPLIER);
+    
+                this.initSetting = true;
+                
+            }, (err)=>{
+                LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
+                    LobbySystemPopup.instance.closePopup();
+                });
+            });            
 
-            let setting = res.setting;
-
-            this.node.active = true;
-            this.togglesCard.toggleItems[ setting.card ].isChecked = true;
-            this.togglesTable.toggleItems[ setting.board ].isChecked = true;
-            this.togglesBackground.toggleItems[ setting.background ].isChecked = true;
-
-            this.selectCard = setting.card;
-            this.selectTable = setting.board;
-            this.selectBackground = setting.background;
-
-            this.volumn = setting.sound;
-            this.labelVolumn.string = ( this.volumn ).toString();
-            this.sliderVolumn.progress = ( this.volumn / VOLUMNE_MULTIPLIER);
-
-            this.initSetting = true;
-            
-        }, (err)=>{
-            LobbySystemPopup.instance.showPopUpOk('설정', '설정을 얻어올 수 없습니다.', ()=>{
-                LobbySystemPopup.instance.closePopup();
-            });
-        });
+        }
     }
 
     public hide() {

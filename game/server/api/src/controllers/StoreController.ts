@@ -23,17 +23,17 @@ export class StoreController {
     }
 
     private InitRouter() {
-        this.router.post( '/getStore', this.onGET_STORE.bind( this ));
-        this.router.post( '/reqCharge', this.onREQ_CHARGE.bind( this ));
-        this.router.post( '/reqTransfer', this.onREQ_TRANSFER.bind( this ));        
-        this.router.post( '/getChargeRequests', this.onGET_CHARGE_REQUESTS.bind( this ));
-        this.router.post( '/getTransferRequests', this.onGET_TRANSFER_REQUESTS.bind( this ));        
+        this.router.post( '/get', this.onGET_STORE.bind( this ));
+        this.router.post( '/charge/req', this.onREQ_CHARGE.bind( this ));
+        this.router.post( '/transfer/req', this.onREQ_TRANSFER.bind( this ));
+        this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
+        this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));        
     }
 
     public async onGET_STORE( req: any, res: any ) {
-        let id = req.body.store;
+        let store_id = req.body.store_id;
 
-        if ( id == null || id <= 0 ) {
+        if ( store_id == null || store_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_STORE_ID'
@@ -41,7 +41,13 @@ export class StoreController {
             return;
         }
 
-        let store: any = await this.GetStoreByStoreID( req.app.get('DAO'), id );
+        let store: any = null;
+        try {
+            store = await this.getSTORE_BySTORE_ID( req.app.get('DAO'), store_id );            
+        } catch (error) {
+            console.log( error );
+        }
+
         if ( store === null || store === undefined ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -60,10 +66,10 @@ export class StoreController {
     }
 
     public async onREQ_CHARGE( req: any, res: any ) {
-        let userId = req.body.userId;
+        let user_id = req.body.user_id;
         let amount = req.body.amount;
 
-        if ( userId == null || userId <= 0 || amount < 10000 ) {
+        if ( user_id == null || user_id <= 0 || amount < 10000 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_STORE_ID'
@@ -71,15 +77,30 @@ export class StoreController {
             return;
         }
 
-        let user: any = await this.getUserByID( req.app.get('DAO'), userId );        
-        if ( user == null ) {
-            return;
-        } 
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );
+        }
 
-        let affected: any = await this.CreateChargeRequest( req.app.get('DAO'), {
-            user: user,
-            amount: amount
-        } );
+        if ( user == null || user == undefined) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NO_EXIST_ID'
+            });
+            return;
+        }
+
+        let affected: any = null;
+        try {
+                affected = await this.reqCHARGE_REQUEST( req.app.get('DAO'), {
+                user: user,
+                amount: amount
+            } );
+        } catch (error) {
+            console.log ( error );            
+        }
 
         if ( affected == true ) {
             res.status( 200 ).json({
@@ -95,14 +116,11 @@ export class StoreController {
     }
 
     public async onREQ_TRANSFER( req: any, res: any ) {
-        console.log('onREQ_TRANSFER');
-        console.log( req.body );
-
-        let userId = req.body.id;
+        let user_id = req.body.user_id;
         let value = req.body.value;
         let password = req.body.password;
 
-        if ( userId == null || userId <= 0 || value < 10000 ) {
+        if ( user_id == null || user_id <= 0 || value < 10000 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_PARAMETER'
@@ -110,7 +128,13 @@ export class StoreController {
             return;
         }
 
-        let user: any = await this.getUserByID( req.app.get('DAO'), userId );        
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );            
+        } catch (error) {
+            console.log( error );
+        }
+
         if ( user == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -120,7 +144,6 @@ export class StoreController {
         }
 
         if ( user.transferpassword != password ) {
-            console.log('password is not match');            
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_TRANSFER_PASSWORD',
@@ -128,19 +151,35 @@ export class StoreController {
             return;
         }
 
-        console.log('CreateTransferRequest');
-        let result: any = await this.CreateTransferRequest( req.app.get('DAO'), {
-            user: user,
-            value: value
-        } );
+        let result: any = null;
+        try {
+            result = await this.reqTRANSFER_REQUEST( req.app.get('DAO'), {
+                user: user,
+                value: value
+            } );
+                
+        } catch (error) {
+            console.log( error );            
+        }
 
-        console.log( result );
+        if ( result == null || result == undefined ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'TRANSFER_REQUEST_FAIL',
+            });
+            return;
+        }
 
         if ( result.affected == 1 ) {
-            let r: any = await this.UpdateUserBalance( req.app.get('DAO'), {
-                id: user.id,
-                newBalance: result.balance
-            } );
+            let r: any = null;
+            try {
+                r = await this.setUSER_BALANCE( req.app.get('DAO'), {
+                    id: user.id,
+                    newBalance: result.balance
+                } );                
+            } catch (error) {
+                console.log( error );
+            }
 
             if ( r != null && r.length > 0 ) {
                 let _user = ClientUserData.getClientUserData( r[0] );
@@ -165,8 +204,9 @@ export class StoreController {
     }
 
     public async onGET_CHARGE_REQUESTS( req: any, res: any ) {
-        let id = req.body.id;
-        if ( id == null || id <= 0 ) {
+
+        let user_id = req.body.user_id;
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_USER_ID'
@@ -174,7 +214,12 @@ export class StoreController {
             return;
         }
 
-        let charges: any = await this.GetRequestChargeListByID( req.app.get('DAO'), id );
+        let charges: any = null;
+        try {
+            charges = await this.reqCHARGE_REQUSETS_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );            
+        }
 
         if ( charges == null ) {
             res.status( 200 ).json({
@@ -190,8 +235,9 @@ export class StoreController {
     }
 
     public async onGET_TRANSFER_REQUESTS( req: any, res: any ) {
-        let id = req.body.id;
-        if ( id == null || id <= 0 ) {
+        let user_id = req.body.user_id;
+
+        if ( user_id == null || user_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_USER_ID'
@@ -199,7 +245,12 @@ export class StoreController {
             return;
         }
 
-        let transfers: any = await this.GetRequestTransferListByID( req.app.get('DAO'), id );
+        let transfers: any = null;
+        try {
+            transfers = await this.reqTRANSFER_REQUESTS_ByUSER_ID( req.app.get('DAO'), user_id );            
+        } catch (error) {
+            console.log( error );
+        }
 
         if ( transfers == null ) {
             res.status( 200 ).json({
@@ -214,9 +265,9 @@ export class StoreController {
         }
     }
     
-    private async getUserByID( dao: any, id: string ) {
+    private async getUSER_ByUSER_ID( dao: any, id: string ) {
         return new Promise( (resolve, reject )=>{
-            dao.selectAccountByID ( id, function(err: any, res: any ) {
+            dao.SELECT_USER_BY_USER_ID ( id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -229,9 +280,9 @@ export class StoreController {
         });
     }    
     
-    private async GetStoreByStoreID( dao: any, storeID: number ) {
+    private async getSTORE_BySTORE_ID( dao: any, store_id: number ) {
         return new Promise( (resolve, reject )=>{
-            dao.SelectStoreByStoreID ( storeID, function(err: any, res: any ) {
+            dao.SELECT_STORE_BySTORE_ID ( store_id, function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({
@@ -245,11 +296,10 @@ export class StoreController {
         });
     }
 
-    private async CreateChargeRequest( dao: any, data: any ) {
+    private async reqCHARGE_REQUEST( dao: any, data: any ) {
 
         return new Promise( (resolve, reject )=>{
-
-            dao.CreateChargeRequest( data, function( err: any, res: any ) {
+            dao.INSERT_CHARGE_REQUEST( data, function( err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({
@@ -263,13 +313,10 @@ export class StoreController {
         });
     }
     
-    private async CreateTransferRequest( dao: any, data: any ) {
-        console.log('CreateTransferRequest');
-        console.log(data);
-
+    private async reqTRANSFER_REQUEST( dao: any, data: any ) {
         return new Promise( (resolve, reject )=>{
 
-            dao.CreateTransferRequest( data, function( err: any, res: any ) {
+            dao.INSERT_TRANSFER_REQUEST( data, function( err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({
@@ -283,12 +330,12 @@ export class StoreController {
         });
     }
 
-    private async UpdateUserBalance( dao: any, data: any ) {
+    private async setUSER_BALANCE( dao: any, data: any ) {
         let id = data.id;
         let value = data.newBalance;
 
         return new Promise( (resolve, reject )=>{
-            dao.UpdateUserBalance( {
+            dao.UPDATE_USER_BALANCE( {
                 id: id,
                 newBalance: value,
 
@@ -306,9 +353,9 @@ export class StoreController {
         });
     }    
 
-    private async GetRequestChargeListByID( dao: any, id: number ) {
+    private async reqCHARGE_REQUSETS_ByUSER_ID( dao: any, id: number ) {
         return new Promise( (resolve, reject )=>{
-            dao.SelectChargeRequestsByID ( id, function(err: any, res: any ) {
+            dao.SELECT_CHARGE_REQUESTS_ByUSER_ID ( id, function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({
@@ -322,9 +369,9 @@ export class StoreController {
         });
     }
 
-    private async GetRequestTransferListByID( dao: any, id: number ) {
+    private async reqTRANSFER_REQUESTS_ByUSER_ID( dao: any, id: number ) {
         return new Promise( (resolve, reject )=>{
-            dao.SelectTransferRequestsByID ( id, function(err: any, res: any ) {
+            dao.SELECT_TRANSFER_REQUEST_ByUSER_ID ( id, function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({

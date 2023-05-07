@@ -8,10 +8,12 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UiPlayerAction')
 export class UiPlayerAction extends Component {
-	@property (Node) NodeNativeContoller: Node = null;
+	@property (Node) rootPortraitController: Node = null;
+	@property (Node) rootLandscapeContoller: Node = null;
+
 	// @property (Node) NodeMobileContoller: Node = null;
 	
-	private uiBettingControl: UiBettingControl = null;
+	// private uiBettingControl: UiBettingControl = null;
 
 	private nodeRoot: Node = null;
 
@@ -21,9 +23,9 @@ export class UiPlayerAction extends Component {
 	private buttonCheck: Button = null;
 	private buttonCall: Button = null;
 
-	private buttonBet: Button = null;
-	private buttonRaise: Button = null;
-	private buttonConfirm: Button = null;
+	// private buttonBet: Button = null;
+	// private buttonRaise: Button = null;
+	// private buttonConfirm: Button = null;
 	private buttonAllIn: Button = null;
 
 	private turnBet: number = 0;
@@ -84,7 +86,15 @@ export class UiPlayerAction extends Component {
 		}
 
 		this.isChildRegistered = true;
-		this.nodeRoot = this.NodeNativeContoller;
+		let info = GameManager.Instance().GetInfo();
+		this.rotateType = info.device;
+
+		if ( this.rotateType == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
+			this.nodeRoot = this.rootPortraitController;
+
+		} else {
+			this.nodeRoot = this.rootLandscapeContoller;
+		}		
 
 		this.buttonFold = this.nodeRoot.getChildByPath( "BUTTON_FOLD" )?.getComponent( Button );
 		this.buttonFold?.node.on( "click", this.onClickFold.bind( this ), this );
@@ -96,117 +106,109 @@ export class UiPlayerAction extends Component {
 		this.buttonCall?.node.on( "click", this.onClickCall.bind( this ), this );
 		this.labelCallValue = this.buttonCall.node.getChildByPath('LABEL_VALUE').getComponent( Label );
 
-		this.buttonBet = this.nodeRoot.getChildByPath( "BUTTON_BET" )?.getComponent( Button );
-		this.buttonBet?.node.on( "click", this.onClickBet.bind( this ), this );
-		this.labelBet = this.buttonBet.node.getChildByPath( "Label" )?.getComponent( Label );
+		// this.buttonBet = this.nodeRoot.getChildByPath( "BUTTON_BET" )?.getComponent( Button );
+		// this.buttonBet?.node.on( "click", this.onClickBet.bind( this ), this );
+		// this.labelBet = this.buttonBet.node.getChildByPath( "Label" )?.getComponent( Label );
 
-		this.buttonRaise = this.nodeRoot.getChildByPath( "BUTTON_RAISE" )?.getComponent( Button );
-		this.buttonRaise?.node.on( "click", this.onClickRaise.bind( this ), this );
-		this.labelRaise = this.buttonRaise.node.getChildByPath( "Label" )?.getComponent( Label );
+		// this.buttonRaise = this.nodeRoot.getChildByPath( "BUTTON_RAISE" )?.getComponent( Button );
+		// this.buttonRaise?.node.on( "click", this.onClickRaise.bind( this ), this );
+		// this.labelRaise = this.buttonRaise.node.getChildByPath( "Label" )?.getComponent( Label );
 
-		this.buttonConfirm = this.nodeRoot.getChildByPath( "BUTTON_CONFIRM" )?.getComponent( Button );
-		this.buttonConfirm.node.on('click', this.onClickConfirm.bind(this) );
-		this.buttonConfirm.node.active = false;
+		// this.buttonConfirm = this.nodeRoot.getChildByPath( "BUTTON_CONFIRM" )?.getComponent( Button );
+		// this.buttonConfirm.node.on('click', this.onClickConfirm.bind(this) );
+		// this.buttonConfirm.node.active = false;
 
 		this.buttonAllIn = this.nodeRoot.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
 		this.buttonAllIn?.node.on( "click", this.onClickAllin.bind( this ), this );
 
-		let info = GameManager.Instance().GetInfo();
-		this.rotateType = info.device;
-		if ( this.rotateType == ENUM_DEVICE_TYPE.PC_LANDSCAPE ) {
+		// if ( this.rotateType == ENUM_DEVICE_TYPE.PC_LANDSCAPE ) {
 
-			this.buttonQuater = this.nodeRoot.getChildByPath('BUTTON_QUATER').getComponent( Button );
-			if ( this.buttonQuater != null ) {
-				this.buttonQuater.node.off('click');
-				this.buttonQuater.node.on( 'click', this.onClickQuater.bind( this ), this );
-				this.buttonQuater.node.active = false;
-			}
-
-			this.buttonHalf = this.nodeRoot.getChildByPath('BUTTON_HALF').getComponent( Button );
-			if ( this.buttonHalf != null ) {
-				this.buttonHalf.node.off('click');				
-				this.buttonHalf.node.on( 'click', this.onClickHalf.bind( this ), this );
-				this.buttonHalf.node.active = false;
-			}
-
-			this.buttonFull = this.nodeRoot.getChildByPath('BUTTON_FULL').getComponent( Button );
-			if ( this.buttonFull != null ) {
-				this.buttonFull.node.off('click');
-				this.buttonFull.node.on( 'click', this.onClickFull.bind( this ), this );
-				this.buttonFull.node.active = false;
-			}
-
-			this.buttonMax = this.nodeRoot.getChildByPath('BUTTON_MAX').getComponent( Button );
-			if ( this.buttonMax != null ) {
-				this.buttonMax.node.off('click');
-				this.buttonMax.node.on( 'click', this.onClickMax.bind( this ), this );
-				this.buttonMax.node.active = false;
-			}
-
-			this.labelQuaterValue = this.nodeRoot.getChildByPath('BUTTON_QUATER/LABEL_VALUE').getComponent( Label );
-			if ( this.labelQuaterValue != null ) {
-				this.labelQuaterValue.string = '';
-				this.labelQuaterValue.node.active = false;
-			}
-
-			this.labelHalfValue = this.nodeRoot.getChildByPath('BUTTON_HALF/LABEL_VALUE').getComponent( Label );
-			if ( this.labelHalfValue != null ) {
-				this.labelHalfValue.string = '';
-				this.labelHalfValue.node.active = false;
-			}
-
-			this.labelFullValue = this.nodeRoot.getChildByPath('BUTTON_FULL/LABEL_VALUE').getComponent( Label );
-			if ( this.labelFullValue != null ) {
-				this.labelFullValue.string = '';
-				this.labelFullValue.node.active = false;
-			}
-
-			this.labelMaxValue = this.nodeRoot.getChildByPath('BUTTON_MAX/LABEL_VALUE').getComponent( Label );
-			if ( this.labelMaxValue != null ) {
-				this.labelMaxValue.string = '';
-				this.labelMaxValue.node.active = false;
-			}
-
-			this.buttonQuaterDisable = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE').getComponent( Button );
-			if ( this.buttonQuaterDisable != null ) {
-				this.buttonQuaterDisable.interactable = false;
-				this.buttonQuaterDisable.node.active = false;
-			}
-
-			this.buttonHalfDisable = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE').getComponent( Button );
-			if ( this.buttonHalfDisable != null ) {
-				this.buttonHalfDisable.interactable = false;
-				this.buttonHalfDisable.node.active = false;
-			}
-
-			this.buttonFullDisable = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE').getComponent( Button );
-			if ( this.buttonFullDisable != null ) {
-				this.buttonFullDisable.interactable = false;
-				this.buttonFullDisable.node.active = false;
-			}
-
-			this.labelQuaterDisableValue = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
-			if ( this.labelQuaterDisableValue != null ) {
-				this.labelQuaterDisableValue.string = '';
-				this.labelQuaterDisableValue.node.active = false;
-			}
-
-			this.labelHalfDisableValue = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE/LABEL_VALUE').getComponent( Label );
-			if ( this.labelHalfDisableValue != null ) {
-				this.labelHalfDisableValue.string = '';
-				this.labelHalfDisableValue.node.active = false;
-			}
-
-			this.labelFullDisableValue = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE/LABEL_VALUE').getComponent( Label );
-			if ( this.labelFullDisableValue != null ) {
-				this.labelFullDisableValue.string = '';
-				this.labelFullDisableValue.node.active = false;
-			}
+		this.buttonQuater = this.nodeRoot.getChildByPath('BUTTON_QUATER').getComponent( Button );
+		if ( this.buttonQuater != null ) {
+			this.buttonQuater.node.off('click');
+			this.buttonQuater.node.on( 'click', this.onClickQuater.bind( this ), this );
+			this.buttonQuater.node.active = false;
 		}
 
-		this.uiBettingControl = this.nodeRoot.getChildByPath('BETTING_CONTROL').getComponent(UiBettingControl);		
-		if ( this.uiBettingControl != null ) {
-			this.uiBettingControl.init();
+		this.buttonHalf = this.nodeRoot.getChildByPath('BUTTON_HALF').getComponent( Button );
+		if ( this.buttonHalf != null ) {
+			this.buttonHalf.node.off('click');				
+			this.buttonHalf.node.on( 'click', this.onClickHalf.bind( this ), this );
+			this.buttonHalf.node.active = false;
+		}
+
+		this.buttonFull = this.nodeRoot.getChildByPath('BUTTON_FULL').getComponent( Button );
+		if ( this.buttonFull != null ) {
+			this.buttonFull.node.off('click');
+			this.buttonFull.node.on( 'click', this.onClickFull.bind( this ), this );
+			this.buttonFull.node.active = false;
+		}
+
+		this.buttonMax = this.nodeRoot.getChildByPath('BUTTON_MAX').getComponent( Button );
+		if ( this.buttonMax != null ) {
+			this.buttonMax.node.off('click');
+			this.buttonMax.node.on( 'click', this.onClickMax.bind( this ), this );
+			this.buttonMax.node.active = false;
+		}
+
+		this.labelQuaterValue = this.nodeRoot.getChildByPath('BUTTON_QUATER/LABEL_VALUE').getComponent( Label );
+		if ( this.labelQuaterValue != null ) {
+			this.labelQuaterValue.string = '';
+			this.labelQuaterValue.node.active = false;
+		}
+
+		this.labelHalfValue = this.nodeRoot.getChildByPath('BUTTON_HALF/LABEL_VALUE').getComponent( Label );
+		if ( this.labelHalfValue != null ) {
+			this.labelHalfValue.string = '';
+			this.labelHalfValue.node.active = false;
+		}
+
+		this.labelFullValue = this.nodeRoot.getChildByPath('BUTTON_FULL/LABEL_VALUE').getComponent( Label );
+		if ( this.labelFullValue != null ) {
+			this.labelFullValue.string = '';
+			this.labelFullValue.node.active = false;
+		}
+
+		this.labelMaxValue = this.nodeRoot.getChildByPath('BUTTON_MAX/LABEL_VALUE').getComponent( Label );
+		if ( this.labelMaxValue != null ) {
+			this.labelMaxValue.string = '';
+			this.labelMaxValue.node.active = false;
+		}
+
+		this.buttonQuaterDisable = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE').getComponent( Button );
+		if ( this.buttonQuaterDisable != null ) {
+			this.buttonQuaterDisable.interactable = false;
+			this.buttonQuaterDisable.node.active = false;
+		}
+
+		this.buttonHalfDisable = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE').getComponent( Button );
+		if ( this.buttonHalfDisable != null ) {
+			this.buttonHalfDisable.interactable = false;
+			this.buttonHalfDisable.node.active = false;
+		}
+
+		this.buttonFullDisable = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE').getComponent( Button );
+		if ( this.buttonFullDisable != null ) {
+			this.buttonFullDisable.interactable = false;
+			this.buttonFullDisable.node.active = false;
+		}
+
+		this.labelQuaterDisableValue = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
+		if ( this.labelQuaterDisableValue != null ) {
+			this.labelQuaterDisableValue.string = '';
+			this.labelQuaterDisableValue.node.active = false;
+		}
+
+		this.labelHalfDisableValue = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE/LABEL_VALUE').getComponent( Label );
+		if ( this.labelHalfDisableValue != null ) {
+			this.labelHalfDisableValue.string = '';
+			this.labelHalfDisableValue.node.active = false;
+		}
+
+		this.labelFullDisableValue = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE/LABEL_VALUE').getComponent( Label );
+		if ( this.labelFullDisableValue != null ) {
+			this.labelFullDisableValue.string = '';
+			this.labelFullDisableValue.node.active = false;
 		}
 
 		this.nodeRoot.active = true;
@@ -230,8 +232,8 @@ export class UiPlayerAction extends Component {
 		this.maxValue = 0;
 		this.betType =  ENUM_BETTING_TYPE.None;
 
-		this.uiBettingControl.hide();
-		this.buttonConfirm.node.active = false;
+		// this.uiBettingControl.hide();
+		// this.buttonConfirm.node.active = false;
 
 		this.betMin = minBet;
 		this.turnBet = turnBet;
@@ -254,8 +256,8 @@ export class UiPlayerAction extends Component {
 			this.buttonCall.node.active = true;
 			this.labelCallValue.string = '';
 
-			this.buttonBet.node.active = false;
-			this.buttonRaise.node.active = false;
+			// this.buttonBet.node.active = false;
+			// this.buttonRaise.node.active = false;
 			return;
 		}
 
@@ -282,56 +284,123 @@ export class UiPlayerAction extends Component {
 			}	
 		}
 
-		if ( this.rotateType == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
+		// this.buttonBet.node.active = false;
+		// this.buttonRaise.node.active = false;
+		// this.buttonConfirm.node.active = false;
 
-			// this.buttonBet.node.active = ( 0 == turnBet );
-
-			// this.numberBetStart = 0 == turnBet ? this.numberBetMin : turnBet * 2;
-			// this.numberRaiseStart = 0 == turnBet ? this.numberRaiseMin : turnBet * 2;
-	
-			// this.numberBetRange = myChips;
-			// this.numberRaiseRange = myChips;
-
-			// this.buttonRaise.node.active = (0 != turnBet && this.numberRaiseRange >= 0) && false === isLast && true == hasAction;
-			// this.buttonAllIn.node.active = (0 != turnBet && turnBet >= this.numberBetRange );
-
-			// if (isLast == true) {
-			// 	if (this.buttonCall.node.active == true) {
-			// 		this.buttonAllIn.node.active = false;
-			// 	}
-			// }
-	
-			// if (hasAction == false) {
-			// 	if ( this.buttonCall.node.active == true ) {
-			// 		this.buttonAllIn.node.active = false;
-			// 	}
-			// }
-	
-			// if ( this.buttonAllIn.node.active == true ) {
-			// 	this.buttonRaise.node.active = false;
-			// 	this.buttonBet.node.active = false;
-			// }
-
+		if ( this.turnBet == 0 ) {
+			this.betStart = this.betMin;
 		} else {
-			this.buttonBet.node.active = false;
-			this.buttonRaise.node.active = false;
-			this.buttonConfirm.node.active = false;
+			this.betStart = this.turnBet * 2;
+		}
 
-			if ( this.turnBet == 0 ) {
-				this.betStart = this.betMin;
+		this.betRange = this.myChips;
+
+		if ( this.turnBet != 0 && this.turnBet >= this.betRange ) {
+			this.buttonAllIn.node.active = true;
+		} else {
+			this.buttonAllIn.node.active = false;
+		}
+
+		if ( this.buttonAllIn.node.active == true ) {
+
+			this.buttonQuater.node.active = false;
+			this.buttonHalf.node.active = false;
+			this.buttonFull.node.active = false;
+
+			this.buttonQuaterDisable.node.active = false;
+			this.buttonHalfDisable.node.active = false;
+			this.buttonFullDisable.node.active = false;
+
+			this.buttonMax.node.active = false;
+			
+		} else {
+
+			let quater: number = 0;
+			let half: number = 0;
+			let full: number = 0;
+			let max: number = 0;
+
+			let currentPot = this.pot + this.callValue;
+			quater = Math.floor( currentPot * 0.25 );
+			half = Math.floor( currentPot * 0.5 );
+			full = Math.floor( currentPot * 1.0 );
+			max = this.betRange;
+
+			this.quaterValue  = quater + this.callValue;
+			this.halfValue = half + this.callValue;
+			this.fullValue = full + this.callValue;
+
+			this.maxValue = this.maxChips;
+
+			if ( this.isBet == true ) {
+				this.betType = ENUM_BETTING_TYPE.Bet;
 			} else {
-				this.betStart = this.turnBet * 2;
+				this.betType = ENUM_BETTING_TYPE.Raise;
 			}
 
-			this.betRange = this.myChips;
+			this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
+			this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
+			this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
 
-			if ( this.turnBet != 0 && this.turnBet >= this.betRange ) {
-				this.buttonAllIn.node.active = true;
+			this.labelQuaterDisableValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
+			this.labelHalfDisableValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
+			this.labelFullDisableValue.string = CommonUtil.getKoreanNumber( this.fullValue );
+
+			this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
+
+			let m = this.maxValue - this.myBet;
+			if ( this.quaterValue > m ) {
+				this.labelQuaterValue.node.active = false;
+				this.buttonQuater.node.active = false;
+
+				this.labelQuaterDisableValue.node.active = true;
+				this.buttonQuaterDisable.node.active = true;
 			} else {
+				this.labelQuaterValue.node.active = true;
+				this.buttonQuater.node.active = true;
+
+				this.labelQuaterDisableValue.node.active = false;
+				this.buttonQuaterDisable.node.active = false;
+			}
+
+			if ( this.halfValue > m ) {
+				this.labelHalfValue.node.active = false;
+				this.buttonHalf.node.active = false;
+
+				this.labelHalfDisableValue.node.active = true;
+				this.buttonHalfDisable.node.active = true;
+			} else {
+				this.labelHalfValue.node.active = true;
+				this.buttonHalf.node.active = true;
+
+				this.labelHalfDisableValue.node.active = false;
+				this.buttonHalfDisable.node.active = false;
+			}
+
+			if ( this.fullValue > m ) {
+				this.labelFullValue.node.active = false;
+				this.buttonFull.node.active = false;
+
+				this.labelFullDisableValue.node.active = true;
+				this.buttonFullDisable.node.active = true;
+			} else {
+				this.labelFullValue.node.active = true;
+				this.buttonFull.node.active = true;
+
+				this.labelFullDisableValue.node.active = false;
+				this.buttonFullDisable.node.active = false;
+			}
+
+			this.labelMaxValue.node.active = true;				
+			this.buttonMax.node.active = true;
+
+		}
+
+		if ( isLast == true ) {
+
+			if (this.buttonCall.node.active == true) {
 				this.buttonAllIn.node.active = false;
-			}
-	
-			if ( this.buttonAllIn.node.active == true ) {
 
 				this.buttonQuater.node.active = false;
 				this.buttonHalf.node.active = false;
@@ -342,120 +411,13 @@ export class UiPlayerAction extends Component {
 				this.buttonFullDisable.node.active = false;
 
 				this.buttonMax.node.active = false;
-				
-			} else {
-
-				let quater: number = 0;
-				let half: number = 0;
-				let full: number = 0;
-				let max: number = 0;
-
-				let currentPot = this.pot + this.callValue;
-				quater = Math.floor( currentPot * 0.25 );
-				half = Math.floor( currentPot * 0.5 );
-				full = Math.floor( currentPot * 1.0 );
-				max = this.betRange;
-
-				this.quaterValue  = quater + this.callValue;
-				this.halfValue = half + this.callValue;
-				this.fullValue = full + this.callValue;
-
-				this.maxValue = this.maxChips;
-
-				if ( this.isBet == true ) {
-					this.betType = ENUM_BETTING_TYPE.Bet;
-				} else {
-					this.betType = ENUM_BETTING_TYPE.Raise;
-				}
-
-				this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
-				this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
-				this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
-
-				this.labelQuaterDisableValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
-				this.labelHalfDisableValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
-				this.labelFullDisableValue.string = CommonUtil.getKoreanNumber( this.fullValue );
-
-				this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
-
-				let m = this.maxValue - this.myBet;
-				if ( this.quaterValue > m ) {
-					this.labelQuaterValue.node.active = false;
-					this.buttonQuater.node.active = false;
-
-					this.labelQuaterDisableValue.node.active = true;
-					this.buttonQuaterDisable.node.active = true;
-				} else {
-					this.labelQuaterValue.node.active = true;
-					this.buttonQuater.node.active = true;
-
-					this.labelQuaterDisableValue.node.active = false;
-					this.buttonQuaterDisable.node.active = false;
-				}
-
-				if ( this.halfValue > m ) {
-					this.labelHalfValue.node.active = false;
-					this.buttonHalf.node.active = false;
-
-					this.labelHalfDisableValue.node.active = true;
-					this.buttonHalfDisable.node.active = true;
-				} else {
-					this.labelHalfValue.node.active = true;
-					this.buttonHalf.node.active = true;
-
-					this.labelHalfDisableValue.node.active = false;
-					this.buttonHalfDisable.node.active = false;
-				}
-
-				if ( this.fullValue > m ) {
-					this.labelFullValue.node.active = false;
-					this.buttonFull.node.active = false;
-
-					this.labelFullDisableValue.node.active = true;
-					this.buttonFullDisable.node.active = true;
-				} else {
-					this.labelFullValue.node.active = true;
-					this.buttonFull.node.active = true;
-
-					this.labelFullDisableValue.node.active = false;
-					this.buttonFullDisable.node.active = false;
-				}
-
-				// this.labelQuaterValue.node.active = true;
-				// this.buttonQuater.node.active = true;
-
-				// this.labelHalfValue.node.active = true;
-				// this.buttonHalf.node.active = true;
-
-				// this.labelFullValue.node.active = true;
-				// this.buttonFull.node.active = true;
-
-				this.labelMaxValue.node.active = true;				
-				this.buttonMax.node.active = true;				
 			}
+		}
 
-			if ( isLast == true ) {
+		if ( hasAction == false ) {
 
-				if (this.buttonCall.node.active == true) {
-					this.buttonAllIn.node.active = false;
-
-					this.buttonQuater.node.active = false;
-					this.buttonHalf.node.active = false;
-					this.buttonFull.node.active = false;
-
-					this.buttonQuaterDisable.node.active = false;
-					this.buttonHalfDisable.node.active = false;
-					this.buttonFullDisable.node.active = false;
-
-					this.buttonMax.node.active = false;
-				}
-			}
-	
-			if ( hasAction == false ) {
-
-				if ( this.buttonCall.node.active == true ) {
-					this.buttonAllIn.node.active = false;
-				}
+			if ( this.buttonCall.node.active == true ) {
+				this.buttonAllIn.node.active = false;
 			}
 		}
 		
@@ -488,61 +450,11 @@ export class UiPlayerAction extends Component {
 		let value = this.myChips + this.myBet;
 		if ( this.buttonCall.node.active == false ) {
 
-			// value = this.turnBet - this.myBet;
-			// if ( value > this.maxChips ) {
-			// 	value = this.myChips;
-			// }
-			// value = value + this.myChips;
-
 			this.cbCall ( value );
 
 		} else {
 			this.cbAllIn( value );
 		}
-	}
-
-    private onClickBet() {
-
-		// this.buttonBet.node.active = false;
-		// this.buttonConfirm.node.active = true;
-
-		// this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Bet, this.numberBetStart, this.numberBetRange, 
-		// 	this.numberPot, this.numberMyChips, ( result: any )=>{
-
-		// 		let sendValue = result.value + this.numberMyBet;
-		// 		this.cbBet( sendValue );
-
-
-		// 	} );
-	}
-
-    private onClickRaise() {
-
-		// this.buttonRaise.node.active = false;
-		// this.buttonConfirm.node.active = true;
-
-		// this.uiBettingControl.show( this.sb, this.bb, ENUM_BETTING_TYPE.Raise, this.numberRaiseStart, this.numberRaiseRange, 
-		// 	this.numberPot, this.numberMyChips, (result: any )=>{
-
-		// 		let sendValue = result.value + this.numberMyBet;
-		// 		this.cbRaise( sendValue );
-
-		// 	} );
-	}
-
-	private onClickConfirm( button: Button ) {
-		// let res = this.uiBettingControl.getResult();
-		// let sendValue = res.result + this.numberMyBet;
-
-		// if ( res.type == ENUM_BETTING_TYPE.Bet ) {
-		// 	this.cbBet( sendValue );
-
-		// } else if ( res.type == ENUM_BETTING_TYPE.Raise ) {
-		// 	this.cbRaise( sendValue );
-		// }
-		// else {
-		// 	console.log('error bet')
-		// }
 	}
 
 	private onClickCheck() {
@@ -575,12 +487,11 @@ export class UiPlayerAction extends Component {
 			this.cbRaise( this.fullValue, ENUM_BET_SOUND.BET_FULL );
 		}
 
-		AudioController.instance.PlaySound('VOICE_BETTING_FULL');		
-		// this.cbBetAnnounce( ENUM_BETTING_KIND.FULL );
+		// AudioController.instance.PlaySound('VOICE_BETTING_FULL');
 	}
 
 	private onClickMax( button: Button ) {
-		let value = this.maxValue;// + this.myBet;
+		let value = this.maxValue;
 		if ( this.isBet == true ) {
 			this.cbBet( value, ENUM_BET_SOUND.BET_MAX );
 

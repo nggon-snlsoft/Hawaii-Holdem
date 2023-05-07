@@ -7,33 +7,34 @@ export class ClientUserData{
 
 		let user : any = {
             id: dbUserData.id,
-			uid: dbUserData.uid,
+			login_id: dbUserData.login_id,
 			nickname: dbUserData.nickname,
 			avatar: dbUserData.avatar,
 			grade: dbUserData.grade,
             balance: dbUserData.balance,
             chip: dbUserData.chip,
-			roomID: dbUserData.roomID,
+			point: dbUserData.point,
+			table_id: dbUserData.table_id,
 			rake: dbUserData.rake,
-			store: dbUserData.store,
+			store_id: dbUserData.store_id,
+			phone: dbUserData.phone,
             bank: dbUserData.bank,
             holder: dbUserData.holder,
-            account: dbUserData.account,			
+            account: dbUserData.account,
 		}
-
 
 		return user;
 	}
 
 	static  getClientSettingData(dbSettingData: any): any {
 		let setting: any = {
-			id: dbSettingData.userId,
+			id: dbSettingData.id,
+			user_id: dbSettingData.user_id,			
 			sound: dbSettingData.sound,
-			card: dbSettingData.card_type1,
-			cardBack: dbSettingData.card_type2,
+			mode: dbSettingData.mode,
+			card: dbSettingData.card_type,
 			board: dbSettingData.board_type,
-			background: dbSettingData.bg_type,			
-			bestHand: dbSettingData.best_hands,
+			background: dbSettingData.bg_type,
 		}
 
 		return setting;
@@ -42,17 +43,18 @@ export class ClientUserData{
 	static getClientTableData(dbRoomData: any): any {
         let room: any = {
 			id: dbRoomData.id,
-			type: dbRoomData.type,
+			name: dbRoomData.name,			
+			type: dbRoomData.type,			
 			grade: dbRoomData.grade,
-			name: dbRoomData.name,
-			password: dbRoomData.password,
+			password: dbRoomData.password,			
 			maxPlayers: dbRoomData.maxPlayers,
 			betTimeLimit: dbRoomData.betTimeLimit,
-			bigBlind: dbRoomData.bigBlind,
-			smallBlind: dbRoomData.smallBlind,
 			ante: dbRoomData.ante,
+			smallBlind: dbRoomData.smallBlind,			
+			bigBlind: dbRoomData.bigBlind,
 			minBuyIn: dbRoomData.minStakePrice,
 			maxBuyIn: dbRoomData.maxStakePrice,
+			rake: dbRoomData.rake,
 			alive: dbRoomData.alive,
 			disable: dbRoomData.disable,
         }
@@ -62,6 +64,7 @@ export class ClientUserData{
 	static getClientStaticsData(dbStaticsData: any): any {
         let statics: any = {
 			id: dbStaticsData.id,
+			user_id: dbStaticsData.user_id,			
 			hands: dbStaticsData.hands,
 			rakes: dbStaticsData.rakes,
 			rollings: dbStaticsData.rollings,
@@ -83,13 +86,14 @@ export class ClientUserData{
 			fold_river: dbStaticsData.fold_river,
 			best_rank: dbStaticsData.best_rank,
 			best_hands: dbStaticsData.best_hands,
+			maxPot_hands: dbStaticsData.maxPot_hands,
         }
         return statics;
     }
 
 	static getClientStoreData( dbStoreData: any): any {
         let statics: any = {
-			uid: dbStoreData.uid,
+			id: dbStoreData.id,
 			name: dbStoreData.name,
 			bank: dbStoreData.bank,
 			holder: dbStoreData.holder,

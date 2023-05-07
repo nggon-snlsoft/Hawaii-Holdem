@@ -79,7 +79,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         button.interactable = true;
         this.Reset();
 
-        NetworkManager.Instance().reqGET_TRANSFER_REQUEST_COUNT( ( res )=>{
+        NetworkManager.Instance().getTRANSFER_REQUESTS( ( res )=>{
             let transfers = res.transfers;
             let count = transfers.length;
 
@@ -129,7 +129,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     }
 
     private GetUserInfo() {
-        NetworkManager.Instance().getUserInfoFromDB( (res: any)=>{
+        NetworkManager.Instance().getUSER_FromDB( (res: any)=>{
             let user = res.user;
 
             if ( user != null ) {
@@ -181,7 +181,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
             let desc = CommonUtil.getKoreanNumber( value ) + ' 출금 요청하시겠습니까?'
             LobbySystemPopup.instance.showPopUpYesOrNo( '출금 신청', desc, ()=>{
 
-                NetworkManager.Instance().reqTANSFER_REQUEST( {
+                NetworkManager.Instance().reqTRANSFER_REQUEST( {
                     value: value,
                     password: password
                 }, ( res: any )=>{

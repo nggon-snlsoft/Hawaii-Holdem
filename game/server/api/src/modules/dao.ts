@@ -9,7 +9,7 @@ dao.init = function ( sql: any ) {
     return dao;
 };
 
-dao.selectAccountByID = function ( id: any, cb: any ) {
+dao.SELECT_USER_BY_USER_ID = function ( id: any, cb: any ) {
 
 	let sql = 'SELECT * FROM USERS WHERE ID = ?';
 	let args = [id];
@@ -26,27 +26,10 @@ dao.selectAccountByID = function ( id: any, cb: any ) {
 	});
 };
 
-dao.selectAccountByUID = function ( uid: any, cb: any ) {
+dao.SELECT_USERS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM USERS WHERE UID = ?';
-	let args = [uid];
-
-	_client.query(sql, args, function (err: any, res: any) {
-		if (!!err) {
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, res);
-	});
-};
-
-dao.selectJoinUserByUID = function ( uid: any, cb: any ) {
-
-	let sql = 'SELECT * FROM JOINS WHERE UID = ?';
-	let args = [uid];
+	let sql = 'SELECT * FROM USERS WHERE LOGIN_ID = ?';
+	let args = [login_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -60,7 +43,24 @@ dao.selectJoinUserByUID = function ( uid: any, cb: any ) {
 	});
 };
 
-dao.selectJoinUserByNickname = function ( nickname: any, cb: any ) {
+dao.SELECT_JOINS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM JOINS WHERE LOGIN_ID = ?';
+	let args = [login_id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.SELECT_JOINS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 	console.log( nickname );
 
 	let sql = 'SELECT * FROM JOINS WHERE NICKNAME = ?';
@@ -78,7 +78,7 @@ dao.selectJoinUserByNickname = function ( nickname: any, cb: any ) {
 	});
 };
 
-dao.selectAccountByNickname = function ( nickname: any, cb: any ) {
+dao.SELECT_USERS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 
 	let sql = 'SELECT * FROM USERS WHERE NICKNAME = ?';
 	let args = [nickname];
@@ -95,10 +95,10 @@ dao.selectAccountByNickname = function ( nickname: any, cb: any ) {
 	});
 };
 
-dao.selectSettingByID = function ( id: any, cb: any ) {
+dao.SELECT_SETTING_BY_USER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM SETTING WHERE USERID = ?';
-	let args = [id];
+	let sql = 'SELECT * FROM SETTING WHERE USER_ID = ?';
+	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -112,16 +112,18 @@ dao.selectSettingByID = function ( id: any, cb: any ) {
 	});
 };
 
-dao.updateSettingByID = function ( id: any, setting: any, cb: any ) {
-	let index = id;
+dao.UPDATE_SETTING = function ( user_id: any, setting: any, cb: any ) {
+	console.log( 'setting');
+	console.log( setting );	
 	let sound = setting.sound;
+	let mode = 0;
 	let card = setting.card;
-	let table = setting.table;
+	let board = setting.table;
 	let background = setting.background;
 
 
-	let sql = "UPDATE SETTING SET SOUND = ?, CARD_TYPE1 = ?, BOARD_TYPE = ?, BG_TYPE = ? WHERE USERID = ? ";
-	let args = [ sound, card, table, background, index ];
+	let sql = "UPDATE SETTING SET SOUND = ?, MODE = ?,  CARD_TYPE = ?, BOARD_TYPE = ?, BG_TYPE = ? WHERE USER_ID = ? ";
+	let args = [ sound, mode, card, board, background, user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 
@@ -137,11 +139,10 @@ dao.updateSettingByID = function ( id: any, setting: any, cb: any ) {
 	});
 };
 
-dao.selectStaticsByID = function ( id: any, cb: any ) {
-	console.log('id: ' + id);
+dao.SELECT_STATICS_BY_USER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM STATICS WHERE USERID = ?';
-	let args = [id];
+	let sql = 'SELECT * FROM STATICS WHERE USER_ID = ?';
+	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -176,11 +177,11 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 	});
 }
 
-dao.insertJoinMember = function ( user: any, cb: any ) {
+dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 
-	let sql = 'INSERT INTO JOINS (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, store, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-	let args = [ user.uid, user.nickname, user.password, user.trans, user.phone, 
-		user.bank, user.holder, user.account, user.recommender, user.store, 1 ];
+	let sql = 'INSERT INTO JOINS (login_id, store_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let args = [ user.login_id, user.store_id, user.nickname, user.password, user.transfer_password, user.phone, 
+		user.bank, user.holder, user.account, user.recommender, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {
@@ -198,10 +199,10 @@ dao.insertJoinMember = function ( user: any, cb: any ) {
 	});
 }
 
-dao.insertInitialSetting = function ( id: any, cb: any ) {
+dao.INSERT_SETTING = function ( user_id: any, cb: any ) {
 
-	let sql = "INSERT INTO setting ( userId, sound, card_type1, card_type2, board_type, bg_type, best_hands) values ( ?,?,?,?,?,?,? )";
-	let args = [ id, '7', '0', '0', '0', '0', ' '];
+	let sql = "INSERT INTO setting ( user_id ) values ( ? )";
+	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {
@@ -211,17 +212,19 @@ dao.insertInitialSetting = function ( id: any, cb: any ) {
 			return;
 		}
 
-		cb?.(null, {
-            code: ENUM_RESULT_CODE.SUCCESS,
-         });
+		if (!!res && res.affectedRows > 0) {
+			cb(null, res.affectedRows);
+		} else {
+			cb(null, 0);
+		}
 	});
 }
 
-dao.insertUserStatics = ( id: any, cb: any )=> {
-	console.log('insertUserStatics: ', id);
+dao.INSERT_STATICS = ( user_id: any, cb: any )=> {
+	console.log('insertUserStatics: ', user_id);
 
-	let sql = "INSERT INTO STATICS(userID) VALUES (?)";
-	let args = [id];
+	let sql = "INSERT INTO STATICS(user_id) VALUES (?)";
+	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {
@@ -232,13 +235,16 @@ dao.insertUserStatics = ( id: any, cb: any )=> {
 			return;
 		}
 
-		cb?.(null, {
-            code: ENUM_RESULT_CODE.SUCCESS,
-         });
+		if (!!res && res.affectedRows > 0) {
+			cb(null, res.affectedRows);
+		} else {
+			cb(null, 0);
+		}
 	});
 }
 
-dao.updateAvatar = function ( id: any, avatar: any, cb: any ) {
+dao.UPDATE_AVATAR = function ( id: any, avatar: any, cb: any ) {
+	console.log('dao.UPDATE_AVATAR');
 	let sql = "UPDATE USERS SET AVATAR = ? WHERE ID = ? ";
 	let args = [avatar, id];
 
@@ -255,8 +261,8 @@ dao.updateAvatar = function ( id: any, avatar: any, cb: any ) {
 	});    
 }
 
-dao.updateTransferPoint = function ( data: any, cb: any ) {
-	let id = data.id;
+dao.UPDATE_POINT_TRANSFER = function ( data: any, cb: any ) {
+	let id = data.user_id;
 	let balance = data.balance;
 	let point = data.point;
 
@@ -292,11 +298,10 @@ dao.selectTables = function ( cb: any ) {
 	});
 };
 
-dao.SelectStoreByStoreID = function ( sid: any, cb: any ) {
-	console.log('dao.SelectStoreByStoreID: ' + sid.toString() );
+dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 
 	let sql = 'SELECT * FROM STORES WHERE ID = ?';
-	let args = [sid];
+	let args = [store_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -310,27 +315,10 @@ dao.SelectStoreByStoreID = function ( sid: any, cb: any ) {
 	});
 };
 
-dao.SelectChargeRequestsByID = function ( id: any, cb: any ) {
+dao.SELECT_CHARGE_REQUESTS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM CHARGES WHERE USERID = ? AND ALIVE = 1';
-	let args = [id];
-
-	_client.query(sql, args, function (err: any, res: any) {
-		if (!!err) {
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, res);
-	});
-};
-
-dao.SelectTransferRequestsByID = function ( id: any, cb: any ) {
-
-	let sql = 'SELECT * FROM TRANSFERS WHERE USERID = ? AND ALIVE = 1';
-	let args = [id];
+	let sql = 'SELECT * FROM CHARGES WHERE USER_ID = ? AND ALIVE = 1';
+	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -344,12 +332,29 @@ dao.SelectTransferRequestsByID = function ( id: any, cb: any ) {
 	});
 };
 
-dao.CreateChargeRequest = function ( data: any, cb: any ) {
+dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM TRANSFERS WHERE USER_ID = ? AND ALIVE = 1';
+	let args = [user_id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	let amount = data.amount;
 	let user = data.user;
 
-	let sql = 'INSERT INTO CHARGES ( userId, uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ user.id, user.uid, user.nickname, user.holder, amount, 1, 1 ];
+	let sql = 'INSERT INTO CHARGES ( user_id, login_id, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user.id, user.login_id, user.nickname, user.holder, amount, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 
@@ -365,7 +370,7 @@ dao.CreateChargeRequest = function ( data: any, cb: any ) {
 	});	
 }
 
-dao.CreateTransferRequest = function ( data: any, cb: any ) {
+dao.INSERT_TRANSFER_REQUEST = function ( data: any, cb: any ) {
 	let value = data.value;
 	let user = data.user;
 
@@ -373,8 +378,8 @@ dao.CreateTransferRequest = function ( data: any, cb: any ) {
 
 	let newBalance = oldBalance - value;
 
-	let sql = 'INSERT INTO TRANSFERS ( userId, uid, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ user.id, user.uid, user.nickname, value, oldBalance, newBalance, 1, 1 ];
+	let sql = 'INSERT INTO TRANSFERS ( user_id, login_id, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user.id, user.login_id, user.nickname, value, oldBalance, newBalance, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 
@@ -396,7 +401,7 @@ dao.CreateTransferRequest = function ( data: any, cb: any ) {
 	});	
 }
 
-dao.UpdateUserBalance = function ( data: any, cb: any ) {
+dao.UPDATE_USER_BALANCE = function ( data: any, cb: any ) {
 	let id = data.id;
 	let value = data.newBalance;
 
@@ -425,17 +430,16 @@ dao.UpdateUserBalance = function ( data: any, cb: any ) {
 	});    
 }
 
-dao.insertPointTransfer = ( data: any, cb: any )=> {
-	let id = data.id;
+dao.INSERT_POINT_TRANSFER_LOG = ( data: any, cb: any )=> {
+	let user_id = data.user_id;
 	let oldPoint = data.oldPoint;
 	let newPoint = data.newPoint;
 	let point = data.point;
 	let oldBalance = data.oldBalance;
 	let newBalance = data.newBalance;
 
-	let sql = 'INSERT INTO POINT_TRANSFERS ( userId, oldPoint, newPoint, point, oldBalance, newBalance ) VALUES ( ?, ?, ?, ?, ?, ? )';
-	// let sql = 'INSERT INTO CHARGES ( userId, uid, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ id, oldPoint, newPoint, point, oldBalance, newBalance];
+	let sql = 'INSERT INTO POINT_TRANSFERS ( user_id, oldPoint, newPoint, point, oldBalance, newBalance ) VALUES ( ?, ?, ?, ?, ?, ? )';
+	let args = [ user_id, oldPoint, newPoint, point, oldBalance, newBalance];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {
@@ -444,8 +448,8 @@ dao.insertPointTransfer = ( data: any, cb: any )=> {
 		} else {
 			if (!!res && res.affectedRows > 0) {
 				console.log('res.affectedRows > 0');
-				sql = 'SELECT * FROM POINT_TRANSFERS WHERE USERID = ? ORDER BY createDate DESC';
-				args = [ id ];
+				sql = 'SELECT * FROM POINT_TRANSFERS WHERE USER_ID = ? ORDER BY createDate DESC';
+				args = [ user_id ];
 
 				_client.query( sql, args, function ( err: any, logs: any ) {
 					if ( !!err ) {
@@ -461,8 +465,8 @@ dao.insertPointTransfer = ( data: any, cb: any )=> {
 	});
 }
 
-dao.selectPointTransferLog = ( id: any, cb: any )=> {
-	let sql = 'SELECT * FROM POINT_TRANSFERS WHERE USERID = ? ORDER BY createDate DESC';
+dao.SELECT_POINT_TRANSFER_LOG = ( id: any, cb: any )=> {
+	let sql = 'SELECT * FROM POINT_TRANSFERS WHERE USER_ID = ? ORDER BY createDate DESC';
 	let args = [ id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -480,9 +484,9 @@ dao.selectPointTransferLog = ( id: any, cb: any )=> {
 	});
 }
 
-dao.selectPointReceiveLog = ( id: any, cb: any )=> {
-	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USERID = ? ORDER BY createDate DESC';
-	let args = [ id ];	
+dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
+	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? ORDER BY createDate DESC';
+	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {

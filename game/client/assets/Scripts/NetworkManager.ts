@@ -172,7 +172,8 @@ export class NetworkManager extends cc.Component {
 		}
 
 		onSuccess( {
-			code: ENUM_RESULT_CODE.SUCCESS,
+			code: obj.code,
+			msg: obj.msg,
 			obj: obj,
 		});
 	}
@@ -181,7 +182,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getInitialData", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getInitData", {
 			user_id: user_id,
 
 		} ).then(( res: string ) => {
@@ -219,14 +220,14 @@ export class NetworkManager extends cc.Component {
 			this.gameSetting = obj.conf;
 		} 
 
-		onSuccess(obj);
+		onSuccess( obj );
 	}
 	
     async getSTATICS( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getStatics", {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/statics/get", {
 			user_id: user_id,
 
 		} ).then(( res: string ) => {
@@ -254,7 +255,6 @@ export class NetworkManager extends cc.Component {
 
 		if (obj.statics != null ) {
 			this.userStatics = obj.static;
-
 		}
 
 		onSuccess(obj);
@@ -264,7 +264,7 @@ export class NetworkManager extends cc.Component {
 		let result: any = null;
 		let isConnect = false;
 
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/getTables", {
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/get", {
 
 		}).then((res: string)=>{
 			isConnect = true;
@@ -293,9 +293,9 @@ export class NetworkManager extends cc.Component {
 		let reservation: string = null;
 		let error: string = null;
 
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enterTable", {
+		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
-			user_id: this.userInfo.user_id,
+			user_id: this.userInfo.id,
 
 		}).then((res: string) => {
 			result = res;
@@ -377,7 +377,7 @@ export class NetworkManager extends cc.Component {
 		let errMessage: string = null;
 		let store_id = this.userInfo.store_id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getStore', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/get', {
 			store_id: store_id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -410,12 +410,12 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 	
-	async reqGET_CHARGE_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async getCHARGE_REQUESTS( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getChargeRequests', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/chargeRequest/get', {
 			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -446,12 +446,13 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 	
-	async reqGET_TRANSFER_REQUEST_COUNT( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async getTRANSFER_REQUESTS( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/getTransferRequests', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transferRequest/get', {
 			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -485,9 +486,9 @@ export class NetworkManager extends cc.Component {
 	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqCharge', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/charge/req', {
 			user_id: user_id,
 			amount: amount
 
@@ -514,12 +515,12 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 	
-	async reqTANSFER_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async reqTRANSFER_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/reqTransfer', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transfer/req', {
 			user_id: user_id,
 			value: data.value,
 			password: data.password,
@@ -553,7 +554,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/getSetting', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/get', {
 			user_id: user_id,
 		} ).then(( res: string ) => {
 			result = res;
@@ -609,7 +610,6 @@ export class NetworkManager extends cc.Component {
 			}
 			return onFAIL(error);						
 		}
-
 
 		if ( error !== null ) {
 			return onFAIL(error);
@@ -749,7 +749,7 @@ export class NetworkManager extends cc.Component {
 
 	public async getPOINT_TRANSFERS( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
 		let result: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 		let error: string = null;
 
 		try {
@@ -790,7 +790,7 @@ export class NetworkManager extends cc.Component {
 
 	public async getPOINT_RECEIVES(onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 		let error: string = null;
 
 		try {
@@ -858,12 +858,12 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async updateUSER_AVATAR( avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
-		let user_id = Number( this.userInfo.user_id );
+		let id = Number( this.userInfo.id );
 		let result: string = null;
 		let errMessage: string = null;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateAvatar', {
-			user_id: user_id,
+			id: id,
 			avatar: avatar
 		} ).then(( res: string ) => {
 			result = res;
@@ -891,18 +891,20 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userInfo = obj.user;
+		if ( obj.user != null ) {
+			this.userInfo = obj.user;
+		}
 
 		onSuccess(obj);
 	}
 
 	public async updateUSER_SETTING( selected: any, onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 		let result: string = '';
 		let setting: any = selected;
 		let errMessage: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateSetting', {
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/update', {
 			user_id: user_id,
 			setting: setting
 
@@ -932,12 +934,15 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userSetting = obj.setting;
+		if ( obj.setting != null ) {
+			this.userSetting = obj.setting;
+		}
+
 		onSuccess(obj);
 	}
 
 	public async getUSER_FromDB( onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let user_id = this.userInfo.user_id;
+		let user_id = this.userInfo.id;
 		let result: string = '';
 		let error: string = null;
 

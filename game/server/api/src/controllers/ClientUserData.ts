@@ -46,6 +46,7 @@ export class ClientUserData{
 			name: dbRoomData.name,			
 			type: dbRoomData.type,			
 			grade: dbRoomData.grade,
+			password: dbRoomData.password,			
 			maxPlayers: dbRoomData.maxPlayers,
 			betTimeLimit: dbRoomData.betTimeLimit,
 			ante: dbRoomData.ante,

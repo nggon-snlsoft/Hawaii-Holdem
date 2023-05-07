@@ -26,10 +26,6 @@ export class UiLogin extends Component {
         this.main = main;
 
         NetworkManager.Instance().logout();
-        if (NetworkManager.Instance().isLogin() == true) {
-            
-        }
-
         this.RegistEditboxEvent();
 
         this.spriteEventBlocker.node.active = false;
@@ -107,15 +103,15 @@ export class UiLogin extends Component {
     }
 
     onLogin() {
-        let uid: string = this.editBoxUID.string;
-        let pass: string = this.editBoxPassword.string;
+        let login_id: string = this.editBoxUID.string;
+        let password: string = this.editBoxPassword.string;
 
         this.buttonLogin.interactable = false;
         this.buttonJoin.interactable = false;
 
         this.spriteEventBlocker.node.active = true;
 
-        if ( uid.length < 4 || pass.length == 4 ) {
+        if ( login_id.length < 4 || login_id.length == 4 ) {
             LoginSystemPopup.instance.showPopUpOk('로그인', '아이디와 패스워드를 입력해주세요.', ()=>{
                 this.buttonLogin.interactable = true;
                 this.buttonJoin.interactable = true;
@@ -125,14 +121,40 @@ export class UiLogin extends Component {
             return;
         }
 
-		NetworkManager.Instance().reqLOGIN_HOLDEM( uid, pass ,(res)=>{
+		NetworkManager.Instance().reqLOGIN_HOLDEM( login_id, password ,(res)=>{
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
 
                 let id: number = res.obj.id;
                 this.onLoadInitialData( id );
             }
             else {
+                let desc: string = '';
+                switch ( res.msg ) {
+                    case 'INVALID_UID':
+                        desc = '잘못된 아이디 입니다.';
+                        break;
+                    case 'NO_EXIST_LOGIN_ID':
+                        desc = '아이디가 존재하지 않습니다.';
+                        break;
+                    case 'NO_MATCH_PASSWORD':
+                        desc = '비밀번호가 맞지 않습니다.';
+                        break;
+                    case 'DISABLE_ACCOUNT':
+                        desc = '사용할 수 없는 계정입니다.';
+                        break;
+                    case 'PENDING_ACCOUNT':
+                        desc = '가입 대기중인 계정입니다.';
+                        break;
+                    default:
+                        desc = '로그인 할 수 없습니다.';
+                }
 
+                LoginSystemPopup.instance.showPopUpOk('로그인', desc, ()=>{
+                    this.buttonLogin.interactable = true;
+                    this.buttonJoin.interactable = true;
+
+                    this.spriteEventBlocker.node.active = false;
+                });
             }
         },
         ( err )=>{
@@ -142,42 +164,22 @@ export class UiLogin extends Component {
                     this.buttonJoin.interactable = true;
 
                     this.spriteEventBlocker.node.active = false;
-                    LoginSystemPopup.instance.closePopup();
                 });
                 return;        
             }
             else {
-                this.spriteEventBlocker.node.active = false;
+                LoginSystemPopup.instance.showPopUpOk('로그인', '로그인 할 수 없습니다.', ()=>{
+                    this.buttonLogin.interactable = true;
+                    this.buttonJoin.interactable = true;
 
-                // let desc: string = '';
-                // switch ( res.msg ) {
-                //     case 'INVALID_UID':
-                //         desc = '잘못된 아이디 입니다.';
-                //         break;
-                //     case 'NO_EXIST_UID':
-                //         desc = '아이디가 존재하지 않습니다.';
-                //         break;
-                //     case 'NO_MATCH_PASSWORD':
-                //         desc = '비밀번호가 맞지 않습니다.';
-                //         break;
-                //     case 'DISABLE_ACCOUNT':
-                //         desc = '사용할 수 없는 계정입니다.';
-                //         break;
-                //     case 'PENDING_ACCOUNT':
-                //         desc = '가입 대기중인 계정입니다.';                        
-                //         break;
-                //     default:
-                // }
-
-                // LoginSystemPopup.instance.showPopUpOk('로그인', desc, ()=>{
-                //     LoginSystemPopup.instance.closePopup();
-                // });
+                    this.spriteEventBlocker.node.active = false;
+                });
             }
         });        
     }
 
-    private onLoadInitialData( id: number ) {
-        NetworkManager.Instance().reqLOAD_INITIAL_DATA(id, (res)=>{
+    private onLoadInitialData( user_id: number ) {
+        NetworkManager.Instance().getINIT_DATA(user_id, (res)=>{
 
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 if ( res.user != null && res.setting != null && res.conf != null ) {
@@ -222,8 +224,6 @@ export class UiLogin extends Component {
     }
 
     onClickJoin() {
-        console.log('onClickJoin');
-
         this.main.onShowJoinMember();
     }
 

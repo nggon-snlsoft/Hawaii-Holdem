@@ -54,8 +54,8 @@ export class UiLobby extends Component {
             }
         }
 
-        this.userInfo = NetworkManager.Instance().getUserInfo();
-        this.settingInfo = NetworkManager.Instance().getUserSetting();
+        this.userInfo = NetworkManager.Instance().GetUser();
+        this.settingInfo = NetworkManager.Instance().GetSetting();
 
         if (this.userInfo != null)
         {
@@ -76,12 +76,11 @@ export class UiLobby extends Component {
     }
 
     public refreshPlayer() {
-        NetworkManager.Instance().refreshUser(()=>{
+        NetworkManager.Instance().getUSER_FromDB( ()=>{
             this.uiPlayer.refresh();
-
         }, ()=>{
 
-        });
+        })
     }
 
     public refreshUiPlayer() {
@@ -126,7 +125,7 @@ export class UiLobby extends Component {
     }
 
     private onJoinTable(table: any) {
-        let user = NetworkManager.Instance().getUserInfo();
+        let user = NetworkManager.Instance().GetUser();
         if ( user != null ) {
             if (user.balance < table.minBuyIn ) {
                 LobbySystemPopup.instance.showPopUpOk("바이인", "바이인 금액이 부족합니다.", ()=>{
@@ -170,6 +169,9 @@ export class UiLobby extends Component {
                             });                                                                                    
                             break;                            
                         default:
+                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.\n" + err.msg, ()=>{
+                                LobbySystemPopup.instance.closePopup();
+                            });                                                                                    
                     }
 
                 });

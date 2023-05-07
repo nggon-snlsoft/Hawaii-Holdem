@@ -86,8 +86,8 @@ export class HoldemRoom extends Room<RoomState> {
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
 	async onCreate( options: any ) : Promise<any> {
-
 		logger.info("[ onCreate ] options : %s", options);
+
 		this.tableSize = "full";
 		this._dao = options["dao"];
 
@@ -118,7 +118,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["passTerm"] = roomInfo["timePassTerm"] * 60 * 1000;					
 					this.conf["passPrice"] = roomInfo["timePassPrice"];
 					this.conf["private"] = options["private"];
-					this.conf['longSitoutTerm'] = 60000 * 5;
+					this.conf['longSitoutTerm'] = 60000 * 3;
 					this.conf["useTimePass"] = roomInfo["useTimePass"] == 1;
 					this.conf["useRake"] = roomInfo["useRake"] == 1;
 					this.conf["useRakeCap"] = roomInfo["useRakeCap"] == 1;
@@ -176,7 +176,7 @@ export class HoldemRoom extends Room<RoomState> {
 		};
 
 		try {
-			await this._dao.selectTableInfo( options["serial"], onDBFinish);
+			await this._dao.SELECT_TABLES_ByTABLE_ID( options["serial"], onDBFinish);
 		} catch (error) {
 			console.log(error);
 		}
@@ -203,7 +203,7 @@ export class HoldemRoom extends Room<RoomState> {
 		return new Promise( ( resolve, reject ) => {
 			let self = this;
 
-			this._dao.selectAccountByPendingID( client.sessionId, function( err: any, res: any ) {
+			this._dao.SELECT_USERS_ByPENDING_ID( client.sessionId, function( err: any, res: any ) {
 				if( !!err ) {
 					logger.error( "[ onAuth ] query error : %s", err );
 					reject( new ServerError( 400, "bad access token" ) );
@@ -249,7 +249,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async onJoin( client: Client, options?: any, auth?: any ) {
-		this._dao.updateActiveSessionID( client.sessionId, function( err: any, result: any ) {
+		this._dao.UPDATE_USER_ACTIVE_SESSION_ID( client.sessionId, function( err: any, result: any ) {
 			if( !!err ) {
 				logger.error( "[ onJoin ] updateActiveSessionID error : %s", err );
 			}
@@ -789,26 +789,26 @@ export class HoldemRoom extends Room<RoomState> {
 		clearTimeout(this.bufferTimerID);
 
 		this.state.entities.forEach( (e) => {
-			this._dao.clearActiveSessionID(e.id);
-			this._dao.clearPendingSessionID( e.id );
+			this._dao.UPDATE_USERS_ACTIVE_SESSION_ID( e.id, '' );
+			this._dao.UPDATE_USERS_PENDING_SESSION_ID( e.id, '' );
 		});
 
 		this.state.entities.forEach( (e) => {
 			let data = {
-				tableID: -1,
+				table_id: -1,
 				id : e.id
 			}
 
-			this._dao.updateTableID(data, (err: any, res: boolean) => {
+			this._dao.UPDATE_USERS_TABLE_ID_ByUSER( data , (err: any, res: boolean) => {
 				if (null != err) {
 					logger.error(err);
 				}
 			});
 
-			this._dao.chipOut(e.chips, e.id);
+			this._dao.CHIP_OUT(e.chips, e.id);
 			e.chips = 0;
 
-			this._dao.UpdateStatics( e.id, e.statics, ( err: any, res: boolean  )=> {
+			this._dao.UPDATE_STATICS( e.id, e.statics, ( err: any, res: boolean  )=> {
 				if ( err != null ) {
 					logger.error( err );
 				} else {
@@ -817,10 +817,11 @@ export class HoldemRoom extends Room<RoomState> {
 			});
 		});
 
-		this._dao.ResetTableID( this._id, ( err: any, res: boolean )=>{
+		this._dao.UPDATE_USERS_CLEAR_TABLE_ID( this._id, -1, ( err: any, res: boolean )=>{
 			if ( err != null ) {
 				logger.error( err );
 			} else {
+
 			}
 		})
 	}
@@ -831,22 +832,11 @@ export class HoldemRoom extends Room<RoomState> {
 			let entity = this.state.entities[i];
 			if(entity != null) {
 				if(entity.chips != entity.oldChips) {
-					if (true == this.conf["private"]) {
-						this._dao.updateChip(entity.id, entity.chips, (err: any, res: any) => {
-							if (!!err) {
-								logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
-							}
-						});
-					}
-					else {
-						this._dao.updateChip(entity.id, entity.chips, (err: any, res: any) => {
-							if (!!err) {
-								logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
-							}
-						});
-					}
-
-
+					this._dao.UPDATE_USERS_CHIP(entity.id, entity.chips, (err: any, res: any) => {
+						if (!!err) {
+							logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
+						}
+					});
 					entity.oldChips = entity.chips;
 				}
 			}
@@ -856,7 +846,7 @@ export class HoldemRoom extends Room<RoomState> {
 			let entity = this.state.entities[i];
 			if(entity != null) {
 				if(entity.rake != entity.oldRake) {
-					this._dao.updateRake( entity.id, entity.rake, ( err: any, res: any ) => {
+					this._dao.UPDATE_USERS_RAKE( entity.id, entity.rake, ( err: any, res: any ) => {
 						if( !!err ) {
 							logger.error( "[ update ] updateRake query error : %s", err.sqlMessage );
 						}
@@ -909,7 +899,6 @@ export class HoldemRoom extends Room<RoomState> {
 						timeoutPlayer.isSitOut = true;
 						timeoutPlayer.wait = true;
 						timeoutPlayer.sitoutTimestamp = Number( Date.now() );
-						console.log('timeoutPlayer.sitoutTimestamp: ' + timeoutPlayer.sitoutTimestamp);
 						
 						this.UpdateSeatInfo();						
 						this.broadcast("SIT_OUT", {seat : timeoutPlayer.seat});
@@ -984,17 +973,13 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		} else if ( eGameState.Suspend === this.state.gameState ) {
 			this.elapsedTick += dt;
-			if ( this.elapsedTick >= 10000 ) {	//1분마다 체크할게 있다면 여기서 하자!!!
-				console.log('check long sitout ');
+			if ( this.elapsedTick >= 10000 ) {
 				let term = this.conf['longSitoutTerm'];
-				console.log('longSitoutTerm: ' + term );
-
 
 				let checkLongSitout: boolean = false;
 				this.state.entities.forEach( (e)=>{
 					if ( e.isSitOut == true ) {
 						let pasteTime: number = Number( Date.now() ) - e.sitoutTimestamp;
-						console.log( 'sitout paste time: ' + pasteTime );
 						if ( pasteTime > term ) {
 							e.leave = true;
 							e.longSitOut = true;
@@ -1024,24 +1009,24 @@ export class HoldemRoom extends Room<RoomState> {
 				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat } );
 				escapees.push( this.state.entities[ l ].seat );
 
-				this._dao.clearActiveSessionID( this.state.entities[ l ].id );
-				this._dao.clearPendingSessionID( this.state.entities[ l ].id );
+				this._dao.UPDATE_USERS_ACTIVE_SESSION_ID( this.state.entities[ l ].id, '' );
+				this._dao.UPDATE_USERS_PENDING_SESSION_ID( this.state.entities[ l ].id, '' );
 
 				let data = {
-					tableID: -1,
+					table_id: -1,
 					id : this.state.entities[ l ].id
 				}
 
-				this._dao.updateTableID(data, (err: any, res: boolean) => {
+				this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
 					if (null != err) {
 						logger.error(err);
 					}
 				});
 
-				this._dao.chipOut(this.state.entities[l].chips, this.state.entities[l].id);
+				this._dao.CHIP_OUT(this.state.entities[l].chips, this.state.entities[l].id);
 				this.state.entities[l].chips = 0;
 
-				this._dao.UpdateStatics( this.state.entities[l].id, this.state.entities[l].statics, ( err: any, res: boolean  )=> {
+				this._dao.UPDATE_STATICS( this.state.entities[l].id, this.state.entities[l].statics, ( err: any, res: boolean  )=> {
 					if ( err != null ) {
 						logger.error( err );
 					} else {
@@ -1173,21 +1158,22 @@ export class HoldemRoom extends Room<RoomState> {
 						tableBuyInCount: e.tableBuyInCount,
 					});
 
-					this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+					this._dao.SELECT_BALANCE_ByUSER_ID(e.id, (err: any, res : any) => {
 						if (!!err) {
 							logger.error("[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
 						} else {
-							this._dao.buyIn(e.id, this.conf["tableID"], beforeBalance, e.balance, beforeChips, e.chips, amount, (err: any, res : any) => {
+							this._dao.BUY_IN(e.id, this.conf["tableID"], beforeBalance, e.balance, beforeChips, e.chips, amount, (err: any, res : any) => {
 								if (!!err) {
 									logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
 								} else {
-									this._dao.updateBalance(e.id, e.balance, (err: any, res: any) => {
-										if (!!err) {
-											logger.error("[ processPendingAddChips ] updateBalance query error : %s", err);
-										} else {
+								}
+							});
 
-										}
-									});
+							this._dao.UPDATE_USERS_BALANCE(e.id, e.balance, (err: any, res: any) => {
+								if (!!err) {
+									logger.error("[ processPendingAddChips ] updateBalance query error : %s", err);
+								} else {
+
 								}
 							});
 						}
@@ -1204,7 +1190,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( e.pendReBuy > 0 ) {
 			const MAX_BUY_IN: number = this.conf["maxStakePrice"];
-			this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+			this._dao.SELECT_BALANCE_ByUSER_ID( e.id, (err: any, res : any ) => {
 				if (!!err) {
 					logger.error("[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
 				} else {
@@ -1248,13 +1234,13 @@ export class HoldemRoom extends Room<RoomState> {
 								tableBuyInCount: e.tableBuyInCount,
 							});
 
-							this._dao.buyIn(e.id, this.conf['tableID'], oldBalance, e.balance, oldChips, e.chips, reBuyAmount, (err: any, res : any) => {
+							this._dao.BUY_IN(e.id, this.conf['tableID'], oldBalance, e.balance, oldChips, e.chips, reBuyAmount, (err: any, res : any) => {
 									if (!!err) {
 										logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
 									}
 								});
 
-							this._dao.updateBalance(e.id, e.balance, (err: any, res : any) => {
+							this._dao.UPDATE_USERS_BALANCE( e.id, e.balance, (err: any, res : any) => {
 								if (!!err) {
 									logger.error("[ processPendingAddChips ] updateBalance query error : %s", err);
 								}
@@ -2277,10 +2263,16 @@ export class HoldemRoom extends Room<RoomState> {
 					entity.chips += winAmount;
 					entity.winAmount += winAmount;
 					entity.winHandRank = entity.eval.handName;
+
+					let store_id: number = -1;
+					if ( entity.client != null && entity.client.auth != null && entity.client.auth.store_id != null ) {
+						store_id = entity.client.auth.store_id;
+					}
 	
 					winners.push( {
 						id: entity.id,
 						seat: entity.seat,
+						store_id: store_id,
 						potNo: i,
 						cards: entity.cardIndex,
 						nickname: entity.nickname,
@@ -2443,7 +2435,7 @@ export class HoldemRoom extends Room<RoomState> {
 			let entity = this.getEntity( et.seat );
 			if ( entity != null ) {
 				try {
-					this._dao.UpdateStatics( entity.id, entity.statics, ( err: any, res: any )=>{
+					this._dao.UPDATE_STATICS( entity.id, entity.statics, ( err: any, res: any )=>{
 
 					});
 
@@ -2454,8 +2446,8 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		try {
-			this._SalesReporter.UpdateReportByUser( this._dao, winners, 1 , this.conf["rakePercentage"] );
-			this._SalesReporter.UpdateReportByTable( this._dao, winners, 1, this.conf["rakePercentage"] );			
+			this._SalesReporter.UpdateReportByUser( this._dao, winners, this.conf["rakePercentage"] );
+			this._SalesReporter.UpdateReportByTable( this._dao, winners, this._id, this.conf["rakePercentage"] );			
 		} catch ( error ) {
 			console.log( error );
 		}
@@ -2663,17 +2655,17 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if (false == this.conf["private"]) {
 			let data = {
-				tableID: -1,
+				table_id: -1,
 				id : entity.id
 			}
 
-			this._dao.updateTableID(data, (err: any, res: boolean) => {
+			this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
 				if (null != err) {
 					logger.error(err);
 				}
 			});
 
-			this._dao.chipOut(entity.chips, entity.id);
+			this._dao.CHIP_OUT(entity.chips, entity.id);
 			entity.chips = 0;
 		}
 
@@ -2693,7 +2685,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 	private async LoadStatics(id: any) {
 		return new Promise ( (resolve, reject )=>{
-			this._dao.selectStaticsByID(id, (err: any, res: any)=>{
+			this._dao.SELECT_STATICS_ByUSER_ID( id, (err: any, res: any )=>{
 				if (!!err) {
 					reject( {
 						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -2755,7 +2747,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 			entity.seat = seatPos;
 
-			this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
+			this._dao.SELECT_BALANCE_ByUSER_ID( entity.id, ( err: any, res: any ) => {
 				if( !!err ) {
 					logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
 					return;
@@ -2785,7 +2777,7 @@ export class HoldemRoom extends Room<RoomState> {
 					entity.tableBuyInAmount += buyInAmount;
 					entity.tableBuyInCount++;
 
-					this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
+					this._dao.BUY_IN( entity.id, this.conf["tableID"], oldBalance, 
 					entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
 					{
 						if( !!err ) {
@@ -2793,7 +2785,7 @@ export class HoldemRoom extends Room<RoomState> {
 						}
 					} );
 
-					this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
+					this._dao.UPDATE_USERS_BALANCE( entity.id, entity.balance, ( err: any, res: any ) => {
 						if( !!err ) {
 							logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
 						}
@@ -3308,7 +3300,7 @@ export class HoldemRoom extends Room<RoomState> {
 				tableBuyInCount: -1,
 			} );
 		} else {
-			this._dao.selectBalanceByUID( e.id, ( err: any, res: any ) => {
+			this._dao.SELECT_BALANCE_ByUSER_ID( e.id, ( err: any, res: any ) => {
 				if( !!err ) {
 					logger.error( "[ onReBuy ] selectBalanceByUID query error : %s", err );
 				}
@@ -3374,13 +3366,13 @@ export class HoldemRoom extends Room<RoomState> {
 							}
 						}
 			
-						this._dao.buyIn( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
+						this._dao.BUY_IN( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
 							if( !!err ) {
 								logger.error( "[ onReBuy ] buyIn query error : %s", err );
 							}
 						} );
 				
-						this._dao.updateBalance( e.id, e.balance, ( err: any, res: any ) => {
+						this._dao.UPDATE_USERS_BALANCE( e.id, e.balance, ( err: any, res: any ) => {
 							if( !!err ) {
 								logger.error( "[ onReBuy ] updateBalance query error : %s", err );
 							}
@@ -3423,7 +3415,7 @@ export class HoldemRoom extends Room<RoomState> {
 				amount: -1
 			});
 		} else {
-			this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+			this._dao.SELECT_BALANCE_ByUSER_ID(e.id, (err: any, res : any) => {
 				if (!!err) {
 					logger.error("[ onAddChipsRequest ] selectBalanceByUID query error : %s", err);
 				}
@@ -3473,7 +3465,7 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( null === e || undefined === e ) {
 				code = -1;
 			} else {
-				this._dao.selectBalanceByUID(e.id, (err: any, res : any) => {
+				this._dao.SELECT_BALANCE_ByUSER_ID( e.id, (err: any, res : any ) => {
 					if (!!err) {
 						logger.error("[ onAddChips ] selectBalanceByUID query error : %s", err);
 					}
@@ -3524,13 +3516,13 @@ export class HoldemRoom extends Room<RoomState> {
 									e.tableBuyInAmount += amount;
 									e.tableBuyInCount++;
 			
-									this._dao.buyIn(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
+									this._dao.BUY_IN(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
 										if (!!err) {
 											logger.error("[ onAddChips ] buyIn query error : %s", err);
 										}
 									});
 					
-									this._dao.updateBalance(e.id, e.balance, (err: any, res : any) => {
+									this._dao.UPDATE_USERS_BALANCE(e.id, e.balance, (err: any, res : any) => {
 										if (!!err) {
 											logger.error("[ onAddChips ] updateBalance query error : %s", err);
 										}
@@ -3832,10 +3824,10 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( seat < 0 ) {
 			if ( id != null && id > 0 ) {
-				this._dao.clearActiveSessionID(id);
-				this._dao.clearPendingSessionID(id );
-				this._dao.updateTableID( {
-					tableID: -1,
+				this._dao.UPDATE_USERS_ACTIVE_SESSION_ID (id, '');
+				this._dao.UPDATE_USERS_PENDING_SESSION_ID (id, '');
+				this._dao.UPDATE_USERS_TABLE_ID_ByUSER( {
+					table_id: -1,
 					id: id
 				}, (err: any, res: boolean) => {
 					if (null != err) {
@@ -4089,6 +4081,6 @@ export class HoldemRoom extends Room<RoomState> {
 				entity.background = true;
 				entity.backgroundTimestamp = Date.now();
 			}
-		}
+		} 
 	}
 }

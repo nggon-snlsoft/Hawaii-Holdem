@@ -18,7 +18,13 @@ export class AudioController extends Component {
     }
 
     public ApplyVolumn() {
-        this.volumn = NetworkManager.Instance().getUserSetting().sound;
+        let setting: any = null;
+        setting = NetworkManager.Instance().GetSetting();
+        if ( setting == null || setting == undefined ) {
+            this.volumn = 5;
+        } else {
+            this.volumn = setting.sound;
+        }
         this.audioSource.volume = this.volumn / VOLUMNE_MULTIPLIER;
         this.audioSourceTimeLimitFourSec.volume = this.volumn / VOLUMNE_MULTIPLIER;
     }

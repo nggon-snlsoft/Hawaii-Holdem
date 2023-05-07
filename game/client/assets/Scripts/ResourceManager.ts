@@ -61,7 +61,11 @@ export class ResourceManager extends Component {
     private preloadAvatarResource: {} = {};
 
 	private preloadTableResource: any = null;
-	private preloadBackgroundResource: any = null;	
+	private preloadBackgroundResource: any = null;
+
+	private currentCardType: number = 0;
+	private currentTableType: number = 0;
+	private currentBgType: number = 0;
 
     public static Instance(): ResourceManager {
         if ( this._instance == null ) {
@@ -128,9 +132,15 @@ export class ResourceManager extends Component {
 		let cnt = 0;
 		this.preloadCardsResource = {};
 
-		let type = NetworkManager.Instance().getUserSetting().card;
+		let setting = NetworkManager.Instance().GetSetting();
+		if ( setting == null || setting == undefined ) {
+			this.currentCardType = 0;
+		} else {
+			this.currentCardType = setting.card;
+		}
+
 		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
-			const url = 'Cards/'+'type' + type.toString() + '/' + i.toString() + '/spriteFrame';
+			const url = 'Cards/'+'type' + this.currentCardType.toString() + '/' + i.toString() + '/spriteFrame';
 
 			resources.load<SpriteFrame>( url, (finished, total, item )=>{
 				if ( item.ext == '.png' ) {
@@ -185,13 +195,18 @@ export class ResourceManager extends Component {
 
 		let url: string = '';
 		let info = GameManager.Instance().GetInfo();
-		let type = NetworkManager.Instance().getUserSetting().board;
+		let setting = NetworkManager.Instance().GetSetting();
+		if ( setting == null || setting == undefined ) {
+			this.currentTableType = 0;
+		} else {
+			this.currentTableType = setting.board;			
+		}
 
 		if ( info.device == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
-			url = 'Tables/'+'portrait/'+ type.toString() + '/spriteFrame';
+			url = 'Tables/'+'portrait/'+ this.currentTableType.toString() + '/spriteFrame';
 
 		} else {
-			url = 'Tables/'+'landscape/'+ type.toString() + '/spriteFrame';
+			url = 'Tables/'+'landscape/'+ this.currentTableType.toString() + '/spriteFrame';
 		}
 
 		resources.load<SpriteFrame> (url, (err, res )=>{
@@ -207,8 +222,16 @@ export class ResourceManager extends Component {
 		let cnt = 0;
 		this.preloadBackgroundResource = null;
 
-		let type = NetworkManager.Instance().getUserSetting().background;
-		let url: string = 'Backgrounds/'+type.toString() + '/spriteFrame';
+		let setting = NetworkManager.Instance().GetSetting();
+		if ( setting == null || setting == undefined ) {
+			this.currentBgType = 0;
+
+		} else {
+			this.currentBgType = setting.background;
+		}
+
+		let type = NetworkManager.Instance().GetSetting();
+		let url: string = 'Backgrounds/' + this.currentBgType.toString() + '/spriteFrame';
 
 		resources.load<SpriteFrame> (url, (err, res )=>{
 			if ( null != err ) {
@@ -241,7 +264,8 @@ export class ResourceManager extends Component {
 
 	public setBackgroundImage( s:Sprite ) {
 		s.spriteFrame = this.preloadBackgroundResource;
-		let type = NetworkManager.Instance().getUserSetting().background;
+		let type = this.currentBgType;
+
 		switch ( type ) {
 			case 0:
 				s.color = new Color(30, 30, 30, 255);

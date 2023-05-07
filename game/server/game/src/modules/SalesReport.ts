@@ -1,11 +1,10 @@
 
 export class SalesReport {
 
-    public async UpdateReportByUser( dao: any, winners: any, storeId: number, rake: number  ) {
+    public async UpdateReportByUser( dao: any, winners: any, rake: number  ) {
         let now: Date = new Date();
         let date = this.GetReportDate( now );
         let rakePercent = rake * 0.01;
-        let store = storeId;
 
         let pools: any[] = [];
 
@@ -31,12 +30,16 @@ export class SalesReport {
             });
 
             let id = pools[i];
+
             let win: number = 0;
             let rake: number = 0;
 
+            let store_id: number = 0;
             ws.forEach( ( i: any )=>{
                 win += i.winAmount;
                 rake += i.rake;
+
+                store_id = i.store_id;
             });
 
             if ( isNaN(rake) == true ) {
@@ -49,7 +52,7 @@ export class SalesReport {
             });
 
             if ( row != null ) {
-                let index = row.id;
+                let index = row.id;                
                 let affected = await this.UpdateSalesUserInfo( dao, {
                     index: index,
                     win: win,
@@ -63,7 +66,7 @@ export class SalesReport {
             else {
                 let affected = await this.CreateSalesUserInfo( dao, {
                     id: id,
-                    store: store,
+                    store_id: store_id,
                     win: win,
                     rake: rake,
                     date: date,
@@ -104,7 +107,7 @@ export class SalesReport {
         if ( row != null ) {
             try {
                 let index = row.id;
-                let affected = await this.UpdateSalesTableInfo( dao, {
+                let affected: any = await this.UpdateSalesTableInfo( dao, {
                     index: index,
                     win: wins,
                     rake: rakes,
@@ -138,7 +141,7 @@ export class SalesReport {
 
     private async GetSalesUserFromDB( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.SelectSalesUserInfo( data, (err: any, res: any)=>{
+            dao.SELECT_SALES_USER( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;
@@ -150,7 +153,7 @@ export class SalesReport {
 
     private async CreateSalesUserInfo( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.CreateSalesUserInfo( data, (err: any, res: any)=>{
+            dao.INSERT_SALES_USER( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;
@@ -162,7 +165,7 @@ export class SalesReport {
 
     private async UpdateSalesUserInfo( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.UpdateSalesUserInfo( data, (err: any, res: any)=>{
+            dao.UPDATE_SALES_USER( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;
@@ -174,7 +177,7 @@ export class SalesReport {
     
     private async GetSalesTableFromDB( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.SelectSalesTableInfo( data, (err: any, res: any)=>{
+            dao.SELECT_SALES_TABLE( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;
@@ -186,7 +189,7 @@ export class SalesReport {
 
     private async CreateSalesTableInfo( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.CreateSalesTableInfo( data, (err: any, res: any)=>{
+            dao.INSERT_SALES_TABLE( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;
@@ -198,7 +201,7 @@ export class SalesReport {
 
     private async UpdateSalesTableInfo( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
-            dao.UpdateSalesTableInfo( data, (err: any, res: any)=>{
+            dao.UPDATE_SALES_TABLE( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;

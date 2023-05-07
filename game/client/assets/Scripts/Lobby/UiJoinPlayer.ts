@@ -40,10 +40,10 @@ export class UiJoinPlayer extends Component {
         this.buttonIDCheck.node.on('click', this.onCLICK_CHECK_ID.bind(this));
         this.buttonNicknameCheck.node.on('click', this.onCLICK_CHECK_NICKNAME.bind(this));
 
-        this.editBoxID.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
-        this.editBoxID.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
-        this.editBoxID.node.on('text-changed', this.onEDITBOX_TEXT_CHANGED.bind(this), this);
-        this.editBoxID.node.on('editing-did-ended', this.onEDITBOX_DID_ENDED.bind(this), this);
+        this.editBoxID.node.on('editing-did-began', this.onLOGIN_ID_EDITBOX_DID_BEGAN.bind(this), this);
+        this.editBoxID.node.on('editing-return', this.onLOGIN_ID_EDITBOX_RETURN.bind(this), this);
+        this.editBoxID.node.on('text-changed', this.onLOGIN_ID_EDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editBoxID.node.on('editing-did-ended', this.onLOGIN_ID_EDITBOX_DID_ENDED.bind(this), this);
 
         this.editBoxNickname.node.on('editing-did-began', this.onEDITBOX_DID_BEGAN.bind(this), this);
         this.editBoxNickname.node.on('editing-return', this.onEDITBOX_RETURN.bind(this), this);
@@ -126,16 +126,16 @@ export class UiJoinPlayer extends Component {
                 button.interactable = true;
 
                 NetworkManager.Instance().reqJOIN_MEMBER( {
-                    uid: this.editBoxID.string,
+                    login_id: this.editBoxID.string,
+                    store_id: 1,                    
                     nickname: this.editBoxNickname.string,                        
                     password: this.editBoxPassword.string,
-                    trans: this.editBoxTransferPassword.string,
+                    transfer_password: this.editBoxTransferPassword.string,
                     phone: this.editBoxPhone.string,
                     bank: this.editBoxBank.string,
                     holder: this.editBoxHolder.string,
                     account: this.editBoxAccount.string,
                     recommender: this.editBoxRecommender.string,
-                    store: 1
         
                 }, (res)=>{
                     button.interactable = true;
@@ -149,9 +149,8 @@ export class UiJoinPlayer extends Component {
         
                     } else {
                         let desc: string = '';
-        
                         switch(res.msg) {
-                            case 'INVALID_UID':
+                            case 'INVALID_LOGIN_ID':
                                 desc = '아이디가 형식에 맞지 않습니다.';
                                 break;
                             case 'INVALID_FORM':
@@ -163,8 +162,9 @@ export class UiJoinPlayer extends Component {
                             case 'DUPLICATE_NICKNAME':
                                 desc = '중복된 닉네임이 있습니다.'
                             break;
+
                             default:
-        
+                                desc = 'r가';
                         }
         
                         LoginSystemPopup.instance.showPopUpOk('회원가입', desc, ()=>{
@@ -202,7 +202,7 @@ export class UiJoinPlayer extends Component {
             return;
         }
 
-        NetworkManager.Instance().reqCHECK_UID( this.editBoxID.string, (res)=>{
+        NetworkManager.Instance().reqCHECK_LOGIN_ID( this.editBoxID.string, (res)=>{
             button.interactable = true;
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 LoginSystemPopup.instance.showPopUpOk('회원가입', '사용할 수 있는 아이디 입니다.', ()=>{
@@ -506,6 +506,34 @@ export class UiJoinPlayer extends Component {
             return false;
         }
         return true;
+    }
+
+    private onLOGIN_ID_EDITBOX_DID_BEGAN( editbox ) {
+        editbox.string = '';
+        console.log('onEDITBOX_DID_BEGAN');
+    }    
+
+    private onLOGIN_ID_EDITBOX_RETURN( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+        editbox.string = editbox.string.toLowerCase();
+    }
+
+    private onLOGIN_ID_EDITBOX_DID_ENDED( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
+        editbox.string = editbox.string.toLowerCase();        
+    }
+
+    private onLOGIN_ID_EDITBOX_TEXT_CHANGED( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+        editbox.string = editbox.string.trim();
     }
 
     private onEDITBOX_DID_BEGAN( editbox ) {

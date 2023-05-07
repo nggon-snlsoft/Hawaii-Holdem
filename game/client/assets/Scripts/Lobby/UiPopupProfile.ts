@@ -83,7 +83,7 @@ export class UiPopupProfile extends Component {
     }
 
     public refresh() {
-        let info = NetworkManager.Instance().getUserInfo();
+        let info = NetworkManager.Instance().GetUser();
 
         this.labeNickname.string = info.nickname;
         this.labeNickname.node.active = true;
@@ -93,10 +93,10 @@ export class UiPopupProfile extends Component {
         this.avatar.node.active = true;
         this.statics = null;
 
-        NetworkManager.Instance().reqLOAD_STATICS(info.id, ( res )=>{
+        NetworkManager.Instance().getSTATICS( info.id, ( res )=>{
             this.SetInformation( res );
         }, ( msg )=>{
-            //정보를 불러올 수 없습니다.
+
         });
     }
 
@@ -106,7 +106,7 @@ export class UiPopupProfile extends Component {
 
     private SetInformation( res: any ) {
         this.statics = res.statics;
-        console.log(this.statics);
+
         let hands = this.statics.hands;
         this.labelHandCount.string = hands.toString();
 

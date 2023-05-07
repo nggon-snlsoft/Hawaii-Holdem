@@ -48,7 +48,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         button.interactable = true;
         this.Reset();
 
-        NetworkManager.Instance().reqGET_CHARGE_REQUEST_COUNT( ( res )=>{
+        NetworkManager.Instance().getCHARGE_REQUESTS( ( res )=>{
             let charges = res.charges;
             let count = charges.length;
 
@@ -87,7 +87,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     }
 
     private GetStoreInfo() {
-        NetworkManager.Instance().reqGET_STORE( ( res: any )=>{
+        NetworkManager.Instance().getSTORE( ( res: any )=>{
             let store = res.store;
             if ( store != null ) {
                 this.labelHolder.string = store.holder;

@@ -39,7 +39,7 @@ export class UiLobbyPopup extends Component {
             this.uiLobby = uiLobby;
         }
 
-        this.uiLOBBY_POPUP_POINT.Init( this.ClosePoint.bind(this), null );
+        this.uiLOBBY_POPUP_POINT.Init( this.ClosePoint.bind(this), this.applyPointTransfer.bind(this) );
         this.uiLOBBY_POPUP_RANKING.Init( this.CloseRanking.bind(this), null );
         this.uiLOBBY_POPUP_CHARGE.Init( this.CloseCharge.bind(this), null );
         this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), this.onAPPLY_TRANSFER.bind(this) );
@@ -187,7 +187,7 @@ export class UiLobbyPopup extends Component {
     }    
 
     private applyChangeAvatar( num: number ) {
-        NetworkManager.Instance().updateUserAvatar(num, (res)=>{            
+        NetworkManager.Instance().updateUSER_AVATAR( num, (res)=>{            
             LobbySystemPopup.instance.showPopUpOk('아바타 변경', '아바타가 변경되었습니다.', ()=>{
                 this.uiLobby.refreshUiPlayer();
                 this.uiPopupChangeAvatar.hide();
@@ -202,7 +202,7 @@ export class UiLobbyPopup extends Component {
     }
 
     private applySetting( selected: any ) {        
-        NetworkManager.Instance().updateUserSetting( selected, (res)=>{
+        NetworkManager.Instance().updateUSER_SETTING( selected, (res)=>{
             
             LobbySystemPopup.instance.showPopUpOk('설정', '설정이 변경되었습니다.', ()=>{
                 LobbySystemPopup.instance.closePopup();
@@ -216,6 +216,10 @@ export class UiLobbyPopup extends Component {
                 this.closeSetting();
             });
         });
+    }
+
+    private applyPointTransfer() {
+        this.uiLobby.refreshPlayer();
     }
 
     public hide() {
