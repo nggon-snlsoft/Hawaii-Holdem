@@ -10,6 +10,7 @@ const { ccclass, property } = _decorator;
 export class Main extends Component {
 	@property(Node) rootPortrait: Node = null;
 	@property(Node) rootLandscape: Node = null;	
+	@property(Canvas) canvasLogin: Node = null;	
 
 	@property version: string = '1';
 
@@ -38,6 +39,7 @@ export class Main extends Component {
 				this._root = this.rootLandscape;
 			break;				
 		}
+
 
 		this.RegisterChildren();
 		this.Init();
