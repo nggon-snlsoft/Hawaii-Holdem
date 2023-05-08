@@ -279,6 +279,59 @@ export class NetworkManager extends cc.Component {
 
 		onSuccess( obj );
 	}
+
+	async getPOPUPS( onSUCCESS : (res : any) => void, onFAIL : (msg : string) => void) {
+		let user_id = this.user.id;
+		let store_id = this.user.store_id;
+		let token = this.token;
+
+		let result: string = null;
+		let error: string = null;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/store/popups/get", {
+			user_id: user_id,
+			store_id: store_id,
+			token: token,
+
+		} ).then(( res: string ) => {
+			result = res;
+			}
+		).catch( function( err: any ) {
+			err = JSON.parse( err );
+			error = err.msg;
+		} );
+
+		if( null !== error ) {
+			return onFAIL( error );
+		}
+
+		if( null === result ) {
+			return onFAIL("USER_DATA_IS_INVALID" );
+		}
+
+		let obj : any = JSON.parse( result );
+
+		if(null == obj){
+			onFAIL("JSON_PARSE_ERROR");
+			return;
+		}
+
+		if (obj.user != null ) {
+			this.user = obj.user;
+		}
+
+		if (obj.setting != null ) {
+			this.setting = obj.setting;
+		}
+
+		if (obj.conf != null ) {
+			this.config = obj.conf;
+		} 
+
+		onSUCCESS( obj );
+	}
+
+
 	
     async getSTATICS( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;

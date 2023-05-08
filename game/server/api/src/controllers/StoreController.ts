@@ -27,7 +27,8 @@ export class StoreController {
         this.router.post( '/charge/req', this.onREQ_CHARGE.bind( this ));
         this.router.post( '/transfer/req', this.onREQ_TRANSFER.bind( this ));
         this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
-        this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));        
+        this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));
+        this.router.post( '/popups/get', this.onGET_POPUPS.bind( this ));        
     }
 
     public async onGET_STORE( req: any, res: any ) {
@@ -345,6 +346,63 @@ export class StoreController {
             });
         }
     }
+
+    public async onGET_POPUPS( req: any, res: any ) {
+        let user_id = req.body.user_id;
+        let store_id = req.body.store_id;
+        let token = req.body.token;
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
+
+        if ( user_id == null || user_id <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_USER_ID'
+            });
+            return;
+        }
+
+        let popups: any = null;
+        try {
+            popups = await this.reqPOPUPS_BySTORE_ID( req.app.get('DAO'), store_id );
+        } catch (error) {
+            console.log( error );
+        }
+
+        let tickets: any = null;
+        try {
+            tickets = await this.reqTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
+            
+        } catch (error) {
+            
+        }
+
+
+        if ( popups == null ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+            });
+        } else {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.SUCCESS,
+                msg: 'SUCCESS',
+                popups: popups,
+            });
+        }
+    }
     
     private async getUSER_ByUSER_ID( dao: any, id: string ) {
         return new Promise( (resolve, reject )=>{
@@ -453,6 +511,38 @@ export class StoreController {
     private async reqTRANSFER_REQUESTS_ByUSER_ID( dao: any, id: number ) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_TRANSFER_REQUEST_ByUSER_ID ( id, function(err: any, res: any ) {
+
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqPOPUPS_BySTORE_ID( dao: any, store_id: number ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_POPUPS_BySTORE_ID ( store_id, function(err: any, res: any ) {
+
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqTICKETS_ByUSER_ID( dao: any, user_id: number ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_TICKETS_ByUSER_ID ( user_id, function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({

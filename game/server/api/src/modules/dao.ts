@@ -394,6 +394,40 @@ dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_POPUPS_BySTORE_ID = function ( store_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM POPUPS WHERE STORE_ID = ? OR STORE_ID = 0';
+	let args = [ store_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM POPUPS WHERE STORE_ID = ? OR STORE_ID = 0';
+	let args = [ user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	let amount = data.amount;
 	let user = data.user;

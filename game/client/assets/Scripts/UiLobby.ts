@@ -23,8 +23,8 @@ export class UiLobby extends Component {
     @property(Button) buttonExit: Button = null;
     @property(Button) buttonSetting: Button = null;
 
-	private userInfo : any = null;
-    private settingInfo: any = null;
+	private user : any = null;
+    private setting: any = null;
     private cbEnd: ()=> void = null; 
 
     public init() {
@@ -54,10 +54,14 @@ export class UiLobby extends Component {
             }
         }
 
-        this.userInfo = NetworkManager.Instance().GetUser();
-        this.settingInfo = NetworkManager.Instance().GetSetting();
+        
 
-        if (this.userInfo != null)
+
+
+        this.user = NetworkManager.Instance().GetUser();
+        this.setting = NetworkManager.Instance().GetSetting();
+
+        if (this.user != null)
         {
             this.uiPlayer.show();            
             this.uiTableList.show();

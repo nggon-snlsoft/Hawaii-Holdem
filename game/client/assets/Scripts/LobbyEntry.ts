@@ -3,6 +3,7 @@ import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 import { LobbySystemPopup } from './LobbySystemPopup';
 import { UiLobby } from './UiLobby';
 import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from './GameManager';
+import { NetworkManager } from './NetworkManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('LobbyEntry')
@@ -48,7 +49,6 @@ export class LobbyEntry extends Component {
         if ( this._popup != null ) {
             this._popup.initialize();
         }
-
 
         this._lobby.show( ()=>{
             this.end();
