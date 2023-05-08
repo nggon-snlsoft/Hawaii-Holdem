@@ -600,6 +600,7 @@ export class UiTable extends Component {
 		room.onMessage( "SHOW_EMOTICON", this.onSHOW_EMOTICON.bind(this));
 		room.onMessage( "SHOW_PROFILE", this.onSHOW_PROFILE.bind(this));
 
+		room.onMessage( "TOKEN_VERIFY", this.onTOKEN_VERIFY.bind(this));
 
 		room.onMessage( "SYNC_TABLE", this.onSYNC_TABLE.bind(this));
 		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));		
@@ -664,14 +665,22 @@ export class UiTable extends Component {
 	}
 	
 	private onEXIT_TABLE( msg ) {
-
 		this.uiSeats.end();
 		this.room?.leave( false );
 	}
 
+	private onTOKEN_VERIFY( msg ) {
+		let verify = msg['verify']
+		if ( verify == true ) {
+
+		} else {
+
+		}
+	}
+
 	private onSYNC_TABLE( msg ) {
 
-	}
+	}	
 
 	public LoadLobby() {
 		director.loadScene("LobbyScene");		

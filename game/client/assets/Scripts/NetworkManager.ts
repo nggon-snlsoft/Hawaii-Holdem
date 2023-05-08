@@ -18,10 +18,16 @@ export enum HOLDEM_SERVER_TYPE {
 }
 
 const apiHost: string = '127.0.0.1';
-const apiPort: number = 2600;
+const apiPort: number = 7500;
 
 const gameHost: string = '127.0.0.1';
-const gamePort: number = 2568;
+const gamePort: number = 7510;
+
+// const apiHost: string = '43.207.193.204';
+// const apiPort: number = 7500;
+
+// const gameHost: string = '43.207.193.204';
+// const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -39,11 +45,11 @@ export class NetworkManager extends cc.Component {
 
 	public leaveReason : number = -1;
 
-	private userInfo : any = null;
-	private userSetting: any = null;
-	private userStatics: any = null;
-	private gameSetting: any = null;
-	private storeInfo: any = null;	
+	private user : any = null;
+	private setting: any = null;
+	private statics: any = null;
+	private config: any = null;
+	private store: any = null;	
 	private token: string = null;
 
     public static Instance() : NetworkManager
@@ -97,12 +103,56 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public logout() {
-		this.userInfo = null;
-		this.userSetting = null;
-		this.gameSetting = null;
-		this.storeInfo = null;
+		this.user = null;
+		this.setting = null;
+		this.config = null;
+		this.store = null;
 		this.token = '';
 	}
+
+	public async reqTOKEN_VERIFY( onSUCCESS:(res: any)=>void , onFAIL:(msg: any)=>void) {
+		let user_id = this.user.id;
+		let token = this.token;
+		let result: string = null;
+		let error: string = null;
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/token/verify', {
+			user_id: user_id,
+			token: token,
+		} )
+		.then( (res: string)=> {
+			result = res;
+		})
+		.catch( (err: any)=>{
+			let parsedError = JSON.parse ( err );
+			if ( parsedError != null ) {
+				error = parsedError.msg;
+			} 
+		});
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result == null ) {
+			return onFAIL( 'RESULT_NULL' );			
+		}
+
+		let obj: any = JSON.parse( result );
+		if ( obj == null ) {
+			return onFAIL( 'RES_PARSED_ERROR' );						
+		}
+
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}		
+
+		if (obj.statics != null ) {
+			this.statics = obj.static;
+		}
+
+		onSUCCESS(obj);
+	}	
 
 	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
@@ -216,15 +266,15 @@ export class NetworkManager extends cc.Component {
 		}
 
 		if (obj.user != null ) {
-			this.userInfo = obj.user;
+			this.user = obj.user;
 		}
 
 		if (obj.setting != null ) {
-			this.userSetting = obj.setting;
+			this.setting = obj.setting;
 		}
 
 		if (obj.conf != null ) {
-			this.gameSetting = obj.conf;
+			this.config = obj.conf;
 		} 
 
 		onSuccess( obj );
@@ -267,7 +317,7 @@ export class NetworkManager extends cc.Component {
 		}		
 
 		if (obj.statics != null ) {
-			this.userStatics = obj.static;
+			this.statics = obj.static;
 		}
 
 		onSuccess(obj);
@@ -276,7 +326,7 @@ export class NetworkManager extends cc.Component {
 	public async getTABLE_LIST( onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
 		let result: any = null;
 		let isConnect = false;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/get", {
 			user_id: user_id,
@@ -313,7 +363,7 @@ export class NetworkManager extends cc.Component {
 		let result: any = null;
 		let reservation: string = null;
 		let error: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
@@ -403,8 +453,8 @@ export class NetworkManager extends cc.Component {
 	async getSTORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.id;
-		let store_id = this.userInfo.store_id;
+		let user_id = this.user.id;
+		let store_id = this.user.store_id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/get', {
 			store_id: store_id,
@@ -441,7 +491,9 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.storeInfo = obj.store;
+		if ( obj.store != null ) {
+			this.store = obj.store;
+		}
 
 		onSuccess(obj);
 	}
@@ -449,7 +501,7 @@ export class NetworkManager extends cc.Component {
 	async getCHARGE_REQUESTS( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/chargeRequest/get', {
 			user_id: user_id,
@@ -492,7 +544,7 @@ export class NetworkManager extends cc.Component {
 
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transferRequest/get', {
 			user_id: user_id,
@@ -534,7 +586,7 @@ export class NetworkManager extends cc.Component {
 	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/charge/req', {
 			user_id: user_id,
@@ -573,7 +625,7 @@ export class NetworkManager extends cc.Component {
 	async reqTRANSFER_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transfer/req', {
 			user_id: user_id,
@@ -606,7 +658,7 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userInfo = obj.user;
+		this.user = obj.user;
 
 		onSuccess(obj);
 	}			
@@ -648,7 +700,9 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userSetting = obj.setting;
+		if ( obj.setting != null ) {
+			this.setting = obj.setting;
+		}
 
 		onSuccess(obj);
 	}
@@ -808,7 +862,10 @@ export class NetworkManager extends cc.Component {
 					return;
 				}
 
-				this.userInfo = obj.user;				
+				if ( obj.user != null ) {
+					this.user = obj.user;
+				}
+
 				onSUCCESS(obj);
 			} else {
 				return onFAIL('JSON_PARSE_ERROR');
@@ -821,7 +878,7 @@ export class NetworkManager extends cc.Component {
 
 	public async getPOINT_TRANSFERS( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
 		let result: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 		let error: string = null;
 
 		try {
@@ -868,7 +925,7 @@ export class NetworkManager extends cc.Component {
 
 	public async getPOINT_RECEIVES(onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 		let error: string = null;
 
 		try {
@@ -932,15 +989,15 @@ export class NetworkManager extends cc.Component {
 	};
 
     public GetUser() : any{
-		return this.userInfo;
+		return this.user;
 	}
 
 	public GetSetting() : any {
-		return this.userSetting;
+		return this.setting;
 	}
 
 	public async updateUSER_AVATAR( avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 		let result: string = null;
 		let errMessage: string = null;
 
@@ -980,14 +1037,14 @@ export class NetworkManager extends cc.Component {
 		}
 
 		if ( obj.user != null ) {
-			this.userInfo = obj.user;
+			this.user = obj.user;
 		}
 
 		onSuccess(obj);
 	}
 
 	public async updateUSER_SETTING( selected: any, onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 		let result: string = '';
 		let setting: any = selected;
 		let errMessage: string = null;
@@ -1029,14 +1086,14 @@ export class NetworkManager extends cc.Component {
 		}
 
 		if ( obj.setting != null ) {
-			this.userSetting = obj.setting;
+			this.setting = obj.setting;
 		}
 
 		onSuccess(obj);
 	}
 
 	public async getUSER_FromDB( onSuccess: (res)=> void, onFail: (err)=> void ) {
-		let user_id = this.userInfo.id;
+		let user_id = this.user.id;
 		let result: string = '';
 		let error: string = null;
 
@@ -1075,7 +1132,10 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.userInfo = obj.user;
+		if ( obj.user != null ) {
+			this.user = obj.user;
+		}
+
 		onSuccess(obj);
 	}
 
