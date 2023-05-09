@@ -122,7 +122,7 @@
     "canvasLogin": {
       "__id__": 413
     },
-    "version": "4",
+    "version": "5",
     "_id": "38MqJ78DJKkr68ZtALei29"
   },
   {
@@ -149,7 +149,7 @@
         "__id__": 737
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 785
@@ -221,8 +221,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 640,
-      "y": 384,
+      "x": 383.99999999999994,
+      "y": 640,
       "z": 0
     },
     "_lrot": {
@@ -305,7 +305,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 422.2473320778405,
+    "_orthoHeight": 640,
     "_near": 0,
     "_far": 1000,
     "_color": {
@@ -359,7 +359,7 @@
         "__id__": 362
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 410
@@ -10578,7 +10578,7 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 24,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -15071,8 +15071,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -15158,7 +15158,7 @@
         "__id__": 476
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 479
@@ -16225,14 +16225,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
+    "_actualFontSize": 32,
     "_fontSize": 32,
     "_fontFamily": "Arial",
     "_lineHeight": 32,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -16341,7 +16341,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -16571,7 +16571,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -16647,7 +16647,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -16847,7 +16847,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -16923,7 +16923,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -17123,7 +17123,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -17199,7 +17199,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -17547,8 +17547,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -17838,7 +17838,7 @@
         "__id__": 726
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 730
@@ -18010,7 +18010,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 521.277,
+      "y": 504.9789999999999,
       "z": 0
     },
     "_lrot": {
@@ -18047,7 +18047,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 538.89,
+      "width": 479.76,
       "height": 80
     },
     "_anchorPoint": {
@@ -18072,21 +18072,21 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 200,
+      "b": 0,
       "a": 255
     },
     "_string": "HAWAII-HOLDEM을 플레이하기 위해 \n회원에 가입해주세요",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
-    "_fontSize": 40,
+    "_actualFontSize": 35,
+    "_fontSize": 35,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -18113,7 +18113,7 @@
     },
     "_left": 0,
     "_right": 0,
-    "_top": 78.723,
+    "_top": 95.02100000000006,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -18353,7 +18353,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 77.33,
+      "width": 78.12,
       "height": 32
     },
     "_anchorPoint": {
@@ -18392,7 +18392,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -18657,14 +18657,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -18773,7 +18773,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -19020,7 +19020,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -19203,7 +19203,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 172.22,
+      "width": 173.53,
       "height": 25
     },
     "_anchorPoint": {
@@ -19242,7 +19242,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -19393,7 +19393,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 77.33,
+      "width": 78.12,
       "height": 32
     },
     "_anchorPoint": {
@@ -19432,7 +19432,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -19697,14 +19697,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -19813,7 +19813,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -20060,7 +20060,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -20243,7 +20243,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 225.69,
+      "width": 227.21,
       "height": 25
     },
     "_anchorPoint": {
@@ -20282,7 +20282,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -20430,7 +20430,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 94.17,
+      "width": 95.29,
       "height": 40
     },
     "_anchorPoint": {
@@ -20469,7 +20469,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -20734,14 +20734,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -20850,7 +20850,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21004,7 +21004,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
+      "width": 173.53,
       "height": 25
     },
     "_anchorPoint": {
@@ -21043,7 +21043,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21191,7 +21191,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 126,
+      "width": 128.88,
       "height": 28
     },
     "_anchorPoint": {
@@ -21230,7 +21230,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21495,14 +21495,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21611,7 +21611,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21765,7 +21765,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
+      "width": 173.53,
       "height": 25
     },
     "_anchorPoint": {
@@ -21804,7 +21804,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -21949,8 +21949,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 77.33,
-      "height": 32
+      "width": 78.12,
+      "height": 35
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -21984,11 +21984,11 @@
     "_actualFontSize": 32,
     "_fontSize": 32,
     "_fontFamily": "Arial",
-    "_lineHeight": 32,
+    "_lineHeight": 35,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -22253,14 +22253,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 25,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -22369,7 +22369,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -22601,8 +22601,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100.44,
-      "height": 32
+      "width": 101.65,
+      "height": 35
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -22636,11 +22636,11 @@
     "_actualFontSize": 32,
     "_fontSize": 32,
     "_fontFamily": "Arial",
-    "_lineHeight": 32,
+    "_lineHeight": 35,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -22905,14 +22905,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 25,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -23021,7 +23021,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -23359,7 +23359,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 54.22,
+      "width": 54.59,
       "height": 32
     },
     "_anchorPoint": {
@@ -23398,7 +23398,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -23663,14 +23663,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -23779,7 +23779,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -24008,8 +24008,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 67.67,
-      "height": 28
+      "width": 78.12,
+      "height": 35
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -24040,14 +24040,14 @@
     "_string": "예금주:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 32,
+    "_fontSize": 32,
     "_fontFamily": "Arial",
-    "_lineHeight": 28,
+    "_lineHeight": 35,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -24312,14 +24312,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -24428,7 +24428,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -24657,7 +24657,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 54.22,
+      "width": 54.59,
       "height": 32
     },
     "_anchorPoint": {
@@ -24696,7 +24696,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -24961,14 +24961,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -25077,7 +25077,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -25271,7 +25271,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -2.793,
       "y": 0,
       "z": 0
     },
@@ -25309,7 +25309,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 133,
+      "width": 145.59,
       "height": 28
     },
     "_anchorPoint": {
@@ -25341,14 +25341,14 @@
     "_string": "거래 비밀번호:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
     "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -25613,14 +25613,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 30,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -25729,7 +25729,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -25883,7 +25883,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
+      "width": 173.53,
       "height": 25
     },
     "_anchorPoint": {
@@ -25922,7 +25922,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -26109,7 +26109,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -26417,7 +26417,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -26632,7 +26632,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 528.11,
+      "width": 556.76,
       "height": 28
     },
     "_anchorPoint": {
@@ -26664,14 +26664,14 @@
     "_string": "정보가 정확하지 않으면 가입에 제한이 있을 수 있습니다.",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -26840,8 +26840,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -549.481,
-      "y": 348.25699999999995,
+      "x": -267.51399999999995,
+      "y": 604.257,
       "z": 0
     },
     "_lrot": {
@@ -26878,8 +26878,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 152.5,
-      "height": 40
+      "width": 178.09,
+      "height": 37
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -26910,14 +26910,14 @@
     "_string": "VERSION 1.0",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 30,
+    "_actualFontSize": 35,
+    "_fontSize": 35,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 40,
+    "_lineHeight": 37,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -26940,9 +26940,9 @@
     "__prefab": null,
     "_alignFlags": 9,
     "_target": null,
-    "_left": 14.269000000000005,
+    "_left": 27.441000000000003,
     "_right": 0,
-    "_top": 15.743000000000052,
+    "_top": 17.243000000000052,
     "_bottom": 717.914,
     "_horizontalCenter": -559.292,
     "_verticalCenter": 0,
@@ -27467,7 +27467,7 @@
     "_overflow": 1,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -27607,7 +27607,7 @@
     "_overflow": 1,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -27818,7 +27818,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -28166,7 +28166,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -28442,7 +28442,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -28711,8 +28711,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

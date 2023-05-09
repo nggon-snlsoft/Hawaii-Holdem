@@ -25,6 +25,7 @@ export class Main extends Component {
 
 	protected onLoad(): void {
 		GameManager.Instance().Init();
+		GameManager.Instance().SetVersion( this.version );
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;

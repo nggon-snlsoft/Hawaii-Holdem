@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, Button, director, Game, Scene } from 'cc';
+import { _decorator, Component, Node, Label, Button, director, Game, Scene, sys } from 'cc';
 import { UiLobbyBottom } from './Lobby/UiLobbyBottom';
 import { UiLobbyPopup } from './Lobby/UiLobbyPopup';
 import { UiPlayer } from './Lobby/UiPlayer';
@@ -9,6 +9,7 @@ import { Board } from "./Board";
 import { UiTable } from "./UiTable";
 import { UiLobbyLoading } from './Lobby/UiLobbyLoading';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
+import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobby')
@@ -105,13 +106,21 @@ export class UiLobby extends Component {
                     });
                 }
 
-                if ( popups.length > 0 ) {
-                    this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
-                        this.uiLobbyPopup.CloseEventPopup();
+                let showEventPopup = GameManager.Instance().GetShowEventPopup();
+                if ( sys.isBrowser != true ) {
+                    if ( showEventPopup == true && popups.length > 0 ) {
+                        this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
+                            GameManager.Instance().SetShowEventPopup( false );
+                            this.uiLobbyPopup.CloseEventPopup();
+                            this.ShowTicketResult( tickets );
+                        } );
+                    } else if ( tickets.length > 0 ) {
                         this.ShowTicketResult( tickets );
-                    } );
-                } else if ( tickets.length > 0 ) {
-                    this.ShowTicketResult( tickets );
+                    }
+                } else {
+                    if ( tickets.length > 0 ) {
+                        this.ShowTicketResult( tickets );
+                    }
                 }
             }
 

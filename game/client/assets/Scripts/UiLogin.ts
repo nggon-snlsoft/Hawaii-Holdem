@@ -27,6 +27,7 @@ export class UiLogin extends Component {
         this.main = main;
 
         NetworkManager.Instance().logout();
+        GameManager.Instance().SetShowEventPopup( true );
         this.RegistEditboxEvent();
 
         this.spriteEventBlocker.node.active = false;
@@ -229,10 +230,7 @@ export class UiLogin extends Component {
     }
 
     show() {
-        console.log('SHOW');
         let leaveReason = GameManager.Instance().GetLeaveReason();
-        console.log(leaveReason);
-
         if ( leaveReason == ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE ) {
             LoginSystemPopup.instance.showPopUpOk('로그인', '중복 로그인이 발생했습니다.', ()=>{
                 LoginSystemPopup.instance.closePopup();

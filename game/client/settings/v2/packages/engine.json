@@ -94,7 +94,16 @@
       "tween": {
         "_value": true
       },
+      "websocket": {
+        "_value": true
+      },
+      "websocket-server": {
+        "_value": false
+      },
       "terrain": {
+        "_value": false
+      },
+      "light-probe": {
         "_value": false
       },
       "tiled-map": {
@@ -122,7 +131,6 @@
       "gfx-webgl",
       "gfx-webgl2",
       "intersection-2d",
-      "light-probe",
       "particle-2d",
       "physics-2d-box2d",
       "profiler",

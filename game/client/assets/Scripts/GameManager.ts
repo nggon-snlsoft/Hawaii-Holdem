@@ -19,8 +19,6 @@ export enum ENUM_LEAVE_REASON {
     LEAVE_NONE = -1,    
     LEAVE_UNKNOWN = 0,
     LEAVE_TOKEN_EXPIRE = 1,
-
-
 }
 
 const CLIENT_VERSION: string = '4';
@@ -32,6 +30,7 @@ export class GameManager extends cc.Component {
     private static _instance : GameManager = null;
     private leaveReason: ENUM_LEAVE_REASON = ENUM_LEAVE_REASON.LEAVE_UNKNOWN;
     private currentScene: ENUM_CURRENT_SCENE = ENUM_CURRENT_SCENE.LOGIN_SCENE;
+    private showEventPopup: boolean = false;
 
     public static Instance() : GameManager
 	{
@@ -43,9 +42,11 @@ export class GameManager extends cc.Component {
 	}
 
     public Init() {
+        this.showEventPopup = true;
+
         this.version = CLIENT_VERSION;
-        // this.deviceType = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
-        this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;        
+        this.deviceType = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
+        // this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;        
     }
 
     public GetInfo(): any {
@@ -59,8 +60,20 @@ export class GameManager extends cc.Component {
         return this.version;
     }
 
+    public SetVersion( version: string ) {
+        this.version = version;
+    }
+
     public SetCurrentScene( scene: ENUM_CURRENT_SCENE ) {
         this.currentScene = scene;
+    }
+
+    public GetShowEventPopup() {
+        return this.showEventPopup;
+    }
+
+    public SetShowEventPopup( show: boolean ) {
+        this.showEventPopup = show;
     }
 
     public ForceExit( leaveReason: ENUM_LEAVE_REASON ) {
