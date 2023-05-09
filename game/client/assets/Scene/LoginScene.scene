@@ -359,7 +359,7 @@
         "__id__": 362
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 410
@@ -3298,7 +3298,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 265.277,
+      "y": 521.277,
       "z": 0
     },
     "_lrot": {
@@ -3559,8 +3559,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -601.511,
-      "y": 177.484,
+      "x": -345.51099999999997,
+      "y": 177.48400000000004,
       "z": 0
     },
     "_lrot": {
@@ -3952,7 +3952,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
@@ -4562,7 +4562,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 180.47,
+      "width": 260.76,
       "height": 28
     },
     "_anchorPoint": {
@@ -4591,7 +4591,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "*4 ~ 10자 영어 숫자",
+    "_string": "*4 ~ 10자 영어(소문자), 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -4624,8 +4624,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 500,
-      "height": 69.99999999999994
+      "width": -12,
+      "height": 582
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4701,8 +4701,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -22.798999999999978,
-      "y": 177.484,
+      "x": 233.20100000000002,
+      "y": 177.48400000000004,
       "z": 0
     },
     "_lrot": {
@@ -5094,9 +5094,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -5766,8 +5766,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 500.0000000000005,
-      "height": 69.99999999999994
+      "width": -11.999999999999488,
+      "height": 582
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -5840,7 +5840,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -601.511,
+      "x": -345.51099999999997,
       "y": 67.48399999999998,
       "z": 0
     },
@@ -6233,9 +6233,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -6629,8 +6629,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 380,
-      "height": 70.00000000000011
+      "width": -132,
+      "height": 582.0000000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6703,7 +6703,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -213.832,
+      "x": 42.168000000000006,
       "y": 67.48399999999998,
       "z": 0
     },
@@ -7096,9 +7096,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -7492,8 +7492,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 380,
-      "height": 70.00000000000011
+      "width": -132,
+      "height": 582.0000000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7566,7 +7566,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 215.58500000000004,
+      "x": 471.58500000000004,
       "y": 62.48399999999998,
       "z": 0
     },
@@ -7959,9 +7959,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -8355,8 +8355,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 379.9999999999952,
-      "height": 70.00000000000011
+      "width": -132.00000000000477,
+      "height": 582.0000000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -8426,7 +8426,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -601.511,
+      "x": -345.51099999999997,
       "y": -42.51600000000002,
       "z": 0
     },
@@ -8819,9 +8819,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -9106,8 +9106,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 380,
-      "height": 70.00000000000011
+      "width": -132,
+      "height": 582.0000000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9180,7 +9180,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -199.64099999999996,
+      "x": 56.35900000000004,
       "y": -42.51600000000002,
       "z": 0
     },
@@ -9573,9 +9573,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -9969,8 +9969,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 380,
-      "height": 70.00000000000011
+      "width": -132,
+      "height": 582.0000000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -10040,8 +10040,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -601.511,
-      "y": -154.458,
+      "x": -345.51099999999997,
+      "y": -154.45800000000003,
       "z": 0
     },
     "_lrot": {
@@ -10433,9 +10433,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 24,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -10720,8 +10720,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 380,
-      "height": 70.00000000000006
+      "width": -132,
+      "height": 582
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -10791,8 +10791,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -223.349,
-      "y": -152.516,
+      "x": 32.65100000000001,
+      "y": -152.51600000000002,
       "z": 0
     },
     "_lrot": {
@@ -11184,9 +11184,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -11471,8 +11471,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 379.9999999999992,
-      "height": 70.00000000000006
+      "width": -132.0000000000008,
+      "height": 582
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -11542,8 +11542,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 96.94799999999998,
-      "y": -152.516,
+      "x": 352.948,
+      "y": -152.51600000000002,
       "z": 0
     },
     "_lrot": {
@@ -11935,9 +11935,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -12222,8 +12222,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 379.9999999999984,
-      "height": 70.00000000000006
+      "width": -132.0000000000016,
+      "height": 582
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -12294,7 +12294,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -120,
-      "y": -310,
+      "y": -566,
       "z": 0
     },
     "_lrot": {
@@ -12602,7 +12602,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 120,
-      "y": -310,
+      "y": -566,
       "z": 0
     },
     "_lrot": {
@@ -12903,7 +12903,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -227.02300000000002,
+      "y": 28.976999999999975,
       "z": 0
     },
     "_lrot": {
@@ -13033,8 +13033,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -13149,7 +13149,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -559.292,
-      "y": 353.914,
+      "y": 97.91399999999999,
       "z": 0
     },
     "_lrot": {
@@ -15019,8 +15019,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -18658,9 +18658,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -19203,7 +19203,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 173.53,
+      "width": 250.74,
       "height": 25
     },
     "_anchorPoint": {
@@ -19232,7 +19232,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "*4 ~ 10자 영어 숫자",
+    "_string": "*4 ~ 10자 영어(소문자), 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 25,
@@ -19698,9 +19698,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -20735,9 +20735,9 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
@@ -21496,7 +21496,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
@@ -22254,7 +22254,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 25,
     "_overflow": 1,
@@ -22906,7 +22906,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 25,
     "_overflow": 1,
@@ -23137,7 +23137,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -9.309,
       "y": -46.544,
       "z": 0
     },
@@ -23175,8 +23175,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 337.97,
-      "height": 23
+      "width": 348,
+      "height": 26
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -23207,14 +23207,14 @@
     "_string": "*추천코드가 없으면 회원가입이 제한됩니다.",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 23,
-    "_fontSize": 23,
+    "_actualFontSize": 24,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 23,
+    "_lineHeight": 26,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -23664,7 +23664,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
@@ -24313,7 +24313,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
@@ -24962,7 +24962,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
@@ -25614,7 +25614,7 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 22,
-    "_fontSize": 22,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 30,
     "_overflow": 1,

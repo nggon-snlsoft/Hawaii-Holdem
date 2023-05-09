@@ -194,7 +194,7 @@ export class UiJoinPlayer extends Component {
         button.interactable = false;
 
         if ( this.validateID() == false ) {
-            LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 형식이 잘못됬습니다.\n숫자, 영어 4~10자', ()=>{
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '아이디 형식이 잘못됐습니다.\n숫자, 영어 4~10자', ()=>{
                 this.isCheckID = true;
                 button.interactable = true;                            
                 LoginSystemPopup.instance.closePopup();
@@ -242,7 +242,7 @@ export class UiJoinPlayer extends Component {
         button.interactable = false;
 
         if ( this.validateNickname() == false ) {
-            LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 형식이 잘못됬습니다.\n숫자, 영어 4~10자', ()=>{
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '닉네임 형식이 잘못됐습니다.\n숫자, 영어 4~10자', ()=>{
                 this.isCheckID = true;
                 button.interactable = true;                            
                 LoginSystemPopup.instance.closePopup();
