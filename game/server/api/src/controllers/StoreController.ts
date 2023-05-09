@@ -28,7 +28,8 @@ export class StoreController {
         this.router.post( '/transfer/req', this.onREQ_TRANSFER.bind( this ));
         this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
         this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));
-        this.router.post( '/popups/get', this.onGET_POPUPS.bind( this ));        
+        this.router.post( '/popups/get', this.onGET_POPUPS_TICKETS.bind( this ));
+        this.router.post( '/ticket/check', this.onCHECK_TICKETS.bind( this ));        
     }
 
     public async onGET_STORE( req: any, res: any ) {
@@ -347,7 +348,7 @@ export class StoreController {
         }
     }
 
-    public async onGET_POPUPS( req: any, res: any ) {
+    public async onGET_POPUPS_TICKETS( req: any, res: any ) {
         let user_id = req.body.user_id;
         let store_id = req.body.store_id;
         let token = req.body.token;
@@ -387,11 +388,11 @@ export class StoreController {
             tickets = await this.reqTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
             
         } catch (error) {
-            
+            console.log( error );            
         }
 
 
-        if ( popups == null ) {
+        if ( popups == null || tickets == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
             });
@@ -400,9 +401,41 @@ export class StoreController {
                 code: ENUM_RESULT_CODE.SUCCESS,
                 msg: 'SUCCESS',
                 popups: popups,
+                tickets: tickets
             });
         }
     }
+
+    public async onCHECK_TICKETS( req: any, res: any ) {
+        let ticket_id = req.body.ticket_id;
+        console.log('onCHECK_TICKETS: ' + ticket_id.toString() );
+
+        if ( ticket_id == null || ticket_id <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TICKET_ID'
+            });
+            return;
+        }
+
+        let affected: any = null;
+        try {
+            affected = await this.reqCHECK_TICKET_ByTICKET_ID( req.app.get('DAO'), ticket_id );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( affected == null || affected <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+            });            
+        } else {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.SUCCESS,
+                msg: 'SUCCESS',
+            });            
+        }
+    }    
     
     private async getUSER_ByUSER_ID( dao: any, id: string ) {
         return new Promise( (resolve, reject )=>{
@@ -527,6 +560,24 @@ export class StoreController {
     private async reqPOPUPS_BySTORE_ID( dao: any, store_id: number ) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_POPUPS_BySTORE_ID ( store_id, function(err: any, res: any ) {
+
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqCHECK_TICKET_ByTICKET_ID( dao: any, ticket_id: number ) {
+        console.log('reqCHECK_TICKET_ByTICKET_ID: ' + ticket_id.toString() );
+
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_TICKETS_ALIVE ( ticket_id, function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({

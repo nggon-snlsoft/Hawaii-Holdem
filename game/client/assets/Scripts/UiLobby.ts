@@ -54,10 +54,6 @@ export class UiLobby extends Component {
             }
         }
 
-        
-
-
-
         this.user = NetworkManager.Instance().GetUser();
         this.setting = NetworkManager.Instance().GetSetting();
 
@@ -68,6 +64,8 @@ export class UiLobby extends Component {
             this.uiLobbyBottom.show();
         }
 
+        this.ShowEventPopup();
+
         let leaveReason = NetworkManager.Instance().leaveReason;
         if ( leaveReason == 4001 ) {
             leaveReason = -1;            
@@ -77,6 +75,61 @@ export class UiLobby extends Component {
         }
 
         this.node.active = true;
+    }
+
+    private ShowEventPopup() {
+        NetworkManager.Instance().getPOPUPS((res)=>{
+            if ( res != null ) {
+                let popups: any[] = null;
+                let tickets: any[] = null;
+
+                if ( res.popups != null ) {
+                    popups = res.popups;
+                    popups.sort( (e1: any, e2: any )=>{
+                        if ( e1.store_id > e2.store_id ) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+                if ( res.tickets != null ) {
+                    tickets = res.tickets;
+                    tickets.sort( (e1: any, e2: any )=>{
+                        if ( e1.createDate > e2.createDate ) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+                if ( popups.length > 0 ) {
+                    this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
+                        this.uiLobbyPopup.CloseEventPopup();
+                        this.ShowTicketResult( tickets );
+                    } );
+                } else if ( tickets.length > 0 ) {
+                    this.ShowTicketResult( tickets );
+                }
+            }
+
+        }, (err)=>{
+
+        });
+    }
+
+    private ShowTicketResult( tickets: any ) {
+        if ( tickets != null ) {
+            if ( tickets.length > 0 ) {
+                this.uiLobbyPopup.OpenTicketsPopup( tickets, ()=>{
+                    this.uiLobbyPopup.CloseTicketsPopup();
+                });
+            } else {
+
+            }
+        }
     }
 
     public refreshPlayer() {

@@ -327,6 +327,25 @@ dao.UPDATE_POINT_TRANSFER = function ( data: any, cb: any ) {
 	});    
 }
 
+dao.UPDATE_TICKETS_ALIVE = function ( ticket_id: any, cb: any ) {
+	console.log('UPDATE_TICKETS_ALIVE: ' + ticket_id);
+
+	let sql = "UPDATE TICKETS SET ALIVE = 0 WHERE ID = ? ";
+	let args = [ ticket_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, 0);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
+			}
+		}
+	});
+}
+
 dao.selectTables = function ( cb: any ) {
     let alive = 1;
 	let sql = 'SELECT * FROM TABLES WHERE ALIVE = ?';
@@ -396,7 +415,7 @@ dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_POPUPS_BySTORE_ID = function ( store_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM POPUPS WHERE STORE_ID = ? OR STORE_ID = 0';
+	let sql = 'SELECT * FROM POPUPS WHERE (STORE_ID = ? OR STORE_ID = 0) AND DISABLE = 1';
 	let args = [ store_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -413,7 +432,7 @@ dao.SELECT_POPUPS_BySTORE_ID = function ( store_id: any, cb: any ) {
 
 dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM POPUPS WHERE STORE_ID = ? OR STORE_ID = 0';
+	let sql = 'SELECT * FROM TICKETS WHERE USER_ID = ? AND ALIVE = 1';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {

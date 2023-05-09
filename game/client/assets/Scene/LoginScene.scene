@@ -51,7 +51,7 @@
       "y": 0,
       "z": 0
     },
-    "autoReleaseAssets": false,
+    "autoReleaseAssets": true,
     "_globals": {
       "__id__": 787
     },
@@ -149,7 +149,7 @@
         "__id__": 737
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 785
@@ -221,8 +221,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 383.99999999999994,
-      "y": 640,
+      "x": 640,
+      "y": 384,
       "z": 0
     },
     "_lrot": {
@@ -305,7 +305,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 640,
+    "_orthoHeight": 422.2473320778405,
     "_near": 0,
     "_far": 1000,
     "_color": {
@@ -359,7 +359,7 @@
         "__id__": 362
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 410
@@ -431,7 +431,7 @@
         "__id__": 70
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 73
@@ -886,14 +886,17 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
+    "_actualFontSize": 25,
     "_fontSize": 25,
     "_fontFamily": "Arial",
     "_lineHeight": 25,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -998,8 +1001,11 @@
     "_lineHeight": 50,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -1492,14 +1498,17 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
+    "_actualFontSize": 25,
     "_fontSize": 25,
     "_fontFamily": "Arial",
     "_lineHeight": 25,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -1604,8 +1613,11 @@
     "_lineHeight": 50,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -1832,7 +1844,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -1908,7 +1920,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -2108,7 +2120,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -2184,7 +2196,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -2384,7 +2396,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -4,
       "z": 0
     },
     "_lrot": {
@@ -2460,7 +2472,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -3114,7 +3126,7 @@
         "__id__": 351
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 355
@@ -3323,7 +3335,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 719.44,
+      "width": 722.71,
       "height": 40
     },
     "_anchorPoint": {
@@ -3362,7 +3374,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -3632,7 +3644,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 67.67,
+      "width": 73.24,
       "height": 40
     },
     "_anchorPoint": {
@@ -3664,14 +3676,14 @@
     "_string": "아이디:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -3939,14 +3951,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -3997,7 +4009,7 @@
       "__id__": 100
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 106
@@ -4012,7 +4024,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -125,
+      "x": -123,
       "y": 22.5,
       "z": 0
     },
@@ -4050,7 +4062,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 250,
+      "width": 248,
       "height": 45
     },
     "_anchorPoint": {
@@ -4085,11 +4097,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -4114,7 +4126,7 @@
     "_target": {
       "__id__": 100
     },
-    "_left": 0,
+    "_left": 2,
     "_right": 0,
     "_top": 0,
     "_bottom": 0,
@@ -4360,14 +4372,14 @@
     "_string": "중복체크",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
-    "_fontSize": 24,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 24,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -4550,8 +4562,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 172.22,
-      "height": 25
+      "width": 180.47,
+      "height": 28
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4582,14 +4594,14 @@
     "_string": "*4 ~ 10자 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 25,
-    "_fontSize": 25,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 25,
+    "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -4689,7 +4701,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -57.125999999999976,
+      "x": -22.798999999999978,
       "y": 177.484,
       "z": 0
     },
@@ -4736,7 +4748,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -18.173,
       "y": 0,
       "z": 0
     },
@@ -4774,7 +4786,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 67.67,
+      "width": 73.24,
       "height": 40
     },
     "_anchorPoint": {
@@ -4806,14 +4818,14 @@
     "_string": "닉네임:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -5081,14 +5093,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -5227,11 +5239,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -5502,14 +5514,14 @@
     "_string": "중복체크",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
-    "_fontSize": 24,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 24,
+    "_lineHeight": 26,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -5692,8 +5704,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 225.69,
-      "height": 25
+      "width": 236.29,
+      "height": 28
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -5724,14 +5736,14 @@
     "_string": "*4 ~ 10자 영어, 한글, 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 25,
-    "_fontSize": 25,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 25,
+    "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -5754,7 +5766,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 500.000000000001,
+      "width": 500.0000000000005,
       "height": 69.99999999999994
     },
     "_anchorPoint": {
@@ -5777,8 +5789,8 @@
     "_target": {
       "__id__": 82
     },
-    "_left": 582.874,
-    "_right": 197.12599999999898,
+    "_left": 617.201,
+    "_right": 162.79899999999947,
     "_top": 171.51600000000002,
     "_bottom": 526.484,
     "_horizontalCenter": 0,
@@ -5913,7 +5925,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 94.17,
+      "width": 95.29,
       "height": 40
     },
     "_anchorPoint": {
@@ -5952,7 +5964,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -6220,14 +6232,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -6366,11 +6378,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -6555,8 +6567,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
-      "height": 25
+      "width": 180.47,
+      "height": 28
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6587,14 +6599,14 @@
     "_string": "*4 ~ 15자 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 25,
-    "_fontSize": 25,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 25,
+    "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -6738,7 +6750,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -6.058,
       "y": 0,
       "z": 0
     },
@@ -6776,7 +6788,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 133,
+      "width": 135.88,
       "height": 28
     },
     "_anchorPoint": {
@@ -6815,7 +6827,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -7083,14 +7095,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -7229,11 +7241,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -7418,8 +7430,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
-      "height": 25
+      "width": 180.47,
+      "height": 26
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7450,14 +7462,14 @@
     "_string": "*4 ~ 15자 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 25,
-    "_fontSize": 25,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 25,
+    "_lineHeight": 26,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -7601,7 +7613,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -8.077,
       "y": 0,
       "z": 0
     },
@@ -7639,7 +7651,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 133,
+      "width": 135.88,
       "height": 28
     },
     "_anchorPoint": {
@@ -7678,7 +7690,7 @@
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -7946,14 +7958,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -8092,11 +8104,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -8281,8 +8293,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 170.83,
-      "height": 25
+      "width": 180.47,
+      "height": 28
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -8313,14 +8325,14 @@
     "_string": "*4 ~ 15자 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 25,
-    "_fontSize": 25,
+    "_actualFontSize": 26,
+    "_fontSize": 26,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 25,
+    "_lineHeight": 28,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -8499,8 +8511,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 67.67,
-      "height": 28
+      "width": 73.24,
+      "height": 32
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -8531,14 +8543,14 @@
     "_string": "폰번호:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
-    "_lineHeight": 28,
+    "_lineHeight": 32,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -8806,14 +8818,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -8952,11 +8964,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -9253,7 +9265,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 87.89,
+      "width": 95.29,
       "height": 40
     },
     "_anchorPoint": {
@@ -9285,14 +9297,14 @@
     "_string": "추천코드:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -9560,14 +9572,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -9710,7 +9722,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -9895,8 +9907,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 376.94,
-      "height": 23
+      "width": 388.24,
+      "height": 24
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9927,14 +9939,14 @@
     "_string": "*추천인 아이디가 없으면 회원가입이 제한됩니다.",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 23,
-    "_fontSize": 23,
+    "_actualFontSize": 24,
+    "_fontSize": 24,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 23,
+    "_lineHeight": 24,
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -10113,8 +10125,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 47.44,
-      "height": 28
+      "width": 51.18,
+      "height": 30
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -10145,14 +10157,14 @@
     "_string": "은행:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
-    "_lineHeight": 28,
+    "_lineHeight": 30,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -10420,14 +10432,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 24,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -10566,11 +10578,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 24,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -10864,8 +10876,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 67.67,
-      "height": 28
+      "width": 73.24,
+      "height": 30
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -10896,14 +10908,14 @@
     "_string": "예금주:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
-    "_lineHeight": 28,
+    "_lineHeight": 30,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -11171,14 +11183,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -11317,11 +11329,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -11615,8 +11627,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 47.44,
-      "height": 28
+      "width": 51.18,
+      "height": 30
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -11647,14 +11659,14 @@
     "_string": "계좌:",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28,
-    "_fontSize": 28,
+    "_actualFontSize": 30,
+    "_fontSize": 30,
     "_fontFamily": "Arial",
-    "_lineHeight": 28,
+    "_lineHeight": 30,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -11922,14 +11934,14 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 22,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -12068,11 +12080,11 @@
     "_actualFontSize": 22,
     "_fontSize": 22,
     "_fontFamily": "Malgun Gothic",
-    "_lineHeight": 22,
+    "_lineHeight": 45,
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -12329,7 +12341,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -3,
       "z": 0
     },
     "_lrot": {
@@ -12405,7 +12417,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -12637,7 +12649,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -3,
       "z": 0
     },
     "_lrot": {
@@ -12713,7 +12725,7 @@
     "_overflow": 2,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -12928,7 +12940,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 528.11,
+      "width": 519.65,
       "height": 28
     },
     "_anchorPoint": {
@@ -12967,7 +12979,7 @@
     "_overflow": 0,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -13174,7 +13186,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 122,
+      "width": 142.47,
       "height": 40
     },
     "_anchorPoint": {
@@ -13206,14 +13218,14 @@
     "_string": "VERSION 1.0",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
-    "_fontSize": 24,
+    "_actualFontSize": 28,
+    "_fontSize": 28,
     "_fontFamily": "Malgun Gothic",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -13763,7 +13775,7 @@
     "_overflow": 1,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -13903,7 +13915,7 @@
     "_overflow": 1,
     "_enableWrapText": true,
     "_font": {
-      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -14114,7 +14126,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -14462,7 +14474,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -14738,7 +14750,7 @@
     "_overflow": 1,
     "_enableWrapText": false,
     "_font": {
-      "__uuid__": "b64977da-61dc-4774-8a79-330349682752",
+      "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
       "__expectedType__": "cc.BitmapFont"
     },
     "_isSystemFontUsed": false,
@@ -15059,8 +15071,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 768,
-      "height": 1280
+      "width": 1280,
+      "height": 768
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -15146,7 +15158,7 @@
         "__id__": 476
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 479
@@ -15601,14 +15613,17 @@
     "_string": "",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 25,
+    "_actualFontSize": 32,
+    "_fontSize": 32,
     "_fontFamily": "Arial",
-    "_lineHeight": 25,
+    "_lineHeight": 32,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -15713,8 +15728,11 @@
     "_lineHeight": 50,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "76a4101d-fb08-4932-a57e-0bd7fe43ebcf",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -16208,13 +16226,16 @@
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 30,
-    "_fontSize": 25,
+    "_fontSize": 32,
     "_fontFamily": "Arial",
-    "_lineHeight": 25,
+    "_lineHeight": 32,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -16319,8 +16340,11 @@
     "_lineHeight": 50,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "16c59fb3-cca0-428d-aff7-04aea20a8a61",
+      "__expectedType__": "cc.BitmapFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -17523,8 +17547,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 768,
-      "height": 1280
+      "width": 1280,
+      "height": 768
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -17814,7 +17838,7 @@
         "__id__": 726
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 730
@@ -26816,8 +26840,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -293.481,
-      "y": 604.257,
+      "x": -549.481,
+      "y": 348.25699999999995,
       "z": 0
     },
     "_lrot": {
@@ -26949,7 +26973,7 @@
         "__id__": 743
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 781
@@ -28687,8 +28711,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 768,
-      "height": 1280
+      "width": 1280,
+      "height": 768
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

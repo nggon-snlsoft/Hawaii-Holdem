@@ -12,6 +12,8 @@ import { UiLOBBY_POPUP_CHARGE } from './UiLOBBY_POPUP_CHARGE';
 import { UiLOBBY_POPUP_TRANSFER } from './UiLOBBY_POPUP_TRANSFER';
 import { UiLOBBY_POPUP_QnA } from './UiLOBBY_POPUP_QnA';
 import { UiLOBBY_POPUP_NOTICE } from './UiLOBBY_POPUP_NOTICE';
+import { UiLOBBY_POPUP_EVENT } from './UiLOBBY_POPUP_EVENT';
+import { UiLOBBY_POPUP_TICKETS } from './UiLOBBY_POPUP_TICKETS';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyPopup')
@@ -27,6 +29,8 @@ export class UiLobbyPopup extends Component {
     @property (UiLOBBY_POPUP_TRANSFER) uiLOBBY_POPUP_TRANFER: UiLOBBY_POPUP_TRANSFER = null;
     @property (UiLOBBY_POPUP_QnA) uiLOBBY_POPUP_QNA: UiLOBBY_POPUP_QnA = null;
     @property (UiLOBBY_POPUP_NOTICE) uiLOBBY_POPUP_NOTICE: UiLOBBY_POPUP_NOTICE = null;
+    @property (UiLOBBY_POPUP_EVENT) uiLOBBY_POPUP_EVENT: UiLOBBY_POPUP_EVENT = null;
+    @property (UiLOBBY_POPUP_TICKETS) uiLOBBY_POPUP_TICKETS: UiLOBBY_POPUP_TICKETS = null;            
 
     private uiLobby: UiLobby = null;
 
@@ -45,9 +49,25 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), this.onAPPLY_TRANSFER.bind(this) );
         this.uiLOBBY_POPUP_QNA.Init( this.CloseQNA.bind(this), null );
         this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this), null );
+        this.uiLOBBY_POPUP_EVENT.Init();
+        this.uiLOBBY_POPUP_TICKETS.Init();
 
         this.closeAllPopup();
     }
+
+    public OpenEventPopup( popups: any[], done: ()=>void ) {
+        this.closeAllPopup();
+        this.uiLOBBY_POPUP_EVENT.Show( popups, done );
+
+        this.node.active = true;
+    }
+
+    public OpenTicketsPopup( tickets: any[], done: ()=>void ) {
+        this.closeAllPopup();
+        this.uiLOBBY_POPUP_TICKETS.Show( tickets, done );
+
+        this.node.active = true;
+    }    
 
     public openProfile() {
         this.closeAllPopup();
@@ -95,6 +115,8 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_TRANFER.Hide();
         this.uiLOBBY_POPUP_QNA.Hide();
         this.uiLOBBY_POPUP_NOTICE.Hide();
+        this.uiLOBBY_POPUP_EVENT.Hide();
+        this.uiLOBBY_POPUP_TICKETS.Hide();
 
         this.hide();
     }
@@ -184,7 +206,17 @@ export class UiLobbyPopup extends Component {
     public CloseNotice() {
         this.uiLOBBY_POPUP_NOTICE.Hide();
         this.hide();
-    }    
+    }
+    
+    public CloseEventPopup() {
+        this.uiLOBBY_POPUP_EVENT.Hide();
+        this.hide();
+    }
+
+    public CloseTicketsPopup() {
+        this.uiLOBBY_POPUP_TICKETS.Hide();
+        this.hide();
+    }
 
     private applyChangeAvatar( num: number ) {
         NetworkManager.Instance().updateUSER_AVATAR( num, (res)=>{            

@@ -166,6 +166,40 @@ export class NetworkManager extends cc.Component {
 		});
 	}
 
+	public async reqCHECK_TICKETS( ticket_id: any, onSUCCESS : (res : any) => void, onFAIL : (err : any) => void ) {
+		let result: string = null;
+		let error: string = null;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/ticket/check', {
+			ticket_id: ticket_id,
+
+		} ).then(( res: string ) => {
+			result = res;
+			}
+		).catch( function( err: any ) {
+			err = JSON.parse( err );
+			error = err.msg;
+		} );
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result == null ) {
+			return onFAIL( 'RESULT_NULL' );			
+		}
+
+		let obj: any = JSON.parse( result );
+		if ( obj == null ) {
+			return onFAIL( 'RES_PARSED_ERROR' );						
+		}
+
+		onSUCCESS( {
+			code: obj.code,
+			msg: obj.msg,
+		});
+	}
+
     public async reqLOGIN_HOLDEM( login_id: string, password: string, onSuccess : (res : any) => void, onFail : (err : any) => void) {
 		let result: string = null;
 		let error: string = null;
