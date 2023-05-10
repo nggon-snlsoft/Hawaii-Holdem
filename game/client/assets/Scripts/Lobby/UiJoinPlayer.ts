@@ -125,9 +125,12 @@ export class UiJoinPlayer extends Component {
             LoginSystemPopup.instance.showPopUpYesOrNo('회원가입', '회원가입을 신청 하겠습니까? \n', ()=>{
                 button.interactable = true;
 
+                let store_code: string = this.editBoxRecommender.string.trim();
+                store_code = store_code.toLowerCase();
+
                 NetworkManager.Instance().reqJOIN_MEMBER( {
                     login_id: this.editBoxID.string,
-                    store_id: 1,                    
+                    store_id: 0,
                     nickname: this.editBoxNickname.string,                        
                     password: this.editBoxPassword.string,
                     transfer_password: this.editBoxTransferPassword.string,
@@ -135,7 +138,7 @@ export class UiJoinPlayer extends Component {
                     bank: this.editBoxBank.string,
                     holder: this.editBoxHolder.string,
                     account: this.editBoxAccount.string,
-                    recommender: this.editBoxRecommender.string,
+                    recommender: store_code,
         
                 }, (res)=>{
                     button.interactable = true;
@@ -407,7 +410,7 @@ export class UiJoinPlayer extends Component {
     validatePassword(): boolean {
         let l = this.editBoxPassword.string.length;
 
-        if ( l >= 4 &&  l <= 15 ) {
+        if ( l >= 4 &&  l <= 12 ) {
             let regex = /^[a-zA-Z0-9]*$/;
             let c = regex.test(this.editBoxPassword.string);
             if ( c != true ) {
@@ -422,7 +425,7 @@ export class UiJoinPlayer extends Component {
     validateTransferPassword(): boolean {
         let l = this.editBoxTransferPassword.string.length;
 
-        if ( l >= 4 &&  l <= 15 ) {
+        if ( l >= 4 &&  l <= 12 ) {
             let regex = /^[a-zA-Z0-9]*$/;
             let c = regex.test(this.editBoxTransferPassword.string);
             if ( c != true ) {
@@ -474,7 +477,7 @@ export class UiJoinPlayer extends Component {
     validateAccount(): boolean {
         let l = this.editBoxAccount.string.length;
 
-        if ( l >= 10 ) {
+        if ( l >= 7 ) {
             let regex1 = /^[a-zA-Z0-9]*$/;
             let regex2 = /^\d{2,3}-\d{3,4}-\d{4}$/;
 

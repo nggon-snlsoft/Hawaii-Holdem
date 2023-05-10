@@ -79,7 +79,6 @@ dao.SELECT_JOINS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 };
 
 dao.SELECT_JOINS_BY_NICKNAME = function ( nickname: any, cb: any ) {
-	console.log( nickname );
 
 	let sql = 'SELECT * FROM JOINS WHERE NICKNAME = ?';
 	let args = [nickname];
@@ -158,8 +157,7 @@ dao.SELECT_SETTING_BY_USER_ID = function ( user_id: any, cb: any ) {
 };
 
 dao.UPDATE_SETTING = function ( user_id: any, setting: any, cb: any ) {
-	console.log( 'setting');
-	console.log( setting );	
+
 	let sound = setting.sound;
 	let mode = 0;
 	let card = setting.card;
@@ -236,8 +234,6 @@ dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 			return;
 		}
 
-        console.log( res );
-
 		cb?.(null, {
             code: ENUM_RESULT_CODE.SUCCESS,
          });
@@ -266,7 +262,6 @@ dao.INSERT_SETTING = function ( user_id: any, cb: any ) {
 }
 
 dao.INSERT_STATICS = ( user_id: any, cb: any )=> {
-	console.log('insertUserStatics: ', user_id);
 
 	let sql = "INSERT INTO STATICS(user_id) VALUES (?)";
 	let args = [user_id];
@@ -289,7 +284,7 @@ dao.INSERT_STATICS = ( user_id: any, cb: any )=> {
 }
 
 dao.UPDATE_AVATAR = function ( id: any, avatar: any, cb: any ) {
-	console.log('dao.UPDATE_AVATAR');
+
 	let sql = "UPDATE USERS SET AVATAR = ? WHERE ID = ? ";
 	let args = [avatar, id];
 
@@ -376,6 +371,23 @@ dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 		}
 
 		cb?.(null, res);
+	});
+};
+
+dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
+
+	let sql = 'SELECT * FROM STORE_CODE WHERE CODE = ?';
+	let args = [code];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res[0]);
 	});
 };
 
@@ -545,7 +557,7 @@ dao.INSERT_POINT_TRANSFER_LOG = ( data: any, cb: any )=> {
 			return;
 		} else {
 			if (!!res && res.affectedRows > 0) {
-				console.log('res.affectedRows > 0');
+
 				sql = 'SELECT * FROM POINT_TRANSFERS WHERE USER_ID = ? ORDER BY createDate DESC';
 				args = [ user_id ];
 
@@ -591,7 +603,6 @@ dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
 			cb(err, null);
 			return;
 		} else {
-			console.log( res );
 			if ( res != null ) {
 				cb(null, res );
 			} else {

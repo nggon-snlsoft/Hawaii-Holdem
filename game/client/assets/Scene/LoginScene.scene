@@ -359,7 +359,7 @@
         "__id__": 362
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 410
@@ -20908,7 +20908,7 @@
     "_backgroundImage": null,
     "_inputFlag": 0,
     "_inputMode": 6,
-    "_maxLength": 15,
+    "_maxLength": 12,
     "_id": "00nrjuZg1LNLQEQYEK4z56"
   },
   {
@@ -21004,7 +21004,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 173.53,
+      "width": 155.15,
       "height": 25
     },
     "_anchorPoint": {
@@ -21033,7 +21033,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "*4 ~ 15자 영어 숫자",
+    "_string": "*4 ~ 12 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 25,
@@ -21669,7 +21669,7 @@
     "_backgroundImage": null,
     "_inputFlag": 0,
     "_inputMode": 6,
-    "_maxLength": 15,
+    "_maxLength": 12,
     "_id": "c9WXOlJ5pNTL35EJ8/jJgl"
   },
   {
@@ -21765,7 +21765,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 173.53,
+      "width": 0,
       "height": 25
     },
     "_anchorPoint": {
@@ -21794,7 +21794,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "*4 ~ 15자 영어 숫자",
+    "_string": "",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 25,
@@ -25787,7 +25787,7 @@
     "_backgroundImage": null,
     "_inputFlag": 0,
     "_inputMode": 6,
-    "_maxLength": 15,
+    "_maxLength": 12,
     "_id": "901jsjGMxHpKM1C1u33N8r"
   },
   {
@@ -25912,7 +25912,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "*4 ~ 15자 영어 숫자",
+    "_string": "*4 ~ 12자 영어 숫자",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 25,

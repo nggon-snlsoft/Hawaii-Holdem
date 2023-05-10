@@ -257,7 +257,7 @@ export class UserController {
 
         if ( user.login_id.length <= 0 || user.nickname <= 0 || user.password.length <= 0  ||
             user.transfer_password.length <= 0 || user.phone.length <= 0 || user.bank.length <= 0 ||
-            user.holder.length <= 0 || user.account.length <= 0 || user.recommender.length <= 0 || user.store_id < 0 ) {
+            user.holder.length <= 0 || user.account.length <= 0 || user.recommender.length <= 0 /*|| user.store_id < 0*/ ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'INVALID_FORM'
@@ -339,6 +339,20 @@ export class UserController {
             });
             return;            
         }
+
+        let store_code: any = null;
+        try {
+            store_code = await this.getSTORE_ID_ByCODE( req.app.get('DAO'), user.recommender );                        
+        } catch (error) {
+            console.log( error );
+        }
+
+        let store_id: number = 0;
+        if ( store_code != null && store_code.store_id != null ) {
+            store_id = store_code.store_id;
+        }
+
+        user.store_id = store_id;
 
         let result: any = null;
         try {
@@ -1060,8 +1074,6 @@ export class UserController {
     }
 
     private async getTRANSFER_LOGS( dao: any, user_id: string ) {
-        console.log('getTRANSFER_LOGS');
-        console.log(user_id);
 
         return new Promise( (resolve, reject )=>{
             dao.SELECT_POINT_TRANSFER_LOG ( user_id, function(err: any, res: any ) {
@@ -1240,7 +1252,23 @@ export class UserController {
                 }
             });
         });        
+    }
+    
+    private async getSTORE_ID_ByCODE( dao: any, code: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_STORE_CODE_ByCODE ( code, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });        
     }    
+    
 
     private async createSETTING( dao: any, user_id: any ) {
         return new Promise ( (resolve, reject ) =>{
@@ -1274,7 +1302,7 @@ export class UserController {
     }    
 
     private async changeUSER_AVATAR( dao: any, id: any, avatar: any ) {
-        console.log('changeUSER_AVATAR');        
+
         return new Promise ( (resolve, reject ) =>{
             dao.UPDATE_AVATAR( id, avatar, function( err: any, res: any ) {
                 if (!!err ) {
