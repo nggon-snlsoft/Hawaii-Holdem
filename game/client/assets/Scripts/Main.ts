@@ -26,6 +26,7 @@ export class Main extends Component {
 	protected onLoad(): void {
 		GameManager.Instance().Init();
 		GameManager.Instance().SetVersion( this.version );
+		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.MOBILE_PORTRAIT );
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;

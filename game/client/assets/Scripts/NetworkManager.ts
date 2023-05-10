@@ -17,17 +17,17 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-const apiHost: string = '127.0.0.1';
-const apiPort: number = 7500;
-
-const gameHost: string = '127.0.0.1';
-const gamePort: number = 7510;
-
-// const apiHost: string = '43.207.193.204';
+// const apiHost: string = '127.0.0.1';
 // const apiPort: number = 7500;
 
-// const gameHost: string = '43.207.193.204';
+// const gameHost: string = '127.0.0.1';
 // const gamePort: number = 7510;
+
+const apiHost: string = '43.207.193.204';
+const apiPort: number = 7500;
+
+const gameHost: string = '43.207.193.204';
+const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;

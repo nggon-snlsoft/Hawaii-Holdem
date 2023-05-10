@@ -411,7 +411,7 @@ dao.INSERT_SALES_USER = function ( data: any, cb: any ) {
 	let rakes = data.rakes;
 	let date = data.date;
 
-	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )';
 	let args = [ user_id, store_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
 
 	_client.query(sql, args, function (err: any, res: any) {

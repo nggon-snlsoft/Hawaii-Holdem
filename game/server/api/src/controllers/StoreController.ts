@@ -408,7 +408,6 @@ export class StoreController {
 
     public async onCHECK_TICKETS( req: any, res: any ) {
         let ticket_id = req.body.ticket_id;
-        console.log('onCHECK_TICKETS: ' + ticket_id.toString() );
 
         if ( ticket_id == null || ticket_id <= 0 ) {
             res.status( 200 ).json({
@@ -574,7 +573,6 @@ export class StoreController {
     }
 
     private async reqCHECK_TICKET_ByTICKET_ID( dao: any, ticket_id: number ) {
-        console.log('reqCHECK_TICKET_ByTICKET_ID: ' + ticket_id.toString() );
 
         return new Promise( (resolve, reject )=>{
             dao.UPDATE_TICKETS_ALIVE ( ticket_id, function(err: any, res: any ) {

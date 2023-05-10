@@ -64,6 +64,10 @@ export class GameManager extends cc.Component {
         this.version = version;
     }
 
+    public SetDeviceType( type: ENUM_DEVICE_TYPE) {
+        this.deviceType = type;
+    }    
+
     public SetCurrentScene( scene: ENUM_CURRENT_SCENE ) {
         this.currentScene = scene;
     }

@@ -108,17 +108,17 @@ export class UiLobby extends Component {
 
                 let showEventPopup = GameManager.Instance().GetShowEventPopup();
                 if ( sys.isBrowser != true ) {
-                    if ( showEventPopup == true && popups.length > 0 ) {
+                    if ( showEventPopup == true && popups != null && popups.length > 0 ) {
                         this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
                             GameManager.Instance().SetShowEventPopup( false );
                             this.uiLobbyPopup.CloseEventPopup();
                             this.ShowTicketResult( tickets );
                         } );
-                    } else if ( tickets.length > 0 ) {
+                    } else if ( tickets != null && tickets.length > 0 ) {
                         this.ShowTicketResult( tickets );
                     }
                 } else {
-                    if ( tickets.length > 0 ) {
+                    if ( tickets !=null && tickets.length > 0 ) {
                         this.ShowTicketResult( tickets );
                     }
                 }
