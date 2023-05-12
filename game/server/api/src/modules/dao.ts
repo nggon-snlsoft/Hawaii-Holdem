@@ -113,7 +113,6 @@ dao.SELECT_USERS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 };
 
 dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any ) {
-	console.log( user_id, token );
 
 	let sql = 'SELECT * FROM USERS WHERE ID = ? AND TOKEN = ? ';
 	let args = [user_id, token];
@@ -323,7 +322,6 @@ dao.UPDATE_POINT_TRANSFER = function ( data: any, cb: any ) {
 }
 
 dao.UPDATE_TICKETS_ALIVE = function ( ticket_id: any, cb: any ) {
-	console.log('UPDATE_TICKETS_ALIVE: ' + ticket_id);
 
 	let sql = "UPDATE TICKETS SET ALIVE = 0 WHERE ID = ? ";
 	let args = [ ticket_id ];
@@ -387,7 +385,15 @@ dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 			return;
 		}
 
-		cb?.(null, res[0]);
+		if ( res == null ) {
+			cb( null, -1 );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, -1 );
+			}
+		}
 	});
 };
 
@@ -427,7 +433,7 @@ dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_POPUPS_BySTORE_ID = function ( store_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM POPUPS WHERE (STORE_ID = ? OR STORE_ID = 0) AND DISABLE = 1';
+	let sql = 'SELECT * FROM POPUPS WHERE (STORE_ID = ? OR STORE_ID = 0) AND DISABLE = 0';
 	let args = [ store_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {

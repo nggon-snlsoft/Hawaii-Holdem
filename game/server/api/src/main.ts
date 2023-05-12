@@ -75,7 +75,7 @@ export class HoldemApiServer {
         this.app.use( '/check', this.CheckVersion.bind(this) );
     }
 
-    private CheckVersion(req: any, res: any ) {
+    private CheckVersion( req: any, res: any ) {
         let cv = req.body.version;
         let sv = this.conf.version;
 

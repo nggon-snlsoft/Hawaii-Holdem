@@ -691,7 +691,6 @@ export class UiTable extends Component {
     }
 
     public onRE_JOIN(room, msg) {
-		console.log('onRE_JOIN');
 		return;
 
 		let myEntity = msg[ "yourself" ];

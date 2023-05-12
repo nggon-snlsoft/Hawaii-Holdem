@@ -126,17 +126,20 @@ export class LobbySystemPopup extends Component {
     public initialize() {
         this.uiPopUp.init();
         this.uiPopUp.hide();
+        this.isPopupShow = false;
 
         LobbySystemPopup.instance = this;        
     }
 
     public showPopUpOk( title : string, content : string, closeCallback? : () => void){
         this.popupQueue.push( {type : ePopupType.Ok, title : title, content : content, closeCallback : closeCallback, yesCallback : null, noCallback : null});
+        this.isPopupShow = true;
         this.showPopup();
     }
 
     public showPopUpYesOrNo(title : string, content : string, yesCallback? : () => void, noCallback? : () => void){
         this.popupQueue.push( {type : ePopupType.YesOrNo, title : title, content : content, closeCallback : null, yesCallback : yesCallback, noCallback : noCallback});
+        this.isPopupShow = true;        
         this.showPopup();
     }
 
@@ -208,8 +211,13 @@ export class LobbySystemPopup extends Component {
         // this.cbNo = null;
     }
 
+    public IsPOPUP_SHOW(): boolean {
+        return this.isPopupShow;
+    }
+
     public closePopup() {
         this.clear();
+        this.isPopupShow = false;
         this.node.active = false;
     }
 }

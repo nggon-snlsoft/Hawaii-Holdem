@@ -70,13 +70,27 @@ export class Main extends Component {
 		GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
 
 		NetworkManager.Instance().Init( this.version, (res: any)=>{
-			this._login.show();			
+			console.log( 'SUCCESS' );
+			console.log( res );
+			this._login.show();
+
 		}, ( err: any)=>{
-
-			this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
-				this._login.exitGame();
-			});
-
+			this._login.show();
+			if ( err != null ) {
+				if ( err.msg != null && err.msg == 'DISCONNECT_SERVER') {
+					this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+						this._login.exitGame();
+					});
+				} else {
+					this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+						this._login.exitGame();
+					});					
+				}
+			} else {
+				this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
+					this._login.exitGame();
+				});
+			}
 		} );
 	}
 

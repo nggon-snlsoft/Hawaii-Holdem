@@ -32,6 +32,7 @@ export class UserController {
     private initRouter() {
         this.router.post( '/login', this.reqLOGIN.bind(this));
         this.router.post( '/join', this.reqJOIN.bind(this));
+        this.router.post( '/refresh', this.reqREFRESH.bind(this));
 
         this.router.post( '/check/login_id', this.checkLOGIN_ID.bind(this));
         this.router.post( '/check/nickname', this.checkUSER_NICKNAME.bind(this));
@@ -283,7 +284,7 @@ export class UserController {
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'ERROR_GET_USER'
             });
-            return;            
+            return;
         }
 
         data = null;
@@ -347,9 +348,23 @@ export class UserController {
             console.log( error );
         }
 
+        if ( store_code == null ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_STORE_ID'
+            });
+            return;
+        }
+
         let store_id: number = 0;
-        if ( store_code != null && store_code.store_id != null ) {
+        if ( store_code.store_id != null && store_code.store_id > 0) {
             store_id = store_code.store_id;
+        } else {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_STORE_ID'
+            });
+            return;
         }
 
         user.store_id = store_id;
@@ -361,7 +376,8 @@ export class UserController {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.SUCCESS,
                     msg: 'SUCCESS'
-                });        
+                });
+                return;
             } else {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -575,6 +591,7 @@ export class UserController {
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'INVALID_UID'
                 });
+                return;
             }
 
         } catch( error ) {
@@ -669,7 +686,8 @@ export class UserController {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'INVALID_UID'
-                });                
+                });
+                return;
             }
         } catch( error ) {
             res.status( 200 ).json({
@@ -683,7 +701,6 @@ export class UserController {
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
             logs: logs
-
         });
 
         return;
@@ -723,7 +740,8 @@ export class UserController {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'INVALID_UID'
-                });                
+                });
+                return;
             }
         } catch( error ) {
             res.status( 200 ).json({
@@ -854,7 +872,64 @@ export class UserController {
             msg: 'SUCCESS',
             user: _user,
         });
+    }
+
+    public async reqREFRESH( req: any, res: any ) {
+        let user_id = req.body.user_id;
+        let token = req.body.token;
+
+        if ( user_id == null || user_id <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_ID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
+
+        let user: any = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
+        if (user == undefined) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NO_EXIST_ID'
+            });
+            return;
+        }
+
+        let _user = ClientUserData.getClientUserData(user);
+
+        let tickets: any = await this.getTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
+        if (tickets == undefined) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NO_EXIST_ID'
+            });
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            user: _user,
+            tickets: tickets
+        });
     }    
+    
+    
     
     public async getSETTING( req: any, res: any ) {
         let user_id = req.body.user_id;
@@ -1068,6 +1143,21 @@ export class UserController {
                     });
                 } else {
                     resolve ( res[0]);
+                }
+            });
+        });
+    }
+
+    private async getTICKETS_ByUSER_ID( dao: any, user_id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_TICKETS_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
                 }
             });
         });

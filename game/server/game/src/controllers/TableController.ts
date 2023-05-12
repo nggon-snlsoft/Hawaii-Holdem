@@ -17,24 +17,6 @@ export class TableController {
     }
 
     public async getTABLE_LIST( req: any, res: any ) {
-        let user_id = req.body.user_id;
-        let token = req.body.token;
-
-        let verify: any = null;
-        try {
-            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
-        } catch (error) {
-            console.log( error );
-        }
-
-        if ( verify == null || verify == false ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_TOKEN'
-            });
-            return;
-        }
-
         let tables: any[] = [];
         try {
             tables = await this.getTABLE_LIST_FromDB( req.app.get('DAO') );            
@@ -52,7 +34,6 @@ export class TableController {
         }
 
         let _tables: any[] = [];
-
         let rooms: RoomListingData<any>[] = [];
 
         try {

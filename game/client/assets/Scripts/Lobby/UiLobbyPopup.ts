@@ -33,6 +33,7 @@ export class UiLobbyPopup extends Component {
     @property (UiLOBBY_POPUP_TICKETS) uiLOBBY_POPUP_TICKETS: UiLOBBY_POPUP_TICKETS = null;            
 
     private uiLobby: UiLobby = null;
+    private isOpen: boolean = false;
 
     init( uiLobby:UiLobby ) {
         this.uiPopupProfile.init( this.hide.bind(this), this.openChargeAvatar.bind(this) );
@@ -53,12 +54,14 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_TICKETS.Init();
 
         this.closeAllPopup();
+        this.isOpen = false;
     }
 
     public OpenEventPopup( popups: any[], done: ()=>void ) {
         this.closeAllPopup();
         this.uiLOBBY_POPUP_EVENT.Show( popups, done );
 
+        this.isOpen = true;
         this.node.active = true;
     }
 
@@ -66,32 +69,34 @@ export class UiLobbyPopup extends Component {
         this.closeAllPopup();
         this.uiLOBBY_POPUP_TICKETS.Show( tickets, done );
 
-        this.node.active = true;
+        this.Open();
     }    
 
     public openProfile() {
         this.closeAllPopup();
-
         this.uiPopupProfile.show();
-        this.node.active = true;
+
+        this.Open();
     }
 
     public openSetting() {
         this.closeAllPopup();
-
         this.uiPopupSetting.show();
-        this.node.active = true;
+
+        this.Open();
     }
 
     public openChargeAvatar() {
         this.closeAllPopup();
-
         this.uiPopupChangeAvatar.show();
-        this.node.active = true;
+
+        this.Open();
     }
 
     public closeProfile() {
         this.uiPopupProfile.hide();
+
+        this.hide();
    }
 
     public closeSetting() {
@@ -129,42 +134,42 @@ export class UiLobbyPopup extends Component {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_POINT.Show( button );
 
-        this.node.active = true;
+        this.Open();
     }
 
     public OpenRanking( button: Button ) {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_RANKING.Show( button );
 
-        this.node.active = true;
+        this.Open();
     }
 
     public OpenCharge( button: Button ) {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_CHARGE.Show( button );
 
-        this.node.active = true;        
+        this.Open();
     }
 
     public OpenTransfer( button: Button ) {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_TRANFER.Show( button );
 
-        this.node.active = true;        
+        this.Open();
     }
 
     public OpenQNA( button: Button ) {
         this.closeAllPopup();        
         this.uiLOBBY_POPUP_QNA.Show( button );
 
-        this.node.active = true;
+        this.Open();
     }
 
     public OpenNotice( button: Button ) {
         this.closeAllPopup();
         this.uiLOBBY_POPUP_NOTICE.Show( button );
 
-        this.node.active = true;
+        this.Open();
     }
 
     public ClosePoint() {
@@ -256,5 +261,15 @@ export class UiLobbyPopup extends Component {
 
     public hide() {
         this.node.active = false;
+        this.isOpen = false;
+    }
+
+    private Open() {
+        this.node.active = true;
+        this.isOpen = true;        
+    }
+
+    public IsOpen(): boolean {
+        return this.isOpen;
     }
 }

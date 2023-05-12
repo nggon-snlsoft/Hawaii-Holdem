@@ -17,17 +17,17 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const apiPort: number = 7500;
-
-// const gameHost: string = '127.0.0.1';
-// const gamePort: number = 7510;
-
-const apiHost: string = '43.207.193.204';
+const apiHost: string = '127.0.0.1';
 const apiPort: number = 7500;
 
-const gameHost: string = '43.207.193.204';
+const gameHost: string = '127.0.0.1';
 const gamePort: number = 7510;
+
+// const apiHost: string = '43.207.193.204';
+// const apiPort: number = 7500;
+
+// const gameHost: string = '43.207.193.204';
+// const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -73,27 +73,32 @@ export class NetworkManager extends cc.Component {
 			result_api = res;
 		})
 		.catch( (err: any)=>{
-			err = JSON.parse( err );
-			error = err.msg;
+			error = err;
 		});
 
-		if( error != null ) {
+		if ( error != null ) {
 			onFail({
-				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-				msg: error,
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'DISCONNECT_SERVER',
 			});
 			return;
 		}
 
 		let obj : any = JSON.parse( result_api );
-		if(null == obj){
-			onFail( 'JSON_PARSE_ERROR' );
+		if( obj == null ){
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'JSON_PARSE_ERROR',
+			});
 			return;
 		}
 
 		if ( obj.code != ENUM_RESULT_CODE.SUCCESS ) {
-			onFail('VERSION_MISMATCH');
-			return;			
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'VERSION_MISSMATCH',
+			});
+			return;
 		}
 
 		onSuccess( {
@@ -350,18 +355,6 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		if (obj.user != null ) {
-			this.user = obj.user;
-		}
-
-		if (obj.setting != null ) {
-			this.setting = obj.setting;
-		}
-
-		if (obj.conf != null ) {
-			this.config = obj.conf;
-		} 
-
 		onSUCCESS( obj );
 	}
 
@@ -408,7 +401,48 @@ export class NetworkManager extends cc.Component {
 		}
 
 		onSuccess(obj);
+	}
+
+	public async reqREFRESH( onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+		let user_id = this.user.id;
+
+		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/refresh", {
+			user_id: user_id,
+			token: this.token,
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFAIL({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		if ( result.msg != null && result.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
+		if ( result.user != null ) {
+			this.user = result.user;
+		}
+
+		onSUCCESS(result);
 	}	
+	
 
 	public async getTABLE_LIST( onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {
 		let result: any = null;
@@ -1236,6 +1270,7 @@ export class NetworkManager extends cc.Component {
 				}
 
 				if( xhr.readyState === 4 && ( xhr.status != 200 ) ) {
+					console.log( xhr );
 					let respone: string = xhr.responseText;
 					reject( respone );
 				}

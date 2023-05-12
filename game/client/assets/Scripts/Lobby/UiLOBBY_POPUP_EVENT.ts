@@ -5,10 +5,12 @@ const { ccclass, property } = _decorator;
 export class UiLOBBY_POPUP_EVENT extends Component {
     @property(Label) labelTitle: Label = null;
     @property(Label) labelDescription: Label = null;
+    @property(Label) labelLoadingMessage: Label = null;    
     @property(Label) labelButtonLabel: Label = null;    
     @property(Sprite) spriteEvent: Sprite = null;   
     @property(SpriteFrame) defaultSpriteFrame: SpriteFrame = null;
     @property(Button) buttonConfirm: Button = null;
+    @property(Button) buttonConfirmDisable: Button = null;
 
     private popups: any[] = null;
     private current: number = 0;
@@ -18,6 +20,7 @@ export class UiLOBBY_POPUP_EVENT extends Component {
     public Init() {
         this.labelTitle.string = '';
         this.labelDescription.string = '';
+        this.labelLoadingMessage.string = '';
         this.spriteEvent.color = Color.BLACK;
         this.spriteEvent.spriteFrame = this.defaultSpriteFrame;
 
@@ -34,13 +37,15 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         }
 
         this.popups = popups;
-        console.log('this.popups: ' + this.popups.length );
         this.spriteEvent.spriteFrame = this.defaultSpriteFrame;
-        this.buttonConfirm.interactable = true;
+
+        this.buttonConfirm.node.active = false;
+        this.buttonConfirmDisable.node.active = true;
 
         if ( this.popups.length > 0 ) {
+
             this.current = 0;
-            this.labelButtonLabel.string = '확인';            
+            this.labelButtonLabel.string = '확인';
             this.maxPopup = this.popups.length;
             this.spriteEvent.color = Color.BLACK;
             let popup = this.popups[ this.current ];
@@ -48,12 +53,12 @@ export class UiLOBBY_POPUP_EVENT extends Component {
             this.node.active = true;
 
         } else {
-            this.buttonConfirm.interactable = true;            
             this.onDONE();
         }
     }
 
     public Hide() {
+        this.spriteEvent.spriteFrame = null;
         this.node.active = false;
     }
 
@@ -64,13 +69,11 @@ export class UiLOBBY_POPUP_EVENT extends Component {
     }
 
     private onCONFIRM( button: Button ) {
-        button.interactable = false;
         let next = this.current + 1;
         if ( next < this.maxPopup ) {
-            this.current = next;
+            this.current = next;            
             this.SetPopup( this.popups[next] );
         } else {
-            this.buttonConfirm.interactable = true;
             this.onDONE();
         }
     }
@@ -79,30 +82,46 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         this.labelTitle.string = popup.title;
         this.labelDescription.string = popup.desc;
 
+        this.labelLoadingMessage.string = '이미지를 불러오고 있습니다.';
+        this.labelLoadingMessage.node.active = true;
+
         this.spriteEvent.spriteFrame = null;
         this.spriteEvent.spriteFrame = this.defaultSpriteFrame;
-        this.spriteEvent.color = Color.BLACK;
-        this.buttonConfirm.interactable = false;
 
-        let sf: any = await this.GetSpriteFromUrl( popup.url );
-        if ( sf != null ) {
-            this.buttonConfirm.interactable = true;
+        this.spriteEvent.color = Color.BLACK;
+
+        this.buttonConfirm.node.active = false;
+        this.buttonConfirmDisable.node.active = true;
+
+        await this.GetSpriteFromUrl( popup.url, (sf: any )=>{
+            
             this.spriteEvent.spriteFrame = sf;
             this.spriteEvent.color = Color.WHITE;
+            this.labelLoadingMessage.node.active = false;
+
+            this.buttonConfirm.node.active = true;
+            this.buttonConfirmDisable.node.active = false;
 
             let next = this.current + 1;
             if ( next >= this.maxPopup ) {
                 this.labelButtonLabel.string = '닫기';
             }
-        } else {
-            this.buttonConfirm.interactable = true;
-        }
+
+        }, ( err: any )=>{
+            this.labelLoadingMessage.string = '이미지를 로드할 수 없습니다.';
+            this.labelLoadingMessage.node.active = true;
+
+            this.buttonConfirm.node.active = true;
+            this.buttonConfirmDisable.node.active = false;
+
+            let next = this.current + 1;
+            if ( next >= this.maxPopup ) {
+                this.labelButtonLabel.string = '닫기';
+            }            
+        } );
     }
 
-    private async GetSpriteFromUrl( url: string) {
-
-
-        return new Promise ((resolve, reject )=>
+    private async GetSpriteFromUrl( url: string, onSUCCESS: (sf: any )=>void, onFAIL:( err: any )=>void ) {
         assetManager.loadRemote<ImageAsset>( url, {xhrMimeType: 'image/png'}, (error, imageAsset)=>{
             if ( !error ) {
                 const spriteFrame = new SpriteFrame();
@@ -110,11 +129,11 @@ export class UiLOBBY_POPUP_EVENT extends Component {
                 texture.image = imageAsset;
                 spriteFrame.texture = texture;
 
-                resolve( spriteFrame );
+                onSUCCESS(spriteFrame);
             } else {
-                reject(null);
+                onFAIL(error);
             }
-        }));
+        });
     }
 }
 

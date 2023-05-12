@@ -210,15 +210,15 @@ export class UiTableList extends Component {
 
     public show() {
         this.node.active = true;
-        this.getTableList();        
+        // this.getTableList();
 
-        this.schedule( ()=>{
-            this.getTableList();
-        }, 10 );
+        // this.schedule( ()=>{
+        //     this.getTableList();
+        // }, 10 );
     }
 
     public end() {
-        this.unscheduleAllCallbacks();
+        // this.unscheduleAllCallbacks();
     }
 
     public getTableList() {

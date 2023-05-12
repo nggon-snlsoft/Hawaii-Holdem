@@ -28,7 +28,7 @@ export class StoreController {
         this.router.post( '/transfer/req', this.onREQ_TRANSFER.bind( this ));
         this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
         this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));
-        this.router.post( '/popups/get', this.onGET_POPUPS_TICKETS.bind( this ));
+        this.router.post( '/popups/get', this.onGET_POPUPS.bind( this ));
         this.router.post( '/ticket/check', this.onCHECK_TICKETS.bind( this ));        
     }
 
@@ -348,7 +348,7 @@ export class StoreController {
         }
     }
 
-    public async onGET_POPUPS_TICKETS( req: any, res: any ) {
+    public async onGET_POPUPS( req: any, res: any ) {
         let user_id = req.body.user_id;
         let store_id = req.body.store_id;
         let token = req.body.token;
@@ -368,10 +368,10 @@ export class StoreController {
             return;
         }
 
-        if ( user_id == null || user_id <= 0 ) {
+        if ( store_id == null || store_id <= 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_USER_ID'
+                msg: 'INVALID_STORE_ID'
             });
             return;
         }
@@ -383,25 +383,24 @@ export class StoreController {
             console.log( error );
         }
 
-        let tickets: any = null;
-        try {
-            tickets = await this.reqTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
+        // let tickets: any = null;
+        // try {
+        //     tickets = await this.reqTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
             
-        } catch (error) {
-            console.log( error );            
-        }
+        // } catch (error) {
+        //     console.log( error );            
+        // }
 
-
-        if ( popups == null || tickets == null ) {
+        if ( popups == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'POPUP_NULL',                
             });
         } else {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.SUCCESS,
                 msg: 'SUCCESS',
                 popups: popups,
-                tickets: tickets
             });
         }
     }

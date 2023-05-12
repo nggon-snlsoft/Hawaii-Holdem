@@ -151,8 +151,11 @@ export class UiJoinPlayer extends Component {
                         });
         
                     } else {
+                        console.log( res.msg );
+
                         let desc: string = '';
                         switch(res.msg) {
+                            case 'INVALID_UID':
                             case 'INVALID_LOGIN_ID':
                                 desc = '아이디가 형식에 맞지 않습니다.';
                                 break;
@@ -166,8 +169,15 @@ export class UiJoinPlayer extends Component {
                                 desc = '중복된 닉네임이 있습니다.'
                             break;
 
+                            case 'DUPLICATE_NICKNAME':
+                                desc = '중복된 닉네임이 있습니다.'
+                            break;
+                            case 'INVALID_STORE_ID':
+                                desc = '추천코드가 잘못됐습니다.'
+                            break;
+                            
                             default:
-                                desc = 'r가';
+                                desc = '가입신청이 실패했습니다';
                         }
         
                         LoginSystemPopup.instance.showPopUpOk('회원가입', desc, ()=>{
@@ -477,7 +487,7 @@ export class UiJoinPlayer extends Component {
     validateAccount(): boolean {
         let l = this.editBoxAccount.string.length;
 
-        if ( l >= 7 ) {
+        if ( l >= 5 ) {
             let regex1 = /^[a-zA-Z0-9]*$/;
             let regex2 = /^\d{2,3}-\d{3,4}-\d{4}$/;
 
@@ -497,7 +507,7 @@ export class UiJoinPlayer extends Component {
     validateRecommender(): boolean {
         let l = this.editBoxRecommender.string.length;
 
-        if ( l >= 4 &&  l <= 20 ) {
+        if ( l >= 4 ) {
             let regex = /^[a-zA-Z0-9]*$/;
 
             let c = regex.test(this.editBoxRecommender.string);

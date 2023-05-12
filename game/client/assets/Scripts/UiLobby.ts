@@ -10,6 +10,7 @@ import { UiTable } from "./UiTable";
 import { UiLobbyLoading } from './Lobby/UiLobbyLoading';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 import { GameManager } from './GameManager';
+import { Platform } from '../../extensions/colyseus-sdk/runtime/colyseus';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobby')
@@ -26,7 +27,8 @@ export class UiLobby extends Component {
 
 	private user : any = null;
     private setting: any = null;
-    private cbEnd: ()=> void = null; 
+    private cbEnd: ()=> void = null;
+    private canRefresh: boolean = false; 
 
     public init() {
         this.uiLobbyPopup.init( this );
@@ -55,6 +57,7 @@ export class UiLobby extends Component {
             }
         }
 
+        this.canRefresh = true;
         this.user = NetworkManager.Instance().GetUser();
         this.setting = NetworkManager.Instance().GetSetting();
 
@@ -65,24 +68,29 @@ export class UiLobby extends Component {
             this.uiLobbyBottom.show();
         }
 
-        this.ShowEventPopup();
+        this.onREGIST_SCHEDULE();
+        this.CheckEventPopup();
 
         let leaveReason = NetworkManager.Instance().leaveReason;
         if ( leaveReason == 4001 ) {
             leaveReason = -1;            
             LobbySystemPopup.instance.showPopUpOk('테이블', '장시간 자리비움으로 테이블을 떠났습니다.', ()=>{
-
             });
         }
 
         this.node.active = true;
     }
 
-    private ShowEventPopup() {
+    private CheckEventPopup() {
+        let isSHOW_POPUP = GameManager.Instance().GetShowEventPopup();
+        if ( isSHOW_POPUP == false ) {
+            this.canRefresh = true;
+            return;
+        }
+
         NetworkManager.Instance().getPOPUPS((res)=>{
             if ( res != null ) {
                 let popups: any[] = null;
-                let tickets: any[] = null;
 
                 if ( res.popups != null ) {
                     popups = res.popups;
@@ -95,37 +103,21 @@ export class UiLobby extends Component {
                     });
                 }
 
-                if ( res.tickets != null ) {
-                    tickets = res.tickets;
-                    tickets.sort( (e1: any, e2: any )=>{
-                        if ( e1.createDate > e2.createDate ) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
+                if ( popups.length > 0 ) {
+                    this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
+                        this.uiLobbyPopup.CloseEventPopup();
+                        GameManager.Instance().SetShowEventPopup( false );
+                        this.canRefresh = true;
+                        this.onREFRESH();
                     });
-                }
-
-                let showEventPopup = GameManager.Instance().GetShowEventPopup();
-                if ( sys.isBrowser != true ) {
-                    if ( showEventPopup == true && popups != null && popups.length > 0 ) {
-                        this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
-                            GameManager.Instance().SetShowEventPopup( false );
-                            this.uiLobbyPopup.CloseEventPopup();
-                            this.ShowTicketResult( tickets );
-                        } );
-                    } else if ( tickets != null && tickets.length > 0 ) {
-                        this.ShowTicketResult( tickets );
-                    }
                 } else {
-                    if ( tickets !=null && tickets.length > 0 ) {
-                        this.ShowTicketResult( tickets );
-                    }
+                    this.canRefresh = true;
+                    this.onREFRESH();
                 }
             }
-
         }, (err)=>{
-
+            this.canRefresh = true;
+            this.onREFRESH();
         });
     }
 
@@ -147,6 +139,32 @@ export class UiLobby extends Component {
         }, ()=>{
 
         })
+    }
+
+    private onREGIST_SCHEDULE() {
+        this.schedule( ()=>{
+            this.onREFRESH();
+        }, 5);
+    }
+
+    private onUNREGIST_SCHEDULE() {
+        this.unscheduleAllCallbacks();
+    }
+
+    private onREFRESH() {        
+        if ( this.uiLobbyPopup.IsOpen() == true || LobbySystemPopup.instance.IsPOPUP_SHOW() == true || this.canRefresh == false ) {
+            return;
+        }
+
+        NetworkManager.Instance().reqREFRESH((res: any )=>{
+            this.refreshPlayer();
+            this.ShowTicketResult( res.tickets );
+
+        }, (err: any )=>{
+            console.log(err);
+        });
+
+        this.uiTableList.getTableList();
     }
 
     public refreshUiPlayer() {
@@ -200,6 +218,7 @@ export class UiLobby extends Component {
 
             } else {
                 NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
+                    this.canRefresh = false;
                     this.uiTableList.end();
                     
                     Board.isPublic = true;
@@ -271,11 +290,11 @@ export class UiLobby extends Component {
     }
 
     public onEVENT_SHOW() {
-        console.log('onEVENT_SHOW');
+        this.onREGIST_SCHEDULE();
     }
 
     public onEVENT_HIDE() {
-        console.log('onEVENT_HIDE');
+        this.onUNREGIST_SCHEDULE();
     }
 }
 
