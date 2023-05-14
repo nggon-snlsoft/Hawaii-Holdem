@@ -33,6 +33,7 @@ export class UserController {
         this.router.post( '/login', this.reqLOGIN.bind(this));
         this.router.post( '/join', this.reqJOIN.bind(this));
         this.router.post( '/refresh', this.reqREFRESH.bind(this));
+        this.router.post( '/get', this.getUSER.bind(this));        
 
         this.router.post( '/check/login_id', this.checkLOGIN_ID.bind(this));
         this.router.post( '/check/nickname', this.checkUSER_NICKNAME.bind(this));
@@ -41,10 +42,12 @@ export class UserController {
         this.router.post( '/point/transferLog', this.getPOINT_TRANSFER_LOG.bind(this));
         this.router.post( '/point/receiveLog', this.getPOINT_RECEIVE_LOG.bind(this));        
 
+        this.router.post( '/qna/get', this.reqGET_QNA.bind(this));
+
         this.router.post( '/getInitData', this.getINIT_DATA.bind(this));
         this.router.post( '/updateAvatar', this.updateAVATAR.bind(this));
 
-        this.router.post( '/get', this.getUSER.bind(this));
+
 
         this.router.post( '/setting/get', this.getSETTING.bind(this));
         this.router.post( '/setting/update', this.updateSETTING.bind(this));
@@ -761,6 +764,61 @@ export class UserController {
         return;
     }
 
+    public async reqGET_QNA( req: any, res: any) {
+        let user_id = req.body.user_id;
+        let token = req.body.token;
+
+        if ( user_id == null || user_id < 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let verify: any = null;
+        try {
+            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( verify == null || verify == false ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_TOKEN'
+            });
+            return;
+        }
+
+        let qnas: any = null;
+        try {
+            qnas = await this.getQNA( req.app.get('DAO'), user_id );
+            if ( qnas == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+                return;
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            qnas: qnas
+
+        });
+
+        return;
+    }    
+
     public async updateAVATAR( req: any, res: any ) {
         let user_id = req.body.user_id;
         let avatar = req.body.avatar;
@@ -1193,6 +1251,22 @@ export class UserController {
             });
         });
     }
+
+    private async getQNA( dao: any, user_id: string ) {
+
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_QUESTIONS_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
 
     private async getUSER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{

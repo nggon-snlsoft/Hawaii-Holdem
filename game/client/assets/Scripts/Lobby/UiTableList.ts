@@ -85,7 +85,7 @@ export class TableListUiElement {
     private onClickJoinTable( button: Button ) {
         LobbyAudioContoller.instance.PlayButtonClick();
 
-        this.cbJoinTable( button, this.table )
+        this.cbJoinTable( button, this.table );
     }
 }
 

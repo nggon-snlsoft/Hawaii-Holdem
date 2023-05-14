@@ -89,6 +89,13 @@ export class CommonUtil {
         });
     }    
 
+    static TruncateString( str: string, num: number ): string {
+        if ( str.length <= num ) {
+            return str;
+        }
+        return str.slice(0, num) + '...';
+    }
+
     static setGameSetting( setting: any ) {
         CommonUtil.setting = {
             avatars: setting.avatars,

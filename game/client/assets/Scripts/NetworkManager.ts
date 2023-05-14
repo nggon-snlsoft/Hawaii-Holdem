@@ -1042,7 +1042,102 @@ export class NetworkManager extends cc.Component {
 		} else {
 			return onFAIL('CHECK_USER_ERROR');			
 		}
-	}	
+	}
+	
+	public async reqGET_QNA( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
+		let result: string = null;
+		let user_id = this.user.id;
+		let token = this.token;
+		let error: string = null;
+
+		try {
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/get', { 
+				user_id: user_id,
+				token: token,
+			}
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
+
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
+				if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+					return;
+				}
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
+			}
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
+		}
+	}
+
+	public async reqSEND_QNA( data: any, onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
+		let result: string = null;
+		let user_id = this.user.id;
+		let token = this.token;
+		let error: string = null;
+
+		try {
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/get', { 
+				user_id: user_id,
+				token: token,
+			}
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
+
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
+				if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+					return;
+				}
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
+			}
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
+		}
+	}			
+	
 
 	public async getPOINT_RECEIVES(onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;

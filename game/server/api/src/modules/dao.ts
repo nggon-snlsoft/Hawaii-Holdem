@@ -618,4 +618,22 @@ dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
 	});
 }
 
+dao.SELECT_QUESTIONS_ByUSER_ID = ( user_id: any, cb: any )=> {
+	let sql = 'SELECT * FROM QUESTIONS WHERE USER_ID = ? AND ALIVE = 1 ORDER BY questionDate DESC';
+	let args = [ user_id ];	
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			cb(err, null);
+			return;
+		} else {
+			if ( res != null ) {
+				cb(null, res );
+			} else {
+				cb(null, null );
+			}
+		}
+	});
+}
+
 export default dao;
