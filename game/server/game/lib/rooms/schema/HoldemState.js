@@ -13,10 +13,11 @@ class EntityState extends schema_1.Schema {
         super(...arguments);
         this.sid = "SESSION_ID";
         this.id = 0;
+        this.avatar = 0;
         this.uid = "";
-        this.name = "";
-        this.fullName = "";
+        this.nickname = "";
         this.chips = 0;
+        this.rake = 0;
         this.wait = false;
         this.currBet = 0;
         this.roundBet = 0;
@@ -34,13 +35,13 @@ class EntityState extends schema_1.Schema {
         this.winHandRank = '';
         this.enoughChip = true;
         this.balance = 0;
-        this.remainTimeMS = -1;
-        // updateChip :number = 0;
+        this.ante = 0;
+        this.totalBet = 0;
         this.waitReconnection = false;
         this.lastPingTime = -1;
-        this.totalBet = 0;
         this.isSitOut = false;
         this.isSitBack = false;
+        this.sitoutTimestamp = 0;
         this.timeLimitCount = 0;
         this.dealable = false;
         this.isDealer = false;
@@ -51,9 +52,16 @@ class EntityState extends schema_1.Schema {
         this.reBuyCount = 0;
         this.pendReBuy = 0;
         this.initRoundChips = 0;
+        this.tableInitChips = 0;
+        this.tableBuyInAmount = 0;
+        this.tableBuyInCount = 0;
+        this.background = false;
+        this.backgroundTimestamp = 0;
+        this.statics = null;
         this.missSb = false;
         this.missBb = false;
         this.oldChips = 0;
+        this.oldRake = 0;
     }
 }
 __decorate([
@@ -63,17 +71,20 @@ __decorate([
     schema_1.type("number")
 ], EntityState.prototype, "id", void 0);
 __decorate([
+    schema_1.type("number")
+], EntityState.prototype, "avatar", void 0);
+__decorate([
     schema_1.type("string")
 ], EntityState.prototype, "uid", void 0);
 __decorate([
     schema_1.type("string")
-], EntityState.prototype, "name", void 0);
-__decorate([
-    schema_1.type("string")
-], EntityState.prototype, "fullName", void 0);
+], EntityState.prototype, "nickname", void 0);
 __decorate([
     schema_1.type("number")
 ], EntityState.prototype, "chips", void 0);
+__decorate([
+    schema_1.type("number")
+], EntityState.prototype, "rake", void 0);
 __decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "wait", void 0);
@@ -109,7 +120,10 @@ __decorate([
 ], EntityState.prototype, "balance", void 0);
 __decorate([
     schema_1.type("number")
-], EntityState.prototype, "remainTimeMS", void 0);
+], EntityState.prototype, "ante", void 0);
+__decorate([
+    schema_1.type("number")
+], EntityState.prototype, "totalBet", void 0);
 __decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "isSitOut", void 0);
@@ -120,6 +134,15 @@ __decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "dealable", void 0);
 __decorate([
+    schema_1.type('boolean')
+], EntityState.prototype, "isDealer", void 0);
+__decorate([
+    schema_1.type('boolean')
+], EntityState.prototype, "isSb", void 0);
+__decorate([
+    schema_1.type('boolean')
+], EntityState.prototype, "isBb", void 0);
+__decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "missSb", void 0);
 __decorate([
@@ -128,6 +151,9 @@ __decorate([
 __decorate([
     schema_1.type("number")
 ], EntityState.prototype, "oldChips", void 0);
+__decorate([
+    schema_1.type("number")
+], EntityState.prototype, "oldRake", void 0);
 exports.EntityState = EntityState;
 class RoomState extends schema_1.Schema {
     constructor() {

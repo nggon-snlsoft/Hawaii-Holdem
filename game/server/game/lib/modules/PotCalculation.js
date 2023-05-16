@@ -5,30 +5,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PotCalculation = void 0;
 const logger_1 = __importDefault(require("../util/logger"));
+const HoldemRoom_1 = require("../rooms/HoldemRoom");
 class PotCalculation {
-    constructor(useRake, rakePercentage, rakeCap) {
+    constructor(useRake, rakePercentage, rakeCap, flopRake) {
         this.playerCount = 0;
         this.rakePercentage = 0;
         this.rakeCap = [];
         this.useRake = false;
+        this.flopRake = false;
         this.userRakeInfo = [];
         this.deadBlind = 0;
+        this.antes = 0;
+        this.centerCardState = HoldemRoom_1.eCommunityCardStep.PREPARE;
+        this.rakeTotal = 0;
         this.rakePercentage = rakePercentage;
         this.rakeCap = rakeCap;
         this.useRake = useRake;
+        this.flopRake = flopRake;
         this.Clear();
     }
     SetRoundPlayerCount(count) {
         this.playerCount = count;
     }
-    AddDeadBlind(value) {
+    DeadBlind(value) {
         this.deadBlind += value;
     }
+    UpdateCenterCard(state) {
+        this.centerCardState = state;
+        logger_1.default.error("CenterState Changed : " + state);
+    }
     SetBet(seat, value, handValue, isFold) {
-        let targetPlayer = this.player.find(element => {
+        let target = this.player.find(element => {
             return seat === element.seat;
         });
-        if (null === targetPlayer || undefined === targetPlayer) {
+        if (null === target || undefined === target) {
             this.player.push({
                 seat: seat,
                 amount: value,
@@ -37,15 +47,37 @@ class PotCalculation {
             });
         }
         else {
-            targetPlayer.amount = value;
-            targetPlayer.hand = handValue;
-            targetPlayer.fold = isFold;
+            target.amount = value;
+            target.hand = handValue;
+            target.fold = isFold;
         }
+        this.CalculatePot();
+    }
+    CalculatePot() {
         this.pots = this.Calculate();
         if (this.useRake === false) {
             return;
         }
         this.CalculateRake();
+    }
+    SetAnte(seat, value, handValue, isFold) {
+        let target = this.player.find(element => {
+            return seat === element.seat;
+        });
+        if (null === target || undefined === target) {
+            this.player.push({
+                seat: seat,
+                amount: value,
+                hand: handValue,
+                fold: isFold
+            });
+        }
+        else {
+            target.amount = value;
+            target.hand = handValue;
+            target.fold = isFold;
+        }
+        this.CalculatePot();
     }
     CalculateMinBet(players) {
         var min = Infinity;
@@ -105,8 +137,6 @@ class PotCalculation {
                 currentPot.winners.push(player.seat);
             }
             if (currentPot.winners.length < 1) {
-                //AllFold without winner
-                //logger.error("All Fold Without winner");
                 let winner = currentPot.players.find((elem) => { return elem.fold === false; });
                 if (null == winner) {
                     continue;
@@ -165,6 +195,7 @@ class PotCalculation {
                 }
             });
             final[0].total += this.deadBlind;
+            // final[0].total += this.antes;
         }
         return final;
     }
@@ -185,15 +216,14 @@ class PotCalculation {
             return;
         }
         let rakePerc = this.rakePercentage;
-        let rakeCap = this.playerCount > this.rakeCap.length ? this.rakeCap[this.rakeCap.length - 1] : this.rakeCap[this.playerCount - 1];
         let rake = Math.trunc(totalAmount * rakePerc);
-        rake = Math.min(rakeCap, rake);
-        logger_1.default.info("Start Rake Calculate RakePercent : " + rakePerc + " / Rake Cap : " + rakeCap + " / Rake : " + rake + " / Pot Total : " + totalAmount);
         let tempCopare = 0;
-        //리턴팟 관련 처리 해야함
         this.pots.forEach(element => {
             if (element.isReturnPot == true) {
-                //Return Pot
+                return;
+            }
+            if (rake == 0) {
+                element.rake = undefined;
                 return;
             }
             let contribution = 0;
@@ -203,6 +233,7 @@ class PotCalculation {
             tempCopare += element.rake;
             logger_1.default.info("total : " + element.total + " / Rake : " + element.rake + " / contribution : " + contribution);
         });
+        this.rakeTotal = tempCopare;
         tempCopare = 0;
         let userRake = [];
         this.player.forEach(element => {
@@ -227,7 +258,7 @@ class PotCalculation {
     GetPots(withWinner) {
         let results = [];
         if (null === this.pots || undefined === this.pots) {
-            console.error(" Pots is Null");
+            return;
         }
         this.pots.forEach(element => {
             let pls = [];
@@ -243,6 +274,9 @@ class PotCalculation {
         return results;
     }
     IsWinner(seat) {
+        if (null === this.pots || undefined === this.pots) {
+            return;
+        }
         for (let i = 0; i < this.pots.length; i++) {
             let element = this.pots[i];
             if (null != element.winners.find((winner) => { return winner === seat; })) {
@@ -254,6 +288,9 @@ class PotCalculation {
     Clear() {
         this.player = [];
         this.deadBlind = 0;
+        this.antes = 0;
+        this.rakeTotal = 0;
+        this.centerCardState = HoldemRoom_1.eCommunityCardStep.PREPARE;
     }
 }
 exports.PotCalculation = PotCalculation;

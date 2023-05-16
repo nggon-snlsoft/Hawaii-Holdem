@@ -58,7 +58,6 @@ class DealerCalculation {
                 if (false === e.wait) {
                     dealer = e.seat;
                     e.isDealer = true;
-                    //e.isBb = true;
                     e.dealable = true;
                     return dealer;
                 }
@@ -125,6 +124,7 @@ class DealerCalculation {
                     }
                     else {
                         e.missSb = true;
+                        // e.dealable = true;
                         e.dealable = false;
                     }
                 }
@@ -154,7 +154,7 @@ class DealerCalculation {
                     }
                     else {
                         if (true === e.isNew || true === e.isSitBack) {
-                            e.wait = true;
+                            // e.wait = true;
                             e.dealable = false;
                             if (true === e.isSitBack) {
                                 e.missSb = true;
@@ -253,10 +253,9 @@ class DealerCalculation {
                     entity.missBb = true;
                 }
                 else {
-                    // logger.error("This player(seat:%s, name:%s)  may be leave",
-                    //     entity.seat.toString(), entity.name);
-                    // entity.leave = true;
-                    // entity.longSitOut = true;
+                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    entity.leave = true;
+                    entity.longSitOut = true;
                 }
             }
         }

@@ -374,7 +374,7 @@ dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 
 dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
-	let sql = 'SELECT * FROM STORE_CODE WHERE CODE = ?';
+	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
 	let args = [code];
 
 	_client.query(sql, args, function (err: any, res: any) {
