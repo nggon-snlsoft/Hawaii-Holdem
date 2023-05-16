@@ -486,6 +486,30 @@ dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	});	
 }
 
+dao.INSERT_QNA = function ( user: any, data: any, cb: any ) {
+	let user_id = user.id;
+	let store_id = user.store_id;
+	let nickname = user.nickname;
+	let title = data.title;
+	let question = data.question;
+
+	let sql = 'INSERT INTO QUESTIONS ( user_id, store_id, nickname, type, title, question, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user_id, store_id, nickname, 0, title, question, 1, 1 ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows );
+			} else {
+				cb(null, 0 );
+			}
+		}
+	});	
+}
+
 dao.INSERT_TRANSFER_REQUEST = function ( data: any, cb: any ) {
 	let value = data.value;
 	let user = data.user;

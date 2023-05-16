@@ -546,12 +546,18 @@ export class UiJoinPlayer extends Component {
         if ( editbox.string.length == 0 ) {
             return;
         }
+
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.blur();
+        }
+
         editbox.string = editbox.string.trim();
+        editbox.string = editbox.string.toLowerCase();
     }
 
     private onEDITBOX_DID_BEGAN( editbox ) {
         editbox.string = '';
-        console.log('onEDITBOX_DID_BEGAN');
     }    
 
     private onEDITBOX_RETURN( editbox ) {
@@ -572,6 +578,12 @@ export class UiJoinPlayer extends Component {
         if ( editbox.string.length == 0 ) {
             return;
         }
+
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.blur();
+        }
+
         editbox.string = editbox.string.trim();
     }
 }

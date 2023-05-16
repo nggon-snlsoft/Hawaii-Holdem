@@ -1,8 +1,12 @@
-import { _decorator, Component, Node, Label, Button, instantiate, Sprite, Layout, ScrollView, EditBox } from 'cc';
+import { _decorator, Component, Node, Label, Button, instantiate, Sprite, Layout, ScrollView, EditBox, Color } from 'cc';
 import { NetworkManager } from '../NetworkManager';
 import { CommonUtil } from '../CommonUtil';
 import { EDITOR } from 'cc/env';
+import { LobbySystemPopup } from '../LobbySystemPopup';
 const { ccclass, property } = _decorator;
+
+const MAX_TITLE_COUNT: number = 30;
+const MAX_DESCRIPTION_COUNT: number = 100;
 
 @ccclass('QnAElement')
 export class QnAElement {
@@ -11,6 +15,7 @@ export class QnAElement {
     @property( Label ) labelTitle: Label = null;
     @property( Button ) buttonQNA: Button = null;    
 
+    @property( Sprite) spriteButton: Sprite = null;
     @property( Label ) labelButton: Label = null;
     @property( Label ) labelDate: Label = null;
 
@@ -25,6 +30,7 @@ export class QnAElement {
         o.spriteSlot = n.getChildByPath('SPRITE_SLOT').getComponent( Sprite );
         o.labelTitle = n.getChildByPath('VALUES/LABEL_TITLE').getComponent( Label );
         o.buttonQNA = n.getChildByPath('BUTTON_SHOW').getComponent( Button );
+        o.spriteButton = n.getChildByPath('BUTTON_SHOW').getComponent( Sprite );
         o.labelButton = n.getChildByPath('BUTTON_SHOW/LABEL_BUTTON').getComponent( Label );                
         o.labelDate = n.getChildByPath('VALUES/LABEL_DATE').getComponent( Label);
 
@@ -42,6 +48,17 @@ export class QnAElement {
         this.qna = info;
         this.labelTitle.string = CommonUtil.TruncateString(info.title, 15) ;
         this.labelDate.string = info.questionDate;
+
+        if ( info.pending == 1) {
+            this.labelButton.string = '문의보기';
+            this.spriteButton.color = new Color(50, 50, 50, 255);
+            this.spriteSlot.color = new Color(14, 30, 60, 255);
+
+        } else {
+            this.labelButton.string = '닫변보기';
+            this.spriteButton.color = new Color(0, 0, 0, 255);
+            this.spriteSlot.color = new Color(58, 94, 168, 255);
+        }
 
         if ( cb != null ) {
             this.cbSelect = cb;
@@ -81,9 +98,13 @@ export class UiLOBBY_POPUP_QnA extends Component {
     @property(QnAElement) originQNA: QnAElement = new QnAElement();
 
     @property(EditBox) editboxTitle: EditBox = null;
+    @property(EditBox) editboxQuestion: EditBox = null;
 
     @property(Button) buttonActivateTitle: Button = null;
     @property(Label) labelTitleText: Label = null;
+
+    @property(Label) labelTitleCount: Label = null;
+    @property(Label) labelDescCount: Label = null;
 
     @property(Button) buttonExit: Button = null;
 
@@ -96,7 +117,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
     @property(Label) labelShowQuestionText: Label = null;
     @property(Label) labelShowAnswerText: Label = null;
     @property(Label) labelShowPending: Label = null;
-    @property(Label) labelShowUpdate: Label = null;
+
+    @property(Label) labelQuestionUpdate: Label = null;
+    @property(Label) labelAnswerUpdate: Label = null;    
 
     private QNAAElementOnList: QnAElement[] = [];
 
@@ -126,14 +149,18 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelShowQuestionText.string = '';
         this.labelShowAnswerText.string = '';
         this.labelShowPending.string = '';
-        this.labelShowUpdate.string = '';
-
-        this.labelShowAnswerText.node.active = false;
+        this.labelQuestionUpdate.string = '';
+        this.labelAnswerUpdate.string = '';        
 
         this.editboxTitle.node.on('editing-did-began', this.onTITLE_EDITBOX_DID_BEGAN.bind(this), this);
         this.editboxTitle.node.on('editing-return', this.onTITLE_EDITBOX_RETURN.bind(this), this);
         this.editboxTitle.node.on('text-changed', this.onTITLE_EDITBOX_TEXT_CHANGED.bind(this), this);
         this.editboxTitle.node.on('editing-did-ended', this.onTITLE_EDITBOX_DID_ENDED.bind(this), this);
+
+        this.editboxQuestion.node.on('editing-did-began', this.onQUESTION_EDITBOX_DID_BEGAN.bind(this), this);
+        this.editboxQuestion.node.on('editing-return', this.onQUESTION_EDITBOX_RETURN.bind(this), this);
+        this.editboxQuestion.node.on('text-changed', this.onQUESTION_EDITBOX_TEXT_CHANGED.bind(this), this);
+        this.editboxQuestion.node.on('editing-did-ended', this.onQUESTION_EDITBOX_DID_ENDED.bind(this), this);        
 
         this.buttonExit.node.off( 'click' );
         this.buttonExit.node.on( 'click', this.onEXIT.bind(this), this );
@@ -222,8 +249,10 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
             this.labelShowPending.string = '답변 대기중...'
             this.labelShowPending.node.active = true;
-            this.labelShowUpdate.string = info.questionDate;
+            this.labelQuestionUpdate.string = info.questionDate;
+            this.labelQuestionUpdate.node.active = true;
 
+            this.labelAnswerUpdate.node.active = false;
         } else {
             if ( info.answer != null ) {
                 console.log('info.answer != null: ' + info.answer );
@@ -234,7 +263,10 @@ export class UiLOBBY_POPUP_QnA extends Component {
                 this.labelShowAnswerText.node.active = true;                
             }
 
-            this.labelShowUpdate.string = info.answerDate;
+            this.labelAnswerUpdate.string = info.answerDate;
+            this.labelAnswerUpdate.node.active = true;
+
+            this.labelQuestionUpdate.node.active = false;
         }
     }
 
@@ -244,7 +276,8 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelShowAnswerText.string = '';
         this.labelShowPending.string = '답변 대기중...'
         this.labelShowPending.node.active = false;
-        this.labelShowUpdate.string = '';
+        this.labelQuestionUpdate.string = '';
+        this.labelAnswerUpdate.string = '';
     }
 
     private ClearList() {
@@ -274,7 +307,17 @@ export class UiLOBBY_POPUP_QnA extends Component {
     private onWRITE( button: Button ) {
         this.rootPANEL_LIST.active = false;
         this.rootPANEL_INPUT.active = true;
+
+        this.onRESET_WRITE();
     }    
+
+    private onRESET_WRITE() {
+        this.editboxTitle.string = '';
+        this.editboxQuestion.string = '';
+
+        this.labelTitleCount.string = ' ( '+ (this.editboxTitle.string.length).toString() + ' / ' + MAX_TITLE_COUNT.toString() + ' )'
+        this.labelDescCount.string = ' ( '+ (this.editboxQuestion.string.length).toString() + ' / ' + MAX_DESCRIPTION_COUNT.toString() + ' )'
+    }
 
     private onACTIVATE_TITLE( button: Button ) {
         this.editboxTitle.focus();
@@ -287,13 +330,48 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
         this.onREFRESH();
     }
+
+    private onSHOW_LIST() {
+        this.rootPANEL_SHOW.active = false;
+        this.rootPANEL_INPUT.active = false;
+        this.rootPANEL_LIST.active = true;
+
+        this.onREFRESH();        
+    }
     
     private onSEND_QNA( button: Button ) {
-        // this.rootPANEL_SHOW.active = false;
-        // this.rootPANEL_INPUT.active = false;
-        // this.rootPANEL_LIST.active = true;
+        let t = this.editboxTitle.string;
+        let q = this.editboxQuestion.string;
+        button.interactable = false;
 
-        // this.onREFRESH();
+        if ( t.length <= 0 || q.length <= 0 ) {
+            LobbySystemPopup.instance.showPopUpOk('문 의', '제목과 문의내용을 입력해주세요.', ()=>{
+                button.interactable = true;
+            });
+            return;
+        }
+
+        NetworkManager.Instance().reqSEND_QNA( {
+            title: t,
+            question: q
+        }, (res)=>{
+            button.interactable = true;            
+            if ( res != null && res.affected > 0 ) {
+                LobbySystemPopup.instance.showPopUpOk('문 의', '문의 보내기가 성공했습니다.', ()=>{
+                    this.onSHOW_LIST();
+                });
+            } else {
+                LobbySystemPopup.instance.showPopUpOk('문 의', '문의 보내기가 실패했습니다.', ()=>{
+                    this.onRESET_WRITE();
+                });
+            }
+
+        }, (err)=>{
+            button.interactable = true;            
+            LobbySystemPopup.instance.showPopUpOk('문 의', '문의 보내기가 실패했습니다.', ()=>{
+                this.onRESET_WRITE();
+            });
+        });
     }
     
     private onSEND_CANCEL( button: Button ) {
@@ -312,28 +390,52 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
     private onTITLE_EDITBOX_DID_BEGAN( editbox ) {
         editbox.string = '';
-        console.log('onEDITBOX_DID_BEGAN');
     }    
 
     private onTITLE_EDITBOX_RETURN( editbox ) {
         if ( editbox.string.length == 0 ) {
             return;
         }
-        editbox.string = editbox.string.trim();
-        editbox.string = editbox.string.toLowerCase();
     }
 
     private onTITLE_EDITBOX_DID_ENDED( editbox ) {
         if ( editbox.string.length == 0 ) {
             return;
         }
-        editbox.string = editbox.string.trim();
-        editbox.string = editbox.string.toLowerCase();        
     }
 
     private onTITLE_EDITBOX_TEXT_CHANGED( editbox ) {
-        console.log(editbox.string);
-        this.labelTitleText.string = editbox.string;
+        this.labelTitleCount.string = '( ' + (editbox.string.length).toString() + ' / ' + MAX_TITLE_COUNT.toString() + ' )';
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.string = editbox.string.replace(c, '');
+            editbox.blur();
+        }
+    }
+
+    private onQUESTION_EDITBOX_DID_BEGAN( editbox ) {
+        editbox.string = '';
+    }    
+
+    private onQUESTION_EDITBOX_RETURN( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+    }
+
+    private onQUESTION_EDITBOX_DID_ENDED( editbox ) {
+        if ( editbox.string.length == 0 ) {
+            return;
+        }
+    }
+
+    private onQUESTION_EDITBOX_TEXT_CHANGED( editbox ) {
+        this.labelDescCount.string = '( ' + (editbox.string.length).toString() + ' / ' + MAX_DESCRIPTION_COUNT.toString() + ' )';
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.string = editbox.string.replace(c, '');            
+            editbox.blur();
+        }
     }
 }
 

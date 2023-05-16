@@ -273,6 +273,11 @@ export class UiLogin extends Component {
             return;
         }
 
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.blur();
+            // this.editBoxPassword.focus();
+        }
         editbox.string = editbox.string.trim();
     }
 
@@ -290,7 +295,6 @@ export class UiLogin extends Component {
             this.audioSource.playOneShot(this.soundButtonClick, 1);
             this.onLogin();
         }
-
     }
 
     private onPASSWORD_EDITBOX_DID_ENDED( editbox, customEventData ) {
@@ -304,6 +308,11 @@ export class UiLogin extends Component {
         if ( editbox.string.length == 0 ) {
             return;
         }
+        let c = '\t';
+        if ( editbox.string.includes(c) == true ) {
+            editbox.blur();
+            // this.editBoxUID.focus();
+        }        
         editbox.string = editbox.string.trim();
     }
 }

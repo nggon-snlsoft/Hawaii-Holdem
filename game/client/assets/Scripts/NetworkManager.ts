@@ -17,17 +17,17 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-const apiHost: string = '127.0.0.1';
-const apiPort: number = 7500;
-
-const gameHost: string = '127.0.0.1';
-const gamePort: number = 7510;
-
-// const apiHost: string = '43.207.193.204';
+// const apiHost: string = '127.0.0.1';
 // const apiPort: number = 7500;
 
-// const gameHost: string = '43.207.193.204';
+// const gameHost: string = '127.0.0.1';
 // const gamePort: number = 7510;
+
+const apiHost: string = '43.207.193.204';
+const apiPort: number = 7500;
+
+const gameHost: string = '43.207.193.204';
+const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -1094,13 +1094,15 @@ export class NetworkManager extends cc.Component {
 	public async reqSEND_QNA( data: any, onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
 		let result: string = null;
 		let user_id = this.user.id;
+
 		let token = this.token;
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/get', { 
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/send', {
 				user_id: user_id,
 				token: token,
+				data: data,
 			}
 			).then( ( res: string )=>{
 				result = res;
@@ -1358,18 +1360,25 @@ export class NetworkManager extends cc.Component {
 	private Post( type:HOLDEM_SERVER_TYPE , url, params ) {
 		return new Promise( ( resolve, reject ) => {
 			let xhr = new XMLHttpRequest();
+
 			xhr.onreadystatechange = function() {
+
 				if( xhr.readyState === 4 && ( xhr.status >= 200 && xhr.status < 300 ) ) {
 					let respone: string = xhr.responseText;
 					resolve( respone );
 				}
 
 				if( xhr.readyState === 4 && ( xhr.status != 200 ) ) {
-					console.log( xhr );
 					let respone: string = xhr.responseText;
 					reject( respone );
 				}
 			};
+
+			xhr.onerror = function() {
+				if ( xhr.readyState != 4 ) {
+					reject( 'NETWORK_REQUEST_FAILED' );
+				}
+			}
 
 			let fullUrl: string = '';
 			switch ( type ) {
