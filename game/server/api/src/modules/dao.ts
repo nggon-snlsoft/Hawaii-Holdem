@@ -221,12 +221,14 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 
-	let sql = 'INSERT INTO JOINS (login_id, store_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-	let args = [ user.login_id, user.store_id, user.nickname, user.password, user.transfer_password, user.phone, 
+	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
 		user.bank, user.holder, user.account, user.recommender, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
+
 		if (!!err) {
+			
 			if (!!cb) {
 				cb(err, null);
 			}
@@ -372,6 +374,31 @@ dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
+
+	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
+	let args = [code];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
 dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
 	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
@@ -399,7 +426,7 @@ dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
 dao.SELECT_CHARGE_REQUESTS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM CHARGES WHERE USER_ID = ? AND ALIVE = 1';
+	let sql = 'SELECT * FROM CHARGES WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -416,7 +443,7 @@ dao.SELECT_CHARGE_REQUESTS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM TRANSFERS WHERE USER_ID = ? AND ALIVE = 1';
+	let sql = 'SELECT * FROM TRANSFERS WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {

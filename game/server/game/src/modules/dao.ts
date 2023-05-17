@@ -364,7 +364,7 @@ dao.SELECT_SALES_USER = (data: any, cb: any ) => {
 	let id = data.id;
 	let date = data.date;
 
-	let query = 'SELECT * FROM SALES_USER WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND USER_ID = ?';
+	let query = 'SELECT * FROM SALES_USER WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND USER_ID = ? AND USETICKET = 0';
 	let args = [ date.year, date.month, date.day, id ];
 
 	_client.query( query, args, function (err: any, res: any) {
@@ -406,13 +406,14 @@ dao.INSERT_SALES_USER = function ( data: any, cb: any ) {
 
 	let user_id = data.user_id;
 	let store_id = data.store_id;
+	let partner_id = data.partner_id;
 	let bettings = data.bettings;
 	let wins = data.wins;
 	let rakes = data.rakes;
 	let date = data.date;
 
-	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ user_id, store_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
+	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, partner_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user_id, store_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 

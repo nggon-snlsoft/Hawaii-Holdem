@@ -26,7 +26,7 @@ export class Main extends Component {
 	protected onLoad(): void {
 		GameManager.Instance().Init();
 		GameManager.Instance().SetVersion( this.version );
-		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.MOBILE_PORTRAIT );
+		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.PC_LANDSCAPE );
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;
@@ -72,17 +72,30 @@ export class Main extends Component {
 			this._login.show();
 
 		}, ( err: any)=>{
+			console.log( err );
+
 			this._login.show();			
 			if ( err != null ) {
-				if ( err.msg != null && err.msg == 'DISCONNECT_SERVER') {
-					this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
-						this._login.exitGame();
-					});
+				if ( err.msg != null ) {
+					if ( err.msg == 'DISCONNECT_SERVER ') {
+						this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+							this._login.exitGame();
+						});
+					} else if ( err.msg == 'VERSION_MISMATCH') {
+						this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.', ()=>{
+							this._login.exitGame();
+						});
+					} else {
+						this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+							this._login.exitGame();
+						});
+					}
 				} else {
 					this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
 						this._login.exitGame();
-					});					
+					});
 				}
+
 			} else {
 				this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
 					this._login.exitGame();

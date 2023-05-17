@@ -88,7 +88,7 @@ export class HoldemApiServer {
         } else {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_VERSION'
+                msg: 'VERSION_MISMATCH'
             });
         }
     }
@@ -102,7 +102,7 @@ export class HoldemApiServer {
         }));
 
         this.app.use((req: Request, res: Response, next: NextFunction) => {
-            console.log(`Request occur! ${req.method}, ${req.url}`);
+            // console.log(`Request occur! ${req.method}, ${req.url}`);
             next();
         });
 

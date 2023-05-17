@@ -240,6 +240,12 @@ export class UiLogin extends Component {
 
                 this.exitGame();
             });
+        } else if ( leaveReason == ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH ) {
+            LoginSystemPopup.instance.showPopUpOk('버전', '버전이 맞지 않습니다. \n새로운 버전을 설치하세요.', ()=>{
+                LoginSystemPopup.instance.closePopup();
+
+                this.exitGame();
+            });
         }
 
         this.node.active = true;

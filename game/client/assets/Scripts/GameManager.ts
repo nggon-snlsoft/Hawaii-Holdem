@@ -19,6 +19,7 @@ export enum ENUM_LEAVE_REASON {
     LEAVE_NONE = -1,    
     LEAVE_UNKNOWN = 0,
     LEAVE_TOKEN_EXPIRE = 1,
+    LEAVE_VERSION_MISMATCH = 2,    
 }
 
 const CLIENT_VERSION: string = '4';
@@ -86,8 +87,8 @@ export class GameManager extends cc.Component {
         switch ( this.leaveReason ) {
             case ENUM_LEAVE_REASON.LEAVE_NONE:
                 break;
+            case ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH:
             case ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE:
-                console.log('ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE');
                 director.loadScene("LoginScene", (error: null | Error, scene?: Scene)=>{
                     NetworkManager.Instance().logout();
                 });

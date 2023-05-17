@@ -343,33 +343,24 @@ export class UserController {
             return;            
         }
 
-        let store_code: any = null;
+        let partner: any = null;
         try {
-            store_code = await this.getSTORE_ID_ByCODE( req.app.get('DAO'), user.recommender );                        
+            partner = await this.getPARTNER_ByCODE( req.app.get('DAO'), user.recommender );                        
         } catch (error) {
             console.log( error );
         }
 
-        if ( store_code == null ) {
+        if ( partner == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_STORE_ID'
+                msg: 'INVALID_REFERAL_CODE'
             });
             return;
-        }
-
-        let store_id: number = 0;
-        if ( store_code.store_id != null && store_code.store_id > 0) {
-            store_id = store_code.store_id;
         } else {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_STORE_ID'
-            });
-            return;
+            user.store_id = partner.store_id;
+            user.distributor_id = partner.distributor_id;
+            user.partner_id = partner.id;
         }
-
-        user.store_id = store_id;
 
         let result: any = null;
         try {
@@ -1523,8 +1514,22 @@ export class UserController {
                 }
             });
         });        
-    }    
+    }
     
+    private async getPARTNER_ByCODE( dao: any, code: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_PARTNERS_ByCODE ( code, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
 
     private async createSETTING( dao: any, user_id: any ) {
         return new Promise ( (resolve, reject ) =>{

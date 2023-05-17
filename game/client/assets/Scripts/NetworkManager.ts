@@ -17,17 +17,17 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const apiPort: number = 7500;
-
-// const gameHost: string = '127.0.0.1';
-// const gamePort: number = 7510;
-
-const apiHost: string = '43.207.193.204';
+const apiHost: string = '127.0.0.1';
 const apiPort: number = 7500;
 
-const gameHost: string = '43.207.193.204';
+const gameHost: string = '127.0.0.1';
 const gamePort: number = 7510;
+
+// const apiHost: string = '43.207.193.204';
+// const apiPort: number = 7500;
+
+// const gameHost: string = '43.207.193.204';
+// const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -76,6 +76,9 @@ export class NetworkManager extends cc.Component {
 			error = err;
 		});
 
+		console.log(result_api);
+
+
 		if ( error != null ) {
 			onFail({
 				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
@@ -85,6 +88,7 @@ export class NetworkManager extends cc.Component {
 		}
 
 		let obj : any = JSON.parse( result_api );
+
 		if( obj == null ){
 			onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -96,7 +100,7 @@ export class NetworkManager extends cc.Component {
 		if ( obj.code != ENUM_RESULT_CODE.SUCCESS ) {
 			onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-				msg: 'VERSION_MISSMATCH',
+				msg: 'VERSION_MISMATCH',
 			});
 			return;
 		}
@@ -448,10 +452,12 @@ export class NetworkManager extends cc.Component {
 		let result: any = null;
 		let isConnect = false;
 		let user_id = this.user.id;
+		let version = GameManager.Instance().GetVersion();
 
 		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/get", {
 			user_id: user_id,
 			token: this.token,
+			version: version,
 
 		}).then((res: string)=>{
 			isConnect = true;
@@ -463,12 +469,16 @@ export class NetworkManager extends cc.Component {
 				return;
 			}
 		});
-
 		if ( isConnect == false) {
 			onFail({
 				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
 				msg: 'NETWORK_REFUSE',
 			});
+			return;
+		}
+
+		if ( result.msg != null && result.msg == 'VERSION_MISMATCH') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH );
 			return;
 		}
 
@@ -485,11 +495,13 @@ export class NetworkManager extends cc.Component {
 		let reservation: string = null;
 		let error: string = null;
 		let user_id = this.user.id;
+		let version = GameManager.Instance().GetVersion();
 
 		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
 			user_id: user_id,
 			token: this.token,
+			version: version,
 
 		}).then((res: string) => {
 			result = res;
@@ -518,11 +530,17 @@ export class NetworkManager extends cc.Component {
 		}
 
 		result = JSON.parse(result);
+		console.log(result);
 		if ( result == null ) {
 			return onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
 				msg: 'JSON_PARSE_ERROR'
 			});
+		}
+
+		if ( result.msg != null && result.msg == 'VERSION_MISMATCH') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH );
+			return;
 		}
 
 		if ( result.msg != null && result.msg == 'INVALID_TOKEN') {

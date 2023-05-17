@@ -172,7 +172,7 @@ export class UiJoinPlayer extends Component {
                             case 'DUPLICATE_NICKNAME':
                                 desc = '중복된 닉네임이 있습니다.'
                             break;
-                            case 'INVALID_STORE_ID':
+                            case 'INVALID_REFERAL_CODE':
                                 desc = '추천코드가 잘못됐습니다.'
                             break;
                             

@@ -17,6 +17,8 @@ export class ClientUserData{
 			table_id: dbUserData.table_id,
 			rake: dbUserData.rake,
 			store_id: dbUserData.store_id,
+			distributor_id: dbUserData.distributor_id,
+			partner_id: dbUserData.partner_id,			
 			phone: dbUserData.phone,
             bank: dbUserData.bank,
             holder: dbUserData.holder,

@@ -1879,6 +1879,8 @@ export class HoldemRoom extends Room<RoomState> {
 				id: p.client.auth.id,
 				seat: p.seat,
 				store_id: p.client.auth.store_id,
+				distributor_id: p.client.auth.distributor_id,
+				partner_id: p.client.auth.partner_id,
 				login_id: p.client.auth.login_id,
 				nickname: p.client.auth.nickname,
 				totalBet: p.totalBet,
@@ -2475,9 +2477,6 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			}
 		});
-
-		// console.log('this.participants');
-		// console.log( this.participants );
 
 		try {
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );

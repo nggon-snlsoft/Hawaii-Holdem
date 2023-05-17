@@ -1,14 +1,24 @@
 import { matchMaker, RoomListingData } from 'colyseus';
 import express from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ENUM_RESULT_CODE } from '../arena.config';
 import { ClientUserData } from './ClientUserData';
 
 export class TableController {
     public router: any = null;
+    private conf: any = null;
     
     constructor() {
         this.router = express.Router();
         this.initRouter();
+        this.Init();
+    }
+
+    async Init(): Promise<any>{
+        let confFile = await fs.readFileSync( path.join(__dirname, "../config/ServerConfigure.json"), {encoding : 'utf8'});
+		let confJson = JSON.parse( confFile.toString() );
+        this.conf = confJson['server'];
     }
 
     private initRouter() {
@@ -17,6 +27,17 @@ export class TableController {
     }
 
     public async getTABLE_LIST( req: any, res: any ) {
+        let client_version = req.body.version;
+        let server_version = this.conf.version;
+
+        if ( client_version == null || client_version != server_version ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'VERSION_MISMATCH'
+            });
+            return;
+        }
+
         let tables: any[] = [];
         try {
             tables = await this.getTABLE_LIST_FromDB( req.app.get('DAO') );            
@@ -67,6 +88,16 @@ export class TableController {
         let table_id = req.body.table_id;
         let user_id = req.body.user_id;
         let token = req.body.token;
+        let client_version = req.body.version;
+        let server_version = this.conf.version;
+
+        if ( client_version == null || client_version != server_version ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'VERSION_MISMATCH'
+            });
+            return;
+        }
 
         let verify: any = null;
         try {
