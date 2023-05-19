@@ -59,12 +59,10 @@ export class UiLogin extends Component {
     }
 
     onUIDEditboxReturn() {
-        console.log('onUIDEditboxReturn');
+
     }
 
     onUIDEditboxChanged( text: string, editbox: EditBox, customEventData: any ) {
-        console.log('onUIDEditboxChanged');
-        console.log( text );
 
         // console.log('text: ' + text + 'is input');
         // if ( /\t/gi.test( text) == true ) {
@@ -116,7 +114,7 @@ export class UiLogin extends Component {
 
         this.spriteEventBlocker.node.active = true;
 
-        if ( login_id.length < 4 || login_id.length == 4 ) {
+        if ( login_id.length < 4 ) {
             LoginSystemPopup.instance.showPopUpOk('로그인', '아이디와 패스워드를 입력해주세요.', ()=>{
                 this.buttonLogin.interactable = true;
                 this.buttonJoin.interactable = true;

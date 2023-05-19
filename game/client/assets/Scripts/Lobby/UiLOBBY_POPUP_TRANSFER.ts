@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, Label, Button, EditBox } from 'cc';
 import { CommonUtil } from '../CommonUtil';
-import { NetworkManager } from '../NetworkManager';
+import { ENUM_RESULT_CODE, NetworkManager } from '../NetworkManager';
 import { LobbySystemPopup } from '../LobbySystemPopup';
 const { ccclass, property } = _decorator;
 
@@ -185,14 +185,32 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
                     value: value,
                     password: password
                 }, ( res: any )=>{
-                    LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 완료되었습니다.', ()=>{
-                        if ( this.cbAPPLY != null ) {
-                            this.cbAPPLY();
+                    if ( res != null ) {
+                        if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                            LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 완료되었습니다.', ()=>{
+                                if ( this.cbAPPLY != null ) {
+                                    this.cbAPPLY();
+                                }
+                            });
                         }
-                    });
+                        else {
+                            if ( res.msg == 'INVALID_TRANSFER_PASSWORD') {
+                                LobbySystemPopup.instance.showPopUpOk('출금 신청', '거래비빌번호가 잘못됐습니다.', ()=>{
+                                });
     
+                            } else {
+                                LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
+                                });
+
+                            }
+                        }
+                    } else {
+                        LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
+                        });                        
+                    }
                 }, (err: any)=>{
-                    console.log( err );
+                    LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
+                    });
                 });
     
 

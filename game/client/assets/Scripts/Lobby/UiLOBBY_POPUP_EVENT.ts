@@ -79,8 +79,12 @@ export class UiLOBBY_POPUP_EVENT extends Component {
     }
 
     private async SetPopup( popup: any ) {
+
         this.labelTitle.string = popup.title;
-        this.labelDescription.string = popup.desc;
+        this.labelDescription.string = '';        
+        if ( popup.desc != null && popup.desc.length > 0 ) {
+            this.labelDescription.string = popup.desc;
+        }
 
         this.labelLoadingMessage.string = '이미지를 불러오고 있습니다.';
         this.labelLoadingMessage.node.active = true;
@@ -93,32 +97,51 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         this.buttonConfirm.node.active = false;
         this.buttonConfirmDisable.node.active = true;
 
-        await this.GetSpriteFromUrl( popup.url, (sf: any )=>{
+        if ( popup.url.length > 0 ) {
+            await this.GetSpriteFromUrl( popup.url, (sf: any )=>{
             
-            this.spriteEvent.spriteFrame = sf;
-            this.spriteEvent.color = Color.WHITE;
+                this.spriteEvent.spriteFrame = sf;
+                this.spriteEvent.color = Color.WHITE;
+                this.spriteEvent.node.active = true;
+
+                this.labelLoadingMessage.node.active = false;
+    
+                this.buttonConfirm.node.active = true;
+                this.buttonConfirmDisable.node.active = false;
+
+                this.labelDescription.node.active = false;
+    
+                let next = this.current + 1;
+                if ( next >= this.maxPopup ) {
+                    this.labelButtonLabel.string = '닫기';
+                }
+    
+            }, ( err: any )=>{
+                this.labelLoadingMessage.string = '이미지를 로드할 수 없습니다.';
+                this.labelLoadingMessage.node.active = true;
+    
+                this.buttonConfirm.node.active = true;
+                this.buttonConfirmDisable.node.active = false;
+    
+                let next = this.current + 1;
+                if ( next >= this.maxPopup ) {
+                    this.labelButtonLabel.string = '닫기';
+                }            
+            } );
+        } else {
+            this.spriteEvent.node.active = false;
             this.labelLoadingMessage.node.active = false;
 
             this.buttonConfirm.node.active = true;
             this.buttonConfirmDisable.node.active = false;
 
-            let next = this.current + 1;
-            if ( next >= this.maxPopup ) {
-                this.labelButtonLabel.string = '닫기';
-            }
-
-        }, ( err: any )=>{
-            this.labelLoadingMessage.string = '이미지를 로드할 수 없습니다.';
-            this.labelLoadingMessage.node.active = true;
-
-            this.buttonConfirm.node.active = true;
-            this.buttonConfirmDisable.node.active = false;
+            this.labelDescription.node.active = true;
 
             let next = this.current + 1;
             if ( next >= this.maxPopup ) {
                 this.labelButtonLabel.string = '닫기';
             }            
-        } );
+        }
     }
 
     private async GetSpriteFromUrl( url: string, onSUCCESS: (sf: any )=>void, onFAIL:( err: any )=>void ) {

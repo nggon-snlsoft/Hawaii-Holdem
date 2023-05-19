@@ -9,6 +9,8 @@ import exitHook from './modules/hookExit';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import requestIp from 'request-ip';
+
 const cors = require('cors');
 
 import UserController from './controllers/UserController';
@@ -24,7 +26,6 @@ const devDBInfo: any = {
 };
 
 const devServerInfo: any = {
-    host: '127.0.0.1',
     port: '2568',
 };
 
@@ -78,6 +79,9 @@ export class HoldemApiServer {
     private CheckVersion( req: any, res: any ) {
         let cv = req.body.version;
         let sv = this.conf.version;
+
+        let clientIp = requestIp.getClientIp( req );
+        console.log('client ip: ' + clientIp);
 
         if ( cv == sv ) {
             res.status( 200 ).json({

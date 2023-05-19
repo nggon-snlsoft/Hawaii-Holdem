@@ -9,10 +9,7 @@ import { rejects } from 'assert';
 import { use } from 'passport';
 import { SECRET_KEY } from '../routes/JwtMiddleware';
 import { compileFunction } from 'vm';
-
-const requestIp = require('request-ip');
-
-// const LocalStrategy = passportLocal.Strategy;
+import requestIp from 'request-ip';
 const gameConf = require('../config/gameConf.json');
 
 export class UserController {
@@ -357,9 +354,18 @@ export class UserController {
             });
             return;
         } else {
+            user.ip = requestIp.getClientIp( req );
+            
             user.store_id = partner.store_id;
             user.distributor_id = partner.distributor_id;
             user.partner_id = partner.id;
+            if ( partner.alive == 0 ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'EXPIRED_REFERAL_CODE'
+                }); 
+                return;
+            }
         }
 
         let result: any = null;

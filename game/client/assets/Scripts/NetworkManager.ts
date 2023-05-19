@@ -76,9 +76,6 @@ export class NetworkManager extends cc.Component {
 			error = err;
 		});
 
-		console.log(result_api);
-
-
 		if ( error != null ) {
 			onFail({
 				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
@@ -530,7 +527,6 @@ export class NetworkManager extends cc.Component {
 		}
 
 		result = JSON.parse(result);
-		console.log(result);
 		if ( result == null ) {
 			return onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -797,7 +793,9 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		this.user = obj.user;
+		if ( obj.user != null ) {
+			this.user = obj.user;
+		}
 
 		onSuccess(obj);
 	}			

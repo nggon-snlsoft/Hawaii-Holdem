@@ -169,7 +169,7 @@
         "__id__": 2911
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 2983
@@ -376,7 +376,7 @@
         "__id__": 1422
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 1495
@@ -1915,7 +1915,7 @@
         "__id__": 59
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 63
@@ -10662,7 +10662,7 @@
         "__id__": 296
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 300
@@ -41844,7 +41844,7 @@
         "__id__": 1286
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 1339
@@ -50925,7 +50925,7 @@
         "__id__": 1413
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 1416
@@ -51271,8 +51271,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -340.30899999999997,
-      "y": -218.601,
+      "x": -325.586,
+      "y": 229.259,
       "z": 0
     },
     "_lrot": {
@@ -51309,13 +51309,13 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 193.88,
-      "height": 40
+      "width": 650,
+      "height": 400
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 0.5
+      "y": 1
     },
     "_id": "bf882d1VZMKJRt2iygz71X"
   },
@@ -51340,12 +51340,12 @@
     },
     "_string": "이벤트 디스크립션",
     "_horizontalAlign": 0,
-    "_verticalAlign": 1,
+    "_verticalAlign": 0,
     "_actualFontSize": 32,
     "_fontSize": 32,
     "_fontFamily": "소리 설정",
     "_lineHeight": 40,
-    "_overflow": 0,
+    "_overflow": 1,
     "_enableWrapText": true,
     "_font": {
       "__uuid__": "800aab30-7140-45f4-bcc8-9f6ad11e45f4",
@@ -51371,9 +51371,9 @@
     "__prefab": null,
     "_alignFlags": 9,
     "_target": null,
-    "_left": 19.69100000000003,
+    "_left": 34.41399999999999,
     "_right": 0,
-    "_top": 548.601,
+    "_top": 120.74100000000001,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -56512,7 +56512,7 @@
         "__id__": 1549
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 1553
@@ -64390,7 +64390,7 @@
         "__id__": 1825
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 1957
@@ -65233,7 +65233,7 @@
         "__id__": 1785
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 1789
@@ -96415,7 +96415,7 @@
         "__id__": 2775
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 2828

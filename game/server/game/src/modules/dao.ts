@@ -406,14 +406,15 @@ dao.INSERT_SALES_USER = function ( data: any, cb: any ) {
 
 	let user_id = data.user_id;
 	let store_id = data.store_id;
+	let distributor_id = data.distributor_id;
 	let partner_id = data.partner_id;
 	let bettings = data.bettings;
 	let wins = data.wins;
 	let rakes = data.rakes;
 	let date = data.date;
 
-	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, partner_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ user_id, store_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
+	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 

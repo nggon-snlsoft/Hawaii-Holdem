@@ -330,7 +330,7 @@ export class StoreController {
 
         let transfers: any = null;
         try {
-            transfers = await this.reqTRANSFER_REQUESTS_ByUSER_ID( req.app.get('DAO'), user_id );            
+            transfers = await this.reqTRANSFER_REQUESTS_ByUSER_ID( req.app.get('DAO'), user_id );
         } catch (error) {
             console.log( error );
         }

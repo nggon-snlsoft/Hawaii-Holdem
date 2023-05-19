@@ -198,26 +198,18 @@ export class TableController {
         user.pendingSessionTimestamp = Date.now();
         user.table_id = _tables.id;
 
-        console.log('reqPENDING_STATE');
-
         try {
             await this.reqPENDING_STATE( req.app.get('DAO'), user);            
         } catch (error) {
             console.log( error );
         }
 
-        console.log('reqTABLE_ID');
-
         try {
             let tb = await this.reqTABLE_ID( req.app.get('DAO'), user);
-            console.log( 'await this.reqTABLE_ID');
-            console.log( tb );
 
         } catch (error) {
             console.log ( error );
         }
-
-        console.log('reqTABLE_ID: ');
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,

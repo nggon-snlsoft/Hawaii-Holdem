@@ -57,8 +57,6 @@ export class UiLobby extends Component {
             }
         }
 
-        console.log('show');
-
         this.canRefresh = true;
         this.user = NetworkManager.Instance().GetUser();
         this.setting = NetworkManager.Instance().GetSetting();

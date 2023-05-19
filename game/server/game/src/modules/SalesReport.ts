@@ -23,6 +23,7 @@ export class SalesReport {
 
             let user_id = participants[i].id;
             let store_id = participants[i].store_id;
+            let distributor_id = participants[i].distributor_id;
             let partner_id = participants[i].partner_id;
             let wins = participants[i].win;
             let bettings = participants[i].totalBet;
@@ -46,16 +47,13 @@ export class SalesReport {
                     console.log( error );
                 }
 
-                if ( affected != null ) {
-                    console.log('affected: ' + affected);
-                }                                
-
             } else {
                 let affected: any = null;
                 try {
                     affected = await this.CreateSalesUserInfo( dao, {
                         user_id: user_id,
                         store_id: store_id,
+                        distributor_id: distributor_id,
                         partner_id: partner_id,
                         bettings: bettings,
                         wins: wins,
@@ -64,10 +62,6 @@ export class SalesReport {
                     });                        
                 } catch (error) {
                     console.log( error );
-                }
-
-                if ( affected != null ) {
-                    console.log('affected: ' + affected);
                 }
             }
         }
@@ -110,10 +104,6 @@ export class SalesReport {
             } catch (error) {
                 console.log( error );
             }
-
-            if ( affected != null ) {
-                console.log('affected: ' + affected);
-            }
         } else {
             let affected: any = null; 
             try {
@@ -127,10 +117,6 @@ export class SalesReport {
     
             } catch (error) {
                 console.log( error );
-            }
-
-            if ( affected != null ) {
-                console.log('affected: ' + affected);
             }
         }
     }    

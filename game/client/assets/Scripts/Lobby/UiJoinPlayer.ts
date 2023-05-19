@@ -175,6 +175,9 @@ export class UiJoinPlayer extends Component {
                             case 'INVALID_REFERAL_CODE':
                                 desc = '추천코드가 잘못됐습니다.'
                             break;
+                            case 'EXPIRED_REFERAL_CODE':
+                                desc = '만료된 추천코드입니다.'
+                            break;                            
                             
                             default:
                                 desc = '가입신청이 실패했습니다';
