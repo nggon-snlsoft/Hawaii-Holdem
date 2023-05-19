@@ -2,6 +2,11 @@ import { userInfo } from "os";
 import { ENUM_RESULT_CODE } from "../main";
 import { error } from "console";
 
+// const moment = require('moment-timezone');
+const moment = require('moment')
+
+const timeZone = 'Asia/Tokyo';
+
 let _client: any = null;
 const dao = module.exports;
 
@@ -56,6 +61,30 @@ dao.UPDATE_USERS_TOKEN_LOGIN_ID = function ( token: any, login_id: any, cb: any 
 				cb(null, true);
 			} else {
 				cb(null, false);
+			}
+		}
+	});    
+};
+
+dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
+	console.log( data );
+
+	let login_ip = data.login_ip;
+	let id = data.user_id;
+
+	let sql = "UPDATE USERS SET LOGIN_IP = ?, LOGINCOUNT = LOGINCOUNT + 1, LOGINDATE = current_timestamp() WHERE ID = ? ";
+	let args = [ login_ip, id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			console.log( res);
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+
+			} else {
+				cb(null, 0);
 			}
 		}
 	});    

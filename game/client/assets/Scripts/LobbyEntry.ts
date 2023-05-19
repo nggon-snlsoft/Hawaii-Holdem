@@ -2,8 +2,9 @@ import { _decorator, Component, Node, game, Game } from 'cc';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 import { LobbySystemPopup } from './LobbySystemPopup';
 import { UiLobby } from './UiLobby';
-import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 import { NetworkManager } from './NetworkManager';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE } from './HoldemDefines';
+import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('LobbyEntry')
@@ -54,7 +55,7 @@ export class LobbyEntry extends Component {
             this.end();
         });
 
-        GameManager.Instance().SetCurrentScene(ENUM_CURRENT_SCENE.LOBBY_SCENE);
+        GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOBBY_SCENE);
 
         game.off( Game.EVENT_SHOW);
         game.off( Game.EVENT_HIDE);

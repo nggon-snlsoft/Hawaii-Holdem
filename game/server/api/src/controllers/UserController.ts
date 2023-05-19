@@ -12,6 +12,8 @@ import { compileFunction } from 'vm';
 import requestIp from 'request-ip';
 const gameConf = require('../config/gameConf.json');
 
+let Address6 = require('ip-address').Address6;
+
 export class UserController {
     public router: any = null;
     private sql: sqlProxy = null;
@@ -54,7 +56,9 @@ export class UserController {
 
     private async getIp( req: any, next: (ip: string )=>void ) {
         let ip: string = await requestIp.getClientIp( req );
-        next( ip );
+        let address = new Address6(ip);
+
+        next( address.parsedAddress4 );
     }
 
     public async reqLOGIN( req: any, res: any ) {
@@ -78,7 +82,6 @@ export class UserController {
         }
 
         let clientIp: string = '';
-
         try {
             await this.getIp( req, ( ip: string )=>{
                 clientIp = ip;
@@ -129,6 +132,15 @@ export class UserController {
         let affected: any = null;
         try {
             affected = await this.reqTOKEN_ByLOGIN_ID( req.app.get('DAO'), token, login_id );            
+        } catch (error) {
+            console.log(error);
+        }
+
+        try {
+            affected = await this.updateLOGIN_ByUSER_ID( req.app.get('DAO'), {
+                user_id: data.id,
+                login_ip: clientIp,
+            } );
         } catch (error) {
             console.log(error);
         }
@@ -1385,7 +1397,22 @@ export class UserController {
                 }
             });
         });
-    }    
+    }
+
+    private async updateLOGIN_ByUSER_ID( dao: any, data: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_USERS_LOGIN ( data, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
 
     private async getJOIN_USER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{

@@ -9,8 +9,9 @@ import { Board } from "./Board";
 import { UiTable } from "./UiTable";
 import { UiLobbyLoading } from './Lobby/UiLobbyLoading';
 import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
-import { GameManager } from './GameManager';
 import { Platform } from '../../extensions/colyseus-sdk/runtime/colyseus';
+import { GameManager } from './GameManager';
+import { ENUM_LEAVE_REASON } from './HoldemDefines';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobby')
@@ -29,6 +30,7 @@ export class UiLobby extends Component {
     private setting: any = null;
     private cbEnd: ()=> void = null;
     private canRefresh: boolean = false; 
+    private onHideTimestamp: number = 0;
 
     public init() {
         this.uiLobbyPopup.init( this );
@@ -60,6 +62,7 @@ export class UiLobby extends Component {
         this.canRefresh = true;
         this.user = NetworkManager.Instance().GetUser();
         this.setting = NetworkManager.Instance().GetSetting();
+        this.onHideTimestamp = 0;
 
         if (this.user != null)
         {
@@ -290,10 +293,21 @@ export class UiLobby extends Component {
     }
 
     public onEVENT_SHOW() {
-        this.onREGIST_SCHEDULE();
+        let now: any = new Date();
+        let ts = Number(now);
+
+        if ( now - this.onHideTimestamp > 1000) {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_LONG_AFK );
+        } else {
+            this.onHideTimestamp = now;
+            this.onREGIST_SCHEDULE();
+        }
     }
 
     public onEVENT_HIDE() {
+        let now: any = new Date();
+        this.onHideTimestamp = Number( now );
+
         this.onUNREGIST_SCHEDULE();
     }
 }

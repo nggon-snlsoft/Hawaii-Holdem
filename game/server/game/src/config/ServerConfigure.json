@@ -1,6 +1,7 @@
 {
   "server": {
     "name": "room",
-    "version": "8"    
+    "version": "8",
+    "ipDuplicate": true    
   }
 }

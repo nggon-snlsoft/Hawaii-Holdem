@@ -2,8 +2,9 @@ import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canv
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
-import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 import { NetworkManager } from './NetworkManager';
+import { GameManager } from './GameManager';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE } from './HoldemDefines';
 const { ccclass, property } = _decorator;
 
 @ccclass('Main')
@@ -72,7 +73,6 @@ export class Main extends Component {
 			this._login.show();
 
 		}, ( err: any)=>{
-			console.log( err );
 
 			this._login.show();			
 			if ( err != null ) {

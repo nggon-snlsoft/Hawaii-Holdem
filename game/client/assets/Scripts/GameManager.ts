@@ -1,26 +1,9 @@
 // @ts-ignore
 import * as cc from "cc";
 import { _decorator, Component, Node, director, Scene } from 'cc';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, ENUM_LEAVE_REASON } from "./HoldemDefines";
 import { NetworkManager } from "./NetworkManager";
 const { ccclass } = cc._decorator;
-
-export enum ENUM_DEVICE_TYPE {
-    MOBILE_PORTRAIT = 0,
-    PC_LANDSCAPE = 1,
-}
-
-export enum ENUM_CURRENT_SCENE {
-    LOGIN_SCENE = 0,
-    LOBBY_SCENE = 1,
-    GAME_SCENE = 2,
-}
-
-export enum ENUM_LEAVE_REASON {
-    LEAVE_NONE = -1,    
-    LEAVE_UNKNOWN = 0,
-    LEAVE_TOKEN_EXPIRE = 1,
-    LEAVE_VERSION_MISMATCH = 2,    
-}
 
 const CLIENT_VERSION: string = '4';
 

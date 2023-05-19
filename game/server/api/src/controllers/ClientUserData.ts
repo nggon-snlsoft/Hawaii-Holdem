@@ -9,20 +9,24 @@ export class ClientUserData{
             id: dbUserData.id,
 			login_id: dbUserData.login_id,
 			nickname: dbUserData.nickname,
+			login_ip: dbUserData.login_ip,
 			avatar: dbUserData.avatar,
 			grade: dbUserData.grade,
             balance: dbUserData.balance,
             chip: dbUserData.chip,
 			point: dbUserData.point,
 			table_id: dbUserData.table_id,
+			wins: dbUserData.wins,
+			bettings: dbUserData.bettings,
 			rake: dbUserData.rake,
 			store_id: dbUserData.store_id,
 			distributor_id: dbUserData.distributor_id,
-			partner_id: dbUserData.partner_id,
+			partner_id: dbUserData.partner_id,			
 			phone: dbUserData.phone,
             bank: dbUserData.bank,
             holder: dbUserData.holder,
             account: dbUserData.account,
+			join_ip: dbUserData.join_ip
 		}
 
 		return user;

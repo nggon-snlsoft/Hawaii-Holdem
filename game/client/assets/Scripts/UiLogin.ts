@@ -4,7 +4,9 @@ import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { ResourceManager } from './ResourceManager';
-import { ENUM_LEAVE_REASON, GameManager } from './GameManager';
+import { GameManager } from './GameManager';
+import { ENUM_LEAVE_REASON } from './HoldemDefines';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLogin')
@@ -101,7 +103,7 @@ export class UiLogin extends Component {
 	}
 
     public exitGame() {
-        director.end();
+        // director.end();
         game.end();
     }
 
@@ -232,18 +234,31 @@ export class UiLogin extends Component {
 
     show() {
         let leaveReason = GameManager.Instance().GetLeaveReason();
-        if ( leaveReason == ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE ) {
-            LoginSystemPopup.instance.showPopUpOk('로그인', '중복 로그인이 발생했습니다.', ()=>{
-                LoginSystemPopup.instance.closePopup();
+
+        let forceExit: boolean = false;
+        let desc: string = '';
+
+        switch (leaveReason) {
+            case ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE:
+                forceExit = true;
+                desc = '중복 로그인이 발생했습니다.';
+                break;
+            case ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH:
+                forceExit = true;
+                desc = '버전이 맞지 않습니다.\n새로운 버전을 설치하세요.';
+                break;
+            case ENUM_LEAVE_REASON.LEAVE_LONG_AFK:
+                forceExit = true;
+                desc = '장시간 자리비움입니다.\n게임을 다시 실행해주세요';
+                break;
+        }
+
+        if ( forceExit == true ) {
+            LoginSystemPopup.instance.showPopUpOk('게임종료', desc , ()=>{
 
                 this.exitGame();
             });
-        } else if ( leaveReason == ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH ) {
-            LoginSystemPopup.instance.showPopUpOk('버전', '버전이 맞지 않습니다. \n새로운 버전을 설치하세요.', ()=>{
-                LoginSystemPopup.instance.closePopup();
-
-                this.exitGame();
-            });
+            return;
         }
 
         this.node.active = true;

@@ -2,7 +2,9 @@
 import ColySeus from "db://colyseus-sdk/colyseus.js"
 import * as cc from "cc";
 import { _decorator } from 'cc';
-import { ENUM_LEAVE_REASON, GameManager } from "./GameManager";
+import { GameManager } from "./GameManager";
+import { ENUM_LEAVE_REASON } from "./HoldemDefines";
+
 const { ccclass } = cc._decorator;
 
 export enum ENUM_RESULT_CODE {
