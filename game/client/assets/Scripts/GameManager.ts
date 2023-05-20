@@ -72,6 +72,7 @@ export class GameManager extends cc.Component {
                 break;
             case ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH:
             case ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE:
+            case ENUM_LEAVE_REASON.LEAVE_LONG_AFK:                
                 director.loadScene("LoginScene", (error: null | Error, scene?: Scene)=>{
                     NetworkManager.Instance().logout();
                 });

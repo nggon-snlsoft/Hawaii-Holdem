@@ -83,6 +83,23 @@ dao.SELECT_USERS_ByUSER_ID = function (id: any, cb: any) {
 	});
 };
 
+dao.SELECT_USERS_ByTABLE_ID = function (table_id: any, cb: any) {
+
+	let sql = "SELECT * FROM USERS WHERE ALIVE = 1 AND DISABLE = 0 AND TABLE_ID = ?";
+	let args = [table_id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.SELECT_USERS_ByPENDING_ID = function (pendingID: any, cb: any ) {
 	let sql = "SELECT * FROM USERS WHERE PENDINGSESSIONID = ?";
 	let args = [pendingID];
@@ -118,12 +135,31 @@ dao.UPDATE_USERS_PENDING = function ( data: any, cb: any ) {
 	});
 };
 
-dao.UPDATE_USERS_TABLE_ID_ByUSER = function ( data: any, cb: any ){
+dao.UPDATE_USERS_TABLE_ID_LOGIN_IP_ByUSER = function ( data: any, cb: any ){
 	console.log( data );
+
+	let sql = 'UPDATE USERS SET LOGIN_IP = ?,  TABLE_ID = ?, UPDATEDATE = ? WHERE ID = ?';
+	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
+	let args = [ data['login_ip'], data['table_id'], now, data['id']];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
+};
+
+dao.UPDATE_USERS_TABLE_ID_ByUSER = function ( data: any, cb: any ){
 
 	let sql = 'UPDATE USERS SET TABLE_ID = ?, UPDATEDATE = ? WHERE ID = ?';
 	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
-	let args = [data['table_id'], now, data['id']];
+	let args = [ data['table_id'], now, data['id']];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (err !== null) {
@@ -312,6 +348,29 @@ dao.UPDATE_USERS_RAKE  = function (id: any, rake: any, cb: any) {
 				cb(null, true);
 			} else {
 				cb(null, false);
+			}
+		}
+	});
+};
+
+dao.UPDATE_USERS_BETTINGS  = function ( data: any, cb: any) {
+	let id = data.id;
+	let win = data.win;
+	let betting = data.betting;
+	let rake = data.rake;
+
+	let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, UPDATEDATE = ? WHERE ID = ?";
+	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+	let args = [win, betting, rake, now, id];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
 			}
 		}
 	});

@@ -39,6 +39,7 @@ export class UiLobbyLoading extends Component {
 
     private loadTable() {
         ResourceManager.Instance().loadTables( ()=>{
+
             this.progressBar.progress = 0.1;
             this.loadBackground();
         });
@@ -52,10 +53,9 @@ export class UiLobbyLoading extends Component {
         });
     }
 
-
-
     private loadSounds() {
         if ( ResourceManager.Instance().getSoundsPreloadState() == true ) {
+
             this.progressBar.progress = 0.4;
             this.loadCards();
             return;
@@ -76,6 +76,7 @@ export class UiLobbyLoading extends Component {
             this.progressBar.progress = 0.4 + (progress * 0.2) ;
 
         }, ()=>{
+
             this.progressBar.progress = 0.6;
             this.loadChips();
         });
@@ -99,11 +100,12 @@ export class UiLobbyLoading extends Component {
     }
 
     private launch() {
+
         let cnt = 0;
         director.preloadScene('GameScene', ( completedCount: number, totalCount: number, item: any )=>{
             cnt++;
-            let p: number = cnt / 313.0;
-            this.progressBar.progress = 0.8 + p * 0.4;
+            let p: number = cnt / 372.0;
+            this.progressBar.progress = 0.8 + p * 0.2;
 
         }, ()=>{
             this.progressBar.progress = 1.0;

@@ -5,6 +5,9 @@ import * as path from 'path';
 import { ENUM_RESULT_CODE } from '../arena.config';
 import { ClientUserData } from './ClientUserData';
 
+import requestIp from 'request-ip';
+let Address6 = require('ip-address').Address6;
+
 export class TableController {
     public router: any = null;
     private conf: any = null;
@@ -24,6 +27,13 @@ export class TableController {
     private initRouter() {
         this.router.post( '/get', this.getTABLE_LIST.bind(this));
         this.router.post( '/enter', this.enterTABLE.bind(this));
+    }
+
+    private async getIp( req: any, next: (ip: string )=>void ) {
+        let ip: string = await requestIp.getClientIp( req );
+        let address = new Address6(ip);
+
+        next( address.parsedAddress4 );
     }
 
     public async getTABLE_LIST( req: any, res: any ) {
@@ -123,7 +133,6 @@ export class TableController {
         }
 
         let user: any = null;
-
         try {
             user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id);            
         } catch (error) {
@@ -179,6 +188,38 @@ export class TableController {
             }
         }
 
+        let clientIp: string = '';
+        try {
+            await this.getIp( req, ( ip: string )=>{
+                clientIp = ip;
+            });            
+        } catch (error) {
+            clientIp = '';
+        }
+
+        if ( this.conf.checkIpDuplication) {
+            let users: any[] = [];
+            try {
+                users = await this.getUSERS_ByTABLE_ID( req.app.get('DAO'), table_id );
+            } catch (error) {
+                console.log( error );
+            }
+
+            if ( users != null && users.length > 0 ) {
+                let d = users.find( ( e )=>{
+                    return (e.login_ip.length > 0) && (clientIp == e.login_ip);
+                });
+
+                if ( d != null ) {
+                    res.status( 200 ).json({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'TABLE_DUPLICATE_IP',
+                    });        
+                    return;
+                }
+            }
+        }
+
         let seatReservation: matchMaker.SeatReservation = null;
         try {
             seatReservation = await matchMaker.joinOrCreate( gameSize, { private: false, serial: _tables.id });            
@@ -197,6 +238,7 @@ export class TableController {
         user.pendingSessionId = seatReservation.sessionId;
         user.pendingSessionTimestamp = Date.now();
         user.table_id = _tables.id;
+        user.login_ip = clientIp;
 
         try {
             await this.reqPENDING_STATE( req.app.get('DAO'), user);            
@@ -204,8 +246,10 @@ export class TableController {
             console.log( error );
         }
 
+        let tb: any = null;
+
         try {
-            let tb = await this.reqTABLE_ID( req.app.get('DAO'), user);
+            tb = await this.reqTABLE_ID( req.app.get('DAO'), user );
 
         } catch (error) {
             console.log ( error );
@@ -214,6 +258,7 @@ export class TableController {
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
+            ip: clientIp,
             seatReservation: seatReservation,
             info: _tables,
             count: _tables.maxPlayers,
@@ -239,7 +284,7 @@ export class TableController {
 
     private async reqTABLE_ID( dao: any, data: any ) {
         return new Promise( ( resolve, reject ) => {
-            dao.UPDATE_USERS_TABLE_ID_ByUSER( data, function( err: any, res: any ) {
+            dao.UPDATE_USERS_TABLE_ID_LOGIN_IP_ByUSER( data, function( err: any, res: any ) {
 
                 if( !!err ) {
                     reject({
@@ -281,6 +326,21 @@ export class TableController {
             });
         });
     }
+
+    private async getUSERS_ByTABLE_ID( dao: any, table_id: any  ) {
+        return new Promise<any>( ( resolve, reject )=>{
+            dao.SELECT_USERS_ByTABLE_ID(table_id, (err: any, res: any)=>{
+                if ( err != null ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'                        
+                    });
+                    return;
+                }
+                resolve( res ); 
+            });
+        });
+    }    
 
     private async getUSER_ByUSER_ID( dao: any, id: string ) {
         return new Promise( ( resolve, reject ) => {

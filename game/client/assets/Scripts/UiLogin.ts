@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite, EventHandler, input, Input, EventKeyboard, KeyCode } from 'cc';
+import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite, EventHandler, input, Input, EventKeyboard, KeyCode, Game } from 'cc';
 import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
@@ -240,7 +240,7 @@ export class UiLogin extends Component {
 
         switch (leaveReason) {
             case ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE:
-                forceExit = true;
+                forceExit = false;
                 desc = '중복 로그인이 발생했습니다.';
                 break;
             case ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH:
@@ -248,17 +248,23 @@ export class UiLogin extends Component {
                 desc = '버전이 맞지 않습니다.\n새로운 버전을 설치하세요.';
                 break;
             case ENUM_LEAVE_REASON.LEAVE_LONG_AFK:
-                forceExit = true;
+                forceExit = false;
                 desc = '장시간 자리비움입니다.\n게임을 다시 실행해주세요';
                 break;
         }
 
+        GameManager.Instance().ResetLeaveReason();
+
         if ( forceExit == true ) {
             LoginSystemPopup.instance.showPopUpOk('게임종료', desc , ()=>{
-
                 this.exitGame();
             });
             return;
+        } else {
+            if ( desc.length > 0 )
+            LoginSystemPopup.instance.showPopUpOk('로그인', desc , ()=>{
+
+            });
         }
 
         this.node.active = true;

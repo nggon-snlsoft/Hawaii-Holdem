@@ -1,6 +1,8 @@
 import { _decorator, AudioClip, Color, Component, Node, resources, Sprite, SpriteFrame, url } from 'cc';
 import { NetworkManager } from './NetworkManager';
-import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
+import { GameManager } from './GameManager';
+import { ENUM_DEVICE_TYPE } from './HoldemDefines';
+
 const { ccclass, property } = _decorator;
 
 const CARDS_NAME: string[] = [
@@ -95,6 +97,7 @@ export class ResourceManager extends Component {
 
                 this.preloadAvatarResource[ res.name ] = res;
 				if( count == Object.keys( this.preloadAvatarResource ).length ) {
+					console.log('preloadAvatarResource is done');
 					cbDone();
 				}
 			} );
@@ -122,6 +125,7 @@ export class ResourceManager extends Component {
 
                 this.preloadChipsResource[ res.name ] = res;
 				if( l == Object.keys( this.preloadChipsResource ).length ) {
+					console.log('preloadChipsResource is done');
 					cbDone();
 				}
 			} );
@@ -139,7 +143,9 @@ export class ResourceManager extends Component {
 			this.currentCardType = setting.card;
 		}
 
-		for( let i = 0; i < CARDS_NAME.length + 1 ; i++ ) {
+		let cards = CARDS_NAME.length + 1;
+
+		for( let i = 0; i < cards ; i++ ) {
 			const url = 'Cards/'+'type' + this.currentCardType.toString() + '/' + i.toString() + '/spriteFrame';
 
 			resources.load<SpriteFrame>( url, (finished, total, item )=>{
@@ -154,8 +160,8 @@ export class ResourceManager extends Component {
 				}
 
                 this.preloadCardsResource[ res.name ] = res;
-
-				if( 52 <= Object.keys( this.preloadCardsResource ).length ) {
+				if( Object.keys( this.preloadCardsResource ).length == cards) {
+					console.log('preloadCardsResource is done');
                     cbDone();
 				}
 			} );
@@ -183,6 +189,7 @@ export class ResourceManager extends Component {
 				this.preloadSoundsResource[ item['name'] ] = res;
 
 				if ( Object.keys( this.preloadSoundsResource ).length >= SOUNDS_NAME.length ) {
+					console.log('preloadSoundsResource is done');					
 					cbDone();
 				}
 			})
@@ -214,6 +221,7 @@ export class ResourceManager extends Component {
 
 			}
 			this.preloadTableResource = res;
+			console.log('preloadTableResource is done');
 			cbDone();
 		});
     }
@@ -238,6 +246,7 @@ export class ResourceManager extends Component {
 
 			}
 			this.preloadBackgroundResource = res;
+			console.log('preloadBackgroundResource is done');
 			cbDone();
 		});
     }

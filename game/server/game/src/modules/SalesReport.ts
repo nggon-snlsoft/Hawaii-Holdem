@@ -1,6 +1,34 @@
 
 export class SalesReport {
 
+    public async UpdateUser( dao: any, participants: any ) {
+        if ( participants == null ) {
+            return;
+        }
+
+        for ( let i: number = 0 ; i < participants.length ; i++ ) {
+            let id = participants[i].id;
+            let win = participants[i].win;
+            let betting = participants[i].totalBet;
+            let rake: number = 0;
+            if ( participants[i].rake != null ) {
+                rake = participants[i].rake;
+            }
+
+            let affected: any = null;
+            try {
+                affected = await this.UPDATE_USERS_BETTINGS( dao, {
+                    id: id,
+                    win: win,                    
+                    betting: betting,
+                    rake: rake,
+                });                
+            } catch (error) {
+                console.log( error );                
+            }
+        }
+    }
+
     public async UpdateReportByUser( dao: any, participants: any ) {
         let now: Date = new Date();
         let date = this.GetReportDate( now );
@@ -119,7 +147,7 @@ export class SalesReport {
                 console.log( error );
             }
         }
-    }    
+    }
 
     private async GetSalesUserFromDB( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
@@ -136,6 +164,18 @@ export class SalesReport {
     private async CreateSalesUserInfo( dao: any, data: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
             dao.INSERT_SALES_USER( data, (err: any, res: any)=>{
+                if ( err != null ) {
+                    reject( err );
+                    return;
+                }
+                resolve( res ); 
+            });
+        });
+    }
+
+    private async UPDATE_USERS_BETTINGS( dao: any, data: any  ) {
+        return new Promise<any>( ( resolve, reject )=>{
+            dao.UPDATE_USERS_BETTINGS( data, (err: any, res: any)=>{
                 if ( err != null ) {
                     reject( err );
                     return;

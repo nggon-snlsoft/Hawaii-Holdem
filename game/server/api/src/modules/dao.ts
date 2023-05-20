@@ -249,10 +249,13 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 }
 
 dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
+	console.log('insertJOIN_MEMBER');
+	console.log(user);
 
-	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, join_ip, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
-		user.bank, user.holder, user.account, user.recommender, 1 ];
+		user.bank, user.holder, user.account, user.recommender, user.join_ip, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 

@@ -70,6 +70,8 @@ export class UiLobby extends Component {
             this.uiTableList.show();
             this.uiLobbyBottom.show();
         }
+        
+        this.onREFRESH();
 
         this.onREGIST_SCHEDULE();
         this.CheckEventPopup();
@@ -227,6 +229,7 @@ export class UiLobby extends Component {
                     Board.isPublic = true;
                     Board.id = res.info.id;
                     Board.ante = res.info.ante;
+                    Board.ip = res.ip;
 
                     Board.setInfo( res.info );
                     Board.room = room;
@@ -240,6 +243,7 @@ export class UiLobby extends Component {
                     });
 
                 }, ( err )=>{
+                    console.log(err.msg);                    
                     switch ( err.msg ) {
                         case 'DUPLICATE_LOGIN':
                             LobbySystemPopup.instance.showPopUpOk("테이블입장", "이미 플레이중인 테이블이 있습니다.", ()=>{
@@ -255,13 +259,18 @@ export class UiLobby extends Component {
                             LobbySystemPopup.instance.showPopUpOk("테이블입장", "테이블이 가득 찼습니다.", ()=>{
                                 LobbySystemPopup.instance.closePopup();
                             });                                                                                    
+                            break;
+                        case 'TABLE_DUPLICATE_IP':
+                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "중복된 IP의 플레이어가 있습니다.", ()=>{
+                                LobbySystemPopup.instance.closePopup();
+                            });                            
                             break;                            
+
                         default:
                             LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.\n" + err.msg, ()=>{
                                 LobbySystemPopup.instance.closePopup();
                             });                                                                                    
                     }
-
                 });
             }
         }
@@ -296,17 +305,21 @@ export class UiLobby extends Component {
         let now: any = new Date();
         let ts = Number(now);
 
-        if ( now - this.onHideTimestamp > 1000) {
+        console.log(ts - this.onHideTimestamp);
+
+        if ( ts - this.onHideTimestamp > 1000 * 60 * 10 ) {
 			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_LONG_AFK );
         } else {
-            this.onHideTimestamp = now;
+            this.onHideTimestamp = ts;
             this.onREGIST_SCHEDULE();
         }
+        // this.onREGIST_SCHEDULE();
     }
 
     public onEVENT_HIDE() {
         let now: any = new Date();
         this.onHideTimestamp = Number( now );
+        console.log( 'this.onHideTimestamp' + this.onHideTimestamp );
 
         this.onUNREGIST_SCHEDULE();
     }

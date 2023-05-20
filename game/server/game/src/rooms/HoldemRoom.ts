@@ -790,7 +790,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
-		console.log('onDispose');
+
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
 
@@ -848,20 +848,20 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		for ( let i = 0; i < this.state.entities.length; i++ ) {
-			let entity = this.state.entities[i];
-			if( entity != null ) {
-				if(entity.rake != entity.oldRake) {
-					this._dao.UPDATE_USERS_RAKE( entity.id, entity.rake, ( err: any, res: any ) => {
-						if( !!err ) {
-							logger.error( "[ update ] updateRake query error : %s", err.sqlMessage );
-						}
-					} );
+		// for ( let i = 0; i < this.state.entities.length; i++ ) {
+		// 	let entity = this.state.entities[i];
+		// 	if( entity != null ) {
+		// 		if(entity.rake != entity.oldRake) {
+		// 			this._dao.UPDATE_USERS_RAKE( entity.id, entity.rake, ( err: any, res: any ) => {
+		// 				if( !!err ) {
+		// 					logger.error( "[ update ] updateRake query error : %s", err.sqlMessage );
+		// 				}
+		// 			} );
 
-					entity.oldRake = entity.rake;
-				}
-			}
-		}
+		// 			entity.oldRake = entity.rake;
+		// 		}
+		// 	}
+		// }
 
 		this.secondTick += dt;
 
@@ -2479,8 +2479,10 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 
 		try {
+			this._SalesReporter.UpdateUser( this._dao, this.participants );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
 			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
+
 		} catch ( error ) {
 			console.log( error );
 		}

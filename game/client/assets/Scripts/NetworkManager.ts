@@ -566,6 +566,12 @@ export class NetworkManager extends cc.Component {
 						msg: 'DUPLICATE_LOGIN',				
 					});	
 					break;
+				case 'TABLE_DUPLICATE_IP':
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'TABLE_DUPLICATE_IP',				
+					});	
+					break;					
 				case 'INCORRECT_TABLE_INFO':
 					onFail({
 						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

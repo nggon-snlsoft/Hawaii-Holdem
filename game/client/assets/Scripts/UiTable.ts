@@ -2894,8 +2894,9 @@ export class UiTable extends Component {
     }
 
     public leave() {
-		this.uiProfile.hide();
-
+		if ( this.uiProfile != null ) {
+			this.uiProfile.hide();
+		}
 		this.room?.leave();
     }
 

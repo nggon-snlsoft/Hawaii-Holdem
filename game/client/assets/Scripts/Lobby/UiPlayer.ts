@@ -9,6 +9,7 @@ const { ccclass, property } = _decorator;
 export class UiPlayer extends Component {
     @property(Sprite) spriteAvatar: Sprite = null;
     @property(Label) labelNickname: Label = null;
+    @property(Label) labelIp: Label = null;    
     @property(Label) labelChips: Label = null;
     @property(Label) labelPoints: Label = null;
     @property(Button) buttonAvatar: Button = null;
@@ -24,13 +25,14 @@ export class UiPlayer extends Component {
         this.cbClickAvatar = cbClickAvatar;
 
         this.avatarType = -1;
-        this.nickname = "";
+        this.nickname = '';
         this.chips = -1;
         this.points = -1;
 
         this.labelNickname.string = this.nickname;
         this.labelChips.string = this.chips.toString();
         this.labelPoints.string = this.points.toString();
+        this.labelIp.string = '';
 
         this.buttonAvatar.node.on("click", this.onClickAvatar.bind(this), this);
         this.spriteAvatar.node.active = false;
@@ -51,11 +53,13 @@ export class UiPlayer extends Component {
 
     public refresh() {
         let user = NetworkManager.Instance().GetUser();
+        console.log(user);
         if (user != null)
         {
             this.labelNickname.string = user.nickname;
             this.labelChips.string = CommonUtil.getKoreanNumber(user.balance + user.chip);
             this.labelPoints.string = CommonUtil.getKoreanNumber(user.point);
+            this.labelIp.string = '( ' + user.login_ip + ' )';
 
             let s = Number( user.avatar );
             let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage( s );

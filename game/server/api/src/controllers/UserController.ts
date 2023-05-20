@@ -136,6 +136,8 @@ export class UserController {
             console.log(error);
         }
 
+        affected = null;
+
         try {
             affected = await this.updateLOGIN_ByUSER_ID( req.app.get('DAO'), {
                 user_id: data.id,
@@ -366,11 +368,10 @@ export class UserController {
             });
             return;
         } else {
-            user.ip = requestIp.getClientIp( req );
-            
             user.store_id = partner.store_id;
             user.distributor_id = partner.distributor_id;
             user.partner_id = partner.id;
+
             if ( partner.alive == 0 ) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -378,6 +379,19 @@ export class UserController {
                 }); 
                 return;
             }
+        }
+
+        let clientIp: string = '';
+        try {
+            await this.getIp( req, ( ip: string )=>{
+                clientIp = ip;
+            });            
+        } catch (error) {
+            clientIp = '';
+        }        
+
+        if ( clientIp != null ) {
+            user.join_ip = clientIp;
         }
 
         let result: any = null;

@@ -2,6 +2,6 @@
   "server": {
     "name": "api",
     "version": "8",
-    "ipDuplicate": true
+    "checkIpDuplication": false
   }
 }

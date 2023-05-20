@@ -1,9 +1,9 @@
 import { _decorator, Component, Node, Button, Label, Slider, EventHandler, sys } from 'cc';
 import { CommonUtil } from './CommonUtil';
 import { ENUM_BETTING_KIND, ENUM_BETTING_TYPE, UiBettingControl } from './Game/UiBettingControl';
-import { ENUM_DEVICE_TYPE, GameManager } from './GameManager';
 import { AudioController } from './Game/AudioController';
-import { ENUM_BET_SOUND, ENUM_CARD_TYPE } from './HoldemDefines';
+import { ENUM_BET_SOUND, ENUM_CARD_TYPE, ENUM_DEVICE_TYPE } from './HoldemDefines';
+import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiPlayerAction')

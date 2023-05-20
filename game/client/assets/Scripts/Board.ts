@@ -18,6 +18,7 @@ export class Board {
 	static isPublic: boolean = false;
 	static info: any = null;
 	static ante: number = 0;
+	static ip: string = '';
 
 	static setInfo( info: any ) {
 		Board.info = info;

@@ -13,10 +13,7 @@ const favicon = require( "serve-favicon" );
 const sql = require( "./modules/sqlProxy" );
 const dao = require( "./modules/dao" );
 
-import userRoutes from "./routes/userRoutes";
-
 import { HoldemRoom } from "./rooms/HoldemRoom";
-import {RoomController} from "./controllers/RoomController";
 import TableController from "./controllers/TableController";
 const port = Number( process.env.PORT || 2568 );
 
@@ -34,8 +31,6 @@ export default Arena( {
 	initializeGameServer: ( gameServer ) => {
 		const sqlClient = sql.init();
 		dao.init( sqlClient );
-
-		// RoomController.Instance().InitializeRoomController(dao);
 
 		gameServer.define( "holdem_full", HoldemRoom, { dao: dao, ts :"full", clientLimit: 9, passPrice : 2000 } ).filterBy( [ "serial" ] );
 		gameServer.define( "holdem_short", HoldemRoom, { dao: dao, ts : "short", clientLimit: 6, passPrice : 1000 } ).filterBy( [ "serial" ] );

@@ -2,9 +2,10 @@ import { _decorator, Component, Node, game, Game, Label } from 'cc';
 import {UiGameSystemPopup} from "./UiGameSystemPopup";
 import { UiControls } from './UiControls';
 import { AudioController } from './AudioController';
-import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, GameManager } from '../GameManager';
 import { UiTable } from '../UiTable';
 import { Board } from '../Board';
+import { GameManager } from '../GameManager';
+import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE } from '../HoldemDefines';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameEntry')
@@ -24,6 +25,7 @@ export class GameEntry extends Component {
     private _labelAnte: Label = null;    
     private _labelSB: Label = null;
     private _labelBB: Label = null;
+    private _labelIP: Label = null;    
 
     onLoad() {
 		this.rootPortrait.active = false;
@@ -71,6 +73,11 @@ export class GameEntry extends Component {
                 this._labelBB.string = ( Board.big ).toString();
                 this._labelBB.node.active = true;
             }
+
+            if ( this._labelIP != null ) {
+                this._labelIP.string = '( ' + Board.ip + ' )';
+                this._labelIP.node.active = true;
+            }            
 
             if ( this._labelAnte != null ) {
                 this._labelAnte.string = ( Board.ante).toString();
@@ -130,6 +137,12 @@ export class GameEntry extends Component {
             if ( this._labelBB != null ) {
                 this._labelBB.node.active = false;
                 this._labelBB.string = '0';
+            }
+
+            this._labelIP = this._rootInformation.getChildByPath('LABEL_IP').getComponent(Label);
+            if ( this._labelIP != null ) {
+                this._labelIP.node.active = false;
+                this._labelIP.string = '';
             }
         }
 
