@@ -88,6 +88,7 @@ export class StoreController {
         let user_id = req.body.user_id;
         let token = req.body.token;
         let amount = req.body.amount;
+        let holder = req.body.holder;
 
         let verify: any = null;
         try {
@@ -131,7 +132,8 @@ export class StoreController {
         try {
                 affected = await this.reqCHARGE_REQUEST( req.app.get('DAO'), {
                 user: user,
-                amount: amount
+                amount: amount,
+                holder: holder,
             } );
         } catch (error) {
             console.log ( error );            

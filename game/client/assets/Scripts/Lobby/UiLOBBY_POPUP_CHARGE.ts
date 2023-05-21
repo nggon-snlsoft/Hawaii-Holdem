@@ -7,10 +7,11 @@ const { ccclass, property } = _decorator;
 @ccclass('UiLOBBY_POPUP_CHARGE')
 export class UiLOBBY_POPUP_CHARGE extends Component {
     @property(Label) labelTitle: Label = null;
-    @property(Label) labelHolder: Label = null;
+    // @property(Label) labelHolder: Label = null;
     @property(Label) labelKorValue: Label = null;
 
     @property(EditBox) editboxChargeAmount: EditBox = null;
+    @property(EditBox) editboxChargeHolder: EditBox = null;    
 
     @property(Button) buttonExit: Button = null;
     @property(Button) buttonApply: Button = null;
@@ -81,7 +82,9 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     }
 
     private Reset() {
-        this.labelHolder.string = '';
+        // this.labelHolder.string = '';
+        this.editboxChargeAmount.string = '';
+        this.editboxChargeHolder.string = '';
         this.labelKorValue.string = '';
         this.labelKorValue.node.active = false;
     }
@@ -90,7 +93,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         NetworkManager.Instance().getSTORE( ( res: any )=>{
             let store = res.store;
             if ( store != null ) {
-                this.labelHolder.string = store.holder;
+                // this.labelHolder.string = store.holder;
             }
 
             this.labelKorValue.string = '';
@@ -117,8 +120,16 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
 
     private onAPPLY( button: Button ) {
         let num = Number(this.editboxChargeAmount.string);
+        let holder = this.editboxChargeHolder.string;
         if ( num < 10000 ) {
             LobbySystemPopup.instance.showPopUpOk('충전 신청', ' 10000 이하는 신청할 수 없습니다.', ()=>{
+
+            })
+            return;
+        }
+
+        if ( holder.length <= 0 ) {
+            LobbySystemPopup.instance.showPopUpOk('충전 신청', ' 입금자명을 입력해 주세요.', ()=>{
 
             })
             return;
@@ -136,8 +147,12 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
 
     private RequestCharge() {
         let amount = Number( this.editboxChargeAmount.string );
+        let holder = this.editboxChargeHolder.string;
         let desc = CommonUtil.getKoreanNumber(amount);
-        NetworkManager.Instance().reqCHARGE_REQUEST( amount, (res)=>{
+        NetworkManager.Instance().reqCHARGE_REQUEST( {
+            amount: amount,
+            holder: holder
+        }, (res)=>{
             LobbySystemPopup.instance.showPopUpOk('충전 신청', desc + ' 충전 신청 했습니다.', ()=>{
                 if ( this.cbEXIT != null ) {
                     this.cbEXIT();
@@ -157,7 +172,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
             return;
         }
 
-        editbox.string = editbox.string.trim();        
+        editbox.string = editbox.string.trim();
 
         let s = CommonUtil.getKoreanNumber( Number(editbox.string) );
         this.labelKorValue.string = s;

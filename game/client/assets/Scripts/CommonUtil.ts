@@ -28,27 +28,29 @@ export class CommonUtil {
         if ( num == null || num <= 0 ) {
             return '0';
         }
+
+        return CommonUtil.getNumberStringWithComma( num );
                 
-        const koreanUnits = ['', '만', '억', '조'];
-        let answer = '';
-        let unit = 10000;
-        let index = 0;
-        let division = Math.pow(unit, index);
+        // const koreanUnits = ['', '만', '억', '조'];
+        // let answer = '';
+        // let unit = 10000;
+        // let index = 0;
+        // let division = Math.pow(unit, index);
       
-        while (Math.floor( num / division) > 0) {
-          const mod = Math.floor(num % (division * unit) / division);
-          if(mod) {
-            const modToString = mod.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            answer = `${modToString}${koreanUnits[index]} `+ answer;
-          }
-          division = Math.pow(unit, ++index);
-        }
+        // while (Math.floor( num / division) > 0) {
+        //   const mod = Math.floor(num % (division * unit) / division);
+        //   if(mod) {
+        //     const modToString = mod.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        //     answer = `${modToString}${koreanUnits[index]} `+ answer;
+        //   }
+        //   division = Math.pow(unit, ++index);
+        // }
 
-        if ( answer.length == 0) {
-            answer = '0';
-        }
+        // if ( answer.length == 0) {
+        //     answer = '0';
+        // }
 
-        return answer;
+        // return answer;
       }
 
     static setAvatarSprite( type: number, sf: Sprite, cb: ()=>void = null ) {

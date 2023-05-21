@@ -19,17 +19,23 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER = 1,
 }
 
-const apiHost: string = '127.0.0.1';
-const apiPort: number = 7500;
-
-const gameHost: string = '127.0.0.1';
-const gamePort: number = 7510;
-
-// const apiHost: string = '43.207.193.204';
+// const apiHost: string = '127.0.0.1';
 // const apiPort: number = 7500;
 
-// const gameHost: string = '43.207.193.204';
+// const gameHost: string = '127.0.0.1';
 // const gamePort: number = 7510;
+
+// const apiHost: string = 'hw-123.com';
+// const apiPort: number = 7500;
+
+// const gameHost: string = 'hw-123.com';
+// const gamePort: number = 7510;
+
+const apiHost: string = '43.207.193.204';
+const apiPort: number = 7500;
+
+const gameHost: string = '43.207.193.204';
+const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -726,14 +732,18 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}			
 
-	async reqCHARGE_REQUEST( amount: number, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+	async reqCHARGE_REQUEST( data: any, onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
+		let amount = data.amount;
+		let holder = data.holder;
 		let user_id = this.user.id;
+		
 
 		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/charge/req', {
 			user_id: user_id,
 			amount: amount,
+			holder: holder,
 			token: this.token,
 
 		} ).then(( res: string ) => {
@@ -1416,7 +1426,7 @@ export class NetworkManager extends cc.Component {
 			fullUrl += url;
 
 			xhr.open( "POST", fullUrl, true );
-			xhr.timeout = 5000;
+			xhr.timeout = 10000;
 			xhr.setRequestHeader( "Content-Type", "application/json" );
 			xhr.send( JSON.stringify( params ) );
 		} );
