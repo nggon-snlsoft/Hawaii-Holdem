@@ -100,8 +100,8 @@ export class UiLOBBY_POPUP_TICKETS extends Component {
             description += '\n' + ticket.updateDate;
             
         } else if ( Number(ticket.return) > 0 ) {
-            title = '환불';
-            description = '출금신청 ' + CommonUtil.getKoreanNumber( ticket.return ) + ' 이 처리되었습니다.';
+            title = '출금신청';
+            description = '출금신청 ' + CommonUtil.getKoreanNumber( ticket.return ) + ' 이 취소되었습니다.';
             description += '\n' + ticket.updateDate;
         }
 

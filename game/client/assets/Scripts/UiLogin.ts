@@ -245,7 +245,7 @@ export class UiLogin extends Component {
                 break;
             case ENUM_LEAVE_REASON.LEAVE_VERSION_MISMATCH:
                 forceExit = true;
-                desc = '버전이 맞지 않습니다.\n새로운 버전을 설치하세요.';
+                desc = '버전이 맞지 않습니다.\n새로운 버전을 설치하세요..';
                 break;
             case ENUM_LEAVE_REASON.LEAVE_LONG_AFK:
                 forceExit = false;

@@ -9,6 +9,7 @@ import { ClientUserData } from "../controllers/ClientUserData";
 import { levels } from "../util/logger";
 import { SalesReport } from "../modules/SalesReport";
 import { application } from "express";
+import { cli } from "winston/lib/winston/config";
 
 const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
@@ -56,7 +57,7 @@ export class HoldemRoom extends Room<RoomState> {
 		"26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43",
 		"44", "45", "46", "47", "48", "49", "50", "51" ];
 
-	maxClients = 10;
+	maxClients = 9;
 	showdownTime: number = 0;
 	bufferTimerID: any = null;
 	pingTimerID: any = null;
@@ -89,6 +90,8 @@ export class HoldemRoom extends Room<RoomState> {
 
 	async onCreate( options: any ) : Promise<any> {
 		logger.info("[ onCreate ] options : %s", options);
+
+		this.maxClients = options.clientLimit;
 
 		this.tableSize = "full";
 		this._dao = options["dao"];
@@ -790,6 +793,8 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
+		console.log('onDispose');
+
 
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
@@ -1948,7 +1953,7 @@ export class HoldemRoom extends Room<RoomState> {
 					}
 				}
 
-				if(true === entity.wait)
+				if(true === entity.wait )
                 {
                     this.betSeat = locSeat;
                     this.elapsedTick = 0;
@@ -3931,197 +3936,63 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onSYNC_TABLE ( client: Client, msg: any ) {
-		// try {
-		// 	logger.info( "[ onBuyIn ] msg : %s", msg );
+		let seat = msg['seat'];
+		let entity = this.state.entities.find( elem => elem.seat == seat );
+		if( undefined === entity ) {
+			return;
+		}
 
-		// 	let entity = this.findEntityBySessionID( client.sessionId );
-		// 	if( null === entity || undefined === entity ) {
-		// 		logger.error( "[ onBuyIn ] entity is null" );
-		// 		return;
-		// 	}
+		entity.lastPingTime = Date.now();
+		entity.sid = client.sessionId;
+		entity.client = client;
 
-		// 	let seatPos : number = -1;
-		// 	for(let i = 0; i < this.seatWaitingList.length; i++){
-				
-		// 		if(this.seatWaitingList[i] == client.sessionId){
-		// 			seatPos = i;
-		// 			this.seatWaitingList[i] = "";
-		// 			break;
-		// 		}
-		// 	}
-		// 	if(seatPos == -1){
-		// 		return;
-		// 	}
-		// 	entity.seat = seatPos;
+		let openCards: number[] = [];
 
-		// 	this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
-		// 		if( !!err ) {
-		// 			logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
-		// 			return;
-		// 		}
+		switch( this.centerCardState ) {
+			case eCommunityCardStep.FLOP:
+				openCards = this.communityCardIndex.slice( 0, 3 );
+				break;
 
-		// 		if( res.length <= 0 ) {
-		// 			logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
-		// 			return;
-		// 		}
-		// 		else {
-		// 			entity.balance = res[0]["balance"];
+			case eCommunityCardStep.TURN:
+				openCards = this.communityCardIndex.slice( 0, 4 );
+				break;
 
-		// 			let oldBalance = entity.balance;
-		// 			let oldChips = entity.chips;
+			case eCommunityCardStep.RIVER:
+			case eCommunityCardStep.RESULT:
+				openCards = this.communityCardIndex;
+				break;
+		}
 
-		// 			let buyInAmount = msg[ "buyInAmount" ];
-		// 			let bal = entity.balance - buyInAmount;
-		// 			if( bal <= 0 ) {
-		// 				buyInAmount = entity.balance;
-		// 				bal = 0;
-		// 			}
-			
-		// 			entity.balance = bal;
-		// 			entity.chips += buyInAmount;
-		// 			entity.initRoundChips = entity.chips;
+		let prim = entity.cardIndex.length > 0 ? entity.cardIndex[0] : -1;
+		let sec = entity.cardIndex.length > 1 ? entity.cardIndex[1] : -1;
 
-		// 			entity.tableBuyInAmount += buyInAmount;
-		// 			entity.tableBuyInCount++;
+		client.send( "SYNC_TABLE", {
+			yourself: entity,
+			entities: this.state.entities,
+			gameState: this.state.gameState,
+			betSeat: this.betSeat,
+			endSeat: this.endSeat,
+			maxBet: this.state.maxBet,
+			minRaise: this.state.minRaise,
+			minBet: this.state.startBet,
 
-		// 			this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
-		// 			entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
-		// 			{
-		// 				if( !!err ) {
-		// 					logger.error( "[ onBuyIn ] buyIn query error : %s", err );
-		// 				}
-		// 			} );
-
-		// 			this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
-		// 				if( !!err ) {
-		// 					logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
-		// 				}
-		// 			} );
-
-		// 			logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
-
-		// 			let openCards: number[] = [];
-		// 			switch( this.centerCardState ) {
-		// 				case eCommunityCardStep.FLOP:
-		// 					openCards = this.communityCardIndex.slice( 0, 3 );
-		// 					break;
-
-		// 				case eCommunityCardStep.TURN:
-		// 					openCards = this.communityCardIndex.slice( 0, 4 );
-		// 					break;
-
-		// 				case eCommunityCardStep.RIVER:
-		// 				case eCommunityCardStep.RESULT:
-		// 					openCards = this.communityCardIndex;
-		// 					break;
-		// 			}
-
-		// 			this.UpdateSeatInfo();
-
-		// 			entity.tableInitChips = oldChips;
-		// 			entity.tableBuyInAmount = buyInAmount;
-		// 			entity.tableBuyInCount = 1;
-
-		// 			client.send("RES_BUY_IN", {
-		// 				ret: 0,
-		// 				amount: buyInAmount,
-		// 				message: "SUCCEED.",
-		// 				tableBuyInAmount: entity.tableBuyInAmount,
-		// 				tableBuyInCount: entity.tableBuyInCount,
-		// 			});
-
-		// 			let playerCards = null;
-		// 			let winners = null;
-		// 			let showdown = null;
-
-		// 			if ( this.state.gameState == eGameState.Result )
-		// 			{
-		// 				playerCards = this.GetPlayerCards();
-		// 				winners = this.GetWinners( this.isAllFold(), false );
-		// 			}
-
-		// 			if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
-		// 				showdown = this.GetShowdown();
-		// 				winners = this.GetWinners( false, true );
-
-		// 				switch ( this.SHOWDOWN_STATE ) {				
-		// 					case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
-		// 						openCards = [];
-		// 						break;
-				
-		// 					case ENUM_SHOWDOWN_STEP.SHOW_FLOP:
-		// 						openCards = this.communityCardIndex.slice( 0, 3 );
-		// 						break;
-				
-		// 					case ENUM_SHOWDOWN_STEP.SHOW_TURN:
-		// 						openCards = this.communityCardIndex.slice( 0, 4 );
-		// 						break;
-				
-		// 					case ENUM_SHOWDOWN_STEP.SHOW_RIVER:
-		// 						openCards = this.communityCardIndex;
-		// 						break;
-				
-		// 					case ENUM_SHOWDOWN_STEP.SHOWDOWN_END:
-		// 						openCards = this.communityCardIndex;							
-		// 						winners = this.GetWinners( false, true );
-		// 						break;
-		// 				}						
-		// 			}
-		
-		// 			client.send( "JOIN", {
-		// 				yourself: entity,
-		// 				entities: this.state.entities,
-		// 				gameState: this.state.gameState,
-		// 				showdownState: this.SHOWDOWN_STATE,
-		// 				betSeat: this.betSeat,
-		// 				endSeat: this.endSeat,
-		// 				maxBet: this.state.maxBet,
-		// 				minRaise: this.state.minRaise,
-		// 				pot: this.state.pot,						
-		// 				centerCardState: this.centerCardState,
-		// 				openCards: openCards,
-		// 				small: this.conf[ "smallBlind" ],
-		// 				big: this.conf[ "bigBlind" ],
-		// 				minStakePrice: this.conf["minStakePrice"],
-		// 				maxStakePrice: this.conf["maxStakePrice"],
-		// 				dealer: this.dealerCalc.getDealer(),
-		// 				sb : this.dealerCalc.getSb(),
-		// 				bb : this.dealerCalc.getBb(),
-		// 				tableInitChips: entity.tableInitChips,
-		// 				tableBuyInAmount: entity.tableBuyInAmount,
-		// 				tableBuyInCount: entity.tableBuyInCount,
-		// 				initPot: this._initPot,
-		// 				playerCards: playerCards,
-		// 				showdown: showdown,
-		// 				winners: winners,
-		// 			} );
-
-		// 			if( eGameState.Suspend === this.state.gameState ) {
-		// 				entity.isNew = false;
-		// 				let isStart = this.checkStartCondition();
-		// 				if ( true === isStart ) {
-		// 					this.changeState( eGameState.Ready );
-		// 				}
-		// 			} else if (eGameState.Ready === this.state.gameState) {
-		// 				entity.isNew = false;
-		// 			}
-
-		// 			this.broadcast( "NEW_ENTITY", { newEntity: entity } );
-		// 		}
-		// 	} );
-		// } catch( e ) {
-		// 	if( e === undefined ) {
-		// 		e = "error";
-		// 	}
-
-		// 	client.send("RES_BUY_IN", {
-		// 		ret: -1,
-		// 		amount: 0,
-		// 		message: e,
-		// 		tableBuyInAmount: 0,
-		// 		tableBuyInCount: 0,
-		// 	});
-		// }
+			pot: this.state.pot,			
+			centerCardState: this.centerCardState,
+			openCards: openCards,
+			small: this.conf[ "smallBlind" ],
+			big: this.conf[ "bigBlind" ],
+			minStakePrice: this.conf["minStakePrice"],
+			maxStakePrice: this.conf["maxStakePrice"],
+			primCard : prim,
+			secCard : sec,
+			dealer: this._DealerCalculator.getDealer(),
+			sb : this._DealerCalculator.getSb(),
+			bb : this._DealerCalculator.getBb(),
+			tableInitChips: entity.tableInitChips,
+			tableBuyInAmount: entity.tableBuyInAmount,
+			tableBuyInCount: entity.tableBuyInCount,
+			initPot: this._initPot
+		} );
 	}
 	
 	onFORE_GROUND( client: Client, msg: any ) {
@@ -4132,9 +4003,9 @@ export class HoldemRoom extends Room<RoomState> {
 				entity.background = false;
 				entity.backgroundTimestamp = 0;
 			}
-
 		}
 
+		// this.onSYNC_TABLE( client, msg);
 	}
 
 	onBACK_GROUND( client: Client, msg: any ) {

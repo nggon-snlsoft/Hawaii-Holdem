@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, Button, director, Game, Scene, sys } from 'cc';
+import { _decorator, Component, Node, Label, Button, director, Game, Scene, sys, Sprite } from 'cc';
 import { UiLobbyBottom } from './Lobby/UiLobbyBottom';
 import { UiLobbyPopup } from './Lobby/UiLobbyPopup';
 import { UiPlayer } from './Lobby/UiPlayer';
@@ -25,6 +25,7 @@ export class UiLobby extends Component {
 
     @property(Button) buttonExit: Button = null;
     @property(Button) buttonSetting: Button = null;
+    @property(Sprite) spriteBlocker: Label = null;
 
 	private user : any = null;
     private setting: any = null;
@@ -36,7 +37,7 @@ export class UiLobby extends Component {
         this.uiLobbyPopup.init( this );
 
         this.uiPlayer.init( this.onShowAvartProfile.bind(this) );
-        this.uiTableList.init( this.onJoinTable.bind(this) );
+        this.uiTableList.init( this.onJoinTable.bind(this), this.EXIT_LOBBY.bind( this ) );
         this.uiLobbyLoading.init();
         
         this.uiLobbyBottom.init( this.onSHOW_POINT.bind(this), this.onSHOW_RANKING.bind(this), this.onSHOW_CHARGE.bind(this), 
@@ -58,6 +59,8 @@ export class UiLobby extends Component {
                 this.cbEnd = cbEnd;
             }
         }
+
+        this.spriteBlocker.node.active = false;
 
         this.canRefresh = true;
         this.user = NetworkManager.Instance().GetUser();
@@ -93,22 +96,22 @@ export class UiLobby extends Component {
             return;
         }
 
-        NetworkManager.Instance().getPOPUPS((res)=>{
+        NetworkManager.Instance().getPOPUPS(( res )=>{
             if ( res != null ) {
-                let popups: any[] = null;
+                let popups: any[] = res.popups;
 
-                if ( res.popups != null ) {
-                    popups = res.popups;
-                    popups.sort( (e1: any, e2: any )=>{
-                        if ( e1.store_id > e2.store_id ) {
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    });
-                }
+                // if ( res.popups != null ) {
+                //     popups = res.popups;
+                //     popups.sort( (e1: any, e2: any )=>{
+                //         if ( e1.store_id > e2.store_id ) {
+                //             return 1;
+                //         } else {
+                //             return -1;
+                //         }
+                //     });
+                // }
 
-                if ( popups.length > 0 ) {
+                if ( popups != null && popups.length > 0 ) {
                     this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
                         this.uiLobbyPopup.CloseEventPopup();
                         GameManager.Instance().SetShowEventPopup( false );
@@ -189,18 +192,10 @@ export class UiLobby extends Component {
 
             if ( this.cbEnd != null ) {
                 this.cbEnd();
-
                 this.cbEnd = null;
             }
 
-            director.loadScene("LoginScene",
-            (error: null | Error, scene?: Scene )=>{
-
-            },
-            ()=>{
-
-            });
-
+            this.EXIT_LOBBY();
         }, ()=>{
             LobbySystemPopup.instance.closePopup();
         })
@@ -322,6 +317,16 @@ export class UiLobby extends Component {
         console.log( 'this.onHideTimestamp' + this.onHideTimestamp );
 
         this.onUNREGIST_SCHEDULE();
+    }
+
+    private EXIT_LOBBY() {
+        this.spriteBlocker.node.active = true;
+        this.onUNREGIST_SCHEDULE();        
+        director.loadScene('LoginScene', ()=>{
+
+        }, ()=>{
+
+        });
     }
 }
 

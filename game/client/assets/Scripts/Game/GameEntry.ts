@@ -76,7 +76,7 @@ export class GameEntry extends Component {
 
             if ( this._labelIP != null ) {
                 this._labelIP.string = '( ' + Board.ip + ' )';
-                this._labelIP.node.active = true;
+                this._labelIP.node.active = false;
             }            
 
             if ( this._labelAnte != null ) {
@@ -141,8 +141,8 @@ export class GameEntry extends Component {
 
             this._labelIP = this._rootInformation.getChildByPath('LABEL_IP').getComponent(Label);
             if ( this._labelIP != null ) {
+                this._labelIP.string = '';                
                 this._labelIP.node.active = false;
-                this._labelIP.string = '';
             }
         }
 

@@ -97,7 +97,10 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         this.buttonConfirm.node.active = false;
         this.buttonConfirmDisable.node.active = true;
 
-        if ( popup.url.length > 0 ) {
+        const regex = /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+        let v = regex.test(popup.url);
+
+        if ( popup.url.length > 0 && v == true ) {
             await this.GetSpriteFromUrl( popup.url, (sf: any )=>{
             
                 this.spriteEvent.spriteFrame = sf;
@@ -119,6 +122,12 @@ export class UiLOBBY_POPUP_EVENT extends Component {
             }, ( err: any )=>{
                 this.labelLoadingMessage.string = '이미지를 로드할 수 없습니다.';
                 this.labelLoadingMessage.node.active = true;
+
+                this.spriteEvent.spriteFrame = null;
+                this.spriteEvent.spriteFrame = this.defaultSpriteFrame;
+                this.spriteEvent.node.active = true;                
+        
+                this.spriteEvent.color = Color.BLACK;
     
                 this.buttonConfirm.node.active = true;
                 this.buttonConfirmDisable.node.active = false;

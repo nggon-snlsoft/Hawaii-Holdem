@@ -29,7 +29,7 @@ export class StoreController {
         this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
         this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));
         this.router.post( '/popups/get', this.onGET_POPUPS.bind( this ));
-        this.router.post( '/ticket/check', this.onCHECK_TICKETS.bind( this ));        
+        this.router.post( '/ticket/check', this.onCHECK_TICKETS.bind( this ));
     }
 
     public async onGET_STORE( req: any, res: any ) {
@@ -352,7 +352,6 @@ export class StoreController {
 
     public async onGET_POPUPS( req: any, res: any ) {
         let user_id = req.body.user_id;
-        let store_id = req.body.store_id;
         let token = req.body.token;
 
         let verify: any = null;
@@ -370,17 +369,9 @@ export class StoreController {
             return;
         }
 
-        if ( store_id == null || store_id <= 0 ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_STORE_ID'
-            });
-            return;
-        }
-
         let popups: any = null;
         try {
-            popups = await this.reqPOPUPS_BySTORE_ID( req.app.get('DAO'), store_id );
+            popups = await this.reqPOPUPS_BySTORE_ID( req.app.get('DAO'));
         } catch (error) {
             console.log( error );
         }
@@ -557,9 +548,9 @@ export class StoreController {
         });
     }
 
-    private async reqPOPUPS_BySTORE_ID( dao: any, store_id: number ) {
+    private async reqPOPUPS_BySTORE_ID( dao: any) {
         return new Promise( (resolve, reject )=>{
-            dao.SELECT_POPUPS_BySTORE_ID ( store_id, function(err: any, res: any ) {
+            dao.SELECT_POPUPS_BySTORE_ID ( function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({

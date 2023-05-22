@@ -33,6 +33,7 @@ export class UiPlayer extends Component {
         this.labelChips.string = this.chips.toString();
         this.labelPoints.string = this.points.toString();
         this.labelIp.string = '';
+        this.labelIp.node.active = false;
 
         this.buttonAvatar.node.on("click", this.onClickAvatar.bind(this), this);
         this.spriteAvatar.node.active = false;
@@ -53,13 +54,13 @@ export class UiPlayer extends Component {
 
     public refresh() {
         let user = NetworkManager.Instance().GetUser();
-        console.log(user);
         if (user != null)
         {
             this.labelNickname.string = user.nickname;
             this.labelChips.string = CommonUtil.getKoreanNumber(user.balance + user.chip);
             this.labelPoints.string = CommonUtil.getKoreanNumber(user.point);
             this.labelIp.string = '( ' + user.login_ip + ' )';
+            this.labelIp.node.active = false;
 
             let s = Number( user.avatar );
             let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage( s );

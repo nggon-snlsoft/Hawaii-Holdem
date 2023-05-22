@@ -260,6 +260,8 @@ export class UiSeats extends Component {
             this.unselectSeatDuringTime = true;
 
             Board.table.leave();
+            this.unscheduleAllCallbacks();
+
             UiGameSystemPopup.instance.showOkPopup('자리 선택', '자리를 선택하지 않아 로비로 이동합니다', ()=>{
                 UiGameSystemPopup.instance.closePopup();
                 Board.table.LoadLobby();

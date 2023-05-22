@@ -107,10 +107,15 @@ export class UiTableList extends Component {
     private elementPool: TableListUiElement[] = [];
 
     private cbJoinTable: (table: any)=>void = null;
+    private cbExitLobby: ()=>void = null;
 
-    public init( cbJoinTable: (table: any)=>void ) {
+    public init( cbJoinTable: (table: any)=>void, exitLobby: ()=> void  ) {
         if ( cbJoinTable != null ) {
             this.cbJoinTable = cbJoinTable;
+        }
+
+        if ( exitLobby != null ) {
+            this.cbExitLobby = exitLobby;
         }
 
         this.toggleHoldemTable.node.on('toggle', this.onToggleHoldemTable.bind(this), this);
@@ -231,15 +236,17 @@ export class UiTableList extends Component {
         }, (err)=>{
             if ( err.code == ENUM_RESULT_CODE.DISCONNECT_SERVER ) {
                 LobbySystemPopup.instance.showPopUpOk('로비', '게임서버에 연결할 수 없습니다.', ()=>{
-                    LobbySystemPopup.instance.closePopup();
+                    if ( this.cbExitLobby != null ) {
+                        this.cbExitLobby();
 
-                    this.end();
+                    }
 
-                    director.loadScene('LoginScene', ()=>{
+                    // this.end();
+                    // director.loadScene('LoginScene', ()=>{
 
-                    }, ()=>{
+                    // }, ()=>{
 
-                    });
+                    // });
                 });
             }
         });

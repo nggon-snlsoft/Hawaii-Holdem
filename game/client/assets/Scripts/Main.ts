@@ -27,7 +27,7 @@ export class Main extends Component {
 	protected onLoad(): void {
 		GameManager.Instance().Init();
 		GameManager.Instance().SetVersion( this.version );
-		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.PC_LANDSCAPE );
+		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.MOBILE_PORTRAIT );
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;
@@ -102,6 +102,14 @@ export class Main extends Component {
 				});
 			}
 		} );
+
+		NetworkManager.Instance().reqCHECK_GAME_SERVER(( res: any )=>{
+			console.log( 'SET_GAME_SERVER: ' + res );
+
+		}, ( err: any )=>{
+			console.log( err );
+
+		});
 	}
 
 	public onShowJoinMember() {

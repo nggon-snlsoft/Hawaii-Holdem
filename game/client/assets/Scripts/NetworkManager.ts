@@ -16,14 +16,19 @@ export enum ENUM_RESULT_CODE {
 
 export enum HOLDEM_SERVER_TYPE {
 	API_SERVER = 0,
-	GAME_SERVER = 1,
+	API_SERVER_SUB = 1,	
+	GAME_SERVER = 2,
+	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const apiPort: number = 7500;
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-// const gameHost: string = '127.0.0.1';
-// const gamePort: number = 7510;
+const apiPort: number = 7500;
+const apiPort_sub: number = 7510;
+
+const gamePort: number = 7600;
+const gamePort_sub: number = 7610;
 
 // const apiHost: string = 'hw-123.com';
 // const apiPort: number = 7500;
@@ -31,11 +36,11 @@ export enum HOLDEM_SERVER_TYPE {
 // const gameHost: string = 'hw-123.com';
 // const gamePort: number = 7510;
 
-const apiHost: string = '43.207.193.204';
-const apiPort: number = 7500;
+// const apiHost: string = '43.207.193.204';
+// const apiPort: number = 7500;
 
-const gameHost: string = '43.207.193.204';
-const gamePort: number = 7510;
+// const gameHost: string = '43.207.193.204';
+// const gamePort: number = 7510;
 
 // const apiHost: string = '18.183.95.34';
 // const apiPort: number = 2600;
@@ -59,6 +64,10 @@ export class NetworkManager extends cc.Component {
 	private config: any = null;
 	private store: any = null;	
 	private token: string = null;
+	private API_SERVER: HOLDEM_SERVER_TYPE = HOLDEM_SERVER_TYPE.API_SERVER;
+	private GAME_SERVER: HOLDEM_SERVER_TYPE = HOLDEM_SERVER_TYPE.GAME_SERVER;
+	private api_port: number = apiPort;
+	private game_port: number = gamePort;	
 
     public static Instance() : NetworkManager
 	{
@@ -85,15 +94,28 @@ export class NetworkManager extends cc.Component {
 		});
 
 		if ( error != null ) {
-			onFail({
-				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
-				msg: 'DISCONNECT_SERVER',
+			error = null;
+			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER_SUB, '/check', {
+				version: version,
+			} )
+			.then( (res: string)=> {
+				result_api = res;
+			})
+			.catch( (err: any)=>{
+				error = err;
 			});
-			return;
+
+			if ( error != null ) {
+				onFail({
+					code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+					msg: 'DISCONNECT_SERVER',
+				});			
+				return;	
+			}
+			this.API_SERVER = HOLDEM_SERVER_TYPE.API_SERVER_SUB;
 		}
 
 		let obj : any = JSON.parse( result_api );
-
 		if( obj == null ){
 			onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -129,7 +151,7 @@ export class NetworkManager extends cc.Component {
 		let token = this.token;
 		let result: string = null;
 		let error: string = null;
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/token/verify', {
+		await this.Post( this.API_SERVER, '/token/verify', {
 			user_id: user_id,
 			token: token,
 		} )
@@ -169,7 +191,7 @@ export class NetworkManager extends cc.Component {
 	}	
 
 	public async reqCHECK_VERSION( version: number, onSuccess:(res: any)=>void , onFail:(msg: any)=>void) {
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/check', {
+		await this.Post( this.API_SERVER, '/check', {
 			version: version,
 		} )
 		.then( (res: string)=> {
@@ -184,7 +206,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/ticket/check', {
+		await this.Post( this.API_SERVER, '/store/ticket/check', {
 			ticket_id: ticket_id,
 
 		} ).then(( res: string ) => {
@@ -220,7 +242,7 @@ export class NetworkManager extends cc.Component {
 		let isConnect: boolean = true;
 		let version: string = GameManager.Instance().GetVersion();
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/login', {
+		await this.Post( this.API_SERVER, '/users/login', {
 			login_id: login_id,
 			password: password,
 			version: version,
@@ -287,7 +309,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/getInitData", {
+		await this.Post( this.API_SERVER, "/users/getInitData", {
 			user_id: user_id,
 
 		} ).then(( res: string ) => {
@@ -336,7 +358,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/store/popups/get", {
+		await this.Post( this.API_SERVER, "/store/popups/get", {
 			user_id: user_id,
 			store_id: store_id,
 			token: token,
@@ -373,7 +395,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/statics/get", {
+		await this.Post( this.API_SERVER, "/users/statics/get", {
 			user_id: user_id,
 			token: this.token,
 
@@ -417,7 +439,7 @@ export class NetworkManager extends cc.Component {
 		let isConnect = false;
 		let user_id = this.user.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/refresh", {
+		await this.Post( this.API_SERVER, "/users/refresh", {
 			user_id: user_id,
 			token: this.token,
 
@@ -459,7 +481,7 @@ export class NetworkManager extends cc.Component {
 		let user_id = this.user.id;
 		let version = GameManager.Instance().GetVersion();
 
-		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/get", {
+		await this.Post( this.GAME_SERVER, "/tables/get", {
 			user_id: user_id,
 			token: this.token,
 			version: version,
@@ -502,7 +524,7 @@ export class NetworkManager extends cc.Component {
 		let user_id = this.user.id;
 		let version = GameManager.Instance().GetVersion();
 
-		await this.Post(HOLDEM_SERVER_TYPE.GAME_SERVER, "/tables/enter", {
+		await this.Post( this.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
 			user_id: user_id,
 			token: this.token,
@@ -553,7 +575,7 @@ export class NetworkManager extends cc.Component {
 		}
 
 		if ( result.code == ENUM_RESULT_CODE.SUCCESS ) {
-			this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( gamePort ) || this.useSSL) ? "" : `:${gamePort}`}`);
+			this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( this.game_port ) || this.useSSL) ? "" : `:${ this.game_port }`}`);
 			this.client.consumeSeatReservation( result["seatReservation"]).then( (room) => {
 				this.room = room;
 				onSuccess( this.room, result );
@@ -605,7 +627,7 @@ export class NetworkManager extends cc.Component {
 		let user_id = this.user.id;
 		let store_id = this.user.store_id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/get', {
+		await this.Post(this.API_SERVER, '/store/get', {
 			store_id: store_id,
 			user_id: user_id,
 			token: this.token,
@@ -652,7 +674,7 @@ export class NetworkManager extends cc.Component {
 		let errMessage: string = null;
 		let user_id = this.user.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/chargeRequest/get', {
+		await this.Post( this.API_SERVER, '/store/chargeRequest/get', {
 			user_id: user_id,
 			token: this.token,
 		} ).then(( res: string ) => {
@@ -695,7 +717,7 @@ export class NetworkManager extends cc.Component {
 		let errMessage: string = null;
 		let user_id = this.user.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transferRequest/get', {
+		await this.Post(this.API_SERVER, '/store/transferRequest/get', {
 			user_id: user_id,
 			token: this.token,
 		} ).then(( res: string ) => {
@@ -740,7 +762,7 @@ export class NetworkManager extends cc.Component {
 		let user_id = this.user.id;
 		
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/charge/req', {
+		await this.Post( this.API_SERVER, '/store/charge/req', {
 			user_id: user_id,
 			amount: amount,
 			holder: holder,
@@ -780,7 +802,7 @@ export class NetworkManager extends cc.Component {
 		let errMessage: string = null;
 		let user_id = this.user.id;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/store/transfer/req', {
+		await this.Post( this.API_SERVER, '/store/transfer/req', {
 			user_id: user_id,
 			value: data.value,
 			password: data.password,
@@ -822,7 +844,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/get', {
+		await this.Post( this.API_SERVER, '/users/setting/get', {
 			user_id: user_id,
 			token: this.token,
 		} ).then(( res: string ) => {
@@ -867,7 +889,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, "/users/join", {
+			await this.Post( this.API_SERVER, "/users/join", {
 				user: user,
 			}).then(( res: string ) => {
 				result = res;
@@ -907,7 +929,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/login_id', { login_id: login_id }
+			await this.Post( this.API_SERVER, '/users/check/login_id', { login_id: login_id }
 			).then( ( res: string )=>{
 				result = res;
 			}).catch( ( err: any )=>{
@@ -945,7 +967,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/check/nickname', { nickname: nickname }
+			await this.Post( this.API_SERVER, '/users/check/nickname', { nickname: nickname }
 			).then( ( res: string )=>{
 				result = res;
 			}).catch( ( err: any )=>{
@@ -985,7 +1007,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transfer', { 
+			await this.Post( this.API_SERVER, '/users/point/transfer', { 
 				user_id: user_id,
 				value: value,
 				token: this.token, 
@@ -1037,7 +1059,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/transferLog', { 
+			await this.Post( this.API_SERVER, '/users/point/transferLog', { 
 				user_id: user_id,
 				token: this.token,
 			}
@@ -1085,7 +1107,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/get', { 
+			await this.Post( this.API_SERVER, '/users/qna/get', { 
 				user_id: user_id,
 				token: token,
 			}
@@ -1133,7 +1155,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/qna/send', {
+			await this.Post(this.API_SERVER, '/users/qna/send', {
 				user_id: user_id,
 				token: token,
 				data: data,
@@ -1181,7 +1203,7 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 
 		try {
-			await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/point/receiveLog', { 
+			await this.Post( this.API_SERVER, '/users/point/receiveLog', { 
 				user_id: user_id,
 				token: this.token,
 			}
@@ -1253,7 +1275,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let errMessage: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/updateAvatar', {
+		await this.Post( this.API_SERVER, '/users/updateAvatar', {
 			user_id: user_id,
 			avatar: avatar,
 			token: this.token,
@@ -1301,7 +1323,7 @@ export class NetworkManager extends cc.Component {
 		let setting: any = selected;
 		let errMessage: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/setting/update', {
+		await this.Post( this.API_SERVER, '/users/setting/update', {
 			user_id: user_id,
 			setting: setting,
 			token: this.token,
@@ -1349,7 +1371,7 @@ export class NetworkManager extends cc.Component {
 		let result: string = '';
 		let error: string = null;
 
-		await this.Post( HOLDEM_SERVER_TYPE.API_SERVER, '/users/get', {
+		await this.Post( this.API_SERVER, '/users/get', {
 			user_id: user_id,
 			token: this.token,
 
@@ -1391,6 +1413,37 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
+	public async reqCHECK_GAME_SERVER( onSuccess: (res)=> void, onFail: (err)=> void ) {
+		let game_servers: any[] = [];
+
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER, '/check', {
+		} ).then(( res: string ) => {
+			game_servers.push({
+				server: HOLDEM_SERVER_TYPE.GAME_SERVER,
+				port: gamePort,
+			});
+		}).catch( function( err: any ) {
+		} );
+
+		await this.Post( HOLDEM_SERVER_TYPE.GAME_SERVER_SUB, '/check', {
+		} ).then(( res: string ) => {
+			game_servers.push({
+				server: HOLDEM_SERVER_TYPE.GAME_SERVER_SUB,
+				port: gamePort_sub,
+			});			
+		}).catch( function( err: any ) {
+		} );
+
+		if ( game_servers.length > 0 ) {
+			this.GAME_SERVER = game_servers[0].server;
+			this.game_port = game_servers[0].port;
+		} else {
+			this.GAME_SERVER = HOLDEM_SERVER_TYPE.GAME_SERVER;
+			this.game_port = gamePort;
+		}
+		onSuccess( this.GAME_SERVER );
+	}
+
 	private Post( type:HOLDEM_SERVER_TYPE , url, params ) {
 		return new Promise( ( resolve, reject ) => {
 			let xhr = new XMLHttpRequest();
@@ -1419,9 +1472,15 @@ export class NetworkManager extends cc.Component {
 				case HOLDEM_SERVER_TYPE.API_SERVER:
 					fullUrl = `http://${ apiHost }:${ apiPort }`;
 				break;
+				case HOLDEM_SERVER_TYPE.API_SERVER_SUB:
+					fullUrl = `http://${ apiHost }:${ apiPort_sub }`;
+				break;				
 				case HOLDEM_SERVER_TYPE.GAME_SERVER	:
-					fullUrl = `http://${ gameHost }:${ gamePort }`;					
+					fullUrl = `http://${ gameHost }:${ gamePort }`;
 				break;
+				case HOLDEM_SERVER_TYPE.GAME_SERVER_SUB	:
+					fullUrl = `http://${ gameHost }:${ gamePort_sub }`;
+				break;				
 			}
 			fullUrl += url;
 

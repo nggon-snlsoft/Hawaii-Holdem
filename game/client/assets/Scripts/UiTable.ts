@@ -139,6 +139,7 @@ export class UiTable extends Component {
 	private labelReservationSitout: Label = null;
 	private rootCurrentPot: Node = null;
 	private reserveLeave: boolean = false;
+	private updateClinet: boolean = true;
 
     init() {
         this.seatMax = UiTable.seatMaxFromServer;
@@ -469,38 +470,6 @@ export class UiTable extends Component {
     }
 
     onCLICK_EXIT() {
-		// if ( this.reserveLeave == true ) {
-		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "나가기 예약중입니다. \n최소하시겠습니까?", ()=>{
-
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	}, ()=>{
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	});
-		// } else {
-		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-		// 		let user = NetworkManager.Instance().getUserInfo();
-		// 		this.sendMsg("EXIT_TABLE", {
-		// 			seat : this.mySeat,
-		// 			id : user.id,
-		// 		});
-
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	}, ()=>{
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	});
-		// }
-	
-		// UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-		// 	let user = NetworkManager.Instance().getUserInfo();
-		// 	this.sendMsg("EXIT_TABLE", {
-		// 		seat : this.mySeat,
-		// 		id : user.id,
-		// 	});
-
-		// 	UiGameSystemPopup.instance.closePopup();
-		// }, ()=>{
-		// 	UiGameSystemPopup.instance.closePopup();
-		// });
 
 		let user = NetworkManager.Instance().GetUser();
 		if ( this.uiSeats.node.active == true ) {
@@ -679,7 +648,151 @@ export class UiTable extends Component {
 	}
 
 	private onSYNC_TABLE( msg ) {
+		this.GAME_STATE = msg['gameState'];
+		this.SHOWDOWN_STATE = msg['showdownState'];
 
+		this.uiCommunityCards.Reset();
+		this.uiPot.maxPotRoot.active = false;
+		this.labelCurrentPot.node.active = false;
+		this.buttonShowCard.node.active = false;
+
+		this.uiPot.Hide();
+		this.uiPotChips.hide();
+		this.uiRoundPotValue.hide();
+		this.uiProfile.hide();
+
+		this.msgWINNERS = '';
+
+		this.uiPlayerAction.init( Board.small, Board.big );
+		this.uiPlayerAction.hide();
+		this.uiPlayerActionReservation.hide();
+
+		let myEntity = msg["yourself"];		
+		Board.balance = myEntity.balance;
+		this.mySeat = myEntity.seat;
+		this.myChips = myEntity.chips;
+		this.myWaitStatus = myEntity.wait;
+        this.isFold = false;
+		this.isAllIn = false;
+		this.isSitout = myEntity.isSitOut;
+
+        let players: any = msg["entities"];
+		this.countPlayers = players.length;
+        this.SEAT_PLAYERS = [];
+
+        for ( let i = 0; i < this.seatMax ; i++) {
+            let seat = this.mySeat + i;
+            this.SEAT_PLAYERS.push( seat % this.seatMax );
+        }
+
+        this.SetEntities( players );
+		this.enableSeats = [];
+
+		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
+			let seat = this.SEAT_PLAYERS[ i ];
+			let entity =  msg[ "entities" ].find( elem => elem.seat == seat );
+			let uiEntity = this.ENTITY_ELEMENTS[ i ];
+
+			if( null == entity ) {
+				uiEntity.SetEscape();
+				continue;
+			}
+
+			this.enableSeats.push( entity.seat );
+		}		
+
+		if ( this.GAME_STATE == GAME_STATE_SUSPEND ) {
+
+			this.labelReadyMessage.string = '다른 플레이어를 기다리고 있습니다';
+			this.labelReadyMessage.node.active = true;
+
+			this.uiPot.Hide();
+
+		} else {
+			this.seatDealer = msg["dealer"];
+			let uiDealer = this.GetEntityFromSeat( this.seatDealer );
+			if ( uiDealer != null ) {
+				uiDealer.SetButtons('DEALER');
+			}
+
+			this.seatSB = msg['sb'];
+			let uiSB = this.GetEntityFromSeat( this.seatSB );
+			if ( uiSB != null ) {
+				uiSB.SetButtons('SB');
+			}
+
+			this.seatBB = msg['bb'];
+			let uiBB = this.GetEntityFromSeat( this.seatBB );
+			if ( uiBB != null ) {
+				uiBB.SetButtons('BB');
+			}
+
+			if ( this.GAME_STATE == GAME_STATE_PREFLOP ||
+				 this.GAME_STATE == GAME_STATE_BET || 
+				 this.GAME_STATE == GAME_STATE_FLOP ||
+				 this.GAME_STATE == GAME_STATE_TURN ||
+				 this.GAME_STATE == GAME_STATE_RIVER )
+			{
+				this.curPotValue = msg['pot'];
+				this.uiPotChips.show( this.curPotValue );
+				this.uiRoundPotValue.show( this.curPotValue );
+
+				players.forEach( ( e )=> {
+					let uiEntity = this.GetEntityFromSeat( e.seat );
+					if ( uiEntity != null ) {
+						if ( e.wait == true ) {
+							uiEntity.SetWait();
+						} else {
+							if ( e.fold == true ) {
+								uiEntity.SetFold();								
+							} else {
+								if ( e.seat != this.mySeat ) {
+									uiEntity.ClearHands();
+									uiEntity.SetShowHiddenCard();
+									uiEntity.SetBetValue( e.roundBet );
+								}
+							}
+						}
+					}
+				});
+
+				this.curPotValue = msg['pot'];
+				if ( this.curPotValue > 0 ) {
+					this.labelCurrentPot.string = '현재 팟: ' + CommonUtil.getKoreanNumber(this.curPotValue);
+				}
+				this.uiPotChips.show( msg['initPot'] );
+				this.uiRoundPotValue.show( msg['initPot'] );
+				
+				this.SetUiCommunityCards( msg[ "openCards" ] );
+			} else if ( this.GAME_STATE == GAME_STATE_RESULT ) {
+				let playerCards = msg['playerCards'];
+				let winners = msg['winners'];
+
+				this.SetUiCommunityCards( msg[ "openCards" ] );
+
+				if ( playerCards != null ) {
+					this.onPLAYER_CARDS(playerCards);
+				}
+
+				if ( winners != null ) {
+					this.onWINNERS(winners);
+				}
+
+			} else if ( this.GAME_STATE == GAME_STATE_SHOWDOWN ) {
+				let showdown = msg['showdown'];
+				let winners = msg['winners'];
+				
+				this.ShowdownOpenHands(showdown);
+				this.SetUiCommunityCards( msg[ "openCards" ] );
+				this.UpdatePlayerHandRank();
+
+				if ( this.SHOWDOWN_STATE == SHOWDOWN_END ) {
+					if ( winners != null ) {
+						this.onWINNERS( winners );
+					}
+				}
+			}
+		}
 	}	
 
 	public LoadLobby() {
@@ -2937,14 +3050,23 @@ export class UiTable extends Component {
 	}
 
 	public onEVENT_FOREGROUND() {
-		console.log('onEVENT_FOREGROUND');
+		if ( this.uiSeats != null && this.uiSeats.node.active == true) {
+			return;
+		}
+
+		this.updateClinet = true;
+
 		this.sendMsg("FORE_GROUND", { 
 			seat: this.mySeat,
 		});
 	}
 
 	public onEVENT_BACKGROUND() {
-		console.log('onEVENT_BACKGROUND');		
+		if ( this.uiSeats != null && this.uiSeats.node.active == true) {
+			return;
+		}
+				
+		this.updateClinet = false;		
 		this.sendMsg("BACK_GROUND", { 
 			seat: this.mySeat,			
 		});
@@ -2972,6 +3094,7 @@ export class UiTable extends Component {
 	}
 
 	private CloseProfile( seat: number ) {
+
 	}
 }
 

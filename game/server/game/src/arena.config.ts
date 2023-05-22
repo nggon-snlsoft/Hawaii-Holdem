@@ -62,9 +62,9 @@ export default Arena( {
 
 		app.set( "DAO", dao );
 		app.use( "/tables", tableController.router );
-		app.use( "/check", ()=>{
-
-		} );		
+		app.use( "/check", (req, res )=>{
+			res.send( "GAME_SERVER_OK" );
+		} );
 
 		app.get( "/", ( req, res ) => {
 			res.send( "It could not be a better day to die~~ :)" );

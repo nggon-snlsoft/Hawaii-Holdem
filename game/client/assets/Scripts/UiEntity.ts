@@ -195,7 +195,7 @@ export class UiEntity extends Component {
             this.uiPotChips.node.active = false;
         }
 
-        this.buttonAvatar = this.node.getChildByPath('AVATAR').getComponent(Button);
+        this.buttonAvatar = this.node.getChildByPath('AVATAR/BUTTON_PROFILE').getComponent(Button);
         if ( this.buttonAvatar != null ) {
             this.buttonAvatar.node.off( 'click' );
             this.buttonAvatar.node.on( 'click', this.onClickAvatar.bind(this), this );

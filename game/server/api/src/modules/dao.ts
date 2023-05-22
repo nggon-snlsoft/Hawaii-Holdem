@@ -490,12 +490,11 @@ dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 	});
 };
 
-dao.SELECT_POPUPS_BySTORE_ID = function ( store_id: any, cb: any ) {
+dao.SELECT_POPUPS_BySTORE_ID = function ( cb: any ) {
 
 	let sql = 'SELECT * FROM POPUPS WHERE DISABLE = 0';
-	let args = [ store_id ];
 
-	_client.query(sql, args, function (err: any, res: any) {
+	_client.query(sql, null, function (err: any, res: any) {
 		if (!!err) {
 			if (!!cb) {
 				cb(err, null);
