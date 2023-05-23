@@ -73,7 +73,7 @@ export class HoldemApiServer {
         this.app.get( '/', (req, res)=>{
 			res.send( "It could not be a better day to die" );
         });
-        this.app.use( '/check', this.CheckServer.bind(this) );
+        this.app.use( '/check', this.CheckVersion.bind(this) );
     }
 
     private CheckServer( req: any, res: any ) {
@@ -91,8 +91,6 @@ export class HoldemApiServer {
     private CheckVersion( req: any, res: any ) {
         let cv = req.body.version;
         let sv = this.conf.version;
-
-        let clientIp = requestIp.getClientIp( req );
 
         if ( cv == sv ) {
             res.status( 200 ).json({

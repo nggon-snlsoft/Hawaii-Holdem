@@ -134,7 +134,11 @@ export class UiLogin extends Component {
             }
             else {
                 let desc: string = '';
+                console.log(res);
                 switch ( res.msg ) {
+                    case 'INVALID_VERSION':
+                        desc = '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.';
+                        break;                    
                     case 'INVALID_UID':
                         desc = '잘못된 아이디 입니다.';
                         break;
@@ -228,8 +232,17 @@ export class UiLogin extends Component {
         });
     }
 
-    onClickJoin() {
-        this.main.onShowJoinMember();
+    onClickJoin( button: Button ) {
+        button.interactable = false;
+        NetworkManager.Instance().reqJOIN_REQUEST(( res: any )=>{
+            button.interactable = true;            
+            this.main.onShowJoinMember();
+        }, ( err: any )=>{
+            button.interactable = true;
+            LoginSystemPopup.instance.showPopUpOk('회원가입', '회원가입할 수 없습니다.' , ()=>{
+
+            });
+        });
     }
 
     show() {

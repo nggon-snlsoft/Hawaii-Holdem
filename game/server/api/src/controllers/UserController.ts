@@ -10,6 +10,9 @@ import { use } from 'passport';
 import { SECRET_KEY } from '../routes/JwtMiddleware';
 import { compileFunction } from 'vm';
 import requestIp from 'request-ip';
+import * as fs from 'fs';
+import * as path from 'path';
+
 const gameConf = require('../config/gameConf.json');
 
 let Address6 = require('ip-address').Address6;
@@ -17,20 +20,28 @@ let Address6 = require('ip-address').Address6;
 export class UserController {
     public router: any = null;
     private sql: sqlProxy = null;
+    private conf: any = null;
 
     constructor( sql: sqlProxy ) {
         this.router = express.Router();
         this.sql = sql;
-
+        this.Init();
         this.initRouter();
         // this.initPassport();
 
         console.log('USER_CONTROLLER_INITIALIZED');
     }
 
+    async Init(): Promise<any>{
+        let confFile = await fs.readFileSync( path.join(__dirname, "../config/ServerConfigure.json"), {encoding : 'utf8'});
+		let confJson = JSON.parse( confFile.toString() );
+        this.conf = confJson['server'];
+    }
+
     private initRouter() {
         this.router.post( '/login', this.reqLOGIN.bind(this));
         this.router.post( '/join', this.reqJOIN.bind(this));
+        this.router.post( '/join_request', this.reqJOIN_REQUEST.bind(this));        
         this.router.post( '/refresh', this.reqREFRESH.bind(this));
         this.router.post( '/get', this.getUSER.bind(this));        
 
@@ -61,6 +72,12 @@ export class UserController {
         next( address.parsedAddress4 );
     }
 
+    public async reqJOIN_REQUEST( req: any, res: any ) {
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+        });
+    }
+
     public async reqLOGIN( req: any, res: any ) {
         let login_id = req.body.login_id;
         let password = req.body.password;
@@ -72,7 +89,16 @@ export class UserController {
             return;
         }
 
-        let version: string = req.body.version;
+        let cv: string = req.body.version;
+        let sv = this.conf.version;
+        if ( cv != sv ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_VERSION'
+            });
+            return;
+        }
+
         if ( login_id == null || login_id.length < 4 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

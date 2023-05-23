@@ -43,7 +43,6 @@ export class Main extends Component {
 			break;				
 		}
 
-
 		this.RegisterChildren();
 		this.Init();
 
@@ -69,47 +68,51 @@ export class Main extends Component {
 		}
 
 		GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
-		NetworkManager.Instance().Init( this.version, (res: any)=>{
-			this._login.show();
+		this._login.show();
 
-		}, ( err: any)=>{
+		NetworkManager.Instance().Initialize();
 
-			this._login.show();			
-			if ( err != null ) {
-				if ( err.msg != null ) {
-					if ( err.msg == 'DISCONNECT_SERVER ') {
-						this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
-							this._login.exitGame();
-						});
-					} else if ( err.msg == 'VERSION_MISMATCH') {
-						this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.', ()=>{
-							this._login.exitGame();
-						});
-					} else {
-						this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
-							this._login.exitGame();
-						});
-					}
-				} else {
-					this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
-						this._login.exitGame();
-					});
-				}
+		// NetworkManager.Instance().Init( this.version, (res: any)=>{
+		// 	this._login.show();
 
-			} else {
-				this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
-					this._login.exitGame();
-				});
-			}
-		} );
+		// }, ( err: any)=>{
 
-		NetworkManager.Instance().reqCHECK_GAME_SERVER(( res: any )=>{
-			console.log( 'SET_GAME_SERVER: ' + res );
+		// 	this._login.show();			
+		// 	if ( err != null ) {
+		// 		if ( err.msg != null ) {
+		// 			if ( err.msg == 'DISCONNECT_SERVER ') {
+		// 				this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+		// 					this._login.exitGame();
+		// 				});
+		// 			} else if ( err.msg == 'VERSION_MISMATCH') {
+		// 				this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.', ()=>{
+		// 					this._login.exitGame();
+		// 				});
+		// 			} else {
+		// 				this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+		// 					this._login.exitGame();
+		// 				});
+		// 			}
+		// 		} else {
+		// 			this._loginPopup.showPopUpOk('에러', '서버가 연결되지 않았습니다.', ()=>{
+		// 				this._login.exitGame();
+		// 			});
+		// 		}
 
-		}, ( err: any )=>{
-			console.log( err );
+		// 	} else {
+		// 		this._loginPopup.showPopUpOk('버전', '버전이 맞지 않습니다.', ()=>{
+		// 			this._login.exitGame();
+		// 		});
+		// 	}
+		// } );
 
-		});
+		// NetworkManager.Instance().reqCHECK_GAME_SERVER(( res: any )=>{
+		// 	console.log( 'SET_GAME_SERVER: ' + res );
+
+		// }, ( err: any )=>{
+		// 	console.log( err );
+
+		// });
 	}
 
 	public onShowJoinMember() {

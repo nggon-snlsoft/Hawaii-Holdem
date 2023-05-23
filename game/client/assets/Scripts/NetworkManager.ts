@@ -21,8 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-const apiHost: string = '127.0.0.1';
-const gameHost: string = '127.0.0.1';
+// const apiHost: string = '127.0.0.1';
+// const gameHost: string = '127.0.0.1';
+
+const apiHost: string = '43.207.193.204';
+const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -76,6 +79,10 @@ export class NetworkManager extends cc.Component {
 		}
 		
 		return this._instance;
+	}
+
+	public Initialize() {
+		this.token = '';		
 	}
 
 	public async Init( version: string, onSuccess: ( res: any )=>void, onFail: (msg: any )=> void ) {
@@ -262,6 +269,12 @@ export class NetworkManager extends cc.Component {
 		} );
 
 		if ( !isConnect ) {
+			if ( this.API_SERVER == HOLDEM_SERVER_TYPE.API_SERVER ) {
+				this.API_SERVER = HOLDEM_SERVER_TYPE.API_SERVER_SUB;
+			} else {
+				this.API_SERVER = HOLDEM_SERVER_TYPE.API_SERVER;
+			}
+
 			onFail({
 				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
 				msg: 'NETWORK_REFUSE',
@@ -303,6 +316,54 @@ export class NetworkManager extends cc.Component {
 			msg: obj.msg,
 			obj: obj,
 		});
+	}
+
+	public async reqJOIN_REQUEST( onSuccess : (res : any) => void, onFail : (err : any) => void) {
+		let result: string = null;
+		let error: string = null;
+		let isConnect: boolean = true;
+
+		await this.Post( this.API_SERVER, '/users/join_request', {
+		} ).then(( res: string ) => {
+			isConnect = true;
+			result = res;
+		}).catch( function( err: any ) {
+			if ( err.length == 0 ) {
+				isConnect = false;
+				return;
+			}
+		} );
+
+		if ( !isConnect ) {
+			if ( this.API_SERVER == HOLDEM_SERVER_TYPE.API_SERVER ) {
+				this.API_SERVER = HOLDEM_SERVER_TYPE.API_SERVER_SUB;
+			} else {
+				this.API_SERVER = HOLDEM_SERVER_TYPE.API_SERVER;
+			}
+
+			await this.Post( this.API_SERVER, '/users/join_request', {
+			} ).then(( res: string ) => {
+				isConnect = true;
+				result = res;
+			}).catch( function( err: any ) {
+				if ( err.length == 0 ) {
+					isConnect = false;
+					return;
+				}
+			} );
+		}
+
+		if ( !isConnect ) {
+			onFail(ENUM_RESULT_CODE.DISCONNECT_SERVER);
+			return;
+		}
+
+		if( error != null ) {
+			onFail(ENUM_RESULT_CODE.UNKNOWN_FAIL);
+			return;
+		}
+
+		onSuccess(ENUM_RESULT_CODE.SUCCESS);
 	}
 
     async getINIT_DATA( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
@@ -388,8 +449,6 @@ export class NetworkManager extends cc.Component {
 
 		onSUCCESS( obj );
 	}
-
-
 	
     async getSTATICS( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
@@ -497,6 +556,7 @@ export class NetworkManager extends cc.Component {
 			}
 		});
 		if ( isConnect == false) {
+			
 			onFail({
 				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
 				msg: 'NETWORK_REFUSE',
@@ -887,14 +947,17 @@ export class NetworkManager extends cc.Component {
 	public async reqJOIN_MEMBER( user: any, onSUCCESS:(user: any)=>void, onFAIL:(err: any)=>void) {
 		let result: string = null;
 		let error: string = null;
+		let isConnect = false;
 
 		try {
 			await this.Post( this.API_SERVER, "/users/join", {
 				user: user,
 			}).then(( res: string ) => {
+				isConnect = true;
 				result = res;
 			}).catch( function( err: any ) {
 				if ( err.length == 0 ) {
+					isConnect = false;					
 					return error = 'NETWORK_ERROR'
 				}	
 				err = JSON.parse( err );
