@@ -406,6 +406,21 @@ dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_STORES = function ( cb: any ) {
+
+	let sql = 'SELECT * FROM STORES';
+	_client.query(sql, null, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
 
 	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';

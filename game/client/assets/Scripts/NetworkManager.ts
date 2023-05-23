@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -680,6 +680,47 @@ export class NetworkManager extends cc.Component {
 			}
 		}
 	}
+
+	async reqCOMPANY( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
+		let result: string = null;
+		let errMessage: string = null;
+		let user_id = this.user.id;
+
+		await this.Post(this.API_SERVER, '/store/company', {
+			user_id: user_id,
+			token: this.token,
+		} ).then(( res: string ) => {
+			result = res;
+		}
+		).catch( function( err: any ) {
+			if( 0 === err.length ) {
+				return errMessage = "NETWORK_ERROR";
+			}
+			err = JSON.parse( err );
+			errMessage = err.msg;
+		} );
+
+		if( null !== errMessage ) {
+			return onFail( errMessage );
+		}
+
+		let obj : any = JSON.parse( result );
+		if(null == obj){
+			onFail("JSON_PARSE_FAIL");
+			return;
+		}
+
+		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
+			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
+			return;
+		}
+
+		if ( obj.store != null ) {
+			this.store = obj.store;
+		}
+
+		onSuccess(obj);
+	}	
 	
 	async getSTORE( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;

@@ -7,7 +7,8 @@ const { ccclass, property } = _decorator;
 @ccclass('UiLOBBY_POPUP_CHARGE')
 export class UiLOBBY_POPUP_CHARGE extends Component {
     @property(Label) labelTitle: Label = null;
-    // @property(Label) labelHolder: Label = null;
+    @property(Label) labelAccount: Label = null;    
+    @property(Label) labelHolder: Label = null;
     @property(Label) labelKorValue: Label = null;
 
     @property(EditBox) editboxChargeAmount: EditBox = null;
@@ -90,10 +91,11 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     }
 
     private GetStoreInfo() {
-        NetworkManager.Instance().getSTORE( ( res: any )=>{
+        NetworkManager.Instance().reqCOMPANY( ( res: any )=>{
             let store = res.store;
             if ( store != null ) {
-                // this.labelHolder.string = store.holder;
+                this.labelAccount.string = store.bank + ' ' + store.account; 
+                this.labelHolder.string = store.holder;
             }
 
             this.labelKorValue.string = '';
