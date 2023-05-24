@@ -376,6 +376,29 @@ dao.UPDATE_USERS_BETTINGS  = function ( data: any, cb: any) {
 	});
 };
 
+dao.UPDATE_ROLLINGS  = function ( data: any, cb: any) {
+	let id = data.id;
+	let rolling = data.rolling;
+	let rake_back = data.rake_back;
+	let point = data.rake_back;
+
+	let query = "UPDATE USERS SET ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+	let args = [rolling, rake_back, point, now, id];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, res.affectedRows);
+			} else {
+				cb(null, 0);
+			}
+		}
+	});
+};
+
 dao.SELECT_STATICS_ByUSER_ID = ( user_id: any, cb: any)=> {
 
 	let sql = "SELECT * FROM STATICS WHERE USER_ID = ?";

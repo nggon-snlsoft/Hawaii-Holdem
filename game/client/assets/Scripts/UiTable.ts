@@ -510,7 +510,7 @@ export class UiTable extends Component {
         this.node.active = false;
     }
 
-    registRoomEvent(room: Colyseus.Room ) {
+    registRoomEvent( room: Colyseus.Room ) {
         this.room = room;
         room.onMessage( "NEW_ENTITY", this.onNEW_ENTITY.bind( this ) );
 		room.onMessage( "HANDLE_ESCAPEE", this.onHANDLE_ESCAPEE.bind( this ) );
@@ -1357,11 +1357,12 @@ export class UiTable extends Component {
 				this.uiPlayerAction.hide();
 			};
 
-			this.uiPlayerAction.cbBet = ( betValue, sound ) => {
+			this.uiPlayerAction.cbBet = ( betValue, callValue, sound ) => {
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
 
 				let obj = {
 					betAmount: betValue,
+					callValue: callValue,					
 					seat: this.mySeat,
 					sound: sound
 				};
@@ -1370,11 +1371,12 @@ export class UiTable extends Component {
 				this.uiPlayerAction.hide();
 			};
 
-			this.uiPlayerAction.cbRaise = ( betValue, sound ) => {
+			this.uiPlayerAction.cbRaise = ( betValue, callValue, sound ) => {
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
 
 				let obj = {
 					betAmount: betValue,
+					callValue: callValue,
 					seat: this.mySeat,
 					sound: sound
 				};
@@ -1383,11 +1385,12 @@ export class UiTable extends Component {
 				this.uiPlayerAction.hide();
 			};
 
-			this.uiPlayerAction.cbAllIn = ( betValue) => {
+			this.uiPlayerAction.cbAllIn = ( betValue, callValue ) => {
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
 
 				let obj = {
 					betAmount: betValue,
+					callValue: callValue,					
 					seat: this.mySeat,
 				};
 				this.sendMsg( "ALLIN", obj );

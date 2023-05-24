@@ -531,7 +531,67 @@ export class NetworkManager extends cc.Component {
 		}
 
 		onSUCCESS(result);
-	}	
+	}
+	
+	public async reqREAD_QNA( id: any, onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+
+		await this.Post( this.API_SERVER, "/users/qna/read", {
+			id: id,
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFAIL({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		console.log( result );
+
+		onSUCCESS(result);
+	}
+	
+	public async reqDELETE_QNA( id: any, onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+
+		await this.Post( this.API_SERVER, "/users/qna/delete", {
+			id: id,
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFAIL({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		onSUCCESS(result);
+	}		
 	
 
 	public async getTABLE_LIST( onSuccess: (tables: any)=>void, onFail: (msg: any)=>void ) {

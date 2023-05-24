@@ -73,11 +73,11 @@ export class UiPlayerAction extends Component {
 	private rotateType: ENUM_DEVICE_TYPE = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
 
 	cbFold: () => void = null;
-	cbCall: ( betValue: number) => void = null;
+	cbCall: ( betValue: number ) => void = null;
 	cbCheck: () => void = null;
-	cbBet: ( betValue: number, sound: ENUM_BET_SOUND ) => void = null;
-	cbRaise: ( betValue: number, sound: ENUM_BET_SOUND ) => void = null;
-	cbAllIn: ( betValue: number ) => void = null;
+	cbBet: ( betValue: number, callValue:number, sound: ENUM_BET_SOUND ) => void = null;
+	cbRaise: ( betValue: number, callValue: number, sound: ENUM_BET_SOUND ) => void = null;
+	cbAllIn: ( betValue: number, callValue: number ) => void = null;
 	cbBetAnnounce: ( kind: ENUM_BETTING_KIND )=> void = null;
 
     childRegistered() {
@@ -106,22 +106,8 @@ export class UiPlayerAction extends Component {
 		this.buttonCall?.node.on( "click", this.onClickCall.bind( this ), this );
 		this.labelCallValue = this.buttonCall.node.getChildByPath('LABEL_VALUE').getComponent( Label );
 
-		// this.buttonBet = this.nodeRoot.getChildByPath( "BUTTON_BET" )?.getComponent( Button );
-		// this.buttonBet?.node.on( "click", this.onClickBet.bind( this ), this );
-		// this.labelBet = this.buttonBet.node.getChildByPath( "Label" )?.getComponent( Label );
-
-		// this.buttonRaise = this.nodeRoot.getChildByPath( "BUTTON_RAISE" )?.getComponent( Button );
-		// this.buttonRaise?.node.on( "click", this.onClickRaise.bind( this ), this );
-		// this.labelRaise = this.buttonRaise.node.getChildByPath( "Label" )?.getComponent( Label );
-
-		// this.buttonConfirm = this.nodeRoot.getChildByPath( "BUTTON_CONFIRM" )?.getComponent( Button );
-		// this.buttonConfirm.node.on('click', this.onClickConfirm.bind(this) );
-		// this.buttonConfirm.node.active = false;
-
 		this.buttonAllIn = this.nodeRoot.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
 		this.buttonAllIn?.node.on( "click", this.onClickAllin.bind( this ), this );
-
-		// if ( this.rotateType == ENUM_DEVICE_TYPE.PC_LANDSCAPE ) {
 
 		this.buttonQuater = this.nodeRoot.getChildByPath('BUTTON_QUATER').getComponent( Button );
 		if ( this.buttonQuater != null ) {
@@ -255,9 +241,6 @@ export class UiPlayerAction extends Component {
 			this.buttonCheck.node.active = false;
 			this.buttonCall.node.active = true;
 			this.labelCallValue.string = '';
-
-			// this.buttonBet.node.active = false;
-			// this.buttonRaise.node.active = false;
 			return;
 		}
 
@@ -283,10 +266,6 @@ export class UiPlayerAction extends Component {
 				this.labelCallValue.string = CommonUtil.getKoreanNumber( this.callValue );
 			}	
 		}
-
-		// this.buttonBet.node.active = false;
-		// this.buttonRaise.node.active = false;
-		// this.buttonConfirm.node.active = false;
 
 		if ( this.turnBet == 0 ) {
 			this.betStart = this.betMin;
@@ -453,7 +432,7 @@ export class UiPlayerAction extends Component {
 			this.cbCall ( value );
 
 		} else {
-			this.cbAllIn( value );
+			this.cbAllIn( value, this.callValue );
 		}
 	}
 
@@ -464,27 +443,27 @@ export class UiPlayerAction extends Component {
 	private onClickQuater( button: Button ) {
 		let value = this.quaterValue + this.myBet;
 		if ( this.isBet == true ) {
-			this.cbBet( value, ENUM_BET_SOUND.BET_QUATER );
+			this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_QUATER );
 		} else {
-			this.cbRaise( value, ENUM_BET_SOUND.BET_QUATER  );
+			this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_QUATER  );
 		}
 	}
 
 	private onClickHalf( button: Button ) {
 		let value = this.halfValue + this.myBet;
 		if ( this.isBet == true ) {
-			this.cbBet( value, ENUM_BET_SOUND.BET_HALF );
+			this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_HALF );
 		} else {
-			this.cbRaise( value, ENUM_BET_SOUND.BET_HALF );
+			this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_HALF );
 		}
 	}
 
 	private onClickFull( button: Button ) {
 		let value = this.fullValue + this.myBet;
 		if ( this.isBet == true ) {
-			this.cbBet( this.fullValue, ENUM_BET_SOUND.BET_FULL  );
+			this.cbBet( this.fullValue, this.callValue, ENUM_BET_SOUND.BET_FULL  );
 		}  else {
-			this.cbRaise( this.fullValue, ENUM_BET_SOUND.BET_FULL );
+			this.cbRaise( this.fullValue, this.callValue, ENUM_BET_SOUND.BET_FULL );
 		}
 
 		// AudioController.instance.PlaySound('VOICE_BETTING_FULL');
@@ -493,10 +472,10 @@ export class UiPlayerAction extends Component {
 	private onClickMax( button: Button ) {
 		let value = this.maxValue;
 		if ( this.isBet == true ) {
-			this.cbBet( value, ENUM_BET_SOUND.BET_MAX );
+			this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_MAX );
 
 		} else {
-			this.cbRaise( value, ENUM_BET_SOUND.BET_MAX );
+			this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_MAX );
 		}
 
 		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');

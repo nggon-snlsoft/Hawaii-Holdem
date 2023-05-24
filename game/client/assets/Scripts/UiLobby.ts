@@ -100,17 +100,6 @@ export class UiLobby extends Component {
             if ( res != null ) {
                 let popups: any[] = res.popups;
 
-                // if ( res.popups != null ) {
-                //     popups = res.popups;
-                //     popups.sort( (e1: any, e2: any )=>{
-                //         if ( e1.store_id > e2.store_id ) {
-                //             return 1;
-                //         } else {
-                //             return -1;
-                //         }
-                //     });
-                // }
-
                 if ( popups != null && popups.length > 0 ) {
                     this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
                         this.uiLobbyPopup.CloseEventPopup();
@@ -127,6 +116,10 @@ export class UiLobby extends Component {
             this.canRefresh = true;
             this.onREFRESH();
         });
+    }
+
+    private SetUnreadAnswer( count: number ) {
+        this.uiLobbyBottom.SetUnreadBadge( count );
     }
 
     private ShowTicketResult( tickets: any ) {
@@ -165,9 +158,11 @@ export class UiLobby extends Component {
         }
 
         NetworkManager.Instance().reqREFRESH((res: any )=>{
-            this.refreshPlayer();
-            this.ShowTicketResult( res.tickets );
-
+            if ( res != null ) {
+                this.refreshPlayer();
+                this.SetUnreadAnswer( res.unreads );
+                this.ShowTicketResult( res.tickets );
+            }
         }, (err: any )=>{
             console.log(err);
         });
@@ -176,7 +171,7 @@ export class UiLobby extends Component {
     }
 
     public refreshUiPlayer() {
-        this.uiPlayer.refresh();        
+        this.uiPlayer.refresh();
     }
 
     private onShowAvartProfile() {

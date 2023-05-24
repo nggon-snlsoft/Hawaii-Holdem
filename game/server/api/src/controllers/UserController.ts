@@ -53,7 +53,9 @@ export class UserController {
         this.router.post( '/point/receiveLog', this.getPOINT_RECEIVE_LOG.bind(this));        
 
         this.router.post( '/qna/get', this.reqGET_QNA.bind(this));
-        this.router.post( '/qna/send', this.reqSEND_QNA.bind(this));        
+        this.router.post( '/qna/send', this.reqSEND_QNA.bind(this));
+        this.router.post( '/qna/read', this.reqREAD_QNA.bind(this));
+        this.router.post( '/qna/delete', this.reqDELETE_QNA.bind(this));        
 
         this.router.post( '/getInitData', this.getINIT_DATA.bind(this));
         this.router.post( '/updateAvatar', this.updateAVATAR.bind(this));
@@ -942,7 +944,68 @@ export class UserController {
         });
 
         return;
+    }
+
+    public async reqREAD_QNA( req: any, res: any) {
+        let id = req.body.id;
+
+        let affected: any = null;
+        try {
+            affected = await this.setQNA_READ( req.app.get('DAO'), id );
+            if ( affected == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+                return;
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            affected: affected,
+        });
+
+        return;
+    }          
+
+    public async reqDELETE_QNA( req: any, res: any) {
+        let id = req.body.id;
+
+        let affected: any = null;
+        try {
+            affected = await this.setQNA_DELETE( req.app.get('DAO'), id );
+            if ( affected == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+                return;
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            affected: affected,
+        });
+
+        return;
     }        
+
 
     public async updateAVATAR( req: any, res: any ) {
         let user_id = req.body.user_id;
@@ -1084,7 +1147,13 @@ export class UserController {
             return;
         }
 
-        let user: any = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );
+        }
+
         if (user == undefined) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -1095,24 +1164,36 @@ export class UserController {
 
         let _user = ClientUserData.getClientUserData(user);
 
-        let tickets: any = await this.getTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
-        if (tickets == undefined) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'NO_EXIST_ID'
-            });
-            return;
+        let tickets: any = null;
+        try {
+            tickets = await this.getTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( tickets == null || tickets == undefined ) {
+            tickets = null;
+        }
+
+        let unreads: any = null;
+        try {
+            unreads = await this.getUNREAD_MESSAGE_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );
+        }        
+
+        if ( unreads == null || unreads == undefined ) {
+            unreads = 0;
         }
 
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
             msg: 'SUCCESS',
             user: _user,
-            tickets: tickets
+            tickets: tickets,
+            unreads: unreads,
         });
-    }    
-    
-    
+    }
     
     public async getSETTING( req: any, res: any ) {
         let user_id = req.body.user_id;
@@ -1346,6 +1427,21 @@ export class UserController {
         });
     }
 
+    private async getUNREAD_MESSAGE_ByUSER_ID( dao: any, user_id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_UNREAD_ANSWER_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
+
     private async getTRANSFER_LOGS( dao: any, user_id: string ) {
 
         return new Promise( (resolve, reject )=>{
@@ -1407,7 +1503,40 @@ export class UserController {
                 }
             });
         });
+    }
+
+    private async setQNA_READ( dao: any, id: any ) {
+
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_QNA_READ ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
+
+    private async setQNA_DELETE( dao: any, id: any ) {
+
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_QNA_DELETE ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
     }        
+
 
     private async getUSER_ByLOGIN_ID( dao: any, login_id: string ) {
         return new Promise( (resolve, reject )=>{

@@ -14,7 +14,7 @@ export class QnAElement {
     @property( Sprite ) spriteSlot: Sprite = null;
     @property( Label ) labelTitle: Label = null;
     @property( Button ) buttonQNA: Button = null;    
-
+    @property( Sprite) spriteUnread: Sprite = null;
     @property( Sprite) spriteButton: Sprite = null;
     @property( Label ) labelButton: Label = null;
     @property( Label ) labelDate: Label = null;
@@ -28,7 +28,8 @@ export class QnAElement {
 
         o.rootNode = n;
         o.spriteSlot = n.getChildByPath('SPRITE_SLOT').getComponent( Sprite );
-        o.labelTitle = n.getChildByPath('VALUES/LABEL_TITLE').getComponent( Label );
+        o.spriteUnread = n.getChildByPath('VALUES/TITLE/SPRITE_UNREAD').getComponent( Sprite );        
+        o.labelTitle = n.getChildByPath('VALUES/TITLE/LABEL_TITLE').getComponent( Label );
         o.buttonQNA = n.getChildByPath('BUTTON_SHOW').getComponent( Button );
         o.spriteButton = n.getChildByPath('BUTTON_SHOW').getComponent( Sprite );
         o.labelButton = n.getChildByPath('BUTTON_SHOW/LABEL_BUTTON').getComponent( Label );                
@@ -40,11 +41,13 @@ export class QnAElement {
     public Clear() {
         this.labelTitle.string = '';        
         this.labelDate.string = '';
+        this.spriteUnread.node.active = false;
 
         this.cbSelect = null;
     }
 
     public Set( info: any, cb: ( info: any )=>void ) {
+        console.log(info);
         this.qna = info;
         this.labelTitle.string = CommonUtil.TruncateString(info.title, 15) ;
         this.labelDate.string = info.questionDate;
@@ -62,6 +65,12 @@ export class QnAElement {
 
         if ( cb != null ) {
             this.cbSelect = cb;
+        }
+
+        if ( info.unread == 1 ) {
+            this.spriteUnread.node.active = true; 
+        } else {
+            this.spriteUnread.node.active = false;             
         }
 
         this.buttonQNA.node.off( 'click' );
@@ -112,6 +121,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     @property(Button) buttonCancel: Button = null;    
     @property(Button) buttonWrite: Button = null;
     @property(Button) buttonBack: Button = null;
+    @property(Button) buttonDelete: Button = null;    
 
     @property(Label) labelShowTitleText: Label = null;
     @property(Label) labelShowQuestionText: Label = null;
@@ -124,7 +134,8 @@ export class UiLOBBY_POPUP_QnA extends Component {
     private QNAAElementOnList: QnAElement[] = [];
 
     private cbEXIT: ()=>void = null;
-    private cbAPPLY: ()=>void = null;    
+    private cbAPPLY: ()=>void = null;
+    private selectedInfo: any = null;    
 
     public Init( cbEXIT: any, cbAPPLY: any ) {
         if ( cbEXIT != null ) {
@@ -150,7 +161,8 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelShowAnswerText.string = '';
         this.labelShowPending.string = '';
         this.labelQuestionUpdate.string = '';
-        this.labelAnswerUpdate.string = '';        
+        this.labelAnswerUpdate.string = '';
+        this.selectedInfo = null;        
 
         this.editboxTitle.node.on('editing-did-began', this.onTITLE_EDITBOX_DID_BEGAN.bind(this), this);
         this.editboxTitle.node.on('editing-return', this.onTITLE_EDITBOX_RETURN.bind(this), this);
@@ -174,6 +186,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.buttonBack.node.off( 'click' );
         this.buttonBack.node.on( 'click', this.onBACK_LIST.bind(this), this );
 
+        this.buttonDelete.node.off( 'click' );
+        this.buttonDelete.node.on( 'click', this.onDELETE_QNA.bind(this), this );        
+
         this.buttonSend.node.off( 'click' );
         this.buttonSend.node.on( 'click', this.onSEND_QNA.bind(this), this );
 
@@ -186,6 +201,8 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
         this.rootPANEL_INPUT.active = false;
         this.rootPANEL_SHOW.active = false;
+
+        this.selectedInfo = null;
 
         NetworkManager.Instance().reqGET_QNA( (res: any)=>{
             button.interactable = true;
@@ -205,6 +222,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     private onREFRESH() {
+        this.selectedInfo = null;
         NetworkManager.Instance().reqGET_QNA( (res: any)=>{
             if ( res != null ) {
                 this.ShowList( res.qnas );
@@ -215,7 +233,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     private ShowList( qnas: any[] ) {
-        if ( qnas == null || qnas.length <= 0 ) {
+        if ( qnas == null ) {
             return;
         }
         this.ClearList();
@@ -237,6 +255,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     private onSELECT_QNA( info:any ) {
         this.ClearShowPanel();
 
+        this.selectedInfo = info;
         this.rootPANEL_LIST.active = false;
         this.rootPANEL_INPUT.active = false;
         this.rootPANEL_SHOW.active = true;
@@ -254,8 +273,23 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
             this.labelAnswerUpdate.node.active = false;
         } else {
+            if ( info.unread == 1 ) {
+                this.buttonExit.interactable = false;
+                this.buttonBack.interactable = false;
+                this.buttonDelete.interactable = false;
+
+                NetworkManager.Instance().reqREAD_QNA(info.id, (res: any )=>{
+                    this.buttonExit.interactable = true;
+                    this.buttonBack.interactable = true;
+                    this.buttonDelete.interactable = true;
+                }, ( err: any )=>{
+                    this.buttonExit.interactable = true;
+                    this.buttonBack.interactable = true;
+                    this.buttonDelete.interactable = true;
+                });
+            }
+
             if ( info.answer != null ) {
-                console.log('info.answer != null: ' + info.answer );
                 this.labelShowAnswerText.string = info.answer;
                 this.labelShowAnswerText.node.active = true;
             } else {
@@ -278,9 +312,12 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelShowPending.node.active = false;
         this.labelQuestionUpdate.string = '';
         this.labelAnswerUpdate.string = '';
+
+        this.selectedInfo = null;
     }
 
     private ClearList() {
+        this.selectedInfo = null;        
         this.DestoryElements();
     }
 
@@ -294,6 +331,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     public Hide() {
+        this.selectedInfo = null;
         this.DestoryElements();
         this.node.active = false;
     }
@@ -329,6 +367,41 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.rootPANEL_LIST.active = true;
 
         this.onREFRESH();
+    }
+
+    private onDELETE_QNA( button: Button  ) {
+        LobbySystemPopup.instance.showPopUpYesOrNo('문의사항', '현재 문의를 삭제하시겠습니까?', ()=>{
+            this.DELETE_QNA();
+
+        }, ()=>{
+        })
+
+    }
+    
+    private DELETE_QNA() {
+        if ( this.selectedInfo != null ) {
+            this.buttonBack.interactable = false;
+            this.buttonExit.interactable = false;
+
+            NetworkManager.Instance().reqDELETE_QNA( this.selectedInfo.id, ( res: any )=>{
+                this.buttonBack.interactable = true;
+                this.buttonExit.interactable = true;
+                this.onSHOW_LIST();
+
+                LobbySystemPopup.instance.showPopUpOk('문의', '문의를 삭제했습니다.', ()=>{
+
+                });
+            }, ( err: any )=>{
+                this.buttonBack.interactable = true;
+                this.buttonExit.interactable = true;                
+                LobbySystemPopup.instance.showPopUpOk('문의', '문의를 삭제할 수 없습니다.', ()=>{
+
+                });
+            } );
+        } else {
+            LobbySystemPopup.instance.showPopUpOk('문의', '문의를 삭제할 수 없습니다.', ()=>{
+            });
+        }
     }
 
     private onSHOW_LIST() {

@@ -7,9 +7,9 @@ export class PotCalculation {
   private pots: any[];
   private playerCount: number = 0;
   private rakePercentage: number = 0;
-  private rakeCap: number[] = [];
+  // private rakeCap: number[] = [];
   private useRake: boolean = false;
-  private flopRake : boolean = false;
+  // private flopRake : boolean = false;
   public userRakeInfo: any[] = [];
   public deadBlind : number = 0;
   public antes: number = 0;
@@ -17,11 +17,11 @@ export class PotCalculation {
   private centerCardState : eCommunityCardStep = eCommunityCardStep.PREPARE;
   public rakeTotal : number = 0;
 
-  constructor(useRake: boolean, rakePercentage: number, rakeCap: number[], flopRake : boolean) {
+  constructor( useRake: boolean, rakePercentage: number /*, rakeCap: number[], flopRake : boolean*/ ) {
     this.rakePercentage = rakePercentage;
-    this.rakeCap = rakeCap;
+    // this.rakeCap = rakeCap;
     this.useRake = useRake;
-    this.flopRake = flopRake;
+    // this.flopRake = flopRake;
     
     this.Clear();
   }
@@ -43,7 +43,7 @@ export class PotCalculation {
 
     let target: any = this.player.find(element => {
       return seat === element.seat;
-    })
+    });
 
     if (null === target || undefined === target) {
       this.player.push({
@@ -113,7 +113,7 @@ export class PotCalculation {
 
     let calcPlayers: any[] = [];
 
-    while (remainPlayer.length > 0) {
+    while ( remainPlayer.length > 0 ) {
       calcPlayers = remainPlayer;
       minBet = this.CalculateMinBet(calcPlayers);
 
@@ -324,7 +324,7 @@ export class PotCalculation {
       let contribution = myAmount / totalAmount;
       contribution = Math.round((contribution + Number.EPSILON) * 1000) / 1000;
 
-      userRake.push({ seat: element.seat, rake: Math.round(rake * contribution) });
+      userRake.push({ seat: element.seat, rake: Math.round( rake * contribution) });
       tempCopare += Math.round(rake * contribution);
 
       logger.info("User " + element.seat + " has ReturnPot : " + (myReturnInfo != null) + " / Amount : " + myAmount + " / RakeCollect : " + (rake * contribution) + " / contribution : " + contribution);

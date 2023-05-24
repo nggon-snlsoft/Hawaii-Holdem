@@ -85,6 +85,7 @@ export class HoldemRoom extends Room<RoomState> {
 	_id: number = -1;
 
 	private participants: any[] = [];
+	private lastBet: any = {};
 
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
@@ -128,9 +129,10 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["useRake"] = roomInfo["useRake"] == 1;
 					this.conf["useRakeCap"] = roomInfo["useRakeCap"] == 1;
 					this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
+					this.conf['rakeBackPercentage'] = roomInfo['rake_back'] * 0.0001;
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
-					this.conf["ante"] = roomInfo['ante'];					
+					this.conf["ante"] = roomInfo['ante'];
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -172,8 +174,8 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage('FORE_GROUND', this.onFORE_GROUND.bind(this));
 				this.onMessage('BACK_GROUND', this.onBACK_GROUND.bind(this));
 
-				this._PotCalculator = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"] );
-				this._SalesReporter = new SalesReport();
+				this._PotCalculator = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"] );
+				this._SalesReporter = new SalesReport( this._dao );
 
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
 				this._id = options["serial"];
@@ -853,21 +855,6 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		// for ( let i = 0; i < this.state.entities.length; i++ ) {
-		// 	let entity = this.state.entities[i];
-		// 	if( entity != null ) {
-		// 		if(entity.rake != entity.oldRake) {
-		// 			this._dao.UPDATE_USERS_RAKE( entity.id, entity.rake, ( err: any, res: any ) => {
-		// 				if( !!err ) {
-		// 					logger.error( "[ update ] updateRake query error : %s", err.sqlMessage );
-		// 				}
-		// 			} );
-
-		// 			entity.oldRake = entity.rake;
-		// 		}
-		// 	}
-		// }
-
 		this.secondTick += dt;
 
 		if( eGameState.Bet === this.state.gameState ) {
@@ -1408,7 +1395,10 @@ export class HoldemRoom extends Room<RoomState> {
 				this.showdownTime = 5000;//this.conf[ "showDownTerm" ];
 				let isAllIn = false;
 
-				if( this.isAllFold() == false ) {
+				if( this.isAllFold() == true ) {
+					this.allFoldProc();
+
+				} else {
 					let pots : any[] = this._PotCalculator.GetPots(true);
 
 					if( eCommunityCardStep.RESULT !== this.centerCardState ) {
@@ -1420,11 +1410,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 					} else {
 						this.showdownTime += pots.length * 2500;
-						this.broadPlayerCards( isAllIn );						
+						this.broadPlayerCards( isAllIn );
 					}
+					this.finishProc( this.isAllFold(), isAllIn );
 				}
 
-				this.finishProc( this.isAllFold(), isAllIn );
 				this.elapsedTick = 0;
 				break;
 			case eGameState.ShowDown:
@@ -1561,13 +1551,108 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 	}
 
+	onPRE_FLOP_END() {
+		console.log('onPRE_FLOP_END');
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			let rolling = e.roundBet;
+			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+
+			this.UPDATE_ROLLINGS({
+				id: e.id,
+				rolling: rolling,
+				rake_back: rake_back
+			});
+		} );
+
+		this.ResetRoundBets();
+
+		this.broadcast( "PRE_FLOP_END", {
+			msg: "PRE_FLOP_END",
+			pot: this.state.pot,
+		} );
+	}
+
+	onFLOP_END() {
+		console.log('onFLOP_END');		
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			let rolling = e.roundBet;
+			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+
+			this.UPDATE_ROLLINGS({
+				id: e.id,
+				rolling: rolling,
+				rake_back: rake_back
+			});
+		} );
+
+		this.ResetRoundBets();
+
+		this.broadcast( "FLOP_END", {
+			msg: "FLOP_END",
+			pot: this.state.pot,					
+		} );
+	}
+
+	onTURN_END() {
+		console.log('onTURN_END');
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			let rolling = e.roundBet;
+			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+
+			this.UPDATE_ROLLINGS({
+				id: e.id,
+				rolling: rolling,
+				rake_back: rake_back
+			});
+		} );
+
+		this.ResetRoundBets();
+				
+		this.broadcast( "TURN_END", {
+			msg: "TURN_END",
+			pot: this.state.pot,					
+		} );
+	}
+	
+	onRIVER_END() {
+		console.log('onRIVER_END');
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			let rolling = e.roundBet;
+			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+
+			this.UPDATE_ROLLINGS({
+				id: e.id,
+				rolling: rolling,
+				rake_back: rake_back
+			});
+		} );
+				
+		this.broadcast( "RIVER_END", {
+			msg: "RIVER_END",
+			pot: this.state.pot,
+		} );
+	}
+	
+    private async UPDATE_ROLLINGS( data: any  ) {
+        return new Promise<any>( ( resolve, reject )=>{
+            this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
+                if ( err != null ) {
+                    reject( err );
+                    return;
+                }
+                resolve( res ); 
+            });
+        });
+    }	
+
 	changeCenterCardState() {
 		switch( this.centerCardState ) {
-			case eCommunityCardStep.PRE_FLOP: // 0
-				this.broadcast( "PRE_FLOP_END", {
-					msg: "PRE_FLOP_END",
-					pot: this.state.pot,					
-				} );
+			case eCommunityCardStep.PRE_FLOP:
+				this.onPRE_FLOP_END();
 
 				this.bufferTimerID = setTimeout( () => {
 					this.centerCardState = eCommunityCardStep.FLOP;
@@ -1578,10 +1663,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				break;
 			case eCommunityCardStep.FLOP:
-				this.broadcast( "FLOP_END", {
-					msg: "FLOP_END",
-					pot: this.state.pot,					
-				} );
+				this.onFLOP_END();
 
 				this.bufferTimerID = setTimeout( () => {
 					this.centerCardState = eCommunityCardStep.TURN;
@@ -1592,10 +1674,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				break;
 			case eCommunityCardStep.TURN:
-				this.broadcast( "TURN_END", {
-					msg: "TURN_END",
-					pot: this.state.pot,					
-				} );
+				this.onTURN_END();
 
 				this.bufferTimerID = setTimeout( () => {
 					this.centerCardState = eCommunityCardStep.RIVER;
@@ -1606,10 +1685,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				break;
 			case eCommunityCardStep.RIVER:
-				this.broadcast( "RIVER_END", {
-					msg: "RIVER_END",
-					pot: this.state.pot,					
-				} );
+				this.onRIVER_END();
 
 				this.bufferTimerID = setTimeout( () => {
 					this.centerCardState = eCommunityCardStep.RESULT;
@@ -1719,6 +1795,12 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 	}
 
+	ResetRoundBets() {
+		this.state.entities.forEach( e => {
+			e.roundBet = 0;
+		} );
+	}	
+
 	//------------------------------------
 	// PRE_FLOP
 	//------------------------------------
@@ -1815,42 +1897,6 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( true === e.wait) {
 				continue;
 			}
-
-			if ( true === e.missSb ) {
-				// let val = sbBet;
-				// if( e.chips > val ) {
-				// 	if ( true === e.missBb ) {
-				// 		e.chips -= val;
-				// 		e.missSb = false;
-				// 		this.state.pot += val;
-				// 		missSb.push(e);
-
-				// 		this.potCalc.DeadBlind(val);
-				// 	} else {
-				// 		e.currBet = sbBet;
-				// 		e.roundBet = sbBet;
-				// 		e.totalBet = sbBet;
-				// 		e.chips -= e.currBet;
-				// 		this.state.pot += e.currBet;
-				// 		missSb.push(e);
-				// 		this.potCalc.SetBet(this.state.sbSeat,e.totalBet,e.eval.value,false);
-				// 	}
-				// }
-			}
-
-			if ( true === e.missBb) {
-				// let val = this.state.startBet;
-				// if( e.chips > val ) {
-				// 	e.currBet = this.state.startBet;
-				// 	e.roundBet = this.state.startBet;
-				// 	e.totalBet = this.state.startBet;
-				// 	e.chips -= e.currBet;
-				// 	e.missBb = false;
-				// 	this.state.pot += e.currBet;
-				// 	missBb.push(e);
-				// 	this.potCalc.SetBet(e.seat,e.totalBet,e.eval.value,false);
-				// }
-			}
 		}
 
 		let player: any[] = [];
@@ -1874,8 +1920,6 @@ export class HoldemRoom extends Room<RoomState> {
 				e.chips -= ante;
 				this._PotCalculator.SetAnte( e.seat, e.totalBet, e.eval.value, false );
 			}
-
-			// player.push(e.seat);
 			player.push( e );
 		}
 
@@ -1888,6 +1932,7 @@ export class HoldemRoom extends Room<RoomState> {
 				partner_id: p.client.auth.partner_id,
 				login_id: p.client.auth.login_id,
 				nickname: p.client.auth.nickname,
+				roundBet: p.roundBet,
 				totalBet: p.totalBet,
 				win: 0,
 				rake: 0,
@@ -2082,7 +2127,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.processPendingAddChipsBySeat(e);
 		e.initRoundChips = e.chips;
-		this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, true);
+		this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, true );
 
 		this.broadcast( "FOLD", {
 			seat: seat
@@ -2233,7 +2278,311 @@ export class HoldemRoom extends Room<RoomState> {
 		this.ChangeShowdownState();
 	}
 
-	private finishProc( skip : boolean, isAllIn : boolean ){
+	private allFoldProc() {
+		let pots = this._PotCalculator.GetPots( true );
+		let pot: any = {
+			winner: -1,
+			winAmount: 0,
+			rake: 0,
+		};
+
+		pots.forEach ( (p)=> {
+			pot.winner = p.winner[0];
+			pot.winAmount += p.total;
+		});
+
+		let winner = this.participants.find( (p)=>{
+			return pot.winner == p.seat;
+		} );
+
+		if ( winner == null ) {
+			this.finishProc( true, false );
+			return;
+		}
+
+		let amountForRake = pot.winAmount;
+		if ( this.lastBet.seat == pot.winner ) {
+			amountForRake -= this.lastBet.bet;
+			winner.roundBet -= this.lastBet.bet;
+		}
+
+		let rakePercent = this.conf['rakePercentage'];
+		let rake = Math.trunc( amountForRake * rakePercent );
+
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			let rolling = e.roundBet;
+			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+
+			this.UPDATE_ROLLINGS({
+				id: e.id,
+				rolling: rolling,
+				rake_back: rake_back
+			});
+		} );
+		this.ResetRoundBets();
+
+
+
+		// let winners: any[] = [];
+		let folders: number[] = [];
+
+		// if (null != rakeInfo) {
+		// 	for (let i = 0; i < rakeInfo.length; i++) {
+		// 		let element = rakeInfo[i];
+		// 		let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
+
+		// 		if(null == ent){
+		// 			continue;
+		// 		}
+
+		// 		ent.rake += element.rake;
+		// 	}
+		// }
+
+		// for(let i = 0; i < pots.length; i++) {
+		// 	let pot : any = pots[i];
+		// 	let potPlayers: any = pot.players.length;
+		// 	let isReturn: boolean = false;
+
+		// 	// if ( skip == false && potPlayers == 1) {
+		// 	// 	isReturn = true;
+		// 	// }
+
+		// 	let isDraw: boolean = false;
+		// 	let potWinners: any[] = pot.winner;
+		// 	if ( potWinners.length > 1 ) {
+		// 		isDraw = true;
+		// 	}
+
+		// 	let potAmount = ( pot.rake == undefined ) ? pot.total : ( pot.total - pot.rake );
+		// 	let winAmount = potAmount / potWinners.length;
+		// 	let rake: number = 0;
+		// 	if ( pot.rake !== null || pot.rake !== undefined ) {
+		// 		if ( potWinners.length != 0 ) {
+		// 			rake = pot.rake / potWinners.length;
+		// 		} else {
+		// 			rake = 0;
+		// 		}
+		// 	}
+
+		// 	for(let j = 0; j < potWinners.length; j++){
+		// 		let entity = this.getEntity( potWinners[j] );
+
+		// 		if ( entity !== null && entity !== undefined ) {
+
+		// 			entity.chips += winAmount;
+		// 			entity.winAmount += winAmount;
+		// 			entity.winHandRank = entity.eval.handName;
+
+		// 			let store_id: number = -1;
+		// 			if ( entity.client != null && entity.client.auth != null && entity.client.auth.store_id != null ) {
+		// 				store_id = entity.client.auth.store_id;
+		// 			}
+	
+		// 			winners.push( {
+		// 				id: entity.id,
+		// 				seat: entity.seat,
+		// 				store_id: store_id,
+		// 				potNo: i,
+		// 				cards: entity.cardIndex,
+		// 				nickname: entity.nickname,
+		// 				eval: entity.eval,
+		// 				chips: entity.chips,
+		// 				winAmount: entity.winAmount,
+		// 				rake: rake,
+		// 				fold : entity.fold,
+		// 				return: isReturn,
+		// 				draw: isDraw
+		// 			} );
+		// 		}
+		// 	}
+		// }
+
+		// for( let i = 0; i < this.state.entities.length; i++ ) {
+		// 	if( true === this.state.entities[ i ].wait ) {
+		// 		continue;
+		// 	}
+
+		// 	if(true === this.state.entities[i].fold) {
+		// 		folders.push(this.state.entities[i].seat);
+		// 	}
+		// }
+
+		// let playerCards: any = {};
+		// for( let i = 0; i < this.state.entities.length; i++ ) {
+		// 	if( true === this.state.entities[ i ].wait ) {
+		// 		continue;
+		// 	}
+
+		// 	if(true === this.state.entities[i].fold) {
+		// 		continue;
+		// 	}
+
+		// 	playerCards[ this.state.entities[ i ].seat ] = this.state.entities[ i ].cardIndex;
+		// }
+
+		this.broadcast( "WINNERS", {
+			skip: true,
+			// winners: winners,
+			// pot: this.state.pot,
+			// dpPot : pots,
+			// cards: this.communityCardIndex,
+			// playerCards: playerCards,
+			// folders: folders,
+			isAllInMatch : false
+		} );
+
+		// let mainPot: number = 0;
+		
+		// if (pots[mainPot] != null &&  pots[mainPot].winner != null && winners != null ) 
+		// {
+		// 	pots[mainPot].winner.forEach( (e: any)=> {
+
+		// 		let w = winners.find( (element )=>{
+		// 			return ( element.seat == e ) && ( element.potNo == mainPot );
+		// 		} );
+	
+		// 		if ( w != null ) {
+		// 			let seat = w.seat;
+		// 			let entity = this.getEntity(  seat );
+		// 			if ( entity != null && entity.statics != null ) {
+		// 				if ( w.draw == true ) {
+		// 					let c = entity.statics.draw;
+		// 					entity.statics.draw = c + 1;						
+		// 				} else {
+		// 					let c = entity.statics.win;
+		// 					entity.statics.win = c + 1;						
+		// 				}
+
+		// 				let skip = true;
+		// 				if ( skip == true ) {
+	
+		// 				} else {
+	
+		// 					if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
+		// 						entity.statics.win_allin += 1;
+		// 					}
+	
+		// 					if ( entity.isDealer == true ) {
+		// 						entity.statics.win_dealer += 1;
+		// 					}
+	
+		// 					if ( entity.isSb == true ) {
+		// 						entity.statics.win_smallBlind += 1;
+		// 					}
+	
+		// 					if ( entity.isBb == true ) {
+		// 						entity.statics.win_bigBlind += 1;
+		// 					}
+	
+		// 					let best_rank = entity.statics.best_rank;
+		// 					let handValue = w.eval.value;
+	
+		// 					if ( handValue > best_rank ) {
+		// 						entity.statics.best_rank = handValue;
+	
+		// 						let cards: string[] = [];
+		// 						this.communityCardString.forEach( (cc)=>{
+		// 							cards.push ( cc );
+		// 						} );
+	
+		// 						w.cards.forEach( (cc: any )=>{
+		// 							cards.push( this.totalCards[cc] );
+		// 						});
+	
+		// 						let s = cards.toString();
+		// 						entity.statics.best_hands = s;
+		// 					}
+		// 				}
+	
+		// 				switch( this.centerCardState ) {
+		// 					case eCommunityCardStep.PRE_FLOP:
+		// 						entity.statics.win_preflop += 1;
+		// 						break;
+		// 					case eCommunityCardStep.FLOP:
+		// 						entity.statics.win_flop += 1;
+		// 						break;
+		// 					case eCommunityCardStep.TURN:
+		// 						entity.statics.win_turn += 1;
+		// 						break;
+		// 					case eCommunityCardStep.RIVER:
+		// 						entity.statics.win_river += 1;
+		// 						break;
+		// 				}
+											
+		// 				if ( entity.isDealer == true ) {
+		// 					entity.statics.win_dealer += 1;
+		// 				}
+	
+		// 				if ( entity.isSb == true ) {
+		// 					entity.statics.win_smallBlind += 1;
+		// 				}
+	
+		// 				if ( entity.isBb == true ) {
+		// 					entity.statics.win_bigBlind += 1;
+		// 				}
+	
+		// 				let ws = winners.filter( (elem )=>{
+		// 					return (w.seat == elem.seat);
+		// 				});
+	
+		// 				let ta: number = 0;
+		// 				ws.forEach( ( l )=>{
+		// 					ta += l.winAmount;
+		// 				});
+	
+		// 				let amount = ta - entity.totalBet;
+		// 				let maxPots = entity.statics.maxPots;
+	
+		// 				if ( amount > maxPots ) {
+		// 					entity.statics.maxPots = amount;
+		// 				}
+		// 			}
+		// 		}
+		// 	});
+		// }
+
+		// this.state.entities.forEach( (et)=>{
+		// 	let entity = this.getEntity( et.seat );
+		// 	if ( entity != null ) {
+		// 		try {
+		// 			this._dao.UPDATE_STATICS( entity.id, entity.statics, ( err: any, res: any )=>{
+
+		// 			});
+
+		// 		} catch (error) {
+		// 			console.log( error );
+		// 		}
+		// 	}
+		// } );
+
+		// winners.forEach( (w)=>{
+		// 	let p = this.participants.find( (player)=> {
+		// 		return w.seat == player.seat;
+		// 	});
+
+		// 	if ( p != null ) {
+		// 		p.rake += w.rake;
+		// 		p.win += w.winAmount;				
+		// 		if ( w.return == true ) {
+		// 			p.totalBet -= w.winAmount;
+		// 			p.win -= w.winAmount;
+		// 		}
+		// 	}
+		// });
+
+		try {
+			this._SalesReporter.UpdateUser( this._dao, this.participants );
+			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
+			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
+
+		} catch ( error ) {
+			console.log( error );
+		}
+	}
+
+	private finishProc( skip : boolean, isAllIn : boolean ) {
 		
 		let rakeInfo = this._PotCalculator.userRakeInfo;
 		let pots = this._PotCalculator.GetPots(true);
@@ -2253,7 +2602,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		for(let i = 0; i < pots.length; i++){
+		for(let i = 0; i < pots.length; i++) {
 			let pot : any = pots[i];
 			let potPlayers: any = pot.players.length;
 			let isReturn: boolean = false;
@@ -2586,7 +2935,7 @@ export class HoldemRoom extends Room<RoomState> {
 				r += 1;
 			}
 		}
-		// logger.info( "[ isAllFold ] remain player : %s", r );
+
 		return r <= 1;
 	}
 
@@ -3026,7 +3375,6 @@ export class HoldemRoom extends Room<RoomState> {
 		e.timeLimitCount = 0;
 
 		this.state.pot += bet;
-
 		this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);
 
 		let p = this.participants.find( (player)=>{
@@ -3035,6 +3383,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( p != null ) {
 			p.totalBet = e.totalBet;
+			p.roundBet = e.roundBet;
 		}
 
 		this.broadcast( "CALL", {
@@ -3088,16 +3437,26 @@ export class HoldemRoom extends Room<RoomState> {
 			msg[ "betAmount" ] = e.chips;
 		}
 
-		e.chips -= msg[ "betAmount" ];
+		let callValue = msg['callValue'];
+		let betValue = msg[ "betAmount" ];
+
+		e.chips -= betValue;
 
 		if( e.chips <= 0 ) {
 			logger.info( "[ onBet ] allin" );
 			e.chips = 0;
 			e.allIn = 1;
 		}
-		e.currBet += msg[ "betAmount" ];
-		e.roundBet += msg[ "betAmount" ];
-		e.totalBet += msg[ "betAmount" ];
+		e.currBet += betValue;
+		e.roundBet += betValue;
+		e.totalBet += betValue;
+
+		this.lastBet = {};
+		this.lastBet = {
+			seat: e.seat,
+			call: callValue,	//maybe call = 0
+			bet: betValue - callValue
+		};
 
 		e.timeLimitCount = 0;
 
@@ -3121,6 +3480,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( p != null ) {
 			p.totalBet = e.totalBet;
+			p.roundBet = e.roundBet;
 		}
 
 		this.broadcast( "BET", {
@@ -3151,7 +3511,11 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		let locBet = msg[ "betAmount" ];
+		let betValue = msg['betAmount'];
+		let callValue = msg['callValue'];
+		
+		let locBet = betValue;
+
 		let locChangeEndSeat = false;
 		logger.info( "[ onRaise ] player index : %s // send msg : %s", msg[ "seat" ], msg );
 
@@ -3173,6 +3537,13 @@ export class HoldemRoom extends Room<RoomState> {
 		e.totalBet += bet;
 		e.timeLimitCount = 0;
 
+		this.lastBet = {};
+		this.lastBet = {
+			seat: e.seat,
+			call: callValue,
+			bet: bet - callValue
+		};
+
 		this.ReOpenAction();
 		e.hasAction = false;
 
@@ -3182,13 +3553,14 @@ export class HoldemRoom extends Room<RoomState> {
 			e.chips = 0;
 		}
 
-		this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);
+		this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false );
 		let p = this.participants.find( (player)=>{
 			return e.seat == player.seat;
 		});
 
 		if ( p != null ) {
 			p.totalBet = e.totalBet;
+			p.roundBet = e.roundBet;
 		}
 
 		this.broadcast( "RAISE", {
@@ -3248,6 +3620,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		let locBet = msg[ "betAmount" ];
+		let callValue = msg['callValue'];		
 		let locChangeEndSeat = true;
 		this.state.maxBet = locBet;
 
@@ -3257,6 +3630,10 @@ export class HoldemRoom extends Room<RoomState> {
 			bet = e.chips;
 		}
 
+		if ( bet < callValue ) {
+			callValue = bet;
+		}
+
 		e.chips -= bet;
 		e.currBet += bet;
 		e.roundBet += bet;
@@ -3264,9 +3641,15 @@ export class HoldemRoom extends Room<RoomState> {
 		e.hasAction = false;
 
 		e.timeLimitCount = 0;
+
+		this.lastBet = {};
+		this.lastBet = {
+			seat: e.seat,
+			call: callValue,
+			bet: bet - callValue
+		};
 		
 		this.state.pot = this.state.pot + bet;
-
 		if( e.chips <= 0 ) {
 			e.chips = 0;
 		}
@@ -3278,6 +3661,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( p != null ) {
 			p.totalBet = e.totalBet;
+			p.roundBet = e.roundBet;
 		}
 
 		this.broadcast( "RAISE", {

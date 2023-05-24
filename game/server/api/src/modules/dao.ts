@@ -538,6 +538,24 @@ dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_UNREAD_ANSWER_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM QUESTIONS WHERE (USER_ID = ? AND ALIVE = 1 AND PENDING = 0 AND UNREAD = 1 )';
+	let args = [ user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		let count = res[0].UNREAD_COUNT;
+		cb?.(null, count );
+	});
+};
+
 dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	let amount = data.amount;
 	let user = data.user;
@@ -582,6 +600,42 @@ dao.INSERT_QNA = function ( user: any, data: any, cb: any ) {
 			}
 		}
 	});	
+}
+
+dao.UPDATE_QNA_READ = function ( id: any, cb: any ) {
+
+	let sql = "UPDATE QUESTIONS SET UNREAD = 0 WHERE ID = ? ";
+	let args = [ id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb( null, res.affectedRows );				
+			} else {
+				cb( null, 0 );
+			}
+		}
+	});    
+}
+
+dao.UPDATE_QNA_DELETE = function ( id: any, cb: any ) {
+
+	let sql = "UPDATE QUESTIONS SET ALIVE = 0 WHERE ID = ? ";
+	let args = [ id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb( null, res.affectedRows );				
+			} else {
+				cb( null, 0 );
+			}
+		}
+	});    
 }
 
 dao.INSERT_TRANSFER_REQUEST = function ( data: any, cb: any ) {

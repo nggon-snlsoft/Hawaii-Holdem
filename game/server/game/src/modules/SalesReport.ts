@@ -1,5 +1,10 @@
 
 export class SalesReport {
+    private dao: any = null;
+
+    constructor( dao: any ) {
+        this.dao = dao;
+    }    
 
     public async UpdateUser( dao: any, participants: any ) {
         if ( participants == null ) {
@@ -19,7 +24,7 @@ export class SalesReport {
             try {
                 affected = await this.UPDATE_USERS_BETTINGS( dao, {
                     id: id,
-                    win: win,                    
+                    win: win,
                     betting: betting,
                     rake: rake,
                 });                

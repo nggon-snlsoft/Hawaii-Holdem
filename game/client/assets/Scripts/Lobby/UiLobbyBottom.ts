@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button } from 'cc';
+import { _decorator, Component, Node, Button, Label } from 'cc';
 import { LobbyAudioContoller } from './LobbyAudioContoller';
 const { ccclass, property } = _decorator;
 
@@ -10,6 +10,8 @@ export class UiLobbyBottom extends Component {
     @property(Button) buttonTransfer: Button = null;    
     @property(Button) buttonQNA: Button = null;
     @property(Button) buttonNotice: Button = null;
+    @property(Node) rootQNABadge: Node = null;
+    @property(Label) labelUnreadMessage: Label = null;    
 
     private cbPOINT: ( button:Button )=> void = null;
     private cbRANKING: ( button:Button )=> void = null;
@@ -67,11 +69,29 @@ export class UiLobbyBottom extends Component {
         this.buttonNotice.node.off('click');
         this.buttonNotice.node.on('click', this.onCLICK_NOTICE.bind(this), null);
 
+        this.rootQNABadge.active = false;
+        this.labelUnreadMessage.string = '';
+
         this.node.active = false;
     }
 
     public show() {
         this.node.active = true;
+    }
+
+    public SetUnreadBadge( count: number ) {
+        if ( count != null ) {
+            if ( count > 0 ) {
+                this.labelUnreadMessage.string = count.toString();
+                this.rootQNABadge.active = true;
+            } else {
+                this.labelUnreadMessage.string = count.toString();
+                this.rootQNABadge.active = false;
+            }
+        } else {
+            this.labelUnreadMessage.string = '0';
+            this.rootQNABadge.active = false;
+        }
     }
 
     private onCLICK_POINT( button: Button ) {
