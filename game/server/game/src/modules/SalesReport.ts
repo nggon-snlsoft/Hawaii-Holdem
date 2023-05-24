@@ -6,7 +6,7 @@ export class SalesReport {
         this.dao = dao;
     }    
 
-    public async UpdateUser( dao: any, participants: any ) {
+    public async UpdateUser( dao: any, participants: any, rakeBackPercentage: number  ) {
         if ( participants == null ) {
             return;
         }
@@ -15,10 +15,9 @@ export class SalesReport {
             let id = participants[i].id;
             let win = participants[i].win;
             let betting = participants[i].totalBet;
-            let rake: number = 0;
-            if ( participants[i].rake != null ) {
-                rake = participants[i].rake;
-            }
+            let rolling = participants[i].roundBet;
+            let rake = participants[i].rake;
+            let rake_back = Math.trunc( rolling * rakeBackPercentage );
 
             let affected: any = null;
             try {
@@ -26,7 +25,9 @@ export class SalesReport {
                     id: id,
                     win: win,
                     betting: betting,
+                    rolling,
                     rake: rake,
+                    rake_back: rake_back
                 });                
             } catch (error) {
                 console.log( error );                

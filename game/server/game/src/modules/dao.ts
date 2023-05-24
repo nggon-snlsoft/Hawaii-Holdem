@@ -357,11 +357,23 @@ dao.UPDATE_USERS_BETTINGS  = function ( data: any, cb: any) {
 	let id = data.id;
 	let win = data.win;
 	let betting = data.betting;
+	let rolling = data.rolling;
 	let rake = data.rake;
+	let rake_back = data.rake_back;
+	let point = data.rake_back;
 
-	let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, UPDATEDATE = ? WHERE ID = ?";
+	console.log('id: ' + id);
+	console.log('win: ' + win);
+	console.log('betting: ' + betting);
+	console.log('rolling: ' + rolling);
+	console.log('rake: ' + rake);
+	console.log('rake_back: ' + rake_back);
+	console.log('point: ' + rake_back);
+	console.log('');			
+
+	let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-	let args = [win, betting, rake, now, id];
+	let args = [win, betting, rake, rolling, rake_back, point, now, id];
 
 	_client.query(query, args, function (err: any, res: any) {
 		if (err !== null) {

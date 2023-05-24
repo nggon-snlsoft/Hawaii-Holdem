@@ -245,7 +245,6 @@ export class PotCalculation {
       });
 
       final[0].total += this.deadBlind;
-      // final[0].total += this.antes;
     }
 
     return final;
