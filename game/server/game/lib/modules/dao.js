@@ -64,6 +64,32 @@ dao.SELECT_USERS_ByUSER_ID = function (id, cb) {
         cb === null || cb === void 0 ? void 0 : cb(null, res);
     });
 };
+dao.SELECT_USERS = function (id, cb) {
+    let sql = "SELECT * FROM USERS WHERE  ID = ?";
+    let args = [id];
+    _client.query(sql, args, function (err, res) {
+        if (!!err) {
+            if (!!cb) {
+                cb(err, null);
+            }
+            return;
+        }
+        cb === null || cb === void 0 ? void 0 : cb(null, res);
+    });
+};
+dao.SELECT_USERS_ByTABLE_ID = function (table_id, cb) {
+    let sql = "SELECT * FROM USERS WHERE ALIVE = 1 AND DISABLE = 0 AND TABLE_ID = ?";
+    let args = [table_id];
+    _client.query(sql, args, function (err, res) {
+        if (!!err) {
+            if (!!cb) {
+                cb(err, null);
+            }
+            return;
+        }
+        cb === null || cb === void 0 ? void 0 : cb(null, res);
+    });
+};
 dao.SELECT_USERS_ByPENDING_ID = function (pendingID, cb) {
     let sql = "SELECT * FROM USERS WHERE PENDINGSESSIONID = ?";
     let args = [pendingID];
@@ -75,6 +101,37 @@ dao.SELECT_USERS_ByPENDING_ID = function (pendingID, cb) {
             return;
         }
         cb === null || cb === void 0 ? void 0 : cb(null, res);
+    });
+};
+dao.SELECT_USERS_ByACTIVE_SESSION_ID = function (sessing_id, cb) {
+    let sql = "SELECT * FROM USERS WHERE activeSessionId = ?";
+    let args = [sessing_id];
+    _client.query(sql, args, function (err, res) {
+        if (!!err) {
+            if (!!cb) {
+                cb(err, null);
+            }
+            return;
+        }
+        cb === null || cb === void 0 ? void 0 : cb(null, res);
+    });
+};
+dao.UPDATE_USERS_SESSION_ID = function (data, cb) {
+    let sql = "UPDATE USERS SET ACTIVESESSIONID = ?, UPDATEDATE = ? WHERE ID = ?";
+    let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+    let args = [data["session_id"], now, data["id"]];
+    _client.query(sql, args, (err, res) => {
+        if (err !== null) {
+            cb(err, null);
+        }
+        else {
+            if (!!res && res.affectedRows > 0) {
+                cb(null, true);
+            }
+            else {
+                cb(null, false);
+            }
+        }
     });
 };
 dao.UPDATE_USERS_PENDING = function (data, cb) {
@@ -95,8 +152,25 @@ dao.UPDATE_USERS_PENDING = function (data, cb) {
         }
     });
 };
+dao.UPDATE_USERS_TABLE_ID_LOGIN_IP_ByUSER = function (data, cb) {
+    let sql = 'UPDATE USERS SET LOGIN_IP = ?,  TABLE_ID = ?, UPDATEDATE = ? WHERE ID = ?';
+    let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
+    let args = [data['login_ip'], data['table_id'], now, data['id']];
+    _client.query(sql, args, function (err, res) {
+        if (err !== null) {
+            cb(err, null);
+        }
+        else {
+            if (!!res && res.affectedRows > 0) {
+                cb(null, true);
+            }
+            else {
+                cb(null, false);
+            }
+        }
+    });
+};
 dao.UPDATE_USERS_TABLE_ID_ByUSER = function (data, cb) {
-    console.log(data);
     let sql = 'UPDATE USERS SET TABLE_ID = ?, UPDATEDATE = ? WHERE ID = ?';
     let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
     let args = [data['table_id'], now, data['id']];
@@ -275,6 +349,53 @@ dao.UPDATE_USERS_RAKE = function (id, rake, cb) {
         }
     });
 };
+dao.UPDATE_USERS_BETTINGS = function (data, cb) {
+    let id = data.id;
+    let win = data.win;
+    let betting = data.betting;
+    let rolling = data.rolling;
+    let rake = data.rake;
+    let rake_back = data.rake_back;
+    let point = data.rake_back;
+    let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+    let args = [win, betting, rake, rolling, rake_back, point, now, id];
+    _client.query(query, args, function (err, res) {
+        if (err !== null) {
+            cb(err, null);
+        }
+        else {
+            if (!!res && res.affectedRows > 0) {
+                cb(null, res.affectedRows);
+            }
+            else {
+                cb(null, 0);
+            }
+        }
+    });
+};
+dao.UPDATE_ROLLINGS = function (data, cb) {
+    let id = data.id;
+    let rolling = data.rolling;
+    let rake_back = data.rake_back;
+    let point = data.rake_back;
+    let query = "UPDATE USERS SET ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+    let args = [rolling, rake_back, point, now, id];
+    _client.query(query, args, function (err, res) {
+        if (err !== null) {
+            cb(err, null);
+        }
+        else {
+            if (!!res && res.affectedRows > 0) {
+                cb(null, res.affectedRows);
+            }
+            else {
+                cb(null, 0);
+            }
+        }
+    });
+};
 dao.SELECT_STATICS_ByUSER_ID = (user_id, cb) => {
     let sql = "SELECT * FROM STATICS WHERE USER_ID = ?";
     let args = [user_id];
@@ -315,7 +436,7 @@ dao.UPDATE_STATICS = (id, statics, cb) => {
 dao.SELECT_SALES_USER = (data, cb) => {
     let id = data.id;
     let date = data.date;
-    let query = 'SELECT * FROM SALES_USER WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND USER_ID = ?';
+    let query = 'SELECT * FROM SALES_USER WHERE YEAR = ? AND MONTH = ? AND DAY = ? AND USER_ID = ? AND USETICKET = 0';
     let args = [date.year, date.month, date.day, id];
     _client.query(query, args, function (err, res) {
         if (!!err) {
@@ -332,9 +453,12 @@ dao.UPDATE_SALES_USER = (data, cb) => {
     let bettings = data.bettings;
     let wins = data.wins;
     let rakes = data.rakes;
+    let rollings = data.rollings;
+    let rake_back = data.rake_back;
+    let point = data.point;
     let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-    let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, UPDATEDATE = ? WHERE ID = ?";
-    let args = [wins, rakes, bettings, now, id];
+    let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let args = [wins, rakes, bettings, rollings, rake_back, point, now, id];
     _client.query(query, args, function (err, res) {
         if (err !== null) {
             cb(err, null);
@@ -352,12 +476,17 @@ dao.UPDATE_SALES_USER = (data, cb) => {
 dao.INSERT_SALES_USER = function (data, cb) {
     let user_id = data.user_id;
     let store_id = data.store_id;
+    let distributor_id = data.distributor_id;
+    let partner_id = data.partner_id;
     let bettings = data.bettings;
     let wins = data.wins;
     let rakes = data.rakes;
+    let rollings = data.rollings;
+    let rake_back = data.rake_back;
+    let point = data.point;
     let date = data.date;
-    let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )';
-    let args = [user_id, store_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings];
+    let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings, rollings, rake_back, point ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+    let args = [user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings, rollings, rake_back, point];
     _client.query(sql, args, function (err, res) {
         if (err !== null) {
             cb(err, null);

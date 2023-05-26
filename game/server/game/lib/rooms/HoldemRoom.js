@@ -83,12 +83,13 @@ class HoldemRoom extends colyseus_1.Room {
             "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
             "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43",
             "44", "45", "46", "47", "48", "49", "50", "51"];
-        this.maxClients = 10;
+        this.maxClients = 9;
         this.showdownTime = 0;
         this.bufferTimerID = null;
         this.pingTimerID = null;
         this.cardPickPos = 0;
         this.elapsedTick = 0;
+        this.elapsedSuspend = 0;
         this.betSeat = 0;
         this.endSeat = 0;
         this.communityCardString = [];
@@ -108,11 +109,13 @@ class HoldemRoom extends colyseus_1.Room {
         this._initPot = 0;
         this._id = -1;
         this.participants = [];
+        this.lastBet = null;
         this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
     }
     onCreate(options) {
         return __awaiter(this, void 0, void 0, function* () {
             logger.info("[ onCreate ] options : %s", options);
+            this.maxClients = options.clientLimit;
             this.tableSize = "full";
             this._dao = options["dao"];
             let confFile = yield fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), { encoding: 'utf8' });
@@ -145,6 +148,7 @@ class HoldemRoom extends colyseus_1.Room {
                         this.conf["useRake"] = roomInfo["useRake"] == 1;
                         this.conf["useRakeCap"] = roomInfo["useRakeCap"] == 1;
                         this.conf["rakePercentage"] = roomInfo["rake"] * 0.0001;
+                        this.conf['rakeBackPercentage'] = roomInfo['rake_back'] * 0.0001;
                         this.conf["rakeCap"] = [roomInfo["rakeCap1"], roomInfo["rakeCap2"], roomInfo["rakeCap3"]];
                         this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
                         this.conf["ante"] = roomInfo['ante'];
@@ -182,8 +186,8 @@ class HoldemRoom extends colyseus_1.Room {
                     this.onMessage('SYNC_TABLE', this.onSYNC_TABLE.bind(this));
                     this.onMessage('FORE_GROUND', this.onFORE_GROUND.bind(this));
                     this.onMessage('BACK_GROUND', this.onBACK_GROUND.bind(this));
-                    this._PotCalculator = new PotCalculation_1.PotCalculation(this.conf["useRake"], this.conf["rakePercentage"], this.conf["rakeCap"], this.conf["flopRake"]);
-                    this._SalesReporter = new SalesReport_1.SalesReport();
+                    this._PotCalculator = new PotCalculation_1.PotCalculation(this.conf["useRake"], this.conf["rakePercentage"]);
+                    this._SalesReporter = new SalesReport_1.SalesReport(this._dao);
                     this.pingTimerID = setInterval(() => this.ping(), 2000);
                     this._id = options["serial"];
                     this.participants = [];
@@ -208,13 +212,16 @@ class HoldemRoom extends colyseus_1.Room {
         this.state.shuffle = "";
         this.state.pot = 0;
         this.pingTimerID = 0;
+        this.elapsedSuspend = 0;
+        this.elapsedTick = 0;
         this.participants = [];
+        this.lastBet = null;
     }
     onAuth(client, options, request) {
         logger.info("[ onAuth ] sid(%s), options(%s)", client.sessionId, options);
         return new Promise((resolve, reject) => {
             let self = this;
-            this._dao.SELECT_USERS_ByPENDING_ID(client.sessionId, function (err, res) {
+            this._dao.SELECT_USERS_ByACTIVE_SESSION_ID(client.sessionId, function (err, res) {
                 if (!!err) {
                     logger.error("[ onAuth ] query error : %s", err);
                     reject(new colyseus_1.ServerError(400, "bad access token"));
@@ -223,21 +230,22 @@ class HoldemRoom extends colyseus_1.Room {
                     if (res.length <= 0) {
                         logger.error("[ onAuth ] invalid session id");
                         reject(new colyseus_1.ServerError(400, "bad session id"));
+                        return;
                     }
                     else {
-                        res[0].reconnected = false;
                         let entity = self.state.entities.find(e => e.id == res[0]["id"]);
                         if (undefined !== entity) {
                             if (false === entity.leave) {
                                 logger.warn("[ onAuth ] duplicate login. seat : %s // leave state : %s", entity.seat, entity.leave);
-                                reject(new colyseus_1.ServerError(400, "Duplicate login."));
+                                entity.leave = true;
+                                reject(new colyseus_1.ServerError(400, "Duplicate login"));
                                 return;
                             }
-                            logger.info("[ onAuth ] reconnection. seat : %s // previous sid : %s // curr. sid : %s", entity.seat, entity.sid, client.sessionId);
-                            entity.leave = false;
-                            res[0].reconnected = true;
+                            reject(new colyseus_1.ServerError(400, "Duplicate login"));
+                            return;
                         }
                         logger.info("[ onAuth ] succeed. sid(%s)", client.sessionId);
+                        res[0].reconnected = false;
                         resolve(res[0]);
                     }
                 }
@@ -252,15 +260,20 @@ class HoldemRoom extends colyseus_1.Room {
     }
     onJoin(client, options, auth) {
         return __awaiter(this, void 0, void 0, function* () {
-            this._dao.UPDATE_USER_ACTIVE_SESSION_ID(client.sessionId, function (err, result) {
-                if (!!err) {
-                    logger.error("[ onJoin ] updateActiveSessionID error : %s", err);
-                }
-            });
-            if (true === auth["reconnected"]) {
-                this.reJoin(client, options, auth);
-                return;
+            try {
+                this._dao.UPDATE_USER_ACTIVE_SESSION_ID(client.sessionId, function (err, result) {
+                    if (!!err) {
+                        logger.error("[ onJoin ] updateActiveSessionID error : %s", err);
+                    }
+                });
             }
+            catch (error) {
+                console.log(error);
+            }
+            // if( true === auth[ "reconnected" ] ) {
+            // 	this.reJoin( client, options, auth );
+            // 	return;
+            // }
             yield this.playerJoin(client, options, auth);
         });
     }
@@ -314,6 +327,7 @@ class HoldemRoom extends colyseus_1.Room {
                 tableInitChips: 0,
                 tableBuyInAmount: 0,
                 tableBuyInCount: 0,
+                pendSitout: false,
             });
             entity.seat = -2;
             entity.client = client;
@@ -533,20 +547,20 @@ class HoldemRoom extends colyseus_1.Room {
         };
     }
     GetWinners(skip, isAllIn) {
-        let rakeInfo = this._PotCalculator.userRakeInfo;
+        // let rakeInfo = this._PotCalculator.userRakeInfo;
         let pots = this._PotCalculator.GetPots(true);
         let winners = [];
         let folders = [];
-        if (null != rakeInfo) {
-            for (let i = 0; i < rakeInfo.length; i++) {
-                let element = rakeInfo[i];
-                let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
-                if (null == ent) {
-                    continue;
-                }
-                ent.rake += element.rake;
-            }
-        }
+        // if (null != rakeInfo) {
+        // 	for (let i = 0; i < rakeInfo.length; i++) {
+        // 		let element = rakeInfo[i];
+        // 		let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
+        // 		if(null == ent){
+        // 			continue;
+        // 		}
+        // 		ent.rake += element.rake;
+        // 	}
+        // }
         for (let i = 0; i < pots.length; i++) {
             let pot = pots[i];
             let potWinners = pot.winner;
@@ -559,7 +573,10 @@ class HoldemRoom extends colyseus_1.Room {
                 }
                 entity.chips += winAmount;
                 entity.winAmount += winAmount;
-                entity.winHandRank = entity.eval.handName;
+                if (entity.eval != null) {
+                    entity.winHandRank = entity.eval.handName;
+                }
+                entity.winHandRank = '';
                 winners.push({
                     seat: entity.seat,
                     cards: entity.cardIndex,
@@ -702,7 +719,15 @@ class HoldemRoom extends colyseus_1.Room {
         return entity;
     }
     onDispose() {
-        console.log('onDispose');
+        console.log('onDISPOSE ');
+        try {
+            this.onUPDATE_ROLLING();
+            this._SalesReporter.UpdateReportByUser(this._dao, this.participants);
+            this.participants = [];
+        }
+        catch (error) {
+            console.log(error);
+        }
         clearInterval(this.pingTimerID);
         clearTimeout(this.bufferTimerID);
         this.state.entities.forEach((e) => {
@@ -751,19 +776,6 @@ class HoldemRoom extends colyseus_1.Room {
                 }
             }
         }
-        for (let i = 0; i < this.state.entities.length; i++) {
-            let entity = this.state.entities[i];
-            if (entity != null) {
-                if (entity.rake != entity.oldRake) {
-                    this._dao.UPDATE_USERS_RAKE(entity.id, entity.rake, (err, res) => {
-                        if (!!err) {
-                            logger.error("[ update ] updateRake query error : %s", err.sqlMessage);
-                        }
-                    });
-                    entity.oldRake = entity.rake;
-                }
-            }
-        }
         this.secondTick += dt;
         if (eGameState.Bet === this.state.gameState) {
             this.elapsedTick += dt;
@@ -797,6 +809,7 @@ class HoldemRoom extends colyseus_1.Room {
                     timeoutPlayer.isSitOut = true;
                     timeoutPlayer.wait = true;
                     timeoutPlayer.sitoutTimestamp = Number(Date.now());
+                    timeoutPlayer.pendSitout = false;
                     this.UpdateSeatInfo();
                     this.broadcast("SIT_OUT", { seat: timeoutPlayer.seat });
                 }
@@ -861,7 +874,6 @@ class HoldemRoom extends colyseus_1.Room {
                 if (isStart == true) {
                     this.updateButtons();
                     this.changeState(eGameState.ClearRound);
-                    // this.changeState( eGameState.Prepare );
                 }
                 else {
                     this.changeState(eGameState.Suspend);
@@ -869,8 +881,8 @@ class HoldemRoom extends colyseus_1.Room {
             }
         }
         else if (eGameState.Suspend === this.state.gameState) {
-            this.elapsedTick += dt;
-            if (this.elapsedTick >= 10000) {
+            this.elapsedSuspend += dt;
+            if (this.elapsedSuspend >= 10000) {
                 let term = this.conf['longSitoutTerm'];
                 let checkLongSitout = false;
                 this.state.entities.forEach((e) => {
@@ -886,7 +898,7 @@ class HoldemRoom extends colyseus_1.Room {
                 if (checkLongSitout) {
                     this.handleEscapee();
                 }
-                this.elapsedTick = 0;
+                this.elapsedSuspend = 0;
             }
         }
     }
@@ -1150,6 +1162,7 @@ class HoldemRoom extends colyseus_1.Room {
             case eGameState.Suspend:
                 this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
                 this.elapsedTick = 0;
+                this.elapsedSuspend = 0;
                 this.broadcast("SUSPEND_ROUND", {
                     entities: this.state.entities,
                     dealerPos: this.state.dealerSeat,
@@ -1239,7 +1252,11 @@ class HoldemRoom extends colyseus_1.Room {
                 logger.info("[ changeState ] RESULT");
                 this.showdownTime = 5000; //this.conf[ "showDownTerm" ];
                 let isAllIn = false;
-                if (this.isAllFold() == false) {
+                let allFold = this.isAllFold();
+                if (allFold == true) {
+                    // this.allFoldProc();
+                }
+                else {
                     let pots = this._PotCalculator.GetPots(true);
                     if (eCommunityCardStep.RESULT !== this.centerCardState) {
                         isAllIn = true;
@@ -1264,16 +1281,27 @@ class HoldemRoom extends colyseus_1.Room {
                         logger.error("ENTER_SIT_OUT");
                         e.isSitBack = false;
                         e.isSitOut = true;
+                        e.pendSitout = false;
                         e.sitoutTimestamp = Number(Date.now());
                         e.wait = true;
                         this.broadcast("SIT_OUT", { seat: e.seat });
                         return;
+                    }
+                    else if (e.pendSitout == true) {
+                        logger.error("ENTER_SIT_OUT");
+                        e.isSitBack = false;
+                        e.isSitOut = true;
+                        e.pendSitout = false;
+                        e.sitoutTimestamp = Number(Date.now());
+                        e.wait = true;
+                        this.broadcast("SIT_OUT", { seat: e.seat });
                     }
                 });
                 this.processPendingAddChips();
                 this.processReBuyInRequest();
                 this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
                 this.participants = [];
+                this.lastBet = null;
                 this.broadcast("CLEAR_ROUND", {
                     msg: "CLEAR_ROUND", timeMS: this.conf["clearTerm"] * 1000, entities: this.state.entities
                 });
@@ -1365,13 +1393,135 @@ class HoldemRoom extends colyseus_1.Room {
                 break;
         }
     }
+    onPRE_FLOP_END() {
+        console.log('onPRE_FLOP_END');
+        let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        this.participants.forEach((e) => {
+            let rolling = e.roundBet;
+            let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            e.rolling += rolling;
+            e.rake_back += rake_back;
+            e.roundBet = 0;
+            this.UPDATE_ROLLINGS({
+                id: e.id,
+                rolling: rolling,
+                rake_back: rake_back
+            });
+        });
+        this.ResetRoundBets();
+        this.lastBet = null;
+        this.broadcast("PRE_FLOP_END", {
+            msg: "PRE_FLOP_END",
+            pot: this.state.pot,
+        });
+    }
+    onUPDATE_ROLLING() {
+        if (this.participants == null || this.participants.length == 0) {
+            return;
+        }
+        console.log('onUPDATE_ROLLING');
+        let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        this.participants.forEach((e) => {
+            if (e.roundBet > 0) {
+                let rolling = e.roundBet;
+                let rake_back = Math.trunc(rolling * rakeBackPercentage);
+                e.rolling += rolling;
+                e.rake_back += rake_back;
+                e.roundBet = 0;
+                this.UPDATE_ROLLINGS({
+                    id: e.id,
+                    rolling: rolling,
+                    rake_back: rake_back
+                });
+            }
+        });
+        this.ResetRoundBets();
+        this.lastBet = null;
+    }
+    onFLOP_END() {
+        console.log('onFLOP_END');
+        let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        this.participants.forEach((e) => {
+            let rolling = e.roundBet;
+            let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            e.rolling += rolling;
+            e.rake_back += rake_back;
+            e.roundBet = 0;
+            this.UPDATE_ROLLINGS({
+                id: e.id,
+                rolling: rolling,
+                rake_back: rake_back
+            });
+        });
+        this.ResetRoundBets();
+        this.lastBet = null;
+        this.broadcast("FLOP_END", {
+            msg: "FLOP_END",
+            pot: this.state.pot,
+        });
+    }
+    onTURN_END() {
+        console.log('onTURN_END');
+        let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        this.participants.forEach((e) => {
+            let rolling = e.roundBet;
+            let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            e.rolling += rolling;
+            e.rake_back += rake_back;
+            e.roundBet = 0;
+            this.UPDATE_ROLLINGS({
+                id: e.id,
+                rolling: rolling,
+                rake_back: rake_back
+            });
+        });
+        this.ResetRoundBets();
+        this.lastBet = null;
+        this.broadcast("TURN_END", {
+            msg: "TURN_END",
+            pot: this.state.pot,
+        });
+    }
+    onRIVER_END() {
+        console.log('onRIVER_END');
+        let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        this.participants.forEach((e) => {
+            let rolling = e.roundBet;
+            let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            e.rolling += rolling;
+            e.rake_back += rake_back;
+            e.roundBet = 0;
+            this.UPDATE_ROLLINGS({
+                id: e.id,
+                rolling: rolling,
+                rake_back: rake_back
+            });
+        });
+        this.ResetRoundBets();
+        this.lastBet = null;
+        this.broadcast("RIVER_END", {
+            msg: "RIVER_END",
+            pot: this.state.pot,
+        });
+    }
+    UPDATE_ROLLINGS(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rake_back: ' + data.rake_back);
+            return new Promise((resolve, reject) => {
+                this._dao.UPDATE_ROLLINGS(data, (err, res) => {
+                    if (err != null) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(res);
+                });
+            });
+        });
+    }
     changeCenterCardState() {
         switch (this.centerCardState) {
-            case eCommunityCardStep.PRE_FLOP: // 0
-                this.broadcast("PRE_FLOP_END", {
-                    msg: "PRE_FLOP_END",
-                    pot: this.state.pot,
-                });
+            case eCommunityCardStep.PRE_FLOP:
+                this.onPRE_FLOP_END();
                 this.bufferTimerID = setTimeout(() => {
                     this.centerCardState = eCommunityCardStep.FLOP;
                     this._PotCalculator.UpdateCenterCard(this.centerCardState);
@@ -1380,10 +1530,7 @@ class HoldemRoom extends colyseus_1.Room {
                 }, 1000);
                 break;
             case eCommunityCardStep.FLOP:
-                this.broadcast("FLOP_END", {
-                    msg: "FLOP_END",
-                    pot: this.state.pot,
-                });
+                this.onFLOP_END();
                 this.bufferTimerID = setTimeout(() => {
                     this.centerCardState = eCommunityCardStep.TURN;
                     this._PotCalculator.UpdateCenterCard(this.centerCardState);
@@ -1392,10 +1539,7 @@ class HoldemRoom extends colyseus_1.Room {
                 }, 1000);
                 break;
             case eCommunityCardStep.TURN:
-                this.broadcast("TURN_END", {
-                    msg: "TURN_END",
-                    pot: this.state.pot,
-                });
+                this.onTURN_END();
                 this.bufferTimerID = setTimeout(() => {
                     this.centerCardState = eCommunityCardStep.RIVER;
                     this._PotCalculator.UpdateCenterCard(this.centerCardState);
@@ -1404,10 +1548,7 @@ class HoldemRoom extends colyseus_1.Room {
                 }, 1000);
                 break;
             case eCommunityCardStep.RIVER:
-                this.broadcast("RIVER_END", {
-                    msg: "RIVER_END",
-                    pot: this.state.pot,
-                });
+                this.onRIVER_END();
                 this.bufferTimerID = setTimeout(() => {
                     this.centerCardState = eCommunityCardStep.RESULT;
                     this._PotCalculator.UpdateCenterCard(this.centerCardState);
@@ -1481,7 +1622,7 @@ class HoldemRoom extends colyseus_1.Room {
         });
         this.bufferTimerID = setTimeout(() => {
             this.changeState(eGameState.PreFlop);
-        }, 500);
+        }, 1000);
     }
     resetEntities() {
         this.state.entities.forEach(e => {
@@ -1498,6 +1639,11 @@ class HoldemRoom extends colyseus_1.Room {
             e.winAmount = 0;
             e.totalBet = 0;
             e.initRoundChips = e.chips;
+        });
+    }
+    ResetRoundBets() {
+        this.state.entities.forEach(e => {
+            e.roundBet = 0;
         });
     }
     //------------------------------------
@@ -1544,6 +1690,7 @@ class HoldemRoom extends colyseus_1.Room {
         let missSb = [];
         let missBb = [];
         this.participants = [];
+        this.lastBet = null;
         let sbBet = this.conf["smallBlind"];
         if (sb != null) {
             if (sb.chips > sbBet &&
@@ -1579,39 +1726,6 @@ class HoldemRoom extends colyseus_1.Room {
             if (true === e.wait) {
                 continue;
             }
-            if (true === e.missSb) {
-                // let val = sbBet;
-                // if( e.chips > val ) {
-                // 	if ( true === e.missBb ) {
-                // 		e.chips -= val;
-                // 		e.missSb = false;
-                // 		this.state.pot += val;
-                // 		missSb.push(e);
-                // 		this.potCalc.DeadBlind(val);
-                // 	} else {
-                // 		e.currBet = sbBet;
-                // 		e.roundBet = sbBet;
-                // 		e.totalBet = sbBet;
-                // 		e.chips -= e.currBet;
-                // 		this.state.pot += e.currBet;
-                // 		missSb.push(e);
-                // 		this.potCalc.SetBet(this.state.sbSeat,e.totalBet,e.eval.value,false);
-                // 	}
-                // }
-            }
-            if (true === e.missBb) {
-                // let val = this.state.startBet;
-                // if( e.chips > val ) {
-                // 	e.currBet = this.state.startBet;
-                // 	e.roundBet = this.state.startBet;
-                // 	e.totalBet = this.state.startBet;
-                // 	e.chips -= e.currBet;
-                // 	e.missBb = false;
-                // 	this.state.pot += e.currBet;
-                // 	missBb.push(e);
-                // 	this.potCalc.SetBet(e.seat,e.totalBet,e.eval.value,false);
-                // }
-            }
         }
         let player = [];
         let ante = this.conf['ante'];
@@ -1620,7 +1734,7 @@ class HoldemRoom extends colyseus_1.Room {
             if (null === e || undefined === e) {
                 continue;
             }
-            if (true === e.wait || true === e.isSitOut) {
+            if (true === e.wait) {
                 continue;
             }
             if (e.isSb != true && e.isBb != true) {
@@ -1632,7 +1746,6 @@ class HoldemRoom extends colyseus_1.Room {
                 e.chips -= ante;
                 this._PotCalculator.SetAnte(e.seat, e.totalBet, e.eval.value, false);
             }
-            // player.push(e.seat);
             player.push(e);
         }
         player.forEach((p) => {
@@ -1640,11 +1753,16 @@ class HoldemRoom extends colyseus_1.Room {
                 id: p.client.auth.id,
                 seat: p.seat,
                 store_id: p.client.auth.store_id,
+                distributor_id: p.client.auth.distributor_id,
+                partner_id: p.client.auth.partner_id,
                 login_id: p.client.auth.login_id,
                 nickname: p.client.auth.nickname,
+                roundBet: p.roundBet,
                 totalBet: p.totalBet,
                 win: 0,
                 rake: 0,
+                rake_back: 0,
+                rolling: 0,
             });
         });
         this.state.maxBet = this.state.startBet;
@@ -1831,6 +1949,7 @@ class HoldemRoom extends colyseus_1.Room {
         }
         if (true === e.isSitOut && false === e.wait) {
             e.wait = true;
+            e.pendSitout = false;
             e.sitoutTimestamp = Number(Date.now());
             this.broadcast("SIT_OUT", { seat: e.seat });
             this.UpdateSeatInfo();
@@ -1922,45 +2041,55 @@ class HoldemRoom extends colyseus_1.Room {
         this.ChangeShowdownState();
     }
     finishProc(skip, isAllIn) {
-        let rakeInfo = this._PotCalculator.userRakeInfo;
         let pots = this._PotCalculator.GetPots(true);
         let winners = [];
         let folders = [];
-        if (null != rakeInfo) {
-            for (let i = 0; i < rakeInfo.length; i++) {
-                let element = rakeInfo[i];
-                let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
-                if (null == ent) {
-                    continue;
-                }
-                ent.rake += element.rake;
-            }
-        }
+        let _winners = [];
+        let rakePercent = this.conf['rakePercentage'];
         for (let i = 0; i < pots.length; i++) {
             let pot = pots[i];
+            let potWinners = pot.winner;
             let potPlayers = pot.players.length;
             let isReturn = false;
             if (skip == false && potPlayers == 1) {
                 isReturn = true;
             }
             let isDraw = false;
-            let potWinners = pot.winner;
-            if (potWinners.length > 1) {
+            let wc = pot.winner.length;
+            if (wc > 1) {
                 isDraw = true;
             }
-            let potAmount = (pot.rake == undefined) ? pot.total : (pot.total - pot.rake);
-            let winAmount = potAmount / potWinners.length;
+            let potAmount = 0;
+            let winAmount = 0;
             let rake = 0;
-            if (pot.rake !== null || pot.rake !== undefined) {
-                if (potWinners.length != 0) {
-                    rake = pot.rake / potWinners.length;
+            if (skip == true) {
+                potAmount = pot.total;
+                winAmount = Math.trunc(potAmount / wc);
+                if (this.lastBet != null && this.lastBet.seat == pot.winner[0]) {
+                    if (this.lastBet.bet > 0) {
+                        rake = Math.trunc((potAmount - this.lastBet.bet) * rakePercent / wc);
+                    }
+                    else {
+                        rake = Math.trunc(winAmount * rakePercent);
+                    }
                 }
                 else {
-                    rake = 0;
+                    rake = Math.trunc(winAmount * rakePercent);
                 }
             }
-            for (let j = 0; j < potWinners.length; j++) {
-                let entity = this.getEntity(potWinners[j]);
+            else {
+                potAmount = pot.total;
+                winAmount = Math.trunc(potAmount / wc);
+                if (isReturn == true) {
+                    rake = 0;
+                }
+                else {
+                    rake = Math.trunc(winAmount * rakePercent);
+                }
+            }
+            winAmount -= rake;
+            for (let j = 0; j < pot.winner.length; j++) {
+                let entity = this.getEntity(pot.winner[j]);
                 if (entity !== null && entity !== undefined) {
                     entity.chips += winAmount;
                     entity.winAmount += winAmount;
@@ -1968,6 +2097,26 @@ class HoldemRoom extends colyseus_1.Room {
                     let store_id = -1;
                     if (entity.client != null && entity.client.auth != null && entity.client.auth.store_id != null) {
                         store_id = entity.client.auth.store_id;
+                    }
+                    let _w = _winners.find((w) => {
+                        return w.seat = entity.seat;
+                    });
+                    if (_w == null) {
+                        _winners.push({
+                            id: entity.id,
+                            seat: entity.seat,
+                            store_id: store_id,
+                            winAmount: entity.winAmount,
+                            rake: rake,
+                            return: isReturn,
+                            draw: isDraw
+                        });
+                    }
+                    else {
+                        _w.winAmount = entity.winAmount;
+                        _w.rake += rake;
+                        _w.return = isReturn;
+                        _w.draw = isDraw;
                     }
                     winners.push({
                         id: entity.id,
@@ -2033,20 +2182,20 @@ class HoldemRoom extends colyseus_1.Room {
                             let c = entity.statics.win;
                             entity.statics.win = c + 1;
                         }
+                        if (entity.isDealer == true) {
+                            entity.statics.win_dealer += 1;
+                        }
+                        if (entity.isSb == true) {
+                            entity.statics.win_smallBlind += 1;
+                        }
+                        if (entity.isBb == true) {
+                            entity.statics.win_bigBlind += 1;
+                        }
                         if (skip == true) {
                         }
                         else {
                             if (this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE) {
                                 entity.statics.win_allin += 1;
-                            }
-                            if (entity.isDealer == true) {
-                                entity.statics.win_dealer += 1;
-                            }
-                            if (entity.isSb == true) {
-                                entity.statics.win_smallBlind += 1;
-                            }
-                            if (entity.isBb == true) {
-                                entity.statics.win_bigBlind += 1;
                             }
                             let best_rank = entity.statics.best_rank;
                             let handValue = w.eval.value;
@@ -2077,15 +2226,6 @@ class HoldemRoom extends colyseus_1.Room {
                                 entity.statics.win_river += 1;
                                 break;
                         }
-                        if (entity.isDealer == true) {
-                            entity.statics.win_dealer += 1;
-                        }
-                        if (entity.isSb == true) {
-                            entity.statics.win_smallBlind += 1;
-                        }
-                        if (entity.isBb == true) {
-                            entity.statics.win_bigBlind += 1;
-                        }
                         let ws = winners.filter((elem) => {
                             return (w.seat == elem.seat);
                         });
@@ -2114,7 +2254,7 @@ class HoldemRoom extends colyseus_1.Room {
                 }
             }
         });
-        winners.forEach((w) => {
+        _winners.forEach((w) => {
             let p = this.participants.find((player) => {
                 return w.seat == player.seat;
             });
@@ -2123,15 +2263,26 @@ class HoldemRoom extends colyseus_1.Room {
                 p.win += w.winAmount;
                 if (w.return == true) {
                     p.totalBet -= w.winAmount;
+                    p.roundBet -= w.winAmount;
                     p.win -= w.winAmount;
+                }
+                if (skip == true) {
+                    if (this.lastBet != null && this.lastBet.seat == p.seat) {
+                        if (this.lastBet.bet != null && this.lastBet.bet > 0) {
+                            p.roundBet -= this.lastBet.bet;
+                            p.totalBet -= this.lastBet.bet;
+                            p.win -= this.lastBet.bet;
+                        }
+                    }
                 }
             }
         });
-        // console.log('this.participants');
-        // console.log( this.participants );
         try {
+            let rakeBackPercentage = this.conf['rakeBackPercentage'];
+            this._SalesReporter.UpdateUser(this._dao, this.participants, rakeBackPercentage);
             this._SalesReporter.UpdateReportByUser(this._dao, this.participants);
             this._SalesReporter.UpdateReportByTable(this._dao, this.participants, this._id);
+            this.participants = [];
         }
         catch (error) {
             console.log(error);
@@ -2215,7 +2366,6 @@ class HoldemRoom extends colyseus_1.Room {
                 r += 1;
             }
         }
-        // logger.info( "[ isAllFold ] remain player : %s", r );
         return r <= 1;
     }
     checkCount() {
@@ -2546,6 +2696,7 @@ class HoldemRoom extends colyseus_1.Room {
         this.broadTurn();
     }
     onCALL(client, msg) {
+        console.log('onCALL: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onCall ] INVALID CALL. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
@@ -2577,7 +2728,9 @@ class HoldemRoom extends colyseus_1.Room {
         });
         if (p != null) {
             p.totalBet = e.totalBet;
+            p.roundBet = e.roundBet;
         }
+        this.lastBet = null;
         this.broadcast("CALL", {
             seat: this.betSeat,
             chips: e.chips,
@@ -2602,6 +2755,7 @@ class HoldemRoom extends colyseus_1.Room {
         this.broadTurn();
     }
     onBET(client, msg) {
+        console.log('onBET: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onBet ] INVALID CALL. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
@@ -2619,15 +2773,23 @@ class HoldemRoom extends colyseus_1.Room {
             logger.error("[ onBet ] bet > stack!!!");
             msg["betAmount"] = e.chips;
         }
-        e.chips -= msg["betAmount"];
+        let callValue = msg['callValue'];
+        let betValue = msg["betAmount"];
+        e.chips -= betValue;
         if (e.chips <= 0) {
             logger.info("[ onBet ] allin");
             e.chips = 0;
             e.allIn = 1;
         }
-        e.currBet += msg["betAmount"];
-        e.roundBet += msg["betAmount"];
-        e.totalBet += msg["betAmount"];
+        e.currBet += betValue;
+        e.roundBet += betValue;
+        e.totalBet += betValue;
+        this.lastBet = null;
+        this.lastBet = {
+            seat: e.seat,
+            call: callValue,
+            bet: betValue - callValue
+        };
         e.timeLimitCount = 0;
         this.ReOpenAction();
         e.hasAction = false;
@@ -2644,6 +2806,7 @@ class HoldemRoom extends colyseus_1.Room {
         });
         if (p != null) {
             p.totalBet = e.totalBet;
+            p.roundBet = e.roundBet;
         }
         this.broadcast("BET", {
             seat: this.betSeat,
@@ -2658,6 +2821,7 @@ class HoldemRoom extends colyseus_1.Room {
         this.elapsedTick = 0;
     }
     onRAISE(client, msg) {
+        console.log('onRAISE: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
@@ -2667,7 +2831,9 @@ class HoldemRoom extends colyseus_1.Room {
             logger.error("onRaise - player " + msg["seat"] + " is fold but try Raise");
             return;
         }
-        let locBet = msg["betAmount"];
+        let betValue = msg['betAmount'];
+        let callValue = msg['callValue'];
+        let locBet = betValue;
         let locChangeEndSeat = false;
         logger.info("[ onRaise ] player index : %s // send msg : %s", msg["seat"], msg);
         this.state.maxBet = locBet;
@@ -2684,6 +2850,12 @@ class HoldemRoom extends colyseus_1.Room {
         e.roundBet += bet;
         e.totalBet += bet;
         e.timeLimitCount = 0;
+        this.lastBet = null;
+        this.lastBet = {
+            seat: e.seat,
+            call: callValue,
+            bet: bet - callValue
+        };
         this.ReOpenAction();
         e.hasAction = false;
         this.state.pot = this.state.pot + bet;
@@ -2696,6 +2868,7 @@ class HoldemRoom extends colyseus_1.Room {
         });
         if (p != null) {
             p.totalBet = e.totalBet;
+            p.roundBet = e.roundBet;
         }
         this.broadcast("RAISE", {
             seat: this.betSeat,
@@ -2735,6 +2908,7 @@ class HoldemRoom extends colyseus_1.Room {
         this.elapsedTick = 0;
     }
     onALLIN(client, msg) {
+        console.log('onALLIN: ' + msg["betAmount"]);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
@@ -2745,6 +2919,7 @@ class HoldemRoom extends colyseus_1.Room {
             return;
         }
         let locBet = msg["betAmount"];
+        let callValue = msg['callValue'];
         let locChangeEndSeat = true;
         this.state.maxBet = locBet;
         let bet = locBet - e.currBet;
@@ -2752,12 +2927,21 @@ class HoldemRoom extends colyseus_1.Room {
             e.allIn = 1;
             bet = e.chips;
         }
+        if (bet < callValue) {
+            callValue = bet;
+        }
         e.chips -= bet;
         e.currBet += bet;
         e.roundBet += bet;
         e.totalBet += bet;
         e.hasAction = false;
         e.timeLimitCount = 0;
+        this.lastBet = null;
+        this.lastBet = {
+            seat: e.seat,
+            call: callValue,
+            bet: bet - callValue
+        };
         this.state.pot = this.state.pot + bet;
         if (e.chips <= 0) {
             e.chips = 0;
@@ -2768,6 +2952,7 @@ class HoldemRoom extends colyseus_1.Room {
         });
         if (p != null) {
             p.totalBet = e.totalBet;
+            p.roundBet = e.roundBet;
         }
         this.broadcast("RAISE", {
             seat: this.betSeat,
@@ -3113,8 +3298,9 @@ class HoldemRoom extends colyseus_1.Room {
             logger.error(" [ OnSitOut ] the seat number " + seatNumber + " is Already sit out but try sit out Again");
             return;
         }
-        sitOutPlayer.isSitOut = true;
         if (sitOutPlayer.wait == true || sitOutPlayer.fold == true) {
+            sitOutPlayer.isSitOut = true;
+            sitOutPlayer.pendSitout = false;
             sitOutPlayer.sitoutTimestamp = Number(Date.now());
             this.broadcast("SIT_OUT", { seat: sitOutPlayer.seat });
             this.UpdateSeatInfo();
@@ -3124,11 +3310,14 @@ class HoldemRoom extends colyseus_1.Room {
             this.state.gameState === eGameState.Ready ||
             this.state.gameState === eGameState.ClearRound) {
             sitOutPlayer.wait = true;
+            sitOutPlayer.isSitOut = true;
+            sitOutPlayer.pendSitout = false;
             sitOutPlayer.sitoutTimestamp = Number(Date.now());
             this.broadcast("SIT_OUT", { seat: sitOutPlayer.seat });
             this.UpdateSeatInfo();
         }
         else {
+            sitOutPlayer.pendSitout = true;
             client.send("SIT_OUT_PEND", {});
         }
     }
@@ -3182,6 +3371,7 @@ class HoldemRoom extends colyseus_1.Room {
             eGameState.ClearRound === this.state.gameState) {
             sitOutPlayer.isSitBack = false;
             sitOutPlayer.isSitOut = false;
+            sitOutPlayer.pendSitout = false;
             sitOutPlayer.sitoutTimestamp = 0;
             this.UpdateSeatInfo();
             this.broadcast("SIT_BACK", { seat: seatNumber });
@@ -3327,167 +3517,55 @@ class HoldemRoom extends colyseus_1.Room {
         }
     }
     onSYNC_TABLE(client, msg) {
-        // try {
-        // 	logger.info( "[ onBuyIn ] msg : %s", msg );
-        // 	let entity = this.findEntityBySessionID( client.sessionId );
-        // 	if( null === entity || undefined === entity ) {
-        // 		logger.error( "[ onBuyIn ] entity is null" );
-        // 		return;
-        // 	}
-        // 	let seatPos : number = -1;
-        // 	for(let i = 0; i < this.seatWaitingList.length; i++){
-        // 		if(this.seatWaitingList[i] == client.sessionId){
-        // 			seatPos = i;
-        // 			this.seatWaitingList[i] = "";
-        // 			break;
-        // 		}
-        // 	}
-        // 	if(seatPos == -1){
-        // 		return;
-        // 	}
-        // 	entity.seat = seatPos;
-        // 	this._dao.selectBalanceByUID( entity.id, ( err: any, res: any ) => {
-        // 		if( !!err ) {
-        // 			logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
-        // 			return;
-        // 		}
-        // 		if( res.length <= 0 ) {
-        // 			logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
-        // 			return;
-        // 		}
-        // 		else {
-        // 			entity.balance = res[0]["balance"];
-        // 			let oldBalance = entity.balance;
-        // 			let oldChips = entity.chips;
-        // 			let buyInAmount = msg[ "buyInAmount" ];
-        // 			let bal = entity.balance - buyInAmount;
-        // 			if( bal <= 0 ) {
-        // 				buyInAmount = entity.balance;
-        // 				bal = 0;
-        // 			}
-        // 			entity.balance = bal;
-        // 			entity.chips += buyInAmount;
-        // 			entity.initRoundChips = entity.chips;
-        // 			entity.tableBuyInAmount += buyInAmount;
-        // 			entity.tableBuyInCount++;
-        // 			this._dao.buyIn( entity.id, this.conf["tableID"], oldBalance, 
-        // 			entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
-        // 			{
-        // 				if( !!err ) {
-        // 					logger.error( "[ onBuyIn ] buyIn query error : %s", err );
-        // 				}
-        // 			} );
-        // 			this._dao.updateBalance( entity.id, entity.balance, ( err: any, res: any ) => {
-        // 				if( !!err ) {
-        // 					logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
-        // 				}
-        // 			} );
-        // 			logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
-        // 			let openCards: number[] = [];
-        // 			switch( this.centerCardState ) {
-        // 				case eCommunityCardStep.FLOP:
-        // 					openCards = this.communityCardIndex.slice( 0, 3 );
-        // 					break;
-        // 				case eCommunityCardStep.TURN:
-        // 					openCards = this.communityCardIndex.slice( 0, 4 );
-        // 					break;
-        // 				case eCommunityCardStep.RIVER:
-        // 				case eCommunityCardStep.RESULT:
-        // 					openCards = this.communityCardIndex;
-        // 					break;
-        // 			}
-        // 			this.UpdateSeatInfo();
-        // 			entity.tableInitChips = oldChips;
-        // 			entity.tableBuyInAmount = buyInAmount;
-        // 			entity.tableBuyInCount = 1;
-        // 			client.send("RES_BUY_IN", {
-        // 				ret: 0,
-        // 				amount: buyInAmount,
-        // 				message: "SUCCEED.",
-        // 				tableBuyInAmount: entity.tableBuyInAmount,
-        // 				tableBuyInCount: entity.tableBuyInCount,
-        // 			});
-        // 			let playerCards = null;
-        // 			let winners = null;
-        // 			let showdown = null;
-        // 			if ( this.state.gameState == eGameState.Result )
-        // 			{
-        // 				playerCards = this.GetPlayerCards();
-        // 				winners = this.GetWinners( this.isAllFold(), false );
-        // 			}
-        // 			if ( this.SHOWDOWN_STATE != ENUM_SHOWDOWN_STEP.NONE ) {
-        // 				showdown = this.GetShowdown();
-        // 				winners = this.GetWinners( false, true );
-        // 				switch ( this.SHOWDOWN_STATE ) {				
-        // 					case ENUM_SHOWDOWN_STEP.SHOWDOWN_START:
-        // 						openCards = [];
-        // 						break;
-        // 					case ENUM_SHOWDOWN_STEP.SHOW_FLOP:
-        // 						openCards = this.communityCardIndex.slice( 0, 3 );
-        // 						break;
-        // 					case ENUM_SHOWDOWN_STEP.SHOW_TURN:
-        // 						openCards = this.communityCardIndex.slice( 0, 4 );
-        // 						break;
-        // 					case ENUM_SHOWDOWN_STEP.SHOW_RIVER:
-        // 						openCards = this.communityCardIndex;
-        // 						break;
-        // 					case ENUM_SHOWDOWN_STEP.SHOWDOWN_END:
-        // 						openCards = this.communityCardIndex;							
-        // 						winners = this.GetWinners( false, true );
-        // 						break;
-        // 				}						
-        // 			}
-        // 			client.send( "JOIN", {
-        // 				yourself: entity,
-        // 				entities: this.state.entities,
-        // 				gameState: this.state.gameState,
-        // 				showdownState: this.SHOWDOWN_STATE,
-        // 				betSeat: this.betSeat,
-        // 				endSeat: this.endSeat,
-        // 				maxBet: this.state.maxBet,
-        // 				minRaise: this.state.minRaise,
-        // 				pot: this.state.pot,						
-        // 				centerCardState: this.centerCardState,
-        // 				openCards: openCards,
-        // 				small: this.conf[ "smallBlind" ],
-        // 				big: this.conf[ "bigBlind" ],
-        // 				minStakePrice: this.conf["minStakePrice"],
-        // 				maxStakePrice: this.conf["maxStakePrice"],
-        // 				dealer: this.dealerCalc.getDealer(),
-        // 				sb : this.dealerCalc.getSb(),
-        // 				bb : this.dealerCalc.getBb(),
-        // 				tableInitChips: entity.tableInitChips,
-        // 				tableBuyInAmount: entity.tableBuyInAmount,
-        // 				tableBuyInCount: entity.tableBuyInCount,
-        // 				initPot: this._initPot,
-        // 				playerCards: playerCards,
-        // 				showdown: showdown,
-        // 				winners: winners,
-        // 			} );
-        // 			if( eGameState.Suspend === this.state.gameState ) {
-        // 				entity.isNew = false;
-        // 				let isStart = this.checkStartCondition();
-        // 				if ( true === isStart ) {
-        // 					this.changeState( eGameState.Ready );
-        // 				}
-        // 			} else if (eGameState.Ready === this.state.gameState) {
-        // 				entity.isNew = false;
-        // 			}
-        // 			this.broadcast( "NEW_ENTITY", { newEntity: entity } );
-        // 		}
-        // 	} );
-        // } catch( e ) {
-        // 	if( e === undefined ) {
-        // 		e = "error";
-        // 	}
-        // 	client.send("RES_BUY_IN", {
-        // 		ret: -1,
-        // 		amount: 0,
-        // 		message: e,
-        // 		tableBuyInAmount: 0,
-        // 		tableBuyInCount: 0,
-        // 	});
-        // }
+        let seat = msg['seat'];
+        let entity = this.state.entities.find(elem => elem.seat == seat);
+        if (undefined === entity) {
+            return;
+        }
+        entity.lastPingTime = Date.now();
+        entity.sid = client.sessionId;
+        entity.client = client;
+        let openCards = [];
+        switch (this.centerCardState) {
+            case eCommunityCardStep.FLOP:
+                openCards = this.communityCardIndex.slice(0, 3);
+                break;
+            case eCommunityCardStep.TURN:
+                openCards = this.communityCardIndex.slice(0, 4);
+                break;
+            case eCommunityCardStep.RIVER:
+            case eCommunityCardStep.RESULT:
+                openCards = this.communityCardIndex;
+                break;
+        }
+        let prim = entity.cardIndex.length > 0 ? entity.cardIndex[0] : -1;
+        let sec = entity.cardIndex.length > 1 ? entity.cardIndex[1] : -1;
+        client.send("SYNC_TABLE", {
+            yourself: entity,
+            entities: this.state.entities,
+            gameState: this.state.gameState,
+            betSeat: this.betSeat,
+            endSeat: this.endSeat,
+            maxBet: this.state.maxBet,
+            minRaise: this.state.minRaise,
+            minBet: this.state.startBet,
+            pot: this.state.pot,
+            centerCardState: this.centerCardState,
+            openCards: openCards,
+            small: this.conf["smallBlind"],
+            big: this.conf["bigBlind"],
+            minStakePrice: this.conf["minStakePrice"],
+            maxStakePrice: this.conf["maxStakePrice"],
+            primCard: prim,
+            secCard: sec,
+            dealer: this._DealerCalculator.getDealer(),
+            sb: this._DealerCalculator.getSb(),
+            bb: this._DealerCalculator.getBb(),
+            tableInitChips: entity.tableInitChips,
+            tableBuyInAmount: entity.tableBuyInAmount,
+            tableBuyInCount: entity.tableBuyInCount,
+            initPot: this._initPot
+        });
     }
     onFORE_GROUND(client, msg) {
         let seat = msg['seat'];
@@ -3498,6 +3576,7 @@ class HoldemRoom extends colyseus_1.Room {
                 entity.backgroundTimestamp = 0;
             }
         }
+        // this.onSYNC_TABLE( client, msg);
     }
     onBACK_GROUND(client, msg) {
         let seat = msg['seat'];

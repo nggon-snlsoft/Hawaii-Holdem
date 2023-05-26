@@ -31,7 +31,6 @@ exports.default = arena_1.default({
     initializeGameServer: (gameServer) => {
         const sqlClient = sql.init();
         dao.init(sqlClient);
-        // RoomController.Instance().InitializeRoomController(dao);
         gameServer.define("holdem_full", HoldemRoom_1.HoldemRoom, { dao: dao, ts: "full", clientLimit: 9, passPrice: 2000 }).filterBy(["serial"]);
         gameServer.define("holdem_short", HoldemRoom_1.HoldemRoom, { dao: dao, ts: "short", clientLimit: 6, passPrice: 1000 }).filterBy(["serial"]);
         gameServer.onShutdown(function () {
@@ -57,7 +56,8 @@ exports.default = arena_1.default({
         tableController = new TableController_1.default();
         app.set("DAO", dao);
         app.use("/tables", tableController.router);
-        app.use("/check", () => {
+        app.use("/check", (req, res) => {
+            res.send("GAME_SERVER_OK");
         });
         app.get("/", (req, res) => {
             res.send("It could not be a better day to die~~ :)");

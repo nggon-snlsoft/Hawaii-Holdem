@@ -11,8 +11,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesReport = void 0;
 class SalesReport {
+    constructor(dao) {
+        this.dao = null;
+        this.dao = dao;
+    }
+    UpdateUser(dao, participants, rakeBackPercentage) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (participants == null) {
+                return;
+            }
+            for (let i = 0; i < participants.length; i++) {
+                let id = participants[i].id;
+                let win = participants[i].win;
+                let betting = participants[i].totalBet;
+                let rolling = participants[i].roundBet;
+                let rake = participants[i].rake;
+                let rake_back = Math.trunc(rolling * rakeBackPercentage);
+                participants[i].rolling += rolling;
+                participants[i].rake_back += rake_back;
+                participants[i].roundBet = 0;
+                let affected = null;
+                try {
+                    affected = yield this.UPDATE_USERS_BETTINGS(dao, {
+                        id: id,
+                        win: win,
+                        betting: betting,
+                        rolling,
+                        rake: rake,
+                        rake_back: rake_back
+                    });
+                }
+                catch (error) {
+                    console.log(error);
+                }
+            }
+        });
+    }
     UpdateReportByUser(dao, participants) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (participants == null || participants.length == 0) {
+                return;
+            }
             let now = new Date();
             let date = this.GetReportDate(now);
             if (participants == null) {
@@ -32,8 +71,13 @@ class SalesReport {
                 }
                 let user_id = participants[i].id;
                 let store_id = participants[i].store_id;
+                let distributor_id = participants[i].distributor_id;
+                let partner_id = participants[i].partner_id;
                 let wins = participants[i].win;
                 let bettings = participants[i].totalBet;
+                let rollings = participants[i].rolling;
+                let rake_back = participants[i].rake_back;
+                let point = rake_back;
                 let rakes = 0;
                 if (participants[i].rake != null) {
                     rakes = participants[i].rake;
@@ -46,14 +90,14 @@ class SalesReport {
                             index: index,
                             bettings: bettings,
                             wins: wins,
+                            rollings: rollings,
+                            rake_back: rake_back,
                             rakes: rakes,
+                            point: point,
                         });
                     }
                     catch (error) {
                         console.log(error);
-                    }
-                    if (affected != null) {
-                        console.log('affected: ' + affected);
                     }
                 }
                 else {
@@ -62,17 +106,19 @@ class SalesReport {
                         affected = yield this.CreateSalesUserInfo(dao, {
                             user_id: user_id,
                             store_id: store_id,
+                            distributor_id: distributor_id,
+                            partner_id: partner_id,
                             bettings: bettings,
                             wins: wins,
                             rakes: rakes,
+                            rollings: rollings,
+                            rake_back: rake_back,
+                            point: point,
                             date: date,
                         });
                     }
                     catch (error) {
                         console.log(error);
-                    }
-                    if (affected != null) {
-                        console.log('affected: ' + affected);
                     }
                 }
             }
@@ -114,9 +160,6 @@ class SalesReport {
                 catch (error) {
                     console.log(error);
                 }
-                if (affected != null) {
-                    console.log('affected: ' + affected);
-                }
             }
             else {
                 let affected = null;
@@ -131,9 +174,6 @@ class SalesReport {
                 }
                 catch (error) {
                     console.log(error);
-                }
-                if (affected != null) {
-                    console.log('affected: ' + affected);
                 }
             }
         });
@@ -155,6 +195,19 @@ class SalesReport {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 dao.INSERT_SALES_USER(data, (err, res) => {
+                    if (err != null) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(res);
+                });
+            });
+        });
+    }
+    UPDATE_USERS_BETTINGS(dao, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                dao.UPDATE_USERS_BETTINGS(data, (err, res) => {
                     if (err != null) {
                         reject(err);
                         return;

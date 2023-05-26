@@ -40,6 +40,7 @@ class EntityState extends schema_1.Schema {
         this.waitReconnection = false;
         this.lastPingTime = -1;
         this.isSitOut = false;
+        this.pendSitout = false;
         this.isSitBack = false;
         this.sitoutTimestamp = 0;
         this.timeLimitCount = 0;
@@ -127,6 +128,9 @@ __decorate([
 __decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "isSitOut", void 0);
+__decorate([
+    schema_1.type("boolean")
+], EntityState.prototype, "pendSitout", void 0);
 __decorate([
     schema_1.type("boolean")
 ], EntityState.prototype, "isSitBack", void 0);

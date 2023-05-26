@@ -7,7 +7,7 @@
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only src/index.ts",
     "loadtest": "colyseus-loadtest loadtest/example.ts --room my_room --numClients 2",
-    "build": "tsc && node node_modules/copyfiles/copyfiles package.json ./lib && node node_modules/copyfiles/copyfiles arena.env ./lib && node node_modules/copyfiles/copyfiles -u 2  src/config/roomConf.json ./lib/config",
+    "build": "tsc && node node_modules/copyfiles/copyfiles package.json ./lib && node node_modules/copyfiles/copyfiles arena.env ./lib && node node_modules/copyfiles/copyfiles -u 2  src/config/*.* ./lib/config",
     "clean": "node node_modules/rimraf/bin lib",
     "test": "mocha --require ts-node/register test/**_test.ts --exit --timeout 15000"
   },
@@ -34,6 +34,7 @@
   "dependencies": {
     "@colyseus/arena": "^0.14.20",
     "@colyseus/monitor": "^0.14.20",
+    "@types/request-ip": "^0.0.37",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
     "colyseus": "^0.14.20",
@@ -42,10 +43,12 @@
     "errorhandler": "^1.5.1",
     "express": "^4.16.4",
     "express-session": "^1.17.2",
+    "ip-address": "^8.1.0",
     "method-override": "^3.0.0",
     "moment-timezone": "^0.5.41",
     "mysql": "^2.18.1",
     "poker-evaluator": "^2.0.5",
+    "request-ip": "^3.3.0",
     "serve-favicon": "^2.5.0",
     "serve-index": "^1.9.1",
     "winston": "^3.3.3"

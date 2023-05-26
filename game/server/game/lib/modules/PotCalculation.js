@@ -7,21 +7,21 @@ exports.PotCalculation = void 0;
 const logger_1 = __importDefault(require("../util/logger"));
 const HoldemRoom_1 = require("../rooms/HoldemRoom");
 class PotCalculation {
-    constructor(useRake, rakePercentage, rakeCap, flopRake) {
+    constructor(useRake, rakePercentage /*, rakeCap: number[], flopRake : boolean*/) {
         this.playerCount = 0;
         this.rakePercentage = 0;
-        this.rakeCap = [];
+        // private rakeCap: number[] = [];
         this.useRake = false;
-        this.flopRake = false;
+        // private flopRake : boolean = false;
         this.userRakeInfo = [];
         this.deadBlind = 0;
         this.antes = 0;
         this.centerCardState = HoldemRoom_1.eCommunityCardStep.PREPARE;
         this.rakeTotal = 0;
         this.rakePercentage = rakePercentage;
-        this.rakeCap = rakeCap;
+        // this.rakeCap = rakeCap;
         this.useRake = useRake;
-        this.flopRake = flopRake;
+        // this.flopRake = flopRake;
         this.Clear();
     }
     SetRoundPlayerCount(count) {
@@ -195,7 +195,6 @@ class PotCalculation {
                 }
             });
             final[0].total += this.deadBlind;
-            // final[0].total += this.antes;
         }
         return final;
     }
