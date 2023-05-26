@@ -373,7 +373,6 @@ export class UiEntity extends Component {
         this.clearUiAction();
         this.clearUiBetValue();
     }
-
     
     SetNickname ( name: string ) {
         this.uiEntityAvatar.SetNickname( name );
@@ -385,9 +384,9 @@ export class UiEntity extends Component {
 
     SetBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
         if ( this.isUiSitOut == true ) {
-            this.setUiSitOut();
+            this.SetSitout();
         } else {
-            this.setUiSitBack();
+            this.SetSitbackStatus();
         }
 
         if ( true == isBB ) {
@@ -566,23 +565,18 @@ export class UiEntity extends Component {
         this.HideHiddenCard();
     }
 
-    setUiSitOut() {
-        this.isUiSitOut = true;
-        this.uiEntityAvatar.setUiSitout();
-    }
-
     public getIsUiSitOut(): boolean {
         return this.isUiSitOut;
     }
 
-    SetSitback() {
+    SetSitback( msg: any ) {
         this.isUiSitOut = false;
-        this.uiEntityAvatar.SetSitback();
+        this.uiEntityAvatar.SetSitback( msg );
     }
 
-    setUiSitBack() {
+    SetSitbackStatus() {
         this.isUiSitOut = false;
-        this.uiEntityAvatar.setUiSitback();
+        this.uiEntityAvatar.SetSitbackStatus();
     }
 
     setEmoticon( type: EMOTICON_TYPE, id: number ) {

@@ -439,7 +439,7 @@ export class UiTable extends Component {
 
     public onClickSitback() {
 		AudioController.instance.ButtonClick();
-		this.buttonSitback.interactable = false;		
+		this.buttonSitback.interactable = false;
 		this.SetSitback();
     }
 
@@ -1473,7 +1473,7 @@ export class UiTable extends Component {
 
 		for ( let i: number = 0 ; i < PLAYERS.length ; i++ ) {
 			let seat = PLAYERS[i].seat;
-			if ( seat < 0 ) {
+			if ( PLAYERS[i] == null || PLAYERS[i].seat == null || seat < 0 ) {
 				continue;
 			}
 
@@ -1500,42 +1500,6 @@ export class UiTable extends Component {
 						this.uiPlayerActionReservation.showCheck( true );						
 					}					
 				}
-
-			// 	console.log('onBLIND_BET: uiEntity != null ');
-			// 	let missBlind = 0;
-			// 	let missedSb = missSb.find( (e)=>{
-			// 		return e == seat;
-			// 	});
-
-			// 	let missedBB = missBb.find( (e)=>{
-			// 		return e == seat;
-			// 	});
-
-			// 	if ( missedSb != null ) {
-			// 		missBlind += missSb[i].chips;
-
-			// 	}
-
-			// 	if ( missedBB != null ) {
-			// 		missBlind += missBb[i].chips;
-			// 	}
-
-			// 	// uiEntity.SetBetValue( sb.currBet + missBlind + ante );				
-
-			// 	if ( seat == sb.seat ) {
-			// 		uiEntity.SetBetValue( sb.currBet + missBlind + ante );
-			// 		uiEntity.SetBlindBet( sb.chips, true, false );
-			// 	} else if ( seat == bb.seat ) {
-			// 		uiEntity.SetBetValue( bb.currBet + missBlind + ante );
-			// 		uiEntity.SetBlindBet( bb.chips, false, true );
-			// 	}
-
-			// 	if ( seat == this.mySeat ) {
-			// 		this.myChips == PLAYERS[i].chips;
-			// 		if ( seat == bb.seat ) {
-			// 			this.uiPlayerActionReservation.showCheck( true );
-			// 		}
-			// 	}
 			}
 		}
 
@@ -2126,6 +2090,9 @@ export class UiTable extends Component {
     }
 
     private onFOLD( msg ) {
+		console.log( 'onFOLD' );		
+		console.log( msg );
+
 		AudioController.instance.PlaySound('VOICE_ACTION_DIE');
 
 		let seat = msg[ "seat" ];
@@ -2273,7 +2240,6 @@ export class UiTable extends Component {
 	}
 
     private onSIT_BACK( msg: any ) {
-		console.log('onSIT_BACK');		
 		let seat = msg['seat'];
 		
 		if ( seat == null || seat == undefined ) {
@@ -2282,7 +2248,7 @@ export class UiTable extends Component {
 
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
-			uiEntity.SetSitback();
+			uiEntity.SetSitback( msg );
 		}
 
 		if ( seat == this.mySeat ) {

@@ -2089,7 +2089,7 @@ export class HoldemRoom extends Room<RoomState> {
 					}
 				}
 
-				if(true === entity.wait )
+				if( true === entity.wait )
                 {
                     this.betSeat = locSeat;
                     this.elapsedTick = 0;
@@ -2221,7 +2221,9 @@ export class HoldemRoom extends Room<RoomState> {
 		this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, true );
 
 		this.broadcast( "FOLD", {
-			seat: seat
+			seat: seat,
+			sitout: e.isSitOut,
+			wait: e.wait,
 		} );
 
 		let fold = e.statics.fold;
@@ -2258,7 +2260,7 @@ export class HoldemRoom extends Room<RoomState> {
 			e.wait = true;
 			e.pendSitout = false;
 			e.sitoutTimestamp = Number ( Date.now() );
-			this.broadcast("SIT_OUT", {seat : e.seat});
+			this.broadcast( "SIT_OUT", { seat : e.seat } );
 			this.UpdateSeatInfo();
 		}
 
@@ -3939,7 +3941,7 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 	}
 
-	private onSIT_BACK(client : Client, msg : any){
+	private onSIT_BACK( client : Client, msg : any ){
 		let seatNumber : number = msg["seat"];
 
 		if(null === seatNumber || undefined === seatNumber){
@@ -3970,7 +3972,11 @@ export class HoldemRoom extends Room<RoomState> {
 			sitOutPlayer.sitoutTimestamp = 0;			
 
 			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", {seat : seatNumber});
+			this.broadcast("SIT_BACK", { 
+				seat : seatNumber,
+				wait: true,
+				fold: false, 
+			});
 
 			let isStart = this.checkStartCondition();
 			if ( true === isStart ) {
@@ -3983,15 +3989,23 @@ export class HoldemRoom extends Room<RoomState> {
 			sitOutPlayer.isSitBack = false;
 			sitOutPlayer.isSitOut = false;
 			sitOutPlayer.pendSitout = false;
-			sitOutPlayer.sitoutTimestamp = 0;			
+			sitOutPlayer.sitoutTimestamp = 0;
 
 			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", { seat : seatNumber });
+			this.broadcast("SIT_BACK", { 
+				seat: seatNumber,
+				wait: true,
+				fold: false
+			});
 		}
 		else {
 			sitOutPlayer.sitoutTimestamp = 0;
 			this.UpdateSeatInfo();
-			this.broadcast("SIT_BACK", {seat : seatNumber});
+			this.broadcast("SIT_BACK", { 
+				seat : seatNumber,
+				wait: true,
+				fold: sitOutPlayer.fold, 				 
+			});
 		}
 	}
 

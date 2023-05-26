@@ -62,7 +62,7 @@ export class UiEntityAvatar extends Component {
         } else if ( entity.wait == true ) {
             this.SetStatus( ENUM_STATUS_TYPE.WAITING );
         } else {
-            this.SetStatus( ENUM_STATUS_TYPE.NONE );            
+            this.SetStatus( ENUM_STATUS_TYPE.NONE );
         }
 
         this.rootNameTag.active = true;
@@ -235,29 +235,22 @@ export class UiEntityAvatar extends Component {
         this.SetStatus(ENUM_STATUS_TYPE.SITOUT);
     }
 
-    public setUiSitout() {
-        this.SetStatus(ENUM_STATUS_TYPE.SITOUT);
-    }
+    public SetSitback( msg: any ) {
+        let wait = msg['wait'];
+        let fold = msg['fold'];
 
-    public SetSitback() {
-        if ( this.entity.wait == true ) {
+        if ( wait == true ) {
             this.SetStatus(ENUM_STATUS_TYPE.WAITING);
         }
-        else if ( this.entity.fold == true ) {
+        else if ( fold == true ) {
             this.SetStatus(ENUM_STATUS_TYPE.FOLD);
         } else {
             this.SetStatus(ENUM_STATUS_TYPE.NONE);
         }
     }
 
-    public setUiSitback() {
-        this.labelChips.node.active = true;
-        if ( this.isFold == true ) {
-            this.SetStatus(ENUM_STATUS_TYPE.FOLD);
-        } else {
-            this.SetStatus(ENUM_STATUS_TYPE.NONE);
-        }
-        // this.labelSitout.node.active = false;
+    public SetSitbackStatus() {
+        this.SetStatus(ENUM_STATUS_TYPE.NONE);
     }
 
     public setShowTimer( show: boolean ) {
