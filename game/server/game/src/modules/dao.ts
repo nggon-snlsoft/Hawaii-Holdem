@@ -136,7 +136,6 @@ dao.UPDATE_USERS_PENDING = function ( data: any, cb: any ) {
 };
 
 dao.UPDATE_USERS_TABLE_ID_LOGIN_IP_ByUSER = function ( data: any, cb: any ){
-	console.log( data );
 
 	let sql = 'UPDATE USERS SET LOGIN_IP = ?,  TABLE_ID = ?, UPDATEDATE = ? WHERE ID = ?';
 	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
@@ -362,15 +361,6 @@ dao.UPDATE_USERS_BETTINGS  = function ( data: any, cb: any) {
 	let rake_back = data.rake_back;
 	let point = data.rake_back;
 
-	console.log('id: ' + id);
-	console.log('win: ' + win);
-	console.log('betting: ' + betting);
-	console.log('rolling: ' + rolling);
-	console.log('rake: ' + rake);
-	console.log('rake_back: ' + rake_back);
-	console.log('point: ' + rake_back);
-	console.log('');			
-
 	let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
 	let args = [win, betting, rake, rolling, rake_back, point, now, id];
@@ -474,14 +464,18 @@ dao.SELECT_SALES_USER = (data: any, cb: any ) => {
 }
 
 dao.UPDATE_SALES_USER = (data: any, cb: any ) => {
+
 	let id = data.index;
 	let bettings = data.bettings;
 	let wins = data.wins;
-	let rakes = data.rakes;
+	let rakes = data.rakes;	
+	let rollings = data.rollings;
+	let rake_back = data.rake_back;
+	let point = data.point;
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
 
-	let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, UPDATEDATE = ? WHERE ID = ?";
-	let args = [ wins, rakes, bettings, now, id];
+	let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+	let args = [ wins, rakes, bettings, rollings, rake_back, point, now, id];
 
 	_client.query(query, args, function (err: any, res: any) {
 		if (err !== null) {
@@ -505,10 +499,13 @@ dao.INSERT_SALES_USER = function ( data: any, cb: any ) {
 	let bettings = data.bettings;
 	let wins = data.wins;
 	let rakes = data.rakes;
+	let rollings = data.rollings;
+	let rake_back = data.rake_back;
+	let point = data.point;
 	let date = data.date;
 
-	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
-	let args = [ user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings ];
+	let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings, rollings, rake_back, point ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [ user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings, rollings, rake_back, point ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 

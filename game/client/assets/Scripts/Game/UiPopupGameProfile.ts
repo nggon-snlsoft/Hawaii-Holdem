@@ -23,6 +23,9 @@ export class UiPopupGameProfile extends Component {
     private statics: any = null;
     private entity: any = null;
 
+    private rootBalance: Node = null;
+    private rootPoint: Node = null;
+
     private labelHandCount: Label = null;
     private labelMaxPots: Label = null;
     private labelWin: Label = null;
@@ -35,8 +38,13 @@ export class UiPopupGameProfile extends Component {
     private labelFoldFlop: Label = null;
     private labelFoldTurn: Label = null;
     private labelFoldRiver: Label = null;
-    private labelHandRankDesc: Label = null;    
+    private labelHandRankDesc: Label = null;
+
+    private labelBalance: Label = null;
+    private labelPoint: Label = null;
+    
     private cards: Sprite[] = [];
+    private isMe: Boolean = false;
     
     public init() {        
         this.statics = null;
@@ -51,12 +59,16 @@ export class UiPopupGameProfile extends Component {
         this.node.active = false;
     }
 
-    public show( entity: any, statics: any ) {
+    public show( entity: any, statics: any, isMe: boolean = false ) {
+
+        console.log(entity);
+
         this.node.active = true;
         this.avatar.node.active = false;
         this.rootInfo.active = true;
         this.entity = entity;
         this.statics = statics;
+        this.isMe = isMe;
 
         this.SetProfile();
     }
@@ -71,6 +83,31 @@ export class UiPopupGameProfile extends Component {
 
         this.avatar.spriteFrame = ResourceManager.Instance().getAvatarImage( this.entity.avatar );
         this.avatar.node.active = true;
+
+        if ( this.isMe == true ) {
+            if ( this.rootBalance != null ) {
+                if ( this.labelBalance != null ) {
+                    console.log('this.labelBalance != null');
+                    this.labelBalance.string = CommonUtil.getKoreanNumber( this.entity.balance );
+                    this.labelBalance.node.active = true;
+                }
+                this.rootBalance.active = true;
+            }
+
+            if ( this.rootPoint != null ) {
+                this.rootPoint.active = false;
+            }
+
+        } else {
+            if ( this.rootBalance != null ) {
+                this.rootBalance.active = false;
+            }
+
+            if ( this.rootPoint != null ) {
+                this.rootPoint.active = false;
+            }
+
+        }
 
         let hands = this.statics.hands;
         this.labelHandCount.string = hands.toString();
@@ -263,8 +300,22 @@ export class UiPopupGameProfile extends Component {
 
             this.labelFoldRiver = this.rootInfo.getChildByPath('VALUE/FOLD_RIVER').getComponent(Label);
             this.labelFoldRiver.string = '0';
-    
+            
             this.rootInfo.active = false;
+        }
+
+        this.rootBalance = this.node.getChildByPath('CHIPS');
+        if ( this.rootBalance != null ) {
+            this.labelBalance = this.rootBalance.getChildByPath('LABEL_CHIPS').getComponent(Label);
+            this.labelBalance.string = '0';
+            this.rootBalance.active = false;
+        }
+
+        this.rootPoint = this.node.getChildByPath('POINTS');
+        if ( this.rootPoint != null ) {
+            this.labelPoint = this.rootPoint.getChildByPath('LABEL_POINTS').getComponent(Label);
+            this.labelPoint.string = '0';
+            this.rootPoint.active = false;            
         }
     }
 }

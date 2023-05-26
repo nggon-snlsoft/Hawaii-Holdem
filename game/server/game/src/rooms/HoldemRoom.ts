@@ -63,6 +63,7 @@ export class HoldemRoom extends Room<RoomState> {
 	pingTimerID: any = null;
 	cardPickPos: number = 0;
 	elapsedTick: number = 0;
+	elapsedSuspend: number = 0;
 	betSeat: number = 0;
 	endSeat: number = 0;
 	communityCardString: string[] = [];
@@ -85,7 +86,7 @@ export class HoldemRoom extends Room<RoomState> {
 	_id: number = -1;
 
 	private participants: any[] = [];
-	private lastBet: any = {};
+	private lastBet: any = null;
 
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
@@ -205,7 +206,11 @@ export class HoldemRoom extends Room<RoomState> {
 		this.state.pot = 0;
 		this.pingTimerID = 0;
 
+		this.elapsedSuspend = 0;
+		this.elapsedTick = 0;
+
 		this.participants = [];
+		this.lastBet = null;
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
@@ -326,6 +331,7 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: 0,
 			tableBuyInAmount: 0,
 			tableBuyInCount: 0,
+			pendSitout: false,
 		} );
 
 		entity.seat = -2;
@@ -423,12 +429,11 @@ export class HoldemRoom extends Room<RoomState> {
 			initPot: this._initPot
 		});
 
-		if (eGameState.Suspend === this.state.gameState) {
+		if ( eGameState.Suspend === this.state.gameState ) {
 			logger.info("[ onBuyPass ] Now suspend state");
 			entity.isNew = false;
 			let isStart = this.checkStartCondition();
 			if (true === isStart) {
-
 				this.changeState(eGameState.Ready);
 			}
 		} else if (eGameState.Ready === this.state.gameState) {
@@ -796,8 +801,15 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
-		console.log('onDispose');
+		console.log( 'onDISPOSE ');
+		try {
+			this.onUPDATE_ROLLING();
+			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
+			this.participants = [];
 
+		} catch ( error ) {
+			console.log( error );
+		}
 
 		clearInterval(this.pingTimerID);
 		clearTimeout(this.bufferTimerID);
@@ -896,6 +908,7 @@ export class HoldemRoom extends Room<RoomState> {
 					timeoutPlayer.isSitOut = true;
 					timeoutPlayer.wait = true;
 					timeoutPlayer.sitoutTimestamp = Number( Date.now() );
+					timeoutPlayer.pendSitout = false;
 					
 					this.UpdateSeatInfo();
 					this.broadcast("SIT_OUT", { seat : timeoutPlayer.seat });
@@ -918,7 +931,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}		
 		else if( eGameState.ClearRound === this.state.gameState ) {
 			this.elapsedTick += dt;
-			if( this.elapsedTick >= this.conf[ "clearTerm" ] ) {
+			if( this.elapsedTick >= this.conf[ "clearTerm" ] ) {				
 				logger.info( "[ update ] CLEAR_ROUND STATE TIME OVER. duration : %s", this.conf[ "clearTerm" ] );
 				this.elapsedTick = 0;
 
@@ -951,6 +964,7 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			}
 		} else if ( eGameState.Ready === this.state.gameState ) {
+
 			this.elapsedTick += dt;
 			if (this.elapsedTick >= this.conf["readyTerm"] ) {
 				logger.info( "[ update ] READY STATE TIME OVER. duration : %s", this.conf[ "readyTerm" ] );
@@ -962,14 +976,14 @@ export class HoldemRoom extends Room<RoomState> {
 				if ( isStart == true) {
 					this.updateButtons();
 					this.changeState( eGameState.ClearRound );
-					// this.changeState( eGameState.Prepare );
+
 				} else {
 					this.changeState( eGameState.Suspend );
 				}
 			}
 		} else if ( eGameState.Suspend === this.state.gameState ) {
-			this.elapsedTick += dt;
-			if ( this.elapsedTick >= 10000 ) {
+			this.elapsedSuspend += dt;
+			if ( this.elapsedSuspend >= 10000 ) {
 				let term = this.conf['longSitoutTerm'];
 
 				let checkLongSitout: boolean = false;
@@ -988,7 +1002,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.handleEscapee();
 				}
 
-				this.elapsedTick = 0;
+				this.elapsedSuspend = 0;
 			}
 		}
 	}
@@ -1284,6 +1298,7 @@ export class HoldemRoom extends Room<RoomState> {
 			case eGameState.Suspend:
 				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 				this.elapsedTick = 0;
+				this.elapsedSuspend = 0;
 
 				this.broadcast( "SUSPEND_ROUND", {
 					entities: this.state.entities,
@@ -1430,10 +1445,20 @@ export class HoldemRoom extends Room<RoomState> {
 						logger.error("ENTER_SIT_OUT");
 						e.isSitBack = false;
 						e.isSitOut = true;
+						e.pendSitout = false;
 						e.sitoutTimestamp = Number( Date.now() );
 						e.wait = true;
 						this.broadcast("SIT_OUT", { seat: e.seat });
 						return;
+					} else if ( e.pendSitout == true ) {
+						logger.error("ENTER_SIT_OUT");
+						e.isSitBack = false;
+						e.isSitOut = true;
+						e.pendSitout = false;
+						e.sitoutTimestamp = Number( Date.now() );
+						e.wait = true;
+
+						this.broadcast("SIT_OUT", { seat: e.seat });
 					}
 				} );
 
@@ -1441,6 +1466,7 @@ export class HoldemRoom extends Room<RoomState> {
 				this.processReBuyInRequest();
 				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 				this.participants = [];
+				this.lastBet = null;				
 
 				this.broadcast( "CLEAR_ROUND", {
 					msg: "CLEAR_ROUND", timeMS: this.conf[ "clearTerm" ] * 1000, entities: this.state.entities
@@ -1561,8 +1587,8 @@ export class HoldemRoom extends Room<RoomState> {
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
 
-			console.log( 'rolling: ' + rolling + ' ,' + 'rake_back: ' + rake_back );
-
+			e.rolling += rolling;
+			e.rake_back += rake_back;
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1573,12 +1599,41 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		this.ResetRoundBets();
-		this.lastBet = {};
+		this.lastBet = null;
 
 		this.broadcast( "PRE_FLOP_END", {
 			msg: "PRE_FLOP_END",
 			pot: this.state.pot,
 		} );
+	}
+
+	onUPDATE_ROLLING() {
+		if ( this.participants == null || this.participants.length == 0 ) {
+			return;
+		}
+		console.log('onUPDATE_ROLLING');
+
+		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		this.participants.forEach ( (e)=>{
+			if ( e.roundBet > 0 ) {
+				let rolling = e.roundBet;
+				let rake_back = Math.trunc( rolling * rakeBackPercentage );
+	
+				e.rolling += rolling;
+				e.rake_back += rake_back;
+				e.roundBet = 0;
+	
+				this.UPDATE_ROLLINGS({
+					id: e.id,
+					rolling: rolling,
+					rake_back: rake_back
+				});
+	
+			}
+		} );
+
+		this.ResetRoundBets();
+		this.lastBet = null;
 	}
 
 	onFLOP_END() {
@@ -1588,8 +1643,8 @@ export class HoldemRoom extends Room<RoomState> {
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
 
-			console.log( 'rolling: ' + rolling + ' ,' + 'rake_back: ' + rake_back );
-
+			e.rolling += rolling;
+			e.rake_back += rake_back;			
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1600,7 +1655,7 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		this.ResetRoundBets();
-		this.lastBet = {};
+		this.lastBet = null;
 
 		this.broadcast( "FLOP_END", {
 			msg: "FLOP_END",
@@ -1614,8 +1669,9 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
-			console.log( 'rolling: ' + rolling + ' ,' + 'rake_back: ' + rake_back );
 
+			e.rolling += rolling;
+			e.rake_back += rake_back;
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1626,7 +1682,7 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		this.ResetRoundBets();
-		this.lastBet = {};
+		this.lastBet = null;
 				
 		this.broadcast( "TURN_END", {
 			msg: "TURN_END",
@@ -1640,8 +1696,9 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
-			console.log( 'rolling: ' + rolling + ' ,' + 'rake_back: ' + rake_back );
 
+			e.rolling += rolling;
+			e.rake_back += rake_back;
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1652,7 +1709,7 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		this.ResetRoundBets();
-		this.lastBet = {};
+		this.lastBet = null;
 				
 		this.broadcast( "RIVER_END", {
 			msg: "RIVER_END",
@@ -1661,6 +1718,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 	
     private async UPDATE_ROLLINGS( data: any  ) {
+		console.log( 'id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rake_back: ' + data.rake_back );
         return new Promise<any>( ( resolve, reject )=>{
             this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
                 if ( err != null ) {
@@ -1797,7 +1855,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.bufferTimerID = setTimeout( () => {
 			this.changeState( eGameState.PreFlop );
-		}, 500 );
+		}, 1000 );
 	}
 
 	resetEntities() {
@@ -1878,6 +1936,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let missSb: any[] = [];
 		let missBb: any[] = [];
 		this.participants = [];
+		this.lastBet = null;
 
 		let sbBet = this.conf["smallBlind"];
 
@@ -1930,7 +1989,7 @@ export class HoldemRoom extends Room<RoomState> {
 				continue;
 			}
 
-			if ( true === e.wait || true === e.isSitOut) {
+			if ( true === e.wait ) {
 				continue;
 			}
 
@@ -1959,6 +2018,8 @@ export class HoldemRoom extends Room<RoomState> {
 				totalBet: p.totalBet,
 				win: 0,
 				rake: 0,
+				rake_back: 0,
+				rolling: 0,
 			});
 		});
 
@@ -2188,6 +2249,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if ( true === e.isSitOut && false === e.wait ) {
 			e.wait = true;
+			e.pendSitout = false;
 			e.sitoutTimestamp = Number ( Date.now() );
 			this.broadcast("SIT_OUT", {seat : e.seat});
 			this.UpdateSeatInfo();
@@ -2307,10 +2369,14 @@ export class HoldemRoom extends Room<RoomState> {
 		let winners: any[] = [];
 		let folders: number[] = [];
 
+		let _winners: any[] = [];
+
 		let rakePercent = this.conf['rakePercentage'];
 
 		for(let i = 0; i < pots.length; i++) {
 			let pot : any = pots[i];
+			let potWinners : any[] = pot.winner;
+
 			let potPlayers: any = pot.players.length;
 			let isReturn: boolean = false;
 			if ( skip == false && potPlayers == 1) {
@@ -2323,20 +2389,33 @@ export class HoldemRoom extends Room<RoomState> {
 				isDraw = true;
 			}
 
-			let potAmount = pot.total;
-			let winAmount = Math.trunc( potAmount / wc );
+			let potAmount: number = 0;
+			let winAmount: number = 0;
 			let rake: number = 0;
 
-			if ( isReturn == true ) {
-				rake = 0;
+			if ( skip == true ) {
+				potAmount = pot.total;
+				winAmount = Math.trunc( potAmount / wc );
+				if ( this.lastBet != null && this.lastBet.seat == pot.winner[0] ) {
+					if ( this.lastBet.bet > 0 ) {
+						rake = Math.trunc( (potAmount - this.lastBet.bet) * rakePercent / wc );
+					} else {
+						rake = Math.trunc( winAmount * rakePercent );
+					}
+				} else {
+					rake = Math.trunc( winAmount * rakePercent );
+				}
 			} else {
-				rake = Math.trunc( winAmount * rakePercent );
+				potAmount = pot.total;
+				winAmount = Math.trunc( potAmount / wc );
+				if ( isReturn == true ) {
+					rake = 0;
+				} else {
+					rake = Math.trunc( winAmount * rakePercent );
+				}				
 			}
 
 			winAmount -= rake;
-
-			console.log( 'pot' );
-			console.log( pot );
 
 			for(let j = 0; j < pot.winner.length ; j++){
 				let entity = this.getEntity( pot.winner[j] );
@@ -2352,11 +2431,26 @@ export class HoldemRoom extends Room<RoomState> {
 						store_id = entity.client.auth.store_id;
 					}
 
-					// if ( skip == true ) {
-					// 	if ( this.lastBet.seat == entity.seat ) {
-					// 		rake = Math.trunc( ( winAmount - this.lastBet.bet ) * rakePercent );
-					// 	}
-					// }
+					let _w = _winners.find( ( w )=>{						
+						return w.seat = entity.seat;
+					});
+
+					if ( _w == null ) {
+						_winners.push({
+							id: entity.id,
+							seat: entity.seat,
+							store_id: store_id,
+							winAmount: entity.winAmount,
+							rake: rake,
+							return: isReturn,
+							draw: isDraw							
+						})
+					} else {
+						_w.winAmount = entity.winAmount;
+						_w.rake += rake;
+						_w.return = isReturn;
+						_w.draw = isDraw;
+					}
 	
 					winners.push( {
 						id: entity.id,
@@ -2522,10 +2616,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		} );
 
-		console.log('winners');
-		console.log(winners);
-
-		winners.forEach( ( w )=>{
+		_winners.forEach( ( w )=>{
 			let p = this.participants.find( (player)=> {
 				return w.seat == player.seat;
 			});
@@ -2540,30 +2631,24 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 
 				if ( skip == true ) {
-					console.log('w.skip == true');
-					if ( this.lastBet.seat == p.seat ) {
-						if ( this.lastBet.bet > 0 ) {
-							console.log( 'p.roundBet: ' + p.roundBet );
+					if ( this.lastBet != null && this.lastBet.seat == p.seat ) {
+						if ( this.lastBet.bet != null && this.lastBet.bet > 0 ) {
 							p.roundBet -= this.lastBet.bet;
-							console.log( 'p.roundBet: ' + p.roundBet );							
+							p.totalBet -= this.lastBet.bet;
+							p.win -= this.lastBet.bet;
 						}
 					}
 				}
 			}
 		});
 
-		console.log('participants');
-		console.log(this.participants);
-
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
-		console.log('rakeBackPercentage: ' + rakeBackPercentage );
-
-		console.log( this.lastBet );
-
 		try {
+			let rakeBackPercentage = this.conf['rakeBackPercentage'];
 			this._SalesReporter.UpdateUser( this._dao, this.participants,  rakeBackPercentage );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
 			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
+
+			this.participants = [];
 
 		} catch ( error ) {
 			console.log( error );
@@ -3071,7 +3156,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onCALL( client: Client, msg: any ) {
-		console.log('onALLIN');
+		console.log('onCALL: ' + msg['betAmount'] );
 
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error( "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
@@ -3116,7 +3201,7 @@ export class HoldemRoom extends Room<RoomState> {
 			p.roundBet = e.roundBet;
 		}
 
-		this.lastBet = {};
+		this.lastBet = null;
 
 		this.broadcast( "CALL", {
 			seat: this.betSeat,
@@ -3146,7 +3231,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onBET( client: Client, msg: any ) {
-		console.log('onALLIN');
+		console.log('onBET: ' + msg['betAmount'] );		
 
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error( "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
@@ -3185,7 +3270,7 @@ export class HoldemRoom extends Room<RoomState> {
 		e.roundBet += betValue;
 		e.totalBet += betValue;
 
-		this.lastBet = {};
+		this.lastBet = null;
 		this.lastBet = {
 			seat: e.seat,
 			call: callValue,	//maybe call = 0
@@ -3233,7 +3318,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onRAISE( client: Client, msg: any ) {
-		console.log('onALLIN');
+		console.log('onRAISE: ' + msg['betAmount'] );
 
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error( "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
@@ -3273,7 +3358,7 @@ export class HoldemRoom extends Room<RoomState> {
 		e.totalBet += bet;
 		e.timeLimitCount = 0;
 
-		this.lastBet = {};
+		this.lastBet = null;
 		this.lastBet = {
 			seat: e.seat,
 			call: callValue,
@@ -3343,7 +3428,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onALLIN( client: Client, msg: any ) {
-		console.log('onALLIN');
+		console.log('onALLIN: ' + msg[ "betAmount" ] );
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error( "[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s",
 				msg[ "seat" ], this.state.gameState );
@@ -3379,7 +3464,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		e.timeLimitCount = 0;
 
-		this.lastBet = {};
+		this.lastBet = null;
 		this.lastBet = {
 			seat: e.seat,
 			call: callValue,
@@ -3793,10 +3878,10 @@ export class HoldemRoom extends Room<RoomState> {
 			logger.error(" [ OnSitOut ] the seat number " + seatNumber + " is Already sit out but try sit out Again");
 			return;
 		}
-
-		sitOutPlayer.isSitOut = true;
 		
-		if(sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
+		if( sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
+			sitOutPlayer.isSitOut = true;
+			sitOutPlayer.pendSitout = false;			
 			sitOutPlayer.sitoutTimestamp = Number( Date.now() );
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
@@ -3808,10 +3893,15 @@ export class HoldemRoom extends Room<RoomState> {
 			this.state.gameState === eGameState.ClearRound ){
 
 			sitOutPlayer.wait = true;
+			sitOutPlayer.isSitOut = true;
+			sitOutPlayer.pendSitout = false;			
 			sitOutPlayer.sitoutTimestamp = Number( Date.now() );			
 			this.broadcast("SIT_OUT", {seat : sitOutPlayer.seat});
 			this.UpdateSeatInfo();
+
 		} else {
+
+			sitOutPlayer.pendSitout = true;
 			client.send("SIT_OUT_PEND",
 			{ 
 
@@ -3885,13 +3975,14 @@ export class HoldemRoom extends Room<RoomState> {
 			eGameState.ClearRound === this.state.gameState) {
 			sitOutPlayer.isSitBack = false;
 			sitOutPlayer.isSitOut = false;
+			sitOutPlayer.pendSitout = false;
 			sitOutPlayer.sitoutTimestamp = 0;			
 
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", { seat : seatNumber });
 		}
 		else {
-			sitOutPlayer.sitoutTimestamp = 0;						
+			sitOutPlayer.sitoutTimestamp = 0;
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", {seat : seatNumber});
 		}

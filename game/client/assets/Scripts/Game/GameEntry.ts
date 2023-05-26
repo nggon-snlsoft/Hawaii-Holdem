@@ -150,13 +150,20 @@ export class GameEntry extends Component {
     }
 
     private onEVENT_SHOW() {
-        console.log('onEVENT_SHOW');
-        this._table.onEVENT_FOREGROUND();
+        if ( this._table != null ) {
+            this._table.onEVENT_FOREGROUND();
+        }
     }
 
     private onEVENT_HIDE() {
-        console.log('onEVENT_HIDE');        
-        this._table.onEVENT_BACKGROUND();
+        if ( this._table != null ) {
+            this._table.onEVENT_BACKGROUND();
+        }
+    }
+
+    protected onDestroy(): void {
+        game.off( Game.EVENT_SHOW );
+        game.off( Game.EVENT_HIDE );
     }
 }
 

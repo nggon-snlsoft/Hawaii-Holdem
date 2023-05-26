@@ -897,8 +897,6 @@ export class UserController {
             return;
         }
 
-        console.log(user_id);
-
         let user: any = null;
         try {
             user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id );

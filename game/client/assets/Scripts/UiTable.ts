@@ -620,11 +620,15 @@ export class UiTable extends Component {
 	}
 
 	private onSHOW_PROFILE(msg) {
+
 		let statics = msg['statics'];
 		let entity = msg['entity']
+		let seat = msg['seat'];
+
+		let me = (this.mySeat == seat) ;
 
 		if ( statics != null ) {
-			this.uiProfile.show( entity, statics );
+			this.uiProfile.show( entity, statics, me );
 		} else {
 
 			UiGameSystemPopup.instance.showOkPopup('프로필', '정보를 불러올 수 없습니다.', ()=>{
@@ -634,6 +638,7 @@ export class UiTable extends Component {
 	}
 	
 	private onEXIT_TABLE( msg ) {
+		console.log();
 		this.uiSeats.end();
 		this.room?.leave( false );
 	}
@@ -1086,13 +1091,17 @@ export class UiTable extends Component {
     }
 
     leaveRoom( code: any ) {
-        this.room = null;
+		console.log('leaveRoom');
+
         this.ClearEntities();
 		this.ClearPot();
 
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
+
+		this.unscheduleAllCallbacks();
 		this.isAllIn = false;
+		this.room = null;
     }
 
 	private SetEntities( entities: any ) {
@@ -1246,7 +1255,7 @@ export class UiTable extends Component {
     }
 
     public sendMsg(key: string, msg: object) {
-        this.room.send(key, msg);
+        this.room?.send(key, msg);
     }
 
     private onNEW_ENTITY( msg ) {
@@ -2894,7 +2903,7 @@ export class UiTable extends Component {
     }
 
     private onRES_RE_BUY( msg ) {
-		this.uiSeats.end();
+		console.log(msg);
 
 		if ( 0 != msg['resultCode'] ) {
 			return;
@@ -2902,7 +2911,8 @@ export class UiTable extends Component {
 
 		Board.balance = Number.parseInt( msg['balance ']);
 		let uiEntity = this.GetEntityFromSeat( this.mySeat );
-		let chips = Number.parseInt( msg ['chip'] );
+		let chips = Number.parseInt( msg ['chips'] );
+
 		uiEntity.SetChips( chips);
 		this.myChips = chips;
     }
@@ -3058,7 +3068,6 @@ export class UiTable extends Component {
 		}
 
 		this.updateClinet = true;
-
 		this.sendMsg("FORE_GROUND", { 
 			seat: this.mySeat,
 		});

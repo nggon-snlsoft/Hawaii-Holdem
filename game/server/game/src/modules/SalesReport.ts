@@ -19,6 +19,10 @@ export class SalesReport {
             let rake = participants[i].rake;
             let rake_back = Math.trunc( rolling * rakeBackPercentage );
 
+			participants[i].rolling += rolling;
+			participants[i].rake_back += rake_back;
+			participants[i].roundBet = 0;
+
             let affected: any = null;
             try {
                 affected = await this.UPDATE_USERS_BETTINGS( dao, {
@@ -36,6 +40,10 @@ export class SalesReport {
     }
 
     public async UpdateReportByUser( dao: any, participants: any ) {
+        if ( participants == null || participants.length == 0 ) {
+            return;
+        }
+
         let now: Date = new Date();
         let date = this.GetReportDate( now );
 
@@ -61,6 +69,10 @@ export class SalesReport {
             let partner_id = participants[i].partner_id;
             let wins = participants[i].win;
             let bettings = participants[i].totalBet;
+            let rollings = participants[i].rolling;
+            let rake_back = participants[i].rake_back;
+            let point = rake_back;
+
             let rakes: number = 0;
             if ( participants[i].rake != null ) {
                 rakes = participants[i].rake;
@@ -74,7 +86,10 @@ export class SalesReport {
                         index: index,
                         bettings: bettings,
                         wins: wins,
+                        rollings: rollings,
+                        rake_back: rake_back,
                         rakes: rakes,
+                        point: point,
                     });
                     
                 } catch (error) {
@@ -92,6 +107,9 @@ export class SalesReport {
                         bettings: bettings,
                         wins: wins,
                         rakes: rakes,
+                        rollings: rollings,
+                        rake_back: rake_back,
+                        point: point,                        
                         date: date,
                     });                        
                 } catch (error) {

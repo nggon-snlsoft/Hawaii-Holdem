@@ -35,6 +35,7 @@ export class EntityState extends Schema {
 	lastPingTime : number = -1;
 	
 	@type("boolean") isSitOut : boolean = false;
+	@type("boolean") pendSitout : boolean = false;	
 	@type("boolean") isSitBack : boolean = false;
 	sitoutTimestamp: number = 0;
 

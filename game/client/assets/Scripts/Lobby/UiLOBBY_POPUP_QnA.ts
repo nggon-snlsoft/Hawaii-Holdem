@@ -47,7 +47,6 @@ export class QnAElement {
     }
 
     public Set( info: any, cb: ( info: any )=>void ) {
-        console.log(info);
         this.qna = info;
         this.labelTitle.string = CommonUtil.TruncateString(info.title, 15) ;
         this.labelDate.string = info.questionDate;
@@ -58,7 +57,7 @@ export class QnAElement {
             this.spriteSlot.color = new Color(14, 30, 60, 255);
 
         } else {
-            this.labelButton.string = '닫변보기';
+            this.labelButton.string = '답변보기';
             this.spriteButton.color = new Color(0, 0, 0, 255);
             this.spriteSlot.color = new Color(58, 94, 168, 255);
         }
@@ -67,7 +66,7 @@ export class QnAElement {
             this.cbSelect = cb;
         }
 
-        if ( info.unread == 1 ) {
+        if ( info.pending == 0 && info.unread == 1 ) {
             this.spriteUnread.node.active = true; 
         } else {
             this.spriteUnread.node.active = false;             

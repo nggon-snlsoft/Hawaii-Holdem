@@ -77,7 +77,7 @@ export class UiEntityAvatar extends Component {
         return this.entity.nickname;
     }
 
-    public SetChips( chips: number ) {                   
+    public SetChips( chips: number ) {            
         this.labelChips.color = new Color(255, 200, 70);
         this.labelChips.string = CommonUtil.getKoreanNumber( chips );
     }

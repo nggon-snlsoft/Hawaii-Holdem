@@ -24,6 +24,12 @@ export class TableController {
         this.conf = confJson['server'];
     }
 
+    async RefreshConfig(): Promise<any>{
+        let confFile = await fs.readFileSync( path.join(__dirname, "../config/ServerConfigure.json"), {encoding : 'utf8'});
+		let confJson = JSON.parse( confFile.toString() );
+        this.conf = confJson['server'];
+    }
+
     private initRouter() {
         this.router.post( '/get', this.getTABLE_LIST.bind(this));
         this.router.post( '/enter', this.enterTABLE.bind(this));
@@ -197,6 +203,8 @@ export class TableController {
             clientIp = '';
         }
 
+        await this.RefreshConfig();
+        
         if ( this.conf.checkIpDuplication) {
             let users: any[] = [];
             try {

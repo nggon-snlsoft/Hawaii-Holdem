@@ -67,7 +67,6 @@ dao.UPDATE_USERS_TOKEN_LOGIN_ID = function ( token: any, login_id: any, cb: any 
 };
 
 dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
-	console.log( data );
 
 	let login_ip = data.login_ip;
 	let id = data.user_id;
@@ -79,7 +78,6 @@ dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
 		if (!!err) {
 			cb(err, null);
 		} else {
-			console.log( res);
 			if (!!res && res.affectedRows > 0) {
 				cb(null, true);
 
@@ -240,8 +238,6 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 			return;
 		}
 
-        console.log( res );
-
 		cb?.(null, {
             code: ENUM_RESULT_CODE.SUCCESS,
          });
@@ -249,9 +245,6 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 }
 
 dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
-	console.log('insertJOIN_MEMBER');
-	console.log(user);
-
 
 	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, join_ip, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
@@ -742,7 +735,6 @@ dao.SELECT_POINT_TRANSFER_LOG = ( id: any, cb: any )=> {
 			cb(err, null);
 			return;
 		} else {
-			console.log( res );
 			if ( res != null ) {
 				cb(null, res );
 			} else {

@@ -309,8 +309,8 @@ export class UiLOBBY_POPUP_POINT extends Component {
         let point = this.user.point;
         let value = Number(this.editboxPointTransfer.string);
 
-        if ( this.editboxPointTransfer.string.length == 0 || value <= 0 ) {
-            LobbySystemPopup.instance.showPopUpOk('포인트전환', '전환할 포인트를 입력해주세요', ()=>{
+        if ( this.editboxPointTransfer.string.length == 0 || value < 1000 ) {
+            LobbySystemPopup.instance.showPopUpOk('포인트전환', '1000포인트 이상만 전환할 수 있습니다.', ()=>{
                 button.interactable = true;            
             });
             return;
