@@ -80,8 +80,12 @@ export class UiSeat extends Component {
         }
 
         let s = Number(entity.avatar);
-        this.spriteAvatar.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
-        this.spriteAvatar.node.active = true;
+        let sf = ResourceManager.Instance().getAvatarImage(s);
+        if ( sf != null ) {
+            this.spriteAvatar.spriteFrame = sf;
+            this.spriteAvatar.node.active = true;            
+        }
+
         this.isSet = true;
     }
 

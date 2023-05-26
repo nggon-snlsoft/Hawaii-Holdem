@@ -134,7 +134,7 @@ export class UiLogin extends Component {
             }
             else {
                 let desc: string = '';
-                console.log(res);
+
                 switch ( res.msg ) {
                     case 'INVALID_VERSION':
                         desc = '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.';

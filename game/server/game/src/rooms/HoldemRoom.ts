@@ -214,41 +214,44 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
+		console.log('onAuth');
+		console.log( client );
+
 		logger.info( "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );	
 
 		return new Promise( ( resolve, reject ) => {
 			let self = this;
 
-			this._dao.SELECT_USERS_ByPENDING_ID( client.sessionId, function( err: any, res: any ) {
+			this._dao.SELECT_USERS_ByACTIVE_SESSION_ID( client.sessionId, function( err: any, res: any ) {				
 				if( !!err ) {
 					logger.error( "[ onAuth ] query error : %s", err );
 					reject( new ServerError( 400, "bad access token" ) );
 				}
 				else {
+					console.log();
+
 					if( res.length <= 0 ) {
 						logger.error( "[ onAuth ] invalid session id" );
 						reject( new ServerError( 400, "bad session id" ) );
+						return;
 					}
 					else {
-						res[ 0 ].reconnected = false;
-
 						let entity = self.state.entities.find( e => e.id == res[ 0 ][ "id" ] );
 						if( undefined !== entity ) {
 							if( false === entity.leave ) {
 								logger.warn( "[ onAuth ] duplicate login. seat : %s // leave state : %s",
 									entity.seat, entity.leave );
-								reject( new ServerError( 400, "Duplicate login." ) );
-								return;
-							}
+								entity.leave = true;
 
-							logger.info( "[ onAuth ] reconnection. seat : %s // previous sid : %s // curr. sid : %s",
-								entity.seat, entity.sid, client.sessionId );
-							
-							entity.leave = false;
-							res[ 0 ].reconnected = true;
+								reject( new ServerError( 400, "Duplicate login" ) );
+								return;
+							}							
+							reject( new ServerError( 400, "Duplicate login" ) );
+							return;							
 						}
 
 						logger.info( "[ onAuth ] succeed. sid(%s)", client.sessionId );
+						res[ 0 ].reconnected = false;						
 						resolve( res[ 0 ] );
 					}
 				}
@@ -265,11 +268,18 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async onJoin( client: Client, options?: any, auth?: any ) {
-		this._dao.UPDATE_USER_ACTIVE_SESSION_ID( client.sessionId, function( err: any, result: any ) {
-			if( !!err ) {
-				logger.error( "[ onJoin ] updateActiveSessionID error : %s", err );
-			}
-		} );
+		console.log('onJoin');
+		console.log(client);		
+
+		try {
+			this._dao.UPDATE_USER_ACTIVE_SESSION_ID( client.sessionId, function( err: any, result: any ) {
+				if( !!err ) {
+					logger.error( "[ onJoin ] updateActiveSessionID error : %s", err );
+				}
+			} );			
+		} catch (error) {
+			console.log(error);			
+		}
 
 		if( true === auth[ "reconnected" ] ) {
 			this.reJoin( client, options, auth );
@@ -637,7 +647,10 @@ export class HoldemRoom extends Room<RoomState> {
 
 				entity.chips += winAmount;
 				entity.winAmount += winAmount;
-				entity.winHandRank = entity.eval.handName;
+				if ( entity .eval != null ) {
+					entity.winHandRank = entity.eval.handName;
+				}
+				entity.winHandRank = '';
 
 				winners.push( {
 					seat: entity.seat,

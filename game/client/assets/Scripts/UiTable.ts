@@ -638,7 +638,6 @@ export class UiTable extends Component {
 	}
 	
 	private onEXIT_TABLE( msg ) {
-		console.log();
 		this.uiSeats.end();
 		this.room?.leave( false );
 	}
@@ -653,6 +652,8 @@ export class UiTable extends Component {
 	}
 
 	private onSYNC_TABLE( msg ) {
+		return;
+
 		this.GAME_STATE = msg['gameState'];
 		this.SHOWDOWN_STATE = msg['showdownState'];
 
@@ -1105,6 +1106,10 @@ export class UiTable extends Component {
     }
 
 	private SetEntities( entities: any ) {
+		if ( entities == null || entities.length == 0 ) {
+			return;
+		}
+
         for (let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
             let seat = this.SEAT_PLAYERS[i];
 
@@ -1112,9 +1117,13 @@ export class UiTable extends Component {
 				return e.seat == seat;
 			} );
 
-            let uiEntity = this.GetEntityFromSeat( seat );
-			if ( uiEntity != null ) {
-				uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
+			if ( entity != null ) {
+				let uiEntity = this.GetEntityFromSeat( seat );
+				if ( uiEntity != null ) {
+					uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
+				}
+			} else {
+
 			}
         }
     }
@@ -1260,9 +1269,13 @@ export class UiTable extends Component {
 
     private onNEW_ENTITY( msg ) {
 		let entity = msg[ "newEntity" ];
-		let uiEntity = this.GetEntityFromSeat( entity.seat );
-		if ( uiEntity != null ) {
-			uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
+		if ( entity != null ) {
+			let uiEntity = this.GetEntityFromSeat( entity.seat );
+			if ( uiEntity != null ) {
+				uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
+			}
+		} else {
+			console.log('entity == null ');
 		}
     }
 
@@ -2903,7 +2916,6 @@ export class UiTable extends Component {
     }
 
     private onRES_RE_BUY( msg ) {
-		console.log(msg);
 
 		if ( 0 != msg['resultCode'] ) {
 			return;

@@ -64,9 +64,10 @@ export class UiPlayer extends Component {
 
             let s = Number( user.avatar );
             let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage( s );
-            this.spriteAvatar.spriteFrame = sf;
-
-            this.spriteAvatar.node.active = true;
+            if ( sf != null ) {
+                this.spriteAvatar.spriteFrame = sf;
+                this.spriteAvatar.node.active = true;
+            }
         }
         this.node.active = true;
     }

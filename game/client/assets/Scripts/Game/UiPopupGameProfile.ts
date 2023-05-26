@@ -61,8 +61,6 @@ export class UiPopupGameProfile extends Component {
 
     public show( entity: any, statics: any, isMe: boolean = false ) {
 
-        console.log(entity);
-
         this.node.active = true;
         this.avatar.node.active = false;
         this.rootInfo.active = true;

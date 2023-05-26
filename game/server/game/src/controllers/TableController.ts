@@ -244,12 +244,26 @@ export class TableController {
         }
 
         user.pendingSessionId = seatReservation.sessionId;
-        user.pendingSessionTimestamp = Date.now();
+        user.pendingSessionTimestamp = 0; Date.now();
+
         user.table_id = _tables.id;
         user.login_ip = clientIp;
 
+        let session_id = seatReservation.sessionId;
+        if ( session_id == null || session_id.length <= 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'TABLE_JOIN_FAIL',
+            });            
+        }
+
         try {
-            await this.reqPENDING_STATE( req.app.get('DAO'), user);            
+            // await this.reqPENDING_STATE( req.app.get('DAO'), user);
+            await this.reqSESSION_ID( req.app.get('DAO'), {
+                session_id: session_id,
+                id: user.id,
+            } );
+
         } catch (error) {
             console.log( error );
         }
@@ -272,6 +286,23 @@ export class TableController {
             count: _tables.maxPlayers,
         });
     }
+
+    private async reqSESSION_ID( dao: any, data: any ) {
+
+        return new Promise( ( resolve, reject ) => {
+            dao.UPDATE_USERS_SESSION_ID( data, ( err: any, res: any )=>{
+
+                if( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'                        
+                    });
+                }
+
+                resolve( res );
+            } );
+        } );
+    }    
 
     private async reqPENDING_STATE( dao: any, data: any ) {
 

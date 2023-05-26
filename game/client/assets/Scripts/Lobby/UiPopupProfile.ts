@@ -175,8 +175,6 @@ export class UiPopupProfile extends Component {
             let evaluate: any = this.GetHandsEval(h);
             let pools: number[] = [];
 
-            console.log(evaluate);
-
             evaluate['cards'].forEach( (elem)=>{
                 if ( elem.value == '1' ) {
                     elem.value = 'A';

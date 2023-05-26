@@ -1,7 +1,7 @@
 {
   "server": {
     "name": "room",
-    "version": "11",
+    "version": "12",
     "checkIpDuplication": false
   }
 }

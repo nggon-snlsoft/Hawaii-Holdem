@@ -221,6 +221,7 @@ export class UiEntity extends Component {
     }
 
     public SetEntity( entity: any, cbOpen: ( id: number, seat:number )=>void, cbClose:( seat: number )=>void ) {
+
         this.cbProfileOpen = null;
         this.cbProfileClose = null;        
         this.childRegistered();

@@ -559,8 +559,6 @@ export class NetworkManager extends cc.Component {
 			return;
 		}
 
-		console.log( result );
-
 		onSUCCESS(result);
 	}
 	

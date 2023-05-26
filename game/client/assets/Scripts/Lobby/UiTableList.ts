@@ -106,7 +106,7 @@ export class UiTableList extends Component {
     private elementOnList: TableListUiElement[] = [];
     private elementPool: TableListUiElement[] = [];
 
-    private cbJoinTable: (table: any)=>void = null;
+    private cbJoinTable: ( button: Button, table: any)=>void = null;
     private cbExitLobby: ()=>void = null;
 
     public init( cbJoinTable: (table: any)=>void, exitLobby: ()=> void  ) {
@@ -207,10 +207,10 @@ export class UiTableList extends Component {
             return;
         }
 
-        LobbyAudioContoller.instance.PlayButtonClick();
+        button.interactable = false;
 
-        button.interactable = true;
-        this.cbJoinTable( table );
+        LobbyAudioContoller.instance.PlayButtonClick();
+        this.cbJoinTable( button, table );
     }
 
     public show() {

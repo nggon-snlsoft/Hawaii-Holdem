@@ -83,6 +83,23 @@ dao.SELECT_USERS_ByUSER_ID = function (id: any, cb: any) {
 	});
 };
 
+dao.SELECT_USERS = function (id: any, cb: any) {
+
+	let sql = "SELECT * FROM USERS WHERE  ID = ?";
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.SELECT_USERS_ByTABLE_ID = function (table_id: any, cb: any) {
 
 	let sql = "SELECT * FROM USERS WHERE ALIVE = 1 AND DISABLE = 0 AND TABLE_ID = ?";
@@ -113,6 +130,41 @@ dao.SELECT_USERS_ByPENDING_ID = function (pendingID: any, cb: any ) {
 		}
 
 		cb?.(null, res);
+	});
+};
+
+dao.SELECT_USERS_ByACTIVE_SESSION_ID = function (sessing_id: any, cb: any ) {
+	let sql = "SELECT * FROM USERS WHERE activeSessionId = ?";
+	let args = [sessing_id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.UPDATE_USERS_SESSION_ID = function ( data: any, cb: any ) {
+
+	let sql = "UPDATE USERS SET ACTIVESESSIONID = ?, UPDATEDATE = ? WHERE ID = ?";
+	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
+	let args = [data["session_id"], now, data["id"]];
+
+	_client.query(sql, args, (err: any, res: any)=> {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
 	});
 };
 

@@ -203,16 +203,18 @@ export class UiLobby extends Component {
         this.uiLobbyPopup.openSetting();
     }
 
-    private onJoinTable(table: any) {
+    private onJoinTable(button: Button, table: any) {
         let user = NetworkManager.Instance().GetUser();
         if ( user != null ) {
             if (user.balance < table.minBuyIn ) {
+                button.interactable = true;
                 LobbySystemPopup.instance.showPopUpOk("바이인", "바이인 금액이 부족합니다.", ()=>{
 
                 });
 
             } else {
                 NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
+                    button.interactable = true;
                     this.canRefresh = false;
                     this.uiTableList.end();
                     
@@ -233,6 +235,7 @@ export class UiLobby extends Component {
                     });
 
                 }, ( err )=>{
+                    button.interactable = true;
                     console.log(err.msg);                    
                     switch ( err.msg ) {
                         case 'DUPLICATE_LOGIN':

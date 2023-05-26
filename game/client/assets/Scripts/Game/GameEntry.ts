@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, game, Game, Label } from 'cc';
+import { _decorator, Component, Node, game, Game, Label, Sprite } from 'cc';
 import {UiGameSystemPopup} from "./UiGameSystemPopup";
 import { UiControls } from './UiControls';
 import { AudioController } from './AudioController';
@@ -6,6 +6,7 @@ import { UiTable } from '../UiTable';
 import { Board } from '../Board';
 import { GameManager } from '../GameManager';
 import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE } from '../HoldemDefines';
+import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameEntry')

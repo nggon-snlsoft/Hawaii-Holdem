@@ -151,7 +151,6 @@ export class UiJoinPlayer extends Component {
                         });
         
                     } else {
-                        console.log( res.msg );
 
                         let desc: string = '';
                         switch(res.msg) {

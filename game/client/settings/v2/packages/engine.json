@@ -52,7 +52,7 @@
         "_value": false
       },
       "physics-2d": {
-        "_value": false,
+        "_value": true,
         "_option": "physics-2d-box2d"
       },
       "physics-2d-box2d": {
@@ -80,16 +80,16 @@
         "_value": false
       },
       "particle-2d": {
-        "_value": false
+        "_value": true
       },
       "audio": {
         "_value": true
       },
       "video": {
-        "_value": false
+        "_value": true
       },
       "webview": {
-        "_value": false
+        "_value": true
       },
       "tween": {
         "_value": true
@@ -130,10 +130,14 @@
       "gfx-webgl",
       "gfx-webgl2",
       "intersection-2d",
+      "particle-2d",
+      "physics-2d-box2d",
       "profiler",
       "tween",
       "ui",
-      "websocket"
+      "video",
+      "websocket",
+      "webview"
     ],
     "noDeprecatedFeatures": {
       "value": false,

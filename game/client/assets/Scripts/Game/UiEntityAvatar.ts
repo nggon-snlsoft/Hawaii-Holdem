@@ -54,6 +54,7 @@ export class UiEntityAvatar extends Component {
 
         this.SetNickname( entity.nickname );
         this.SetChips( entity.chips );
+
         this.SetPlayerThumbnail( entity.avatar );
 
         if ( entity.isSitout == true ) {
@@ -94,8 +95,13 @@ export class UiEntityAvatar extends Component {
 
     private SetPlayerThumbnail ( avatar ) {
         let s = Number( avatar );
-        this.spriteAvatarProfile.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
-        this.spriteAvatarProfile.node.active = true;
+        let sf: SpriteFrame = ResourceManager.Instance().getAvatarImage(s);
+        if ( sf != null )
+        {
+            this.spriteAvatarProfile.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
+            this.spriteAvatarProfile.node.active = true;
+        }
+
     }
 
     public clearUiBetValue() {
