@@ -802,7 +802,7 @@ export class UiTable extends Component {
 	}	
 
 	public LoadLobby() {
-		director.loadScene("LobbyScene");		
+		director.loadScene("LobbyScene");
 	}
 
     private onPING() {
@@ -2460,10 +2460,6 @@ export class UiTable extends Component {
 		svPots.forEach(element => {
 			totalPotValue += element.total;
 
-			if(element.rake != null){
-				totalPotValue -= element.rake;
-			}
-
 			if(element.players.length <= 1){
 				returnPot.push(element);
 				return;
@@ -2486,7 +2482,7 @@ export class UiTable extends Component {
 				continue;
 			}
 
-			totalPotValue -= pot.rake != null ? pot.total - pot.rake : pot.total;
+			totalPotValue = pot.total;
 
 			this.uiPot.UpdatePotTotal(totalPotValue);
 
@@ -2504,7 +2500,7 @@ export class UiTable extends Component {
 
 			let info: any = null;
 			for(let j = 0; j < pot.winner.length; j++){
-				let chip = pot.rake == undefined ? pot.total / pot.winner.length : (pot.total - pot.rake) / pot.winner.length;
+				let chip = Number(pot.total) / Number(pot.winner.length);
 				
 				let uiEntity = this.GetEntityFromSeat( pot.winner[j] );
 				
@@ -2539,7 +2535,7 @@ export class UiTable extends Component {
 			potCount--;
 			this.uiPot.SetPotCount(potCount);
 
-			totalPotValue -=  pot.rake != null ? pot.total - pot.rake : pot.total;
+			totalPotValue =  pot.total;
 
 			this.uiPot.UpdatePotTotal(totalPotValue);
 
@@ -2557,9 +2553,7 @@ export class UiTable extends Component {
 				let potInfo = showPot[count];
 
 				ui.showRoot.active = true;
-				ui.valueLabel.string = undefined == potInfo.rake ? CommonUtil.getKoreanNumber(potInfo.total) : CommonUtil.getKoreanNumber(potInfo.total - potInfo.rake) + " / " + CommonUtil.getKoreanNumber(potInfo.rake);
-				ui.valueLabel.string = undefined == potInfo.rake ? potInfo.total.toString() : 
-				(potInfo.total - potInfo.rake).toString() + " / " + (potInfo.rake).toString();
+				ui.valueLabel.string = CommonUtil.getKoreanNumber(potInfo.total);
 				count++;
 			}
 

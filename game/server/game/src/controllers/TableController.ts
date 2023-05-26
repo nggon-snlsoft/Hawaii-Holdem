@@ -130,7 +130,7 @@ export class TableController {
             return;
         }
 
-        if ( table_id == null || user_id == null ) {
+        if ( table_id == null || user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'TABLEID_OR_USER_ID_NULL',
@@ -174,6 +174,18 @@ export class TableController {
                 msg: 'INCORRECT_TABLE_INFO',
             });
             return;            
+        }
+
+        let balance = user.balance;
+        let minBuyIn = table.minStakePrice;
+        if ( balance < minBuyIn ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NOT_ENOUGHT_BALANCE',
+                balance: balance,
+                buyin: minBuyIn
+            });
+            return;
         }
 
         let _tables = ClientUserData.getClientTableData(table);

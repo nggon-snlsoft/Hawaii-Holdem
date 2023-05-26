@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -70,7 +70,8 @@ export class NetworkManager extends cc.Component {
 	private API_SERVER: HOLDEM_SERVER_TYPE = HOLDEM_SERVER_TYPE.API_SERVER;
 	private GAME_SERVER: HOLDEM_SERVER_TYPE = HOLDEM_SERVER_TYPE.GAME_SERVER;
 	private api_port: number = apiPort;
-	private game_port: number = gamePort;	
+	private game_port: number = gamePort;
+	private user_id: number = null;
 
     public static Instance() : NetworkManager
 	{
@@ -150,6 +151,7 @@ export class NetworkManager extends cc.Component {
 		this.setting = null;
 		this.config = null;
 		this.store = null;
+		this.user_id = -1;
 		this.token = '';
 	}
 
@@ -311,6 +313,7 @@ export class NetworkManager extends cc.Component {
 			this.token = obj.token;
 		}
 
+		this.user_id = obj.id;
 		onSuccess( {
 			code: obj.code,
 			msg: obj.msg,
@@ -636,6 +639,7 @@ export class NetworkManager extends cc.Component {
 	}
 
 	public async reqENTER_TABLE( table_id: number, onSuccess : ( room: ColySeus.Room, res: any ) => void, onFail : ( err ) => void){
+		
 		let result: any = null;
 		let reservation: string = null;
 		let error: string = null;
@@ -644,7 +648,7 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( this.GAME_SERVER, "/tables/enter", {
 			table_id: table_id,
-			user_id: user_id,
+			user_id: this.user_id,
 			token: this.token,
 			version: version,
 
@@ -706,6 +710,14 @@ export class NetworkManager extends cc.Component {
 			});
 		} else {
 			switch ( result.msg ) {
+				case 'NOT_ENOUGHT_BALANCE':
+					onFail({
+						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+						msg: 'NOT_ENOUGHT_BALANCE',						
+						balance: result.balance,
+						buyin: result.buyin,
+					});	
+					break;				
 				case 'DUPLICATE_LOGIN':
 					onFail({
 						code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

@@ -33,7 +33,7 @@ export class UiPot extends Component {
     onLoad() {
     }
 
-    public Show(pots : any[])
+    public Show( pots : any[])
     {
         if(null === pots || undefined === pots)
         {

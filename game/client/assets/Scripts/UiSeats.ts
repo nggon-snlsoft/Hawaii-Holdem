@@ -259,15 +259,16 @@ export class UiSeats extends Component {
             this.timerId = -1;
             this.unselectSeatDuringTime = true;
 
-            Board.table.leave();
             this.unscheduleAllCallbacks();
+            Board.table.leave();
+            Board.table.LoadLobby();
 
-            UiGameSystemPopup.instance.showOkPopup('자리 선택', '자리를 선택하지 않아 로비로 이동합니다', ()=>{
-                UiGameSystemPopup.instance.closePopup();
-                Board.table.LoadLobby();
+            // UiGameSystemPopup.instance.showOkPopup('자리 선택', '자리를 선택하지 않아 로비로 이동합니다', ()=>{
+            //     UiGameSystemPopup.instance.closePopup();
+            //     Board.table.LoadLobby();
 
-                this.unselectSeatDuringTime = false;
-            });
+            //     this.unselectSeatDuringTime = false;
+            // });
 
         }
         else {

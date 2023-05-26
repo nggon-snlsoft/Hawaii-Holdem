@@ -214,9 +214,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
-		console.log('onAuth');
-		console.log( client );
-
 		logger.info( "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );	
 
 		return new Promise( ( resolve, reject ) => {
@@ -228,7 +225,6 @@ export class HoldemRoom extends Room<RoomState> {
 					reject( new ServerError( 400, "bad access token" ) );
 				}
 				else {
-					console.log();
 
 					if( res.length <= 0 ) {
 						logger.error( "[ onAuth ] invalid session id" );
@@ -268,8 +264,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async onJoin( client: Client, options?: any, auth?: any ) {
-		console.log('onJoin');
-		console.log(client);		
 
 		try {
 			this._dao.UPDATE_USER_ACTIVE_SESSION_ID( client.sessionId, function( err: any, result: any ) {
@@ -281,10 +275,10 @@ export class HoldemRoom extends Room<RoomState> {
 			console.log(error);			
 		}
 
-		if( true === auth[ "reconnected" ] ) {
-			this.reJoin( client, options, auth );
-			return;
-		}
+		// if( true === auth[ "reconnected" ] ) {
+		// 	this.reJoin( client, options, auth );
+		// 	return;
+		// }
 
 		await this.playerJoin( client, options, auth );
 	}

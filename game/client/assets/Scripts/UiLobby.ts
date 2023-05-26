@@ -12,6 +12,7 @@ import { LobbyAudioContoller } from './Lobby/LobbyAudioContoller';
 import { Platform } from '../../extensions/colyseus-sdk/runtime/colyseus';
 import { GameManager } from './GameManager';
 import { ENUM_LEAVE_REASON } from './HoldemDefines';
+import { CommonUtil } from './CommonUtil';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobby')
@@ -204,69 +205,65 @@ export class UiLobby extends Component {
     }
 
     private onJoinTable(button: Button, table: any) {
-        let user = NetworkManager.Instance().GetUser();
-        if ( user != null ) {
-            if (user.balance < table.minBuyIn ) {
-                button.interactable = true;
-                LobbySystemPopup.instance.showPopUpOk("바이인", "바이인 금액이 부족합니다.", ()=>{
+        NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
+            button.interactable = true;
+            this.canRefresh = false;
+            this.uiTableList.end();
+            
+            Board.isPublic = true;
+            Board.id = res.info.id;
+            Board.ante = res.info.ante;
+            Board.ip = res.ip;
 
-                });
+            Board.setInfo( res.info );
+            Board.room = room;
+            UiTable.seatMaxFromServer = res.count;
 
-            } else {
-                NetworkManager.Instance().reqENTER_TABLE( table.id, ( room, res )=>{
-                    button.interactable = true;
-                    this.canRefresh = false;
-                    this.uiTableList.end();
-                    
-                    Board.isPublic = true;
-                    Board.id = res.info.id;
-                    Board.ante = res.info.ante;
-                    Board.ip = res.ip;
+            this.uiLobbyLoading.show( ()=>{
+                if ( this.cbEnd != null ) {
+                    this.cbEnd();
+                    this.cbEnd = null;
+                }
+            });
 
-                    Board.setInfo( res.info );
-                    Board.room = room;
-                    UiTable.seatMaxFromServer = res.count;
+        }, ( err )=>{
+            button.interactable = true;
 
-                    this.uiLobbyLoading.show( ()=>{
-                        if ( this.cbEnd != null ) {
-                            this.cbEnd();
-                            this.cbEnd = null;
-                        }
-                    });
+            switch ( err.msg ) {
+                case 'NOT_ENOUGHT_BALANCE':
+                    let desc = '소지금이 부족합니다.\n' + '소지금: ' + CommonUtil.getKoreanNumber( err.balance ) + '\n' + '최소바이인: ' + CommonUtil.getKoreanNumber( err.buyin );
 
-                }, ( err )=>{
-                    button.interactable = true;
-                    console.log(err.msg);                    
-                    switch ( err.msg ) {
-                        case 'DUPLICATE_LOGIN':
-                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "이미 플레이중인 테이블이 있습니다.", ()=>{
-                                LobbySystemPopup.instance.closePopup();
-                            });                            
-                            break;
-                        case 'INCORRECT_TABLE_INFO':
-                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.", ()=>{
-                                LobbySystemPopup.instance.closePopup();
-                            });                                                        
-                            break;
-                        case 'TABLE_IS_FULL':
-                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "테이블이 가득 찼습니다.", ()=>{
-                                LobbySystemPopup.instance.closePopup();
-                            });                                                                                    
-                            break;
-                        case 'TABLE_DUPLICATE_IP':
-                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "중복된 IP의 플레이어가 있습니다.", ()=>{
-                                LobbySystemPopup.instance.closePopup();
-                            });                            
-                            break;                            
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", desc, ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                            
+                    break;                
+                case 'DUPLICATE_LOGIN':
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", "이미 플레이중인 테이블이 있습니다.", ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                            
+                    break;
+                case 'INCORRECT_TABLE_INFO':
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.", ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                                                        
+                    break;
+                case 'TABLE_IS_FULL':
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", "테이블이 가득 찼습니다.", ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                                                                                    
+                    break;
+                case 'TABLE_DUPLICATE_IP':
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", "중복된 IP의 플레이어가 있습니다.", ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                            
+                    break;                            
 
-                        default:
-                            LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.\n" + err.msg, ()=>{
-                                LobbySystemPopup.instance.closePopup();
-                            });                                                                                    
-                    }
-                });
+                default:
+                    LobbySystemPopup.instance.showPopUpOk("테이블입장", "해당 테이블에 입장할 수 없습니다.\n" + err.msg, ()=>{
+                        LobbySystemPopup.instance.closePopup();
+                    });                                                                                    
             }
-        }
+        });
     }
 
     private onSHOW_POINT( button: Button ) {
