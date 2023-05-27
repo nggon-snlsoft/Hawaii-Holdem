@@ -29,9 +29,11 @@ export class UiEntityAvatar extends Component {
     private spriteTimer: Sprite = null;
     private spriteDimmed: Sprite = null;
     private spriteStatus: Sprite = null;
+    private spriteFold: Sprite = null;
 
     private labelNickname: Label = null;
     private labelChips: Label = null;
+    private labelBlind: Label = null;    
     private labelWaitingTimer: Label = null;
 
     private actions: {} = {};
@@ -52,6 +54,8 @@ export class UiEntityAvatar extends Component {
         this.entity = entity;
         this.isMe = isMe;
 
+        this.labelBlind.node.active = false;
+
         this.SetNickname( entity.nickname );
         this.SetChips( entity.chips );
 
@@ -64,6 +68,8 @@ export class UiEntityAvatar extends Component {
         } else {
             this.SetStatus( ENUM_STATUS_TYPE.NONE );
         }
+
+
 
         this.rootNameTag.active = true;
         this.isFold = false;
@@ -78,19 +84,28 @@ export class UiEntityAvatar extends Component {
         return this.entity.nickname;
     }
 
-    public SetChips( chips: number ) {            
+    public SetChips( chips: number ) {
         this.labelChips.color = new Color(255, 200, 70);
         this.labelChips.string = CommonUtil.getKoreanNumber( chips );
     }
 
+    public SetShowChips() {
+        this.labelBlind.node.active = false;
+        this.labelChips.node.active = true;
+    }
+
     public SetSmallBlind() {
-        this.labelChips.color = new Color(100, 150, 180);
-        this.labelChips.string = "스몰블라인드"
+        this.labelBlind.string = '스몰블라인드';
+        this.labelBlind.node.active = true;
+
+        this.labelChips.node.active = false;
     }
 
     public SetBigBlind() {
-        this.labelChips.color = new Color(100, 150, 180);
-        this.labelChips.string = "빅블라인드"
+        this.labelBlind.string = '빅블라인드';
+        this.labelBlind.node.active = true;
+
+        this.labelChips.node.active = false;
     }
 
     private SetPlayerThumbnail ( avatar ) {
@@ -101,7 +116,6 @@ export class UiEntityAvatar extends Component {
             this.spriteAvatarProfile.spriteFrame = ResourceManager.Instance().getAvatarImage(s);
             this.spriteAvatarProfile.node.active = true;
         }
-
     }
 
     public clearUiBetValue() {
@@ -172,7 +186,7 @@ export class UiEntityAvatar extends Component {
         this.spriteTimer.node.active = true;
     }
 
-    public setUiFold( isFold: boolean ) {
+    public SetUiFold( isFold: boolean ) {
         this.isFold = isFold;
 
         if ( isFold == true ) {
@@ -180,16 +194,23 @@ export class UiEntityAvatar extends Component {
 
             this.spriteTimer.fillRange = 0;
             this.spriteTimer.node.active = false;
-            // this.rootFoldCover.active = true;
             this.rootSelected.active = false;
-
-            this.SetStatus( ENUM_STATUS_TYPE.FOLD );
             this.SetAction('fold');
+
+            this.spriteDimmed.node.active = true;
+            this.spriteFold.node.active = true;
+            this.rootStatus.active = true;            
+
         } else {
-            this.SetStatus( ENUM_STATUS_TYPE.NONE );
-            // this.rootFoldCover.active = false;
+            this.spriteFold.node.active = false;
+            if ( this.spriteStatus.node.active == true ) {
+                this.spriteDimmed.node.active = true;
+            } else {
+                this.spriteDimmed.node.active = false;
+                this.rootStatus.active = false;                
+            }
         }
-    }
+    }    
 
     public SetWait() {
         this.endTurn();
@@ -243,7 +264,7 @@ export class UiEntityAvatar extends Component {
             this.SetStatus(ENUM_STATUS_TYPE.WAITING);
         }
         else if ( fold == true ) {
-            this.SetStatus(ENUM_STATUS_TYPE.FOLD);
+            this.SetUiFold( fold );
         } else {
             this.SetStatus(ENUM_STATUS_TYPE.NONE);
         }
@@ -287,16 +308,6 @@ export class UiEntityAvatar extends Component {
                     this.spriteStatus.node.active = false;
                     this.rootStatus.active = false;                
                 }
-                break;
-            case ENUM_STATUS_TYPE.FOLD:
-                {
-                    this.spriteDimmed.node.active = true;
-                    let sf: SpriteFrame = this.spriteFrameStatus[0];
-                    this.spriteStatus.spriteFrame = sf;
-                    this.spriteStatus.node.active = true;
-                    this.rootStatus.active = true;
-                }
-
                 break;
             case ENUM_STATUS_TYPE.WAITING:
                 {
@@ -350,11 +361,6 @@ export class UiEntityAvatar extends Component {
             this.spriteAvatarProfile.node.active = false;
         }
 
-        // this.rootFoldCover = this.node.getChildByPath('THUMBNAIL/SPRITE_FOLD');
-        // if ( this.rootFoldCover != null ) {
-        //     this.rootFoldCover.active = false;
-        // }
-
         this.spriteTimer = this.node.getChildByPath('SPRITE_TIMER').getComponent(Sprite);
         if ( this.spriteTimer != null ) {
             this.spriteTimer.node.active = false;
@@ -369,7 +375,7 @@ export class UiEntityAvatar extends Component {
         if ( this.rootNameTag != null ) {
             this.labelNickname = this.rootNameTag.getChildByPath('LABEL_NAME').getComponent(Label);
             this.labelChips = this.rootNameTag.getChildByPath('LABEL_CHIPS').getComponent(Label);
-            // this.labelSitout = this.rootNameTag.getChildByPath('LABEL_SIT_OUT').getComponent(Label);
+            this.labelBlind = this.rootNameTag.getChildByPath('LABEL_BLIND').getComponent(Label);
 
             this.rootNameTag.active = false;
         }
@@ -402,6 +408,11 @@ export class UiEntityAvatar extends Component {
             this.spriteDimmed = this.rootStatus.getChildByPath('DIMMED').getComponent(Sprite);
             if ( this.spriteDimmed != null ) {
                 this.spriteDimmed.node.active = false;
+            }
+
+            this.spriteFold = this.rootStatus.getChildByPath('SPRITE_FOLD').getComponent( Sprite );
+            if ( this.spriteFold != null ) {
+                this.spriteFold.node.active = false;
             }
 
             this.spriteStatus = this.rootStatus.getChildByPath('SPRITE_STATUS').getComponent(Sprite);

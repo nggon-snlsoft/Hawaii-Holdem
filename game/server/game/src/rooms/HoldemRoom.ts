@@ -1131,7 +1131,7 @@ export class HoldemRoom extends Room<RoomState> {
 				continue;
 			}
 
-			e.enoughChip = this.isEnoughChip(e.chips);
+			e.enoughChip = this.isEnoughChip( e.chips );
 		}
 	}
 
@@ -1415,7 +1415,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 			case eGameState.Result:
 				logger.info( "[ changeState ] RESULT" );
-				this.showdownTime = 5000;//this.conf[ "showDownTerm" ];
+				this.showdownTime = 5500;//this.conf[ "showDownTerm" ];
 				let isAllIn = false;
 				let allFold = this.isAllFold();
 
@@ -1433,7 +1433,7 @@ export class HoldemRoom extends Room<RoomState> {
 						return;
 
 					} else {
-						this.showdownTime += pots.length * 2500;
+						this.showdownTime += pots.length * 3000;
 						this.broadPlayerCards( isAllIn );
 					}
 
@@ -1456,7 +1456,6 @@ export class HoldemRoom extends Room<RoomState> {
 						e.sitoutTimestamp = Number( Date.now() );
 						e.wait = true;
 						this.broadcast("SIT_OUT", { seat: e.seat });
-						return;
 					} else if ( e.pendSitout == true ) {
 						logger.error("ENTER_SIT_OUT");
 						e.isSitBack = false;
@@ -1471,9 +1470,10 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.processPendingAddChips();
 				this.processReBuyInRequest();
+
 				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 				this.participants = [];
-				this.lastBet = null;				
+				this.lastBet = null;
 
 				this.broadcast( "CLEAR_ROUND", {
 					msg: "CLEAR_ROUND", timeMS: this.conf[ "clearTerm" ] * 1000, entities: this.state.entities
@@ -1862,7 +1862,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.bufferTimerID = setTimeout( () => {
 			this.changeState( eGameState.PreFlop );
-		}, 1000 );
+		}, 2000 );
 	}
 
 	resetEntities() {

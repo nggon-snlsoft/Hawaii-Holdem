@@ -6,7 +6,7 @@ import { CommonUtil } from './CommonUtil';
 import { AudioController } from './Game/AudioController';
 import { UiBettingChips } from './Game/UiBettingChips';
 import { UiCard } from './Game/UiCard';
-import { UiEntityAvatar } from './Game/UiEntityAvatar';
+import { ENUM_STATUS_TYPE, UiEntityAvatar } from './Game/UiEntityAvatar';
 import { EMOTICON_CHAT_MESSAGE, EMOTICON_TYPE } from './Game/UiGameChatting';
 import { UiResultEffect } from './Game/UiResultEffect';
 import { NetworkManager } from './NetworkManager';
@@ -264,10 +264,7 @@ export class UiEntity extends Component {
             return;
         }
 
-        if( true == this.isFold){
-            this.SetFold();
-            return;
-        }
+        this.SetFold(this.isFold);
 
         if( true == entity.wait ){
             this.SetWait();
@@ -288,6 +285,7 @@ export class UiEntity extends Component {
         this.ClearHands();
         this.ResetResultEffect();        
         this.isFold = false;
+        this.SetFold( this.isFold );
 
         if( true == entity.wait ){
             this.setUiWait();
@@ -308,6 +306,7 @@ export class UiEntity extends Component {
         this.ClearHands();
 
         this.isFold = false;
+        this.SetFold( this.isFold );        
         this.ResetResultEffect();
 
         if( true == entity.wait ){
@@ -398,12 +397,12 @@ export class UiEntity extends Component {
         if ( true == isBB || true == isSB ) {
             this.scheduleOnce(()=>{
                 if ( this.uiEntityAvatar != null ) {
-                    this.uiEntityAvatar.SetChips( chips );
+                    this.uiEntityAvatar.SetShowChips();
                 }
-            }, 2);
+            }, 1.5);
         } else {
             if ( this.uiEntityAvatar != null ) {
-                this.uiEntityAvatar.SetChips( chips );
+                this.uiEntityAvatar.SetShowChips();
             }
         }        
     }
@@ -439,6 +438,26 @@ export class UiEntity extends Component {
 
     clearUiAction() {
         this.uiEntityAvatar.clearUiAction();
+    }
+
+    SetStatus( player: any ) {
+        if ( player != null ) {
+            if ( player.isSitOut == true ) {
+                if ( this.uiEntityAvatar != null ) {
+                    this.uiEntityAvatar.SetStatus( ENUM_STATUS_TYPE.SITOUT );
+                }
+
+            } else if ( player.wait == true ) {
+                if ( this.uiEntityAvatar != null ) {
+                    this.uiEntityAvatar.SetStatus( ENUM_STATUS_TYPE.WAITING );
+                }
+            } else {
+                if ( this.uiEntityAvatar != null ) {
+                    this.uiEntityAvatar.SetStatus( ENUM_STATUS_TYPE.NONE );
+                }
+            }
+            this.SetFold( player.fold );            
+        }
     }
 
     SetBetValue( betValue: number, done: ()=> void = null ) {
@@ -539,18 +558,12 @@ export class UiEntity extends Component {
         AudioController.instance.StopTimeLimit();
     }
 
-    SetFold() {
-        this.isFold = true;        
-        this.uiEntityAvatar.setUiFold( true );
+    SetFold( fold: boolean ) {
+        this.isFold = fold;        
+        this.uiEntityAvatar.SetUiFold( this.isFold );
         this.timerDeltaTime = 0;
         
         this.HideHiddenCard();
-    }
-
-    setUiFold() {
-        this.isFold = true;        
-        this.uiEntityAvatar.setUiFold( true );
-        this.timerDeltaTime = 0;
     }
 
     SetAllIn() {

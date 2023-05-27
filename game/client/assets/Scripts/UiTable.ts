@@ -750,7 +750,7 @@ export class UiTable extends Component {
 							uiEntity.SetWait();
 						} else {
 							if ( e.fold == true ) {
-								uiEntity.SetFold();								
+								uiEntity.SetFold( true );
 							} else {
 								if ( e.seat != this.mySeat ) {
 									uiEntity.ClearHands();
@@ -1033,7 +1033,7 @@ export class UiTable extends Component {
 							uiEntity.SetWait();
 						} else {
 							if ( e.fold == true ) {
-								uiEntity.SetFold();								
+								uiEntity.SetFold( true );								
 							} else {
 								if ( e.seat != this.mySeat ) {
 									uiEntity.ClearHands();
@@ -1479,6 +1479,7 @@ export class UiTable extends Component {
 
 			let uiEntity = this.GetEntityFromSeat( seat );
 			if ( uiEntity != null ) {
+				uiEntity.SetStatus( PLAYERS[i] );
 
 				uiEntity.SetBetValue( PLAYERS[i].totalBet );
 
@@ -2090,9 +2091,7 @@ export class UiTable extends Component {
     }
 
     private onFOLD( msg ) {
-		console.log( 'onFOLD' );		
-		console.log( msg );
-
+		console.log( 'onFOLD' );
 		AudioController.instance.PlaySound('VOICE_ACTION_DIE');
 
 		let seat = msg[ "seat" ];
@@ -2107,7 +2106,7 @@ export class UiTable extends Component {
 			else {
 				this.isFold = true;
 			}
-			uiEntity.SetFold();
+			uiEntity.SetFold( true );
 		}
     }
 
@@ -2207,36 +2206,43 @@ export class UiTable extends Component {
 		if ( seat == this.mySeat ) {
 			this.buttonSitout.interactable = true;
 			this.buttonSitout.node.active = false;
-
-			this.buttonSitback.interactable = true;
-			this.buttonSitback.node.active = true;
-
 			this.labelReservationSitout.node.active = false;
 			this.buttonSitoutCancel.interactable = true;
 			this.buttonSitoutCancel.node.active = false;
+
+			this.buttonSitback.node.active = true;
+			this.buttonSitback.interactable = false;
+
+			this.scheduleOnce( ()=>{
+				this.buttonSitback.interactable = true;
+			}, 1.5);
 		}
     }
 
 	private onSIT_OUT_PEND( msg: any ) {
-		console.log('onSIT_OUT_PEND');
-
 		this.buttonSitout.interactable = true;
 		this.buttonSitout.node.active = false;
 		this.buttonSitback.node.active = false;
-
-		this.buttonSitoutCancel.interactable = true;
+		this.buttonSitoutCancel.interactable = false;
 		this.buttonSitoutCancel.node.active = true;
 		this.labelReservationSitout.node.active = true;
+
+		this.scheduleOnce(()=>{
+			this.buttonSitoutCancel.interactable = true;
+		}, 1.5);
     }
 
 	private onSIT_OUT_CANCEL( msg: any ) {
 		this.buttonSitoutCancel.interactable = true;
 		this.buttonSitoutCancel.node.active = false;
+		this.labelReservationSitout.node.active = false;
 
-		this.buttonSitout.interactable = true;
+		this.buttonSitout.interactable = false;
 		this.buttonSitout.node.active = true;
 
-		this.labelReservationSitout.node.active = false;
+		this.scheduleOnce( ()=>{
+			this.buttonSitout.interactable = true;
+		}, 1.5);
 	}
 
     private onSIT_BACK( msg: any ) {
@@ -2254,12 +2260,15 @@ export class UiTable extends Component {
 		if ( seat == this.mySeat ) {
 			this.buttonSitback.interactable = true;
 			this.buttonSitback.node.active = false;
-
-			this.buttonSitout.interactable = true;
-			this.buttonSitout.node.active = true;
-
 			this.labelReservationSitout.node.active = false;
 			this.buttonSitoutCancel.node.active = false;
+
+			this.buttonSitout.interactable = false;
+			this.buttonSitout.node.active = true;
+
+			this.scheduleOnce( ()=>{
+				this.buttonSitout.interactable = true;
+			}, 1.5);
 		}
     }
 
@@ -2448,11 +2457,13 @@ export class UiTable extends Component {
 				continue;
 			}
 
-			totalPotValue = pot.total;
+			if ( pot.rake != null ) {
+				totalPotValue -= pot.total - pot.rake;				
+			} else {
+				totalPotValue -= pot.total;				
+			}
 
-			this.uiPot.UpdatePotTotal(totalPotValue);
-
-			let uiEntity = this.GetEntityFromSeat(pot.players[0]);
+			let uiEntity = this.GetEntityFromSeat( pot.players[0] );
 
 			uiEntity?.setUiPlay();	
 			uiEntity?.SetReturn( pot.total );
@@ -2466,8 +2477,13 @@ export class UiTable extends Component {
 
 			let info: any = null;
 			for(let j = 0; j < pot.winner.length; j++){
-				let chip = Number(pot.total) / Number(pot.winner.length);
-				
+				let chip: any = null;
+				if ( pot.rake != null ) {
+					chip = (pot.total - pot.rake) / pot.winner.length;
+				} else {
+					chip = pot.total;
+				}
+			
 				let uiEntity = this.GetEntityFromSeat( pot.winner[j] );
 				
 				if(uiEntity != null ){
@@ -2501,7 +2517,11 @@ export class UiTable extends Component {
 			potCount--;
 			this.uiPot.SetPotCount(potCount);
 
-			totalPotValue =  pot.total;
+			if ( pot.rake != null ) {
+				totalPotValue -=  pot.total - pot.rake;
+			} else {
+				totalPotValue =  pot.total;
+			}
 
 			this.uiPot.UpdatePotTotal(totalPotValue);
 
@@ -2519,7 +2539,13 @@ export class UiTable extends Component {
 				let potInfo = showPot[count];
 
 				ui.showRoot.active = true;
-				ui.valueLabel.string = CommonUtil.getKoreanNumber(potInfo.total);
+
+				if ( potInfo.rake != null ) {
+					ui.valueLabel.string = CommonUtil.getKoreanNumber(potInfo.total - potInfo.rake);
+				} else {
+					ui.valueLabel.string = CommonUtil.getKoreanNumber(potInfo.total);
+				}
+
 				count++;
 			}
 
