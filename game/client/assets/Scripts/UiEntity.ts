@@ -456,7 +456,7 @@ export class UiEntity extends Component {
                     this.uiEntityAvatar.SetStatus( ENUM_STATUS_TYPE.NONE );
                 }
             }
-            this.SetFold( player.fold );            
+            this.SetFold( player.fold );
         }
     }
 
@@ -562,8 +562,10 @@ export class UiEntity extends Component {
         this.isFold = fold;        
         this.uiEntityAvatar.SetUiFold( this.isFold );
         this.timerDeltaTime = 0;
-        
-        this.HideHiddenCard();
+
+        if ( fold == true ) {
+            this.HideHiddenCard();
+        }
     }
 
     SetAllIn() {
@@ -736,7 +738,7 @@ export class UiEntity extends Component {
     }
 
     CardDispensing( card: number, index: number, duration: number, delay: number, cb: (idx: number)=>void ) {
-        this.hiddenCards[card].Show();        
+        this.hiddenCards[card].Show();
         let target = this.hiddenCards[card].node;
 
         let from = new Vec3( this.rootCardDispensing.position );
@@ -834,6 +836,7 @@ export class UiEntity extends Component {
     }
 
     HideHiddenCard() {
+        console.log('HideHiddenCard');
         this.rootHiddenCards.active = false;
     }
 

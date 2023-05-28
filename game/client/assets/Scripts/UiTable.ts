@@ -1961,7 +1961,9 @@ export class UiTable extends Component {
 		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
 			let seat = this.SEAT_PLAYERS[ i ];
 			let uiEntity = this.GetEntityFromSeat( seat );
-			let entity = entities.find( elem => elem.seat == seat );
+			let entity = entities.find( (elem) => {
+				return elem.seat == seat} 
+				);
 
 			if ( uiEntity != null && entity != null ) {
 				uiEntity.SetClearRound( entity );
@@ -2609,6 +2611,8 @@ export class UiTable extends Component {
 
 				if ( this.isEnableSeat ( this.mySeat ) == true ) {
 					this.ShowMyHands();
+				} else {
+
 				}
 			});
 		});
@@ -2626,6 +2630,7 @@ export class UiTable extends Component {
 					if ( (seats.length - 1 ) == idx ) {
 						if ( cb != null ) {
 							cb();
+
 						}
 					}
 				});

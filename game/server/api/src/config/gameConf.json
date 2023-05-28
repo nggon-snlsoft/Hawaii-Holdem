@@ -1,5 +1,9 @@
 {
   "game": {
-    "avatars": 20
+    "avatars": 20,
+    "min_transfer": 10000,
+    "min_point_transfer": 10000,
+    "min_charge": 10000
+    
   }
 }

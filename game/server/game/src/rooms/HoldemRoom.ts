@@ -299,7 +299,7 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.assign( {
 			sid: client.sessionId,
 			id: auth.id || client.id,
-			uid: auth.uid,
+			uid: auth.login_id,
 			avatar: auth.avatar,
 			nickname: auth.nickname,
 			balance: auth.balance,
@@ -337,6 +337,9 @@ export class HoldemRoom extends Room<RoomState> {
 			tableBuyInCount: 0,
 			pendSitout: false,
 		} );
+
+		console.log( 'entity' );
+		console.log( entity );
 
 		entity.seat = -2;
 		entity.client = client;
@@ -1596,6 +1599,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			e.rolling += rolling;
 			e.rake_back += rake_back;
+			e.totalBet += rolling;
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1628,6 +1632,7 @@ export class HoldemRoom extends Room<RoomState> {
 	
 				e.rolling += rolling;
 				e.rake_back += rake_back;
+				e.totalBet += rolling;				
 				e.roundBet = 0;
 	
 				this.UPDATE_ROLLINGS({
@@ -1651,7 +1656,8 @@ export class HoldemRoom extends Room<RoomState> {
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
 
 			e.rolling += rolling;
-			e.rake_back += rake_back;			
+			e.rake_back += rake_back;
+			e.totalBet += rolling;						
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1679,6 +1685,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			e.rolling += rolling;
 			e.rake_back += rake_back;
+			e.totalBet += rolling;		
 			e.roundBet = 0;
 
 			this.UPDATE_ROLLINGS({
@@ -1706,7 +1713,9 @@ export class HoldemRoom extends Room<RoomState> {
 
 			e.rolling += rolling;
 			e.rake_back += rake_back;
+			e.totalBet += rolling;
 			e.roundBet = 0;
+
 
 			this.UPDATE_ROLLINGS({
 				id: e.id,
@@ -1862,7 +1871,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this.bufferTimerID = setTimeout( () => {
 			this.changeState( eGameState.PreFlop );
-		}, 2000 );
+		}, 1000 );
 	}
 
 	resetEntities() {
@@ -2022,7 +2031,7 @@ export class HoldemRoom extends Room<RoomState> {
 				login_id: p.client.auth.login_id,
 				nickname: p.client.auth.nickname,
 				roundBet: p.roundBet,
-				totalBet: p.totalBet,
+				totalBet: 0,
 				win: 0,
 				rake: 0,
 				rake_back: 0,
@@ -3788,7 +3797,7 @@ export class HoldemRoom extends Room<RoomState> {
 							} else {
 								if ( true  === e.wait || true === e.fold ||
 									eGameState.Suspend === this.state.gameState || eGameState.Ready === this.state.gameState ||
-									eGameState.Prepare === this.state.gameState || eGameState.ClearRound === this.state.gameState) {
+									eGameState.ClearRound === this.state.gameState) {
 									pending = false;
 			
 									if ( e.balance < amount ) {
@@ -3889,6 +3898,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 		
 		if( sitOutPlayer.wait == true || sitOutPlayer.fold == true ){
+			sitOutPlayer.wait = true;
 			sitOutPlayer.isSitOut = true;
 			sitOutPlayer.pendSitout = false;			
 			sitOutPlayer.sitoutTimestamp = Number( Date.now() );
@@ -3914,7 +3924,7 @@ export class HoldemRoom extends Room<RoomState> {
 			client.send("SIT_OUT_PEND",
 			{ 
 
-			});			
+			});
 		}
 	}
 
@@ -3999,7 +4009,11 @@ export class HoldemRoom extends Room<RoomState> {
 			});
 		}
 		else {
+			sitOutPlayer.isSitBack = false;
+			sitOutPlayer.isSitOut = false;
+			sitOutPlayer.pendSitout = false;
 			sitOutPlayer.sitoutTimestamp = 0;
+			
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", { 
 				seat : seatNumber,

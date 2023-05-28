@@ -7,6 +7,7 @@ const { ccclass, property } = _decorator;
 @ccclass('UiLOBBY_POPUP_CHARGE')
 export class UiLOBBY_POPUP_CHARGE extends Component {
     @property(Label) labelTitle: Label = null;
+    @property(Label) labelContact: Label = null;        
     @property(Label) labelAccount: Label = null;    
     @property(Label) labelHolder: Label = null;
     @property(Label) labelKorValue: Label = null;
@@ -38,6 +39,15 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
 
         this.node.active = false;
         this.labelTitle.string = '충 전';
+
+        this.labelAccount.string = '';
+        this.labelAccount.node.active = false;
+
+        this.labelHolder.string = '';
+        this.labelHolder.node.active = false;
+
+        this.labelContact.string = '';
+        this.labelContact.node.active = false;
 
         this.buttonExit.node.off( 'click' );
         this.buttonExit.node.on( 'click', this.onEXIT.bind(this), this );
@@ -94,8 +104,22 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         NetworkManager.Instance().reqCOMPANY( ( res: any )=>{
             let store = res.store;
             if ( store != null ) {
-                this.labelAccount.string = store.bank + ' ' + store.account; 
-                this.labelHolder.string = store.holder;
+                console.log( store );
+                // this.labelAccount.string = store.bank + ' ' + store.account; 
+                // this.labelHolder.string = store.holder;
+
+                let telegram: string = '';
+                if ( store.telegram != null && store.telegram.length > 0 ) {
+                    telegram = store.telegram;
+                }
+
+                let kakao: string = '';
+                if ( store.kakao != null && store.kakao.length > 0 ) {
+                    kakao = store.kakao;
+                }
+
+                this.labelContact.string = '텔레그램: ' + telegram + '\n' + '카카오톡: ' + kakao ;
+                this.labelContact.node.active = true;
             }
 
             this.labelKorValue.string = '';
