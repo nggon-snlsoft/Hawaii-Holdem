@@ -55,6 +55,7 @@ export class UiEntityAvatar extends Component {
         this.isMe = isMe;
 
         this.labelBlind.node.active = false;
+        this.labelChips.node.active = true;
 
         this.SetNickname( entity.nickname );
         this.SetChips( entity.chips );
@@ -68,9 +69,6 @@ export class UiEntityAvatar extends Component {
         } else {
             this.SetStatus( ENUM_STATUS_TYPE.NONE );
         }
-
-
-
         this.rootNameTag.active = true;
         this.isFold = false;
         this.node.active = true;
