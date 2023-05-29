@@ -286,14 +286,14 @@ export class HoldemRoom extends Room<RoomState> {
 	reJoin( client: Client, options?: any, auth?: any ) {
 		logger.info( "[ reJoin ]==============================" );
 		this._rejoinWaiting[ client.sessionId ] = auth;
-		logger.info( "[ reJoin ] _rejoinWaiting : %s", JSON.stringify( this._rejoinWaiting ) );
+		// logger.info( "[ reJoin ] _rejoinWaiting : %s", JSON.stringify( this._rejoinWaiting ) );
 		
 	}
 
 	async playerJoin( client: Client, option: any, auth: any ) {
 		logger.info( "[ playerJoin ]" );
 		this._buyInWaiting[ client.sessionId ] = auth;
-		logger.info( "[ playerJoin ] waiting list : %s", JSON.stringify( this._buyInWaiting ) );
+		// logger.info( "[ playerJoin ] waiting list : %s", JSON.stringify( this._buyInWaiting ) );
 
 		let entity = new EntityState();
 		entity.assign( {

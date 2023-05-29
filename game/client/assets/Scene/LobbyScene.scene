@@ -328,7 +328,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 384,
+    "_orthoHeight": 640,
     "_near": 0,
     "_far": 1000,
     "_color": {
@@ -36114,7 +36114,7 @@
         "__id__": 1051
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 1054
@@ -36387,7 +36387,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "텔레그램 또는 카카오톡 고객 센터로 연락\n주시면 충전 안내 드와드리겠습니다.",
+    "_string": "텔레그램 또는 카카오톡 고객 센터로 연락\n주시면 충전 안내 도와드리겠습니다.",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 38,
@@ -38902,7 +38902,7 @@
         "__id__": 1179
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 1183
@@ -57837,7 +57837,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 365,
+      "y": 621,
       "z": 0
     },
     "_lrot": {
@@ -57890,7 +57890,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -545.2,
+      "x": -289.2,
       "y": -80.214,
       "z": 0
     },
@@ -58390,7 +58390,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -480.305,
+      "x": -224.305,
       "y": -35.042,
       "z": 0
     },
@@ -58682,7 +58682,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -333.552,
+      "x": -77.55200000000002,
       "y": -98.444,
       "z": 0
     },
@@ -59244,7 +59244,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -101.04700000000003,
+      "x": 154.95299999999997,
       "y": -98.443,
       "z": 0
     },
@@ -59806,7 +59806,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -411.743,
+      "x": -155.743,
       "y": -100.886,
       "z": 0
     },
@@ -60093,7 +60093,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
+      "width": 768,
       "height": 130
     },
     "_anchorPoint": {
@@ -60200,7 +60200,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 232.15800000000002,
+      "y": 488.158,
       "z": 0
     },
     "_lrot": {
@@ -60256,7 +60256,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -460,
+      "x": -204,
       "y": -45,
       "z": 0
     },
@@ -61431,7 +61431,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -185,
+      "y": -441,
       "z": 0
     },
     "_lrot": {
@@ -61468,8 +61468,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1240,
-      "height": 370
+      "width": 728,
+      "height": 882
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -61577,8 +61577,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 618.095,
-      "y": -185,
+      "x": 362.095,
+      "y": -441,
       "z": 0
     },
     "_lrot": {
@@ -61722,7 +61722,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 15,
-      "height": 350
+      "height": 862
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -61959,8 +61959,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1240,
-      "height": 370
+      "width": 728,
+      "height": 882
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -62115,8 +62115,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1240,
-      "height": 370
+      "width": 728,
+      "height": 882
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -64388,8 +64388,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1240,
-      "height": 488
+      "width": 728,
+      "height": 1000
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -64546,7 +64546,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -314,
+      "y": -570,
       "z": 0
     },
     "_lrot": {
@@ -64849,7 +64849,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -319.2490000000001,
+      "y": -575.249,
       "z": 0
     },
     "_lrot": {
@@ -66966,8 +66966,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 593,
-      "y": 337,
+      "x": 337,
+      "y": 593,
       "z": 0
     },
     "_lrot": {
@@ -67161,8 +67161,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 508,
-      "y": 337,
+      "x": 252,
+      "y": 593,
       "z": 0
     },
     "_lrot": {
@@ -67343,8 +67343,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -93524,7 +93524,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "텔레그램 또는 카카오톡 고객 센터로 연락\n주시면 충전 안내 드와드리겠습니다.",
+    "_string": "텔레그램 또는 카카오톡 고객 센터로 연락\n주시면 충전 안내 도와드리겠습니다.",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 38,
@@ -96036,7 +96036,7 @@
         "__id__": 2737
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 2741
@@ -111801,8 +111801,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -114453,8 +114453,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
