@@ -836,7 +836,6 @@ export class UiEntity extends Component {
     }
 
     HideHiddenCard() {
-        console.log('HideHiddenCard');
         this.rootHiddenCards.active = false;
     }
 

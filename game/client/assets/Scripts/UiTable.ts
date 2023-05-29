@@ -432,14 +432,17 @@ export class UiTable extends Component {
     }
 
     public onClickSitout() {
+
 		AudioController.instance.ButtonClick();
 		this.buttonSitout.interactable = false;
+
 		this.SetSitout();
 	}
 
     public onClickSitback() {
 		AudioController.instance.ButtonClick();
 		this.buttonSitback.interactable = false;
+
 		this.SetSitback();
     }
 
@@ -556,7 +559,7 @@ export class UiTable extends Component {
 		room.onMessage( "RES_ADD_CHIPS_REQUEST", this.onRES_ADD_CHIPS_REQUEST.bind( this ) );
 		room.onMessage( "RES_ADD_CHIPS", this.onRES_ADD_CHIPS.bind( this ) );
 
-		// room.onMessage( "RES_ADD_CHIPS_PEND", this.onRES_ADD_CHIPS_PEND.bind( this ) );
+		room.onMessage( "RES_ADD_CHIPS_PEND", this.onRES_ADD_CHIPS_PEND.bind( this ) );
 
 		room.onMessage( "SIT_OUT", this.onSIT_OUT.bind(this));
 		room.onMessage( "SIT_OUT_PEND", this.onSIT_OUT_PEND.bind(this));
@@ -2991,7 +2994,7 @@ export class UiTable extends Component {
 		}
     }
 
-    private RES_ADD_CHIPS_PEND( msg ) {
+    private onRES_ADD_CHIPS_PEND( msg ) {
 		let code: number = msg[ "code" ];
 		if ( 0 === code ) {
 			let uiEntity = this.GetEntityFromSeat( this.mySeat );
@@ -3002,9 +3005,6 @@ export class UiTable extends Component {
 			Board.balance = balance;
 			uiEntity.SetChips( chips );
 			this.myChips = chips;
-
-			let tableBuyInAmount = msg["tableBuyInAmount"];
-			let tableBuyInCount = msg["tableBuyInCount"];
 
 			let message: string = CommonUtil.getNumberStringWithComma(amount) + " 칩이 추가되었습니다.";
 			UiGameSystemPopup.instance.showOkPopup('칩 추가', message, ()=>{

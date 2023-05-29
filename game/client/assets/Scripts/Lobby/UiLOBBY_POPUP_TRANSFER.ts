@@ -17,6 +17,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     @property(Label) labelAfterBalance: Label = null;    
 
     @property(Label) labelKorAmount: Label = null;
+    @property(Label) labelTransferMin: Label = null;
 
     @property(EditBox) editboxTransferAmount: EditBox = null;
     @property(EditBox) editboxTransferPassword: EditBox = null;
@@ -29,6 +30,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     
     private balance: number = 0;
     private remain: number = 0;
+    private transfer_min: number = 0;
 
     public Init( cbEXIT: any, cbAPPLY: any ) {
         if ( cbEXIT != null ) {
@@ -48,6 +50,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         this.labelHolder.string = '';
         this.labelAccount.string = '';
         this.labelPhone.string = '';
+        this.labelTransferMin.string = '';
 
         this.labelBalance.string = '0';
         this.labelAfterBalance.string = '0';
@@ -78,6 +81,15 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     public Show( button: Button ) {
         button.interactable = true;
         this.Reset();
+
+        this.transfer_min = 10000;
+        let conf = NetworkManager.Instance().GetConfig();
+        if ( conf != null && conf.min_transfer ) {
+            this.transfer_min = conf.min_transfer;
+        }
+
+        this.buttonApply.interactable = true;
+        this.labelTransferMin.string = '( 최소 환전 신청금액: ' + CommonUtil.getKoreanNumber( this.transfer_min ) + ' )';
 
         NetworkManager.Instance().getTRANSFER_REQUESTS( ( res )=>{
             let transfers = res.transfers;
@@ -163,63 +175,70 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     }
 
     private onAPPLY( button: Button ) {
+        button.interactable = false;
         let value: number = Number( this.editboxTransferAmount.string );
         let password: string = this.editboxTransferPassword.string;
         if ( password.length <= 0 ) {
             LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 비밀번호를 입력해 주세요.', ()=>{
+                button.interactable = true;
+            });
+            return;
+        }
 
+        if ( this.editboxTransferAmount.string.length == 0 || value < this.transfer_min ) {
+            LobbySystemPopup.instance.showPopUpOk('출금 신청', CommonUtil.getKoreanNumber(this.transfer_min) + ' 이하는 환전신청 할수 없습니다.', ()=>{
+                button.interactable = true;            
+            });
+            return;
+        }
+
+        this.remain = this.balance - value;
+        if ( this.remain < 0 ) {
+            LobbySystemPopup.instance.showPopUpOk('출금 신청', '소지금이 부족합니다.', ()=>{
+                button.interactable = true;            
             });
             return;            
         }
 
-        this.remain = this.balance - value;
-        if ( value <= 0 || this.remain < 0 ) {
-            LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금금액이 너무 작거나 소지금이 부족합니다.', ()=>{
-            });
-        } else {
+        let desc = CommonUtil.getKoreanNumber( value ) + ' 출금 요청하시겠습니까?';
+        LobbySystemPopup.instance.showPopUpYesOrNo( '출금 신청', desc, ()=>{
+            NetworkManager.Instance().reqTRANSFER_REQUEST( {
+                value: value,
+                password: password
+            }, ( res: any )=>{
+                button.interactable = true;
+                if ( res != null ) {
+                    if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
+                        LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 완료되었습니다.', ()=>{
+                            if ( this.cbAPPLY != null ) {
+                                this.cbAPPLY();
+                            }
+                        });
+                    }
+                    else {
+                        if ( res.msg == 'INVALID_TRANSFER_PASSWORD') {
+                            LobbySystemPopup.instance.showPopUpOk('출금 신청', '거래비빌번호가 잘못됐습니다.', ()=>{
+                            });
 
-            let desc = CommonUtil.getKoreanNumber( value ) + ' 출금 요청하시겠습니까?'
-            LobbySystemPopup.instance.showPopUpYesOrNo( '출금 신청', desc, ()=>{
-
-                NetworkManager.Instance().reqTRANSFER_REQUEST( {
-                    value: value,
-                    password: password
-                }, ( res: any )=>{
-                    if ( res != null ) {
-                        if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
-                            LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 완료되었습니다.', ()=>{
-                                if ( this.cbAPPLY != null ) {
-                                    this.cbAPPLY();
-                                }
+                        } else {
+                            LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
                             });
                         }
-                        else {
-                            if ( res.msg == 'INVALID_TRANSFER_PASSWORD') {
-                                LobbySystemPopup.instance.showPopUpOk('출금 신청', '거래비빌번호가 잘못됐습니다.', ()=>{
-                                });
-    
-                            } else {
-                                LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
-                                });
-
-                            }
-                        }
-                    } else {
-                        LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
-                        });                        
                     }
-                }, (err: any)=>{
+                } else {
                     LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
-                    });
-                });
-    
-
-            }, ()=>{
-                LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금신청이 취소되었습니다.', ()=>{
-                    
+                    });                        
+                }
+            }, (err: any)=>{
+                button.interactable = true;                
+                LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 신청이 실패했습니다.', ()=>{
                 });
             });
-        }
+        }, ()=>{
+            button.interactable = true;
+            LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금신청이 취소되었습니다.', ()=>{
+            });
+        });
     }
 
     private onAMOUNT_EDITBOX_RETURN( editbox, customEventData ) {

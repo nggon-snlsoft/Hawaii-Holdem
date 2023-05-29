@@ -78,7 +78,7 @@ export class ResourceManager extends Component {
 
     public loadAvatars( count: number, cbProgress:( progress: number )=>void, cbDone: ()=>void ) {
 		let cnt: number = 0;
-		let l: number = count + 1;
+		let l: number = count;
 		this.preloadAvatarResource = {};
 		for( let i = 0; i < l; i++ ) {
 			const url = `Avatars/${ i }/spriteFrame`;
@@ -92,10 +92,11 @@ export class ResourceManager extends Component {
 			}, ( err, res ) => {
 
 				if( null != err ) {
-                    console.log('err');
+                    console.log( err );
 				}
 
                 this.preloadAvatarResource[ res.name ] = res;
+
 				if( count == Object.keys( this.preloadAvatarResource ).length ) {
 					console.log('preloadAvatarResource is done');
 					cbDone();
@@ -238,7 +239,6 @@ export class ResourceManager extends Component {
 			this.currentBgType = setting.background;
 		}
 
-		let type = NetworkManager.Instance().GetSetting();
 		let url: string = 'Backgrounds/' + this.currentBgType.toString() + '/spriteFrame';
 			resources.load<SpriteFrame> (url, (err, res )=>{
 
