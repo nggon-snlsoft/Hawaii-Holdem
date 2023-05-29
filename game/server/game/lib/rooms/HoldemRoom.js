@@ -291,7 +291,7 @@ class HoldemRoom extends colyseus_1.Room {
             entity.assign({
                 sid: client.sessionId,
                 id: auth.id || client.id,
-                uid: auth.uid,
+                uid: auth.login_id,
                 avatar: auth.avatar,
                 nickname: auth.nickname,
                 balance: auth.balance,
@@ -329,6 +329,8 @@ class HoldemRoom extends colyseus_1.Room {
                 tableBuyInCount: 0,
                 pendSitout: false,
             });
+            console.log('entity');
+            console.log(entity);
             entity.seat = -2;
             entity.client = client;
             entity.lastPingTime = Date.now();
@@ -785,8 +787,7 @@ class HoldemRoom extends colyseus_1.Room {
             });
             if (pos > -1) {
                 let entity = this.state.entities[pos];
-                if (false === entity.fold &&
-                    true === entity.leave) {
+                if (false === entity.fold && true === entity.leave) {
                     logger.info("[ update ] runaway user fold.");
                     let next = this.funcFold(this.betSeat);
                     if (next) {
@@ -800,18 +801,17 @@ class HoldemRoom extends colyseus_1.Room {
                 this.elapsedTick = 0;
                 logger.info("[ update ] seat %s bet timeout. call fold", this.betSeat);
                 let next = this.funcFold(this.betSeat);
-                let timeoutPlayer = this.getEntity(this.betSeat);
+                let player = this.getEntity(this.betSeat);
                 if (next) {
                     this.broadTurn();
                 }
-                if (null != timeoutPlayer) {
-                    timeoutPlayer.timeLimitCount += 1;
-                    timeoutPlayer.isSitOut = true;
-                    timeoutPlayer.wait = true;
-                    timeoutPlayer.sitoutTimestamp = Number(Date.now());
-                    timeoutPlayer.pendSitout = false;
+                if (player != null) {
+                    player.isSitOut = true;
+                    player.wait = true;
+                    player.sitoutTimestamp = Number(Date.now());
+                    player.pendSitout = false;
                     this.UpdateSeatInfo();
-                    this.broadcast("SIT_OUT", { seat: timeoutPlayer.seat });
+                    this.broadcast("SIT_OUT", { seat: player.seat });
                 }
             }
         }
@@ -844,11 +844,11 @@ class HoldemRoom extends colyseus_1.Room {
                 });
                 this.handleEscapee();
                 this.updatePlayerEligible();
-                let isStart = this.checkStartCondition();
-                if (true == isStart) {
+                let isSTART = this.checkStartCondition();
+                if (isSTART == true) {
                     this.updateButtons();
-                    isStart = this.checkStartCondition();
-                    if (isStart == true) {
+                    isSTART = this.checkStartCondition();
+                    if (isSTART == true) {
                         logger.info("[ update ] GAME STATE TO PREPARE");
                         this.changeState(eGameState.Prepare);
                     }
@@ -1250,7 +1250,7 @@ class HoldemRoom extends colyseus_1.Room {
                 break;
             case eGameState.Result:
                 logger.info("[ changeState ] RESULT");
-                this.showdownTime = 5000; //this.conf[ "showDownTerm" ];
+                this.showdownTime = 5500; //this.conf[ "showDownTerm" ];
                 let isAllIn = false;
                 let allFold = this.isAllFold();
                 if (allFold == true) {
@@ -1265,7 +1265,7 @@ class HoldemRoom extends colyseus_1.Room {
                         return;
                     }
                     else {
-                        this.showdownTime += pots.length * 2500;
+                        this.showdownTime += pots.length * 3000;
                         this.broadPlayerCards(isAllIn);
                     }
                 }
@@ -1276,25 +1276,20 @@ class HoldemRoom extends colyseus_1.Room {
                 this.ShowdownProcedure();
                 break;
             case eGameState.ClearRound:
-                this.state.entities.forEach(e => {
-                    if (e.isSitOut === true && false == e.wait) {
-                        logger.error("ENTER_SIT_OUT");
+                this.state.entities.forEach((e) => {
+                    if (e.pendSitout == true) {
                         e.isSitBack = false;
                         e.isSitOut = true;
                         e.pendSitout = false;
                         e.sitoutTimestamp = Number(Date.now());
-                        e.wait = true;
-                        this.broadcast("SIT_OUT", { seat: e.seat });
-                        return;
+                        this.broadcast('SIT_OUT', { seat: e.seat });
                     }
-                    else if (e.pendSitout == true) {
-                        logger.error("ENTER_SIT_OUT");
+                    else if (e.isSitOut == true) {
                         e.isSitBack = false;
                         e.isSitOut = true;
                         e.pendSitout = false;
                         e.sitoutTimestamp = Number(Date.now());
-                        e.wait = true;
-                        this.broadcast("SIT_OUT", { seat: e.seat });
+                        this.broadcast('SIT_OUT', { seat: e.seat });
                     }
                 });
                 this.processPendingAddChips();
@@ -1401,6 +1396,7 @@ class HoldemRoom extends colyseus_1.Room {
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
             e.rolling += rolling;
             e.rake_back += rake_back;
+            e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
@@ -1427,6 +1423,7 @@ class HoldemRoom extends colyseus_1.Room {
                 let rake_back = Math.trunc(rolling * rakeBackPercentage);
                 e.rolling += rolling;
                 e.rake_back += rake_back;
+                e.totalBet += rolling;
                 e.roundBet = 0;
                 this.UPDATE_ROLLINGS({
                     id: e.id,
@@ -1446,6 +1443,7 @@ class HoldemRoom extends colyseus_1.Room {
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
             e.rolling += rolling;
             e.rake_back += rake_back;
+            e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
@@ -1468,6 +1466,7 @@ class HoldemRoom extends colyseus_1.Room {
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
             e.rolling += rolling;
             e.rake_back += rake_back;
+            e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
@@ -1490,6 +1489,7 @@ class HoldemRoom extends colyseus_1.Room {
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
             e.rolling += rolling;
             e.rake_back += rake_back;
+            e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
@@ -1758,7 +1758,7 @@ class HoldemRoom extends colyseus_1.Room {
                 login_id: p.client.auth.login_id,
                 nickname: p.client.auth.nickname,
                 roundBet: p.roundBet,
-                totalBet: p.totalBet,
+                totalBet: 0,
                 win: 0,
                 rake: 0,
                 rake_back: 0,
@@ -1917,7 +1917,9 @@ class HoldemRoom extends colyseus_1.Room {
         e.initRoundChips = e.chips;
         this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, true);
         this.broadcast("FOLD", {
-            seat: seat
+            seat: seat,
+            sitout: e.isSitOut,
+            wait: e.wait,
         });
         let fold = e.statics.fold;
         e.statics.fold = fold + 1;
@@ -1947,9 +1949,10 @@ class HoldemRoom extends colyseus_1.Room {
                 }
                 break;
         }
-        if (true === e.isSitOut && false === e.wait) {
+        if (e.pendSitout == true) {
             e.wait = true;
             e.pendSitout = false;
+            e.isSitOut = true;
             e.sitoutTimestamp = Number(Date.now());
             this.broadcast("SIT_OUT", { seat: e.seat });
             this.UpdateSeatInfo();
@@ -3213,7 +3216,7 @@ class HoldemRoom extends colyseus_1.Room {
                             else {
                                 if (true === e.wait || true === e.fold ||
                                     eGameState.Suspend === this.state.gameState || eGameState.Ready === this.state.gameState ||
-                                    eGameState.Prepare === this.state.gameState || eGameState.ClearRound === this.state.gameState) {
+                                    eGameState.ClearRound === this.state.gameState) {
                                     pending = false;
                                     if (e.balance < amount) {
                                         amount = e.balance;
@@ -3284,102 +3287,117 @@ class HoldemRoom extends colyseus_1.Room {
         this.broadcast("SHOW_CARD", { seat: entity.seat, cards: entity.cardIndex });
     }
     onSIT_OUT(client, msg) {
-        let seatNumber = msg["seat"];
-        if (null === seatNumber || undefined === seatNumber) {
-            logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
-            return;
+        let seat = msg['seat'];
+        if (seat == null) {
+            logger.error(" [ onSIT_OUT ] Seat number is null!" + msg);
         }
-        let sitOutPlayer = this.getEntity(seatNumber);
-        if (null === sitOutPlayer || undefined === sitOutPlayer) {
-            logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
-            return;
+        let player = this.getEntity(seat);
+        if (player == null) {
+            logger.error(" [ onSIT_OUT ] Can't find player!" + msg);
         }
-        if (true === sitOutPlayer.isSitOut) {
-            logger.error(" [ OnSitOut ] the seat number " + seatNumber + " is Already sit out but try sit out Again");
-            return;
+        if (player.isSitOut == true) {
+            logger.error(" [ onSIT_OUT ] The seat " + seat + ' is already sitout but try sit-out again');
         }
-        if (sitOutPlayer.wait == true || sitOutPlayer.fold == true) {
-            sitOutPlayer.isSitOut = true;
-            sitOutPlayer.pendSitout = false;
-            sitOutPlayer.sitoutTimestamp = Number(Date.now());
-            this.broadcast("SIT_OUT", { seat: sitOutPlayer.seat });
+        if (player.wait == true || player.fold == true) {
+            player.wait = true;
+            player.isSitOut = true;
+            player.pendSitout = false;
+            player.sitoutTimestamp = Number(Date.now());
+            this.broadcast("SIT_OUT", { seat: player.seat });
             this.UpdateSeatInfo();
             return;
         }
-        if (this.state.gameState === eGameState.Suspend ||
-            this.state.gameState === eGameState.Ready ||
-            this.state.gameState === eGameState.ClearRound) {
-            sitOutPlayer.wait = true;
-            sitOutPlayer.isSitOut = true;
-            sitOutPlayer.pendSitout = false;
-            sitOutPlayer.sitoutTimestamp = Number(Date.now());
-            this.broadcast("SIT_OUT", { seat: sitOutPlayer.seat });
+        if (this.state.gameState === eGameState.Suspend || this.state.gameState === eGameState.Ready || this.state.gameState === eGameState.ClearRound) {
+            player.wait = true;
+            player.isSitOut = true;
+            player.pendSitout = false;
+            player.sitoutTimestamp = Number(Date.now());
+            this.broadcast("SIT_OUT", { seat: player.seat });
             this.UpdateSeatInfo();
         }
         else {
-            sitOutPlayer.pendSitout = true;
+            player.pendSitout = true;
             client.send("SIT_OUT_PEND", {});
         }
     }
     onSIT_OUT_CANCEL(client, msg) {
-        let seatNumber = msg["seat"];
-        if (null === seatNumber || undefined === seatNumber) {
-            logger.error(" [ OnSitOut ] Sit out Fail Seat Number is null or Undefined " + msg);
-            return;
+        let seat = msg["seat"];
+        if (seat == null) {
+            logger.error(" [ onSIT_OUT ] onSIT_OUT fail seat is null " + msg);
         }
-        let player = this.getEntity(seatNumber);
-        if (player == null || player == undefined) {
-            logger.error(" [ OnSitOut ] can't find player seat number : " + seatNumber);
-            return;
+        let player = this.getEntity(seat);
+        if (player == null) {
+            logger.error(" [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);
         }
-        player.isSitOut = false;
+        // if ( player.isSitOut == true ) {
+        // 	return;
+        // }
+        player.pendSitout = false;
         this.UpdateSeatInfo();
         client.send('SIT_OUT_CANCEL', {});
     }
     onSIT_BACK(client, msg) {
-        let seatNumber = msg["seat"];
-        if (null === seatNumber || undefined === seatNumber) {
-            logger.error(" [ OnSitBack ] Sit out Fail SeatNumber is null or Undefined " + msg);
-            return;
+        let seat = msg["seat"];
+        if (seat == null) {
+            logger.error(" [ onSIT_BACK ] onSIT_BACK fail seat is null " + msg);
         }
-        let sitOutPlayer = this.getEntity(seatNumber);
-        if (null === sitOutPlayer || undefined === sitOutPlayer) {
-            logger.error(" [ OnSitBack ] can't find player seatNumber : " + seatNumber);
-            return;
+        let player = this.getEntity(seat);
+        if (player == null) {
+            logger.error(" [ onSIT_BACK ] onSIT_BACK fail can't find player " + msg);
         }
-        if (false === sitOutPlayer.isSitOut) {
-            logger.error(" [ OnSitBack ] the seat number " + seatNumber + " is not sit-out but try sit-back");
-            return;
+        if (player.isSitOut == false) {
+            logger.error(" [ onSIT_BACK ] The seat " + seat + ' is not sitback but try sitback again');
         }
-        sitOutPlayer.isSitOut = false;
-        sitOutPlayer.isSitBack = true;
-        sitOutPlayer.sitoutTimestamp = 0;
-        sitOutPlayer.wait = true;
+        player.isSitOut = false;
+        player.isSitBack = false;
+        player.pendSitout = false;
+        player.sitoutTimestamp = 0;
+        player.wait = true;
+        this.broadcast("SIT_BACK", {
+            seat: player.seat,
+            wait: player.wait,
+            fold: player.fold,
+        });
+        this.UpdateSeatInfo();
         if (eGameState.Suspend === this.state.gameState) {
-            sitOutPlayer.isSitBack = false;
-            sitOutPlayer.isSitOut = false;
-            sitOutPlayer.sitoutTimestamp = 0;
-            this.UpdateSeatInfo();
-            this.broadcast("SIT_BACK", { seat: seatNumber });
-            let isStart = this.checkStartCondition();
-            if (true === isStart) {
+            // player.isSitBack = false;
+            // player.isSitOut = false;
+            // player.sitoutTimestamp = 0;
+            // this.broadcast("SIT_BACK", { 
+            // 	seat: player.seat,
+            // 	wait: player.wait,
+            // 	fold: player.fold, 
+            // });
+            // this.UpdateSeatInfo();
+            let isSTART = this.checkStartCondition();
+            if (true === isSTART) {
                 logger.info("[ onSitBack ] GAME STATE TO READY");
                 this.changeState(eGameState.Ready);
             }
         }
-        else if (eGameState.Ready === this.state.gameState ||
-            eGameState.ClearRound === this.state.gameState) {
-            sitOutPlayer.isSitBack = false;
-            sitOutPlayer.isSitOut = false;
-            sitOutPlayer.pendSitout = false;
-            sitOutPlayer.sitoutTimestamp = 0;
-            this.UpdateSeatInfo();
-            this.broadcast("SIT_BACK", { seat: seatNumber });
+        else if (eGameState.Ready === this.state.gameState || eGameState.ClearRound === this.state.gameState) {
+            // player.isSitBack = false;
+            // player.isSitOut = false;
+            // player.pendSitout = false;
+            // player.sitoutTimestamp = 0;
+            // this.broadcast("SIT_BACK", { 
+            // 	seat: player.seat,
+            // 	wait: player.wait,
+            // 	fold: player.fold
+            // });
+            // this.UpdateSeatInfo();
         }
         else {
-            sitOutPlayer.sitoutTimestamp = 0;
-            this.UpdateSeatInfo();
-            this.broadcast("SIT_BACK", { seat: seatNumber });
+            // player.isSitBack = false;
+            // player.isSitOut = false;
+            // player.pendSitout = false;
+            // player.sitoutTimestamp = 0;
+            // this.UpdateSeatInfo();
+            // this.broadcast("SIT_BACK", { 
+            // 	seat: player.seat,
+            // 	wait: player.wait,
+            // 	fold: player.fold
+            // });
         }
     }
     onSEAT_SELECT(client, msg) {

@@ -99,6 +99,8 @@ class ClientUserData {
             bank: dbStoreData.bank,
             holder: dbStoreData.holder,
             account: dbStoreData.account,
+            telegram: dbStoreData.telegram,
+            kakao: dbStoreData.kakao,
         };
         return statics;
     }
