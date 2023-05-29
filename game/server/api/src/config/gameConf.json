@@ -2,8 +2,8 @@
   "game": {
     "avatars": 20,
     "min_transfer": 50000,
-    "min_point_transfer": 20000,
-    "min_charge": 50000
+    "min_point_transfer": 10000,
+    "min_charge": 10000
     
   }
 }
