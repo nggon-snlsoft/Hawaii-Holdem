@@ -4009,11 +4009,8 @@ export class HoldemRoom extends Room<RoomState> {
 			});
 		}
 		else {
-			sitOutPlayer.isSitBack = false;
-			sitOutPlayer.isSitOut = false;
-			sitOutPlayer.pendSitout = false;
-			sitOutPlayer.sitoutTimestamp = 0;
 			
+			sitOutPlayer.sitoutTimestamp = 0;
 			this.UpdateSeatInfo();
 			this.broadcast("SIT_BACK", { 
 				seat : seatNumber,
