@@ -10,6 +10,7 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     @property(Label) labelContact: Label = null;        
     @property(Label) labelAccount: Label = null;    
     @property(Label) labelHolder: Label = null;
+    @property(Label) labelChargeMin: Label = null;
     @property(Label) labelKorValue: Label = null;
 
     @property(EditBox) editboxChargeAmount: EditBox = null;
@@ -17,6 +18,8 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
 
     @property(Button) buttonExit: Button = null;
     @property(Button) buttonApply: Button = null;
+
+    private charge_min: number = 0;
 
     private cbEXIT: ()=>void = null;
     private cbAPPLY: ()=>void = null;        
@@ -59,6 +62,14 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     public Show( button: Button ) {
         button.interactable = true;
         this.Reset();
+
+        this.charge_min = 10000;
+        let conf = NetworkManager.Instance().GetConfig();
+        if ( conf != null && conf.min_charge ) {
+            this.charge_min = conf.min_charge;
+        }
+
+        this.labelChargeMin.string = '( 최소 충전신청금액: ' + CommonUtil.getKoreanNumber( this.charge_min ) + ' )';
 
         NetworkManager.Instance().getCHARGE_REQUESTS( ( res )=>{
             let charges = res.charges;
@@ -147,8 +158,9 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
     private onAPPLY( button: Button ) {
         let num = Number(this.editboxChargeAmount.string);
         let holder = this.editboxChargeHolder.string;
-        if ( num < 10000 ) {
-            LobbySystemPopup.instance.showPopUpOk('충전 신청', ' 10000 이하는 신청할 수 없습니다.', ()=>{
+
+        if ( num < this.charge_min ) {
+            LobbySystemPopup.instance.showPopUpOk('충전 신청', CommonUtil.getKoreanNumber( this.charge_min ) + ' 이하는 신청할 수 없습니다.', ()=>{
 
             })
             return;

@@ -130,7 +130,7 @@ export class UiLogin extends Component {
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
 
                 let id: number = res.obj.id;
-                this.onLoadInitialData( id );
+                this.onLOAD_DATA( id );
             }
             else {
                 let desc: string = '';
@@ -187,8 +187,8 @@ export class UiLogin extends Component {
         });        
     }
 
-    private onLoadInitialData( user_id: number ) {
-        NetworkManager.Instance().getINIT_DATA(user_id, (res)=>{
+    private onLOAD_DATA( user_id: number ) {
+        NetworkManager.Instance().getDATA(user_id, (res)=>{
 
             if ( res.code == ENUM_RESULT_CODE.SUCCESS ) {
                 if ( res.user != null && res.setting != null && res.conf != null ) {

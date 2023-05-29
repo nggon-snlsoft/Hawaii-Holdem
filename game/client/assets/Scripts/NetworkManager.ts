@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -369,11 +369,11 @@ export class NetworkManager extends cc.Component {
 		onSuccess(ENUM_RESULT_CODE.SUCCESS);
 	}
 
-    async getINIT_DATA( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
+    async getDATA( user_id: number, onSuccess : (res : any) => void, onFail : (msg : string) => void) {
 		let result: string = null;
 		let error: string = null;
 
-		await this.Post( this.API_SERVER, "/users/getInitData", {
+		await this.Post( this.API_SERVER, "/users/getData", {
 			user_id: user_id,
 
 		} ).then(( res: string ) => {
@@ -409,7 +409,7 @@ export class NetworkManager extends cc.Component {
 
 		if (obj.conf != null ) {
 			this.config = obj.conf;
-		} 
+		}
 
 		onSuccess( obj );
 	}
@@ -1442,6 +1442,10 @@ export class NetworkManager extends cc.Component {
 
 	public GetSetting() : any {
 		return this.setting;
+	}
+
+	public GetConfig(): any {
+		return this.config;
 	}
 
 	public async updateUSER_AVATAR( avatar: number, onSuccess: (res)=> void , onFail: (err)=> void ) {

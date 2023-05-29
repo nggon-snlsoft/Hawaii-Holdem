@@ -131,6 +131,8 @@ export class UiLOBBY_POPUP_POINT extends Component {
 
     @property(Label) labelUserBalance: Label = null;
     @property(Label) labelUserPoint: Label = null;
+    @property(Label) labelTransferMin: Label = null;    
+
     @property(EditBox) editboxPointTransfer: EditBox = null;
 
     @property(PointTransferElement) originPointTransfer: PointTransferElement = new PointTransferElement();
@@ -140,6 +142,7 @@ export class UiLOBBY_POPUP_POINT extends Component {
     private pointGiftElementOnList: PointGiftElement[] = [];
 
     private user: any = null;
+    private transfer_min: number = 10000;
 
     private cbEXIT: ()=>void = null;
     private cbAPPLY: ()=>void = null;
@@ -185,6 +188,14 @@ export class UiLOBBY_POPUP_POINT extends Component {
     public Show( button: Button ) {
         this.originPointTransfer.rootNode.active = false;
         this.originPointGift.rootNode.active = false;
+
+        this.transfer_min = 10000;
+        let conf = NetworkManager.Instance().GetConfig();
+        if ( conf != null && conf.min_point_transfer ) {
+            this.transfer_min = conf.min_point_transfer;
+        }
+
+        this.labelTransferMin.string = '( 최소 포인트 전환 금액: ' + CommonUtil.getKoreanNumber( this.transfer_min ) + ' )';
 
         NetworkManager.Instance().getUSER_FromDB( (res: any)=>{
             button.interactable = true;
@@ -309,8 +320,8 @@ export class UiLOBBY_POPUP_POINT extends Component {
         let point = this.user.point;
         let value = Number(this.editboxPointTransfer.string);
 
-        if ( this.editboxPointTransfer.string.length == 0 || value < 1000 ) {
-            LobbySystemPopup.instance.showPopUpOk('포인트전환', '1000포인트 이상만 전환할 수 있습니다.', ()=>{
+        if ( this.editboxPointTransfer.string.length == 0 || value < this.transfer_min ) {
+            LobbySystemPopup.instance.showPopUpOk('포인트전환', CommonUtil.getKoreanNumber(this.transfer_min) + ' 이하는 포인트 전환할 수 없습니다.', ()=>{
                 button.interactable = true;            
             });
             return;

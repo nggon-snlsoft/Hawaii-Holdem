@@ -57,7 +57,7 @@ export class UserController {
         this.router.post( '/qna/read', this.reqREAD_QNA.bind(this));
         this.router.post( '/qna/delete', this.reqDELETE_QNA.bind(this));        
 
-        this.router.post( '/getInitData', this.getINIT_DATA.bind(this));
+        this.router.post( '/getData', this.getDATA.bind(this));
         this.router.post( '/updateAvatar', this.updateAVATAR.bind(this));
 
         this.router.post( '/setting/get', this.getSETTING.bind(this));
@@ -184,7 +184,7 @@ export class UserController {
         });
     }
 
-    public async getINIT_DATA( req: any, res: any ) {
+    public async getDATA( req: any, res: any ) {
         let user_id = req.body.user_id;
 
         if ( user_id == null || user_id <= 0 ) {
