@@ -275,7 +275,7 @@ export class DealerCalculation {
                 if (entity.missBb == false) {
                     entity.missBb = true;
                 } else {
-                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    logger.error("This player (seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
                     entity.leave = true;
                     entity.longSitOut = true;
                 }

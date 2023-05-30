@@ -1294,7 +1294,6 @@ export class HoldemRoom extends Room<RoomState> {
 	// STATE HANDLER
 	//------------------------------------
 	changeState( state: eGameState ) {
-		logger.info( ">>>>>>>>>>>>>>>>>>>>>>>>" );
 		if( null !== this.bufferTimerID ) {
 			clearTimeout( this.bufferTimerID );
 			this.bufferTimerID = null;
@@ -2059,7 +2058,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	broadTurn() {
-		logger.info( "============================================================" );
 
 		// find next seat
 		let locSeat = this.betSeat;

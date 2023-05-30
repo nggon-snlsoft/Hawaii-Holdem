@@ -297,7 +297,7 @@ export class PotCalculation {
       element.rake = Math.round(rake * contribution);
       tempCopare += element.rake;
 
-      logger.info("total : " + element.total + " / Rake : " + element.rake + " / contribution : " + contribution);
+      logger.info("t: " + element.total + " / r: " + element.rake + " / c: " + contribution);
     });
 
     this.rakeTotal = tempCopare;
@@ -325,8 +325,6 @@ export class PotCalculation {
 
       userRake.push({ seat: element.seat, rake: Math.round( rake * contribution) });
       tempCopare += Math.round(rake * contribution);
-
-      logger.info("User " + element.seat + " has ReturnPot : " + (myReturnInfo != null) + " / Amount : " + myAmount + " / RakeCollect : " + (rake * contribution) + " / contribution : " + contribution);
     });
 
     this.userRakeInfo = userRake;
