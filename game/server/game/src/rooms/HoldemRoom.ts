@@ -1585,11 +1585,14 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onPRE_FLOP_END() {
 		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		let rakePercentage = this.conf['rakePercentage'];
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage );
 
 			e.rolling += rolling;
+			e.rolling_rake += rolling_rake;
 			e.rake_back += rake_back;
 			e.totalBet += rolling;
 			e.roundBet = 0;
@@ -1597,7 +1600,8 @@ export class HoldemRoom extends Room<RoomState> {
 			this.UPDATE_ROLLINGS({
 				id: e.id,
 				rolling: rolling,
-				rake_back: rake_back
+				rake_back: rake_back,
+				rolling_rake: rolling_rake,
 			});
 		} );
 
@@ -1616,12 +1620,16 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		let rakePercentage = this.conf['rakePercentage'];
+
 		this.participants.forEach ( (e)=>{
 			if ( e.roundBet > 0 ) {
 				let rolling = e.roundBet;
 				let rake_back = Math.trunc( rolling * rakeBackPercentage );
-	
+				let rolling_rake = Math.trunc( rolling * rakePercentage );
+
 				e.rolling += rolling;
+				e.rolling_rake += rolling_rake;				
 				e.rake_back += rake_back;
 				e.totalBet += rolling;				
 				e.roundBet = 0;
@@ -1629,7 +1637,8 @@ export class HoldemRoom extends Room<RoomState> {
 				this.UPDATE_ROLLINGS({
 					id: e.id,
 					rolling: rolling,
-					rake_back: rake_back
+					rake_back: rake_back,
+					rolling_rake: rolling_rake,					
 				});
 	
 			}
@@ -1641,11 +1650,14 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onFLOP_END() {
 		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		let rakePercentage = this.conf['rakePercentage'];		
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
+			e.rolling_rake += rolling_rake;			
 			e.rake_back += rake_back;
 			e.totalBet += rolling;						
 			e.roundBet = 0;
@@ -1653,7 +1665,8 @@ export class HoldemRoom extends Room<RoomState> {
 			this.UPDATE_ROLLINGS({
 				id: e.id,
 				rolling: rolling,
-				rake_back: rake_back
+				rake_back: rake_back,
+				rolling_rake: rolling_rake,				
 			});
 		} );
 
@@ -1668,11 +1681,15 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onTURN_END() {
 		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		let rakePercentage = this.conf['rakePercentage'];
+
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
+			e.rolling_rake += rolling_rake;			
 			e.rake_back += rake_back;
 			e.totalBet += rolling;		
 			e.roundBet = 0;
@@ -1680,7 +1697,8 @@ export class HoldemRoom extends Room<RoomState> {
 			this.UPDATE_ROLLINGS({
 				id: e.id,
 				rolling: rolling,
-				rake_back: rake_back
+				rake_back: rake_back,
+				rolling_rake: rolling_rake,				
 			});
 		} );
 
@@ -1696,20 +1714,24 @@ export class HoldemRoom extends Room<RoomState> {
 	onRIVER_END() {
 		console.log('onRIVER_END');
 		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+		let rakePercentage = this.conf['rakePercentage'];
+
 		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
+			e.rolling_rake += rolling_rake;			
 			e.rake_back += rake_back;
 			e.totalBet += rolling;
 			e.roundBet = 0;
 
-
 			this.UPDATE_ROLLINGS({
 				id: e.id,
 				rolling: rolling,
-				rake_back: rake_back
+				rake_back: rake_back,
+				rolling_rake: rolling_rake,				
 			});
 		} );
 
@@ -1723,7 +1745,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 	
     private async UPDATE_ROLLINGS( data: any  ) {
-		let log = 'id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rake_back: ' + data.rake_back;
+		let log = 'id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rolling_rake: ' + data.rolling_rake + ' / rake_back: ' + data.rake_back;
 		logger.info( "[ UPDATE_ROLLINGS] %s",  log);
 
         return new Promise<any>( ( resolve, reject )=>{
@@ -2022,6 +2044,7 @@ export class HoldemRoom extends Room<RoomState> {
 				login_id: p.client.auth.login_id,
 				nickname: p.client.auth.nickname,
 				roundBet: p.roundBet,
+				rolling_rake: 0,
 				totalBet: 0,
 				win: 0,
 				rake: 0,
@@ -2633,6 +2656,7 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( p != null ) {
 				p.rake += w.rake;
 				p.win += w.winAmount;
+
 				if ( w.return == true ) {
 					p.totalBet -= w.winAmount;
 					p.roundBet -= w.winAmount;
@@ -2653,7 +2677,9 @@ export class HoldemRoom extends Room<RoomState> {
 
 		try {
 			let rakeBackPercentage = this.conf['rakeBackPercentage'];
-			this._SalesReporter.UpdateUser( this._dao, this.participants,  rakeBackPercentage );
+			let rakePercentage = this.conf['rakePercentage'];
+
+			this._SalesReporter.UpdateUser( this._dao, this.participants, rakePercentage, rakeBackPercentage );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
 			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
 

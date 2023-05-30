@@ -1,3 +1,4 @@
+import logger from "../util/logger";
 
 export class SalesReport {
     private dao: any = null;
@@ -6,10 +7,13 @@ export class SalesReport {
         this.dao = dao;
     }    
 
-    public async UpdateUser( dao: any, participants: any, rakeBackPercentage: number  ) {
+    public async UpdateUser( dao: any, participants: any, rakePercentage: number, rakeBackPercentage: number  ) {
         if ( participants == null ) {
             return;
         }
+
+        let totalPotRake: number = 0;
+        let totalRollingRake: number = 0;
 
         for ( let i: number = 0 ; i < participants.length ; i++ ) {
             let id = participants[i].id;
@@ -18,10 +22,15 @@ export class SalesReport {
             let rolling = participants[i].roundBet;
             let rake = participants[i].rake;
             let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage );
 
 			participants[i].rolling += rolling;
+			participants[i].rolling_rake += rolling_rake;            
 			participants[i].rake_back += rake_back;
 			participants[i].roundBet = 0;
+
+            totalPotRake += participants[i].rake;
+            totalRollingRake += participants[i].rolling_rake;
 
             let affected: any = null;
             try {
@@ -31,11 +40,20 @@ export class SalesReport {
                     betting: betting,
                     rolling,
                     rake: rake,
-                    rake_back: rake_back
+                    rake_back: rake_back,
+                    rolling_rake: rolling_rake
                 });                
             } catch (error) {
                 console.log( error );                
             }
+        }
+
+        if ( Math.abs( totalPotRake - totalRollingRake) > 10 ) {
+            let err: string = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+            logger.error('[RAKE] diff rake %s', err );
+        } else {
+            let err: string = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+            logger.error('[RAKE] rake %s', err );            
         }
     }
 
@@ -70,6 +88,7 @@ export class SalesReport {
             let wins = participants[i].win;
             let bettings = participants[i].totalBet;
             let rollings = participants[i].rolling;
+            let rolling_rake = participants[i].rolling_rake;
             let rake_back = participants[i].rake_back;
             let point = rake_back;
 
@@ -90,6 +109,7 @@ export class SalesReport {
                         rake_back: rake_back,
                         rakes: rakes,
                         point: point,
+                        rolling_rake: rolling_rake
                     });
                     
                 } catch (error) {
@@ -109,7 +129,8 @@ export class SalesReport {
                         rakes: rakes,
                         rollings: rollings,
                         rake_back: rake_back,
-                        point: point,                        
+                        point: point,
+                        rolling_rake: rolling_rake,
                         date: date,
                     });                        
                 } catch (error) {
