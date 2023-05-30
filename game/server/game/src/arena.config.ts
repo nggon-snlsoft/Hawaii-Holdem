@@ -5,7 +5,7 @@ import express from "express";
 
 const cors = require( "cors" );
 const methodOverride = require( "method-override" );
-const session = require( "express-session" );
+// const session = require( "express-session" );
 const bodyParser = require( "body-parser" );
 const errorHandler = require( "errorhandler" );
 const favicon = require( "serve-favicon" );
@@ -42,13 +42,13 @@ export default Arena( {
 
 	initializeExpress: ( app ) => {
 		app.use( cors() );
-		app.use( favicon( __dirname + "/static/favicon.ico" ) );
+		// app.use( favicon( __dirname + "/static/favicon.ico" ) );
 		app.use( methodOverride() );
-		app.use( session( {
-			resave: true,
-			saveUninitialized: true,
-			secret: "uwotm8"
-		} ) );
+		// app.use( session( {
+		// 	resave: true,
+		// 	saveUninitialized: true,
+		// 	secret: "uwotm8"
+		// } ) );
 		app.use( bodyParser.json() );
 		app.use( bodyParser.urlencoded( { extended: true } ) );
 
@@ -70,7 +70,7 @@ export default Arena( {
 			res.send( "It could not be a better day to die~~ :)" );
 		} );
 
-		app.use( "/", express.static( path.join( __dirname, "static" ) ) );
+		// app.use( "/", express.static( path.join( __dirname, "static" ) ) );
 		app.use( "/colyseus", monitor() );
 
 		process.on( "uncaughtException", function( err ) {
