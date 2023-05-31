@@ -121,7 +121,6 @@ class HoldemRoom extends colyseus_1.Room {
             let confFile = yield fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), { encoding: 'utf8' });
             let confJson = JSON.parse(confFile.toString());
             this.conf = confJson[this.tableSize];
-            yield this.setPrivate(options["private"]);
             let onDBFinish = (err, res) => {
                 if (!!err) {
                     logger.error("[ onCreate::selectRoomByUID ] query error : %s", err);
@@ -140,8 +139,6 @@ class HoldemRoom extends colyseus_1.Room {
                         this.conf["bigBlind"] = roomInfo["bigBlind"];
                         this.conf["minStakePrice"] = roomInfo["minStakePrice"];
                         this.conf["maxStakePrice"] = roomInfo["maxStakePrice"];
-                        this.conf["passTerm"] = roomInfo["timePassTerm"] * 60 * 1000;
-                        this.conf["passPrice"] = roomInfo["timePassPrice"];
                         this.conf["private"] = options["private"];
                         this.conf['longSitoutTerm'] = 60000 * 3;
                         this.conf["useTimePass"] = roomInfo["useTimePass"] == 1;
@@ -157,6 +154,7 @@ class HoldemRoom extends colyseus_1.Room {
                     for (let i = 0; i < this.maxClients; i++) {
                         this.seatWaitingList.push("");
                     }
+                    console.log(this.conf);
                     this.setState(new HoldemState_1.RoomState());
                     this._DealerCalculator = new DealerCalculation_1.DealerCalculation();
                     this.init();
@@ -280,13 +278,13 @@ class HoldemRoom extends colyseus_1.Room {
     reJoin(client, options, auth) {
         logger.info("[ reJoin ]==============================");
         this._rejoinWaiting[client.sessionId] = auth;
-        logger.info("[ reJoin ] _rejoinWaiting : %s", JSON.stringify(this._rejoinWaiting));
+        // logger.info( "[ reJoin ] _rejoinWaiting : %s", JSON.stringify( this._rejoinWaiting ) );
     }
     playerJoin(client, option, auth) {
         return __awaiter(this, void 0, void 0, function* () {
             logger.info("[ playerJoin ]");
             this._buyInWaiting[client.sessionId] = auth;
-            logger.info("[ playerJoin ] waiting list : %s", JSON.stringify(this._buyInWaiting));
+            // logger.info( "[ playerJoin ] waiting list : %s", JSON.stringify( this._buyInWaiting ) );
             let entity = new HoldemState_1.EntityState();
             entity.assign({
                 sid: client.sessionId,
@@ -329,8 +327,6 @@ class HoldemRoom extends colyseus_1.Room {
                 tableBuyInCount: 0,
                 pendSitout: false,
             });
-            console.log('entity');
-            console.log(entity);
             entity.seat = -2;
             entity.client = client;
             entity.lastPingTime = Date.now();
@@ -721,7 +717,7 @@ class HoldemRoom extends colyseus_1.Room {
         return entity;
     }
     onDispose() {
-        console.log('onDISPOSE ');
+        logger.error("[ onDISPOSE ] Room is dispose: " + this._id);
         try {
             this.onUPDATE_ROLLING();
             this._SalesReporter.UpdateReportByUser(this._dao, this.participants);
@@ -1153,7 +1149,6 @@ class HoldemRoom extends colyseus_1.Room {
     // STATE HANDLER
     //------------------------------------
     changeState(state) {
-        logger.info(">>>>>>>>>>>>>>>>>>>>>>>>");
         if (null !== this.bufferTimerID) {
             clearTimeout(this.bufferTimerID);
             this.bufferTimerID = null;
@@ -1389,19 +1384,22 @@ class HoldemRoom extends colyseus_1.Room {
         }
     }
     onPRE_FLOP_END() {
-        console.log('onPRE_FLOP_END');
         let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        let rakePercentage = this.conf['rakePercentage'];
         this.participants.forEach((e) => {
             let rolling = e.roundBet;
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            let rolling_rake = Math.trunc(rolling * rakePercentage);
             e.rolling += rolling;
+            e.rolling_rake += rolling_rake;
             e.rake_back += rake_back;
             e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
                 rolling: rolling,
-                rake_back: rake_back
+                rake_back: rake_back,
+                rolling_rake: rolling_rake,
             });
         });
         this.ResetRoundBets();
@@ -1415,20 +1413,23 @@ class HoldemRoom extends colyseus_1.Room {
         if (this.participants == null || this.participants.length == 0) {
             return;
         }
-        console.log('onUPDATE_ROLLING');
         let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        let rakePercentage = this.conf['rakePercentage'];
         this.participants.forEach((e) => {
             if (e.roundBet > 0) {
                 let rolling = e.roundBet;
                 let rake_back = Math.trunc(rolling * rakeBackPercentage);
+                let rolling_rake = Math.trunc(rolling * rakePercentage);
                 e.rolling += rolling;
+                e.rolling_rake += rolling_rake;
                 e.rake_back += rake_back;
                 e.totalBet += rolling;
                 e.roundBet = 0;
                 this.UPDATE_ROLLINGS({
                     id: e.id,
                     rolling: rolling,
-                    rake_back: rake_back
+                    rake_back: rake_back,
+                    rolling_rake: rolling_rake,
                 });
             }
         });
@@ -1436,19 +1437,22 @@ class HoldemRoom extends colyseus_1.Room {
         this.lastBet = null;
     }
     onFLOP_END() {
-        console.log('onFLOP_END');
         let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        let rakePercentage = this.conf['rakePercentage'];
         this.participants.forEach((e) => {
             let rolling = e.roundBet;
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            let rolling_rake = Math.trunc(rolling * rakePercentage);
             e.rolling += rolling;
+            e.rolling_rake += rolling_rake;
             e.rake_back += rake_back;
             e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
                 rolling: rolling,
-                rake_back: rake_back
+                rake_back: rake_back,
+                rolling_rake: rolling_rake,
             });
         });
         this.ResetRoundBets();
@@ -1459,19 +1463,22 @@ class HoldemRoom extends colyseus_1.Room {
         });
     }
     onTURN_END() {
-        console.log('onTURN_END');
         let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        let rakePercentage = this.conf['rakePercentage'];
         this.participants.forEach((e) => {
             let rolling = e.roundBet;
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            let rolling_rake = Math.trunc(rolling * rakePercentage);
             e.rolling += rolling;
+            e.rolling_rake += rolling_rake;
             e.rake_back += rake_back;
             e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
                 rolling: rolling,
-                rake_back: rake_back
+                rake_back: rake_back,
+                rolling_rake: rolling_rake,
             });
         });
         this.ResetRoundBets();
@@ -1484,17 +1491,21 @@ class HoldemRoom extends colyseus_1.Room {
     onRIVER_END() {
         console.log('onRIVER_END');
         let rakeBackPercentage = this.conf['rakeBackPercentage'];
+        let rakePercentage = this.conf['rakePercentage'];
         this.participants.forEach((e) => {
             let rolling = e.roundBet;
             let rake_back = Math.trunc(rolling * rakeBackPercentage);
+            let rolling_rake = Math.trunc(rolling * rakePercentage);
             e.rolling += rolling;
+            e.rolling_rake += rolling_rake;
             e.rake_back += rake_back;
             e.totalBet += rolling;
             e.roundBet = 0;
             this.UPDATE_ROLLINGS({
                 id: e.id,
                 rolling: rolling,
-                rake_back: rake_back
+                rake_back: rake_back,
+                rolling_rake: rolling_rake,
             });
         });
         this.ResetRoundBets();
@@ -1506,7 +1517,8 @@ class HoldemRoom extends colyseus_1.Room {
     }
     UPDATE_ROLLINGS(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rake_back: ' + data.rake_back);
+            let log = 'id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rolling_rake: ' + data.rolling_rake + ' / rake_back: ' + data.rake_back;
+            logger.info("[ UPDATE_ROLLINGS] %s", log);
             return new Promise((resolve, reject) => {
                 this._dao.UPDATE_ROLLINGS(data, (err, res) => {
                     if (err != null) {
@@ -1758,6 +1770,7 @@ class HoldemRoom extends colyseus_1.Room {
                 login_id: p.client.auth.login_id,
                 nickname: p.client.auth.nickname,
                 roundBet: p.roundBet,
+                rolling_rake: 0,
                 totalBet: 0,
                 win: 0,
                 rake: 0,
@@ -1790,7 +1803,6 @@ class HoldemRoom extends colyseus_1.Room {
         }
     }
     broadTurn() {
-        logger.info("============================================================");
         // find next seat
         let locSeat = this.betSeat;
         let find = false;
@@ -2282,7 +2294,8 @@ class HoldemRoom extends colyseus_1.Room {
         });
         try {
             let rakeBackPercentage = this.conf['rakeBackPercentage'];
-            this._SalesReporter.UpdateUser(this._dao, this.participants, rakeBackPercentage);
+            let rakePercentage = this.conf['rakePercentage'];
+            this._SalesReporter.UpdateUser(this._dao, this.participants, rakePercentage, rakeBackPercentage);
             this._SalesReporter.UpdateReportByUser(this._dao, this.participants);
             this._SalesReporter.UpdateReportByTable(this._dao, this.participants, this._id);
             this.participants = [];
@@ -2699,12 +2712,11 @@ class HoldemRoom extends colyseus_1.Room {
         this.broadTurn();
     }
     onCALL(client, msg) {
-        console.log('onCALL: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onCall ] INVALID CALL. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
         }
-        logger.info("[ onCall ] player index : %s // send msg : %s", msg["seat"], msg);
+        logger.info("[ onCALL ] player index : %s // send msg : %s", msg["seat"], msg);
         let amount = msg["betAmount"];
         let e = this.getEntity(msg["seat"]);
         if (e.fold === true) {
@@ -2758,12 +2770,11 @@ class HoldemRoom extends colyseus_1.Room {
         this.broadTurn();
     }
     onBET(client, msg) {
-        console.log('onBET: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onBet ] INVALID CALL. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
         }
-        logger.info("[ onBet ] player index : %s // send msg : %s", msg["seat"], msg);
+        logger.info("[ onBET ] player index : %s // send msg : %s", msg["seat"], msg);
         if (msg["betAmount"] < this.state.startBet) {
             logger.error("[ onBet ] bet amount is larger than startBet??");
         }
@@ -2824,11 +2835,11 @@ class HoldemRoom extends colyseus_1.Room {
         this.elapsedTick = 0;
     }
     onRAISE(client, msg) {
-        console.log('onRAISE: ' + msg['betAmount']);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
         }
+        logger.info("[ onRAISE ] player index : %s // send msg : %s", msg["seat"], msg);
         let e = this.getEntity(msg["seat"]);
         if (e.fold === true) {
             logger.error("onRaise - player " + msg["seat"] + " is fold but try Raise");
@@ -2911,11 +2922,11 @@ class HoldemRoom extends colyseus_1.Room {
         this.elapsedTick = 0;
     }
     onALLIN(client, msg) {
-        console.log('onALLIN: ' + msg["betAmount"]);
         if (eGameState.Bet !== this.state.gameState) {
             logger.error("[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
         }
+        logger.info("[ onALLIN ] player index : %s // send msg : %s", msg["seat"], msg);
         let e = this.getEntity(msg["seat"]);
         if (e.fold === true) {
             logger.error("onAllIn - player " + msg["seat"] + " is fold but try AllIn");
@@ -2997,17 +3008,19 @@ class HoldemRoom extends colyseus_1.Room {
             logger.error("[ onFold ] INVALID CALL. seat : %s // now state : %s", msg["seat"], this.state.gameState);
             return;
         }
+        logger.info("[ onFOLD ] player index : %s // send msg : %s", msg["seat"], msg);
         let e = this.getEntity(msg["seat"]);
-        if (e.fold === true) {
-            logger.error(" onFold - player " + e.seat + " is fold but try fold");
-            return;
+        if (e != null) {
+            if (e.fold === true) {
+                logger.error(" onFold - player " + e.seat + " is fold but try fold");
+                return;
+            }
+            let next = this.funcFold(msg["seat"]);
+            if (next) {
+                this.broadTurn();
+            }
+            this.elapsedTick = 0;
         }
-        logger.info("[ onFold ] player index : %s // send msg : %s", msg["seat"], msg);
-        let next = this.funcFold(msg["seat"]);
-        if (next) {
-            this.broadTurn();
-        }
-        this.elapsedTick = 0;
     }
     onRE_BUY(client, msg) {
         logger.info("[ onReBuy ] msg : %s", msg);

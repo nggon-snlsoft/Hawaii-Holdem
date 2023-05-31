@@ -230,7 +230,7 @@ class PotCalculation {
             contribution = Math.round((contribution + Number.EPSILON) * 100) / 100;
             element.rake = Math.round(rake * contribution);
             tempCopare += element.rake;
-            logger_1.default.info("total : " + element.total + " / Rake : " + element.rake + " / contribution : " + contribution);
+            logger_1.default.info("t: " + element.total + " / r: " + element.rake + " / c: " + contribution);
         });
         this.rakeTotal = tempCopare;
         tempCopare = 0;
@@ -250,7 +250,6 @@ class PotCalculation {
             contribution = Math.round((contribution + Number.EPSILON) * 1000) / 1000;
             userRake.push({ seat: element.seat, rake: Math.round(rake * contribution) });
             tempCopare += Math.round(rake * contribution);
-            logger_1.default.info("User " + element.seat + " has ReturnPot : " + (myReturnInfo != null) + " / Amount : " + myAmount + " / RakeCollect : " + (rake * contribution) + " / contribution : " + contribution);
         });
         this.userRakeInfo = userRake;
     }

@@ -1,13 +1,23 @@
+const os = require('os');
+
+/**
+ * COLYSEUS CLOUD WARNING:
+ * ----------------------
+ * PLEASE DO NOT UPDATE THIS FILE MANUALLY AS IT MAY CAUSE DEPLOYMENT ISSUES
+ */
+
 module.exports = {
   apps : [{
-    name: 'hawaii-holdem',
-    script: './lib/index.js',
-    watch: 'false',
-    instances: 4,
-    exec_mode: 'cluster',
-
-    env: {
-	NODE_ENV: 'production',
-    },    
+    name: "colyseus-app",
+    script: 'build/index.js',
+    time: true,
+    watch: false,
+    instances: os.cpus().length,
+    exec_mode: 'fork',
+    wait_ready: true,
+    env_production: {
+      NODE_ENV: 'production'
+    }
   }],
 };
+

@@ -280,7 +280,6 @@ class TableController {
                 });
             }
             try {
-                // await this.reqPENDING_STATE( req.app.get('DAO'), user);
                 yield this.reqSESSION_ID(req.app.get('DAO'), {
                     session_id: session_id,
                     id: user.id,

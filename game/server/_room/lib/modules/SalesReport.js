@@ -8,18 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesReport = void 0;
+const logger_1 = __importDefault(require("../util/logger"));
 class SalesReport {
     constructor(dao) {
         this.dao = null;
         this.dao = dao;
     }
-    UpdateUser(dao, participants, rakeBackPercentage) {
+    UpdateUser(dao, participants, rakePercentage, rakeBackPercentage) {
         return __awaiter(this, void 0, void 0, function* () {
             if (participants == null) {
                 return;
             }
+            let totalPotRake = 0;
+            let totalRollingRake = 0;
             for (let i = 0; i < participants.length; i++) {
                 let id = participants[i].id;
                 let win = participants[i].win;
@@ -27,9 +33,13 @@ class SalesReport {
                 let rolling = participants[i].roundBet;
                 let rake = participants[i].rake;
                 let rake_back = Math.trunc(rolling * rakeBackPercentage);
+                let rolling_rake = Math.trunc(rolling * rakePercentage);
                 participants[i].rolling += rolling;
+                participants[i].rolling_rake += rolling_rake;
                 participants[i].rake_back += rake_back;
                 participants[i].roundBet = 0;
+                totalPotRake += participants[i].rake;
+                totalRollingRake += participants[i].rolling_rake;
                 let affected = null;
                 try {
                     affected = yield this.UPDATE_USERS_BETTINGS(dao, {
@@ -38,12 +48,21 @@ class SalesReport {
                         betting: betting,
                         rolling,
                         rake: rake,
-                        rake_back: rake_back
+                        rake_back: rake_back,
+                        rolling_rake: rolling_rake
                     });
                 }
                 catch (error) {
                     console.log(error);
                 }
+            }
+            if (Math.abs(totalPotRake - totalRollingRake) > 10) {
+                let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+                logger_1.default.error('[RAKE] diff rake %s', err);
+            }
+            else {
+                let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+                logger_1.default.error('[RAKE] rake %s', err);
             }
         });
     }
@@ -76,6 +95,7 @@ class SalesReport {
                 let wins = participants[i].win;
                 let bettings = participants[i].totalBet;
                 let rollings = participants[i].rolling;
+                let rolling_rake = participants[i].rolling_rake;
                 let rake_back = participants[i].rake_back;
                 let point = rake_back;
                 let rakes = 0;
@@ -94,6 +114,7 @@ class SalesReport {
                             rake_back: rake_back,
                             rakes: rakes,
                             point: point,
+                            rolling_rake: rolling_rake
                         });
                     }
                     catch (error) {
@@ -114,6 +135,7 @@ class SalesReport {
                             rollings: rollings,
                             rake_back: rake_back,
                             point: point,
+                            rolling_rake: rolling_rake,
                             date: date,
                         });
                     }
