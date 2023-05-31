@@ -270,7 +270,6 @@ export class TableController {
         }
 
         try {
-            // await this.reqPENDING_STATE( req.app.get('DAO'), user);
             await this.reqSESSION_ID( req.app.get('DAO'), {
                 session_id: session_id,
                 id: user.id,

@@ -21,16 +21,16 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
 
-const gamePort: number = 7600;
+const gamePort: number = 8000;
 const gamePort_sub: number = 7610;
 
 // const apiHost: string = 'hw-123.com';
@@ -664,6 +664,8 @@ export class NetworkManager extends cc.Component {
 			error = err.msg;
 		});
 
+		console.log( result );
+
 		if ( error != null ) {
 			return onFail({
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -697,7 +699,7 @@ export class NetworkManager extends cc.Component {
 		}
 
 		if ( result.code == ENUM_RESULT_CODE.SUCCESS ) {
-			this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( this.game_port ) || this.useSSL) ? "" : `:${ this.game_port }`}`);
+			this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( 8100 /*this.game_port*/ ) || this.useSSL) ? "" : `:${ 8100 /* this.game_port*/ }`}`);
 			this.client.consumeSeatReservation( result["seatReservation"]).then( (room) => {
 				this.room = room;
 				onSuccess( this.room, result );

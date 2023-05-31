@@ -102,8 +102,6 @@ export class HoldemRoom extends Room<RoomState> {
 		let confJson = JSON.parse( confFile.toString() );
 		this.conf = confJson[this.tableSize as keyof typeof confJson];
 
-		await this.setPrivate(options["private"]);
-
 		let onDBFinish : (err : any, res : any) => void = (err: any, res: any) => {
 
 			if (!!err) {
@@ -122,8 +120,6 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["bigBlind"] = roomInfo["bigBlind"];
 					this.conf["minStakePrice"] = roomInfo["minStakePrice"];
 					this.conf["maxStakePrice"] = roomInfo["maxStakePrice"];
-					this.conf["passTerm"] = roomInfo["timePassTerm"] * 60 * 1000;					
-					this.conf["passPrice"] = roomInfo["timePassPrice"];
 					this.conf["private"] = options["private"];
 					this.conf['longSitoutTerm'] = 60000 * 3;
 					this.conf["useTimePass"] = roomInfo["useTimePass"] == 1;
@@ -141,6 +137,8 @@ export class HoldemRoom extends Room<RoomState> {
 				for (let i = 0; i < this.maxClients; i++) {
 					this.seatWaitingList.push("");
 				}
+
+				console.log( this.conf );
 
 				this.setState(new RoomState());
 				this._DealerCalculator = new DealerCalculation();

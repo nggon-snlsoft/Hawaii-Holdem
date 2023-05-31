@@ -1,3 +1,7 @@
+import { Server } from "colyseus";
+import { RedisPresence } from "@colyseus/redis-presence";
+import { RedisDriver } from "@colyseus/redis-driver";
+
 import Arena from "@colyseus/arena";
 import { monitor } from "@colyseus/monitor";
 import path from "path";
@@ -25,15 +29,16 @@ export enum ENUM_RESULT_CODE {
 
 let tableController: TableController = null;
 
+
 export default Arena( {
-	getId: () => "Texas Holdem App",
+	getId: () => "Hawaii-Holdem",	
 
 	initializeGameServer: ( gameServer ) => {
 		const sqlClient = sql.init();
 		dao.init( sqlClient );
 
-		gameServer.define( "holdem_full", HoldemRoom, { dao: dao, ts :"full", clientLimit: 9, passPrice : 2000 } ).filterBy( [ "serial" ] );
-		gameServer.define( "holdem_short", HoldemRoom, { dao: dao, ts : "short", clientLimit: 6, passPrice : 1000 } ).filterBy( [ "serial" ] );
+		gameServer.define( "full", HoldemRoom, { dao: dao, ts :"full", clientLimit: 9 } ).filterBy( [ "serial" ] );
+		gameServer.define( "short", HoldemRoom, { dao: dao, ts : "short", clientLimit: 6 } ).filterBy( [ "serial" ] );
 
 		gameServer.onShutdown( function() {
 			console.log( "game server is going down." );
@@ -42,13 +47,7 @@ export default Arena( {
 
 	initializeExpress: ( app ) => {
 		app.use( cors() );
-		// app.use( favicon( __dirname + "/static/favicon.ico" ) );
 		app.use( methodOverride() );
-		// app.use( session( {
-		// 	resave: true,
-		// 	saveUninitialized: true,
-		// 	secret: "uwotm8"
-		// } ) );
 		app.use( bodyParser.json() );
 		app.use( bodyParser.urlencoded( { extended: true } ) );
 
@@ -69,8 +68,6 @@ export default Arena( {
 		app.get( "/", ( req, res ) => {
 			res.send( "It could not be a better day to die~~ :)" );
 		} );
-
-		// app.use( "/", express.static( path.join( __dirname, "static" ) ) );
 		app.use( "/colyseus", monitor() );
 
 		process.on( "uncaughtException", function( err ) {

@@ -247,6 +247,7 @@ export class TableController {
             console.log( error);            
         }
 
+        console.log(seatReservation);
         if ( seatReservation == null || seatReservation == undefined ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
