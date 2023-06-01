@@ -30,7 +30,7 @@ const gameHost: string = '127.0.0.1';
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
 
-const gamePort: number = 6000;
+const gamePort: number = 2567;
 const gamePort_sub: number = 7610;
 
 // const apiHost: string = 'hw-123.com';

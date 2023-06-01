@@ -34,9 +34,18 @@
     "@colyseus/monitor": "^0.15.0",
     "@colyseus/tools": "^0.15.0",
     "@types/cors": "^2.8.13",
+    "@types/request-ip": "^0.0.37",
     "colyseus": "^0.15.0",
     "cors": "^2.8.5",
+    "errorhandler": "^1.5.1",
     "express": "^4.18.2",
-    "method-override": "^3.0.0"
+    "express-basic-auth": "^1.2.1",
+    "ip-address": "^8.1.0",
+    "method-override": "^3.0.0",
+    "moment-timezone": "^0.5.43",
+    "mysql": "^2.18.1",
+    "poker-evaluator": "^2.0.5",
+    "request-ip": "^3.3.0",
+    "winston": "^3.9.0"
   }
 }
