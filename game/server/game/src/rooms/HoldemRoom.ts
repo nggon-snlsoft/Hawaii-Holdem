@@ -3969,6 +3969,7 @@ export class HoldemRoom extends Room<RoomState> {
 		player.isSitOut = false;
 		player.isSitBack = false;
 		player.pendSitout = false;
+		player.longSitOut = false;
 		player.sitoutTimestamp = 0;
 		player.wait = true;
 
