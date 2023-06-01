@@ -39,7 +39,6 @@ export class UiEntity extends Component {
     public isFold: boolean = false;
     public isWait: boolean = false;
     public isMe: boolean = false;
-    public isUiSitOut: boolean = false;
     public isSitout: boolean = false;
 
     public bezierPoints: Node[] = [];
@@ -254,9 +253,7 @@ export class UiEntity extends Component {
         this.isWait = entity.wait;
         this.isSitout = entity.isSitOut;
 
-        // this.callbackProfileOpen = null;
-        // this.callbackProfileClose = null;
-
+        this.SetStatus( entity );
         this.node.active = true;
 
         if ( this.isSitout == true ) {
@@ -264,10 +261,8 @@ export class UiEntity extends Component {
             return;
         }
 
-        this.SetFold(this.isFold);
-
         if( true == entity.wait ){
-            this.SetWait();
+            this.SetWait( entity );
             return;
         }
     }
@@ -288,10 +283,10 @@ export class UiEntity extends Component {
         this.SetFold( this.isFold );
 
         if( true == entity.wait ){
-            this.setUiWait();
+            this.SetWait( entity );
             return;
         }
-        this.setUiPlay(); 
+        this.SetPlay(); 
     }
 
     SetPrepareRound( entity ) {
@@ -310,10 +305,10 @@ export class UiEntity extends Component {
         this.ResetResultEffect();
 
         if( true == entity.wait ){
-            this.setUiWait();
+            this.SetWait( entity );
             return;
         }
-        this.setUiPlay(); 
+        this.SetPlay();
     }
 
     public setChipsMoveToPot(index: number, pot: Node, cb: (idx: number)=>void) {
@@ -348,28 +343,21 @@ export class UiEntity extends Component {
         this.ResetResultEffect();        
     }
 
-    SetWait() {
-        this.clearUiAction();
+    SetWait( entity: any ) {
+        this.ClearAction();
         this.clearUiBetValue();
 
-        this.uiEntityAvatar.SetWait();
+        this.uiEntityAvatar.SetWait( entity );
     }
 
     SetReserveLeave() {
         this.uiEntityAvatar.SetReserveLeave();
     }
 
-    setUiWait() {
-        this.uiEntityAvatar.setUiWait();
+    SetPlay() {
+        this.uiEntityAvatar.SetPlay();
 
-        this.clearUiAction();
-        this.clearUiBetValue();
-    }
-
-    setUiPlay() {
-        this.uiEntityAvatar.setUiPlay();
-
-        this.clearUiAction();
+        this.ClearAction();
         this.clearUiBetValue();
     }
     
@@ -382,11 +370,6 @@ export class UiEntity extends Component {
     }
 
     SetBlindBet( chips: number, isSB: boolean, isBB:boolean ) {
-        if ( this.isUiSitOut == true ) {
-            this.SetSitout();
-        } else {
-            this.SetSitbackStatus();
-        }
 
         if ( true == isBB ) {
             this.uiEntityAvatar.SetBigBlind();
@@ -434,10 +417,6 @@ export class UiEntity extends Component {
 
     ClearAction() {
         this.uiEntityAvatar.ClearAction();        
-    }
-
-    clearUiAction() {
-        this.uiEntityAvatar.clearUiAction();
     }
 
     SetStatus( player: any ) {
@@ -525,16 +504,6 @@ export class UiEntity extends Component {
         this.labelHandRank.node.active = true;
     }
 
-    setUiHandRank( rankName: string ) {
-        //deplicate
-        if(rankName === "" || rankName === null){
-            return;
-        }
-        this.rootHandRank.active = true;
-        this.labelHandRank.string = rankName;
-        this.labelHandRank.node.active = true;
-    }
-
     ClearHandRank() {
         this.rootHandRank.active = false;
         this.labelHandRank.node.active = false;
@@ -574,23 +543,15 @@ export class UiEntity extends Component {
     }
 
     SetSitout() {
-        this.isUiSitOut = true;
         this.uiEntityAvatar.SetSitout();
-
         this.HideHiddenCard();
     }
 
-    public getIsUiSitOut(): boolean {
-        return this.isUiSitOut;
-    }
-
     SetSitback( msg: any ) {
-        this.isUiSitOut = false;
         this.uiEntityAvatar.SetSitback( msg );
     }
 
     SetSitbackStatus() {
-        this.isUiSitOut = false;
         this.uiEntityAvatar.SetSitbackStatus();
     }
 

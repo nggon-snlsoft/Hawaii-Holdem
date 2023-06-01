@@ -750,7 +750,7 @@ export class UiTable extends Component {
 					let uiEntity = this.GetEntityFromSeat( e.seat );
 					if ( uiEntity != null ) {
 						if ( e.wait == true ) {
-							uiEntity.SetWait();
+							uiEntity.SetWait( e );
 						} else {
 							if ( e.fold == true ) {
 								uiEntity.SetFold( true );
@@ -1033,7 +1033,7 @@ export class UiTable extends Component {
 					let uiEntity = this.GetEntityFromSeat( e.seat );
 					if ( uiEntity != null ) {
 						if ( e.wait == true ) {
-							uiEntity.SetWait();
+							uiEntity.SetWait( e );
 						} else {
 							if ( e.fold == true ) {
 								uiEntity.SetFold( true );								
@@ -1245,14 +1245,14 @@ export class UiTable extends Component {
 	private ClearUiEntities() {
 		this.ENTITY_ELEMENTS.forEach( element => {
 			element.endTurn();
-			element.clearUiAction();
+			element.ClearAction();
 			element.clearUiBetValue();			
 		} );		
 	}
 
     private clearUiEntitiesAction() {
 		this.ENTITY_ELEMENTS.forEach( element => {
-			element.clearUiAction();
+			element.ClearAction();
 		} );
     }
 
@@ -1434,14 +1434,9 @@ export class UiTable extends Component {
 		}
 		else {
 			this.uiPlayerAction.hide();
-			let isSitOutStatus: boolean = false;
 
 			let uiEntity =  this.GetEntityFromSeat(this.mySeat);
 			if ( uiEntity != null ) {
-				if ( uiEntity.getIsUiSitOut() == true ) {
-					isSitOutStatus = true;
-				}
-
 				if ( uiEntity.isFold == true || this.myWaitStatus == true ) {
 					return;
 				}
@@ -1463,9 +1458,6 @@ export class UiTable extends Component {
 
 		let sb = msg[ "sb" ];
 		let bb = msg[ "bb" ];
-		let missSb = msg["missSb"];
-		let missBb = msg["missBb"];
-		let ante: number = msg['ante'];
 		this.betMin = msg[ "maxBet" ];
 
 		this.clearUiEntitiesAction();
@@ -1483,7 +1475,6 @@ export class UiTable extends Component {
 			let uiEntity = this.GetEntityFromSeat( seat );
 			if ( uiEntity != null ) {
 				uiEntity.SetStatus( PLAYERS[i] );
-
 				uiEntity.SetBetValue( PLAYERS[i].totalBet );
 
 				if ( PLAYERS[i].seat == sb.seat ) {
@@ -1501,7 +1492,7 @@ export class UiTable extends Component {
 				if ( seat == this.mySeat ) {
 					this.myChips == PLAYERS[i].chips;
 					if ( PLAYERS[i].isBB == true) {
-						this.uiPlayerActionReservation.showCheck( true );						
+						this.uiPlayerActionReservation.showCheck( true );
 					}					
 				}
 			}
@@ -1616,7 +1607,7 @@ export class UiTable extends Component {
 
 			if ( uiEntity != null ) {
 				if ( entity.wait == true ) {
-					uiEntity.setUiWait();
+					uiEntity.SetWait( entity );
 				}
 				else {
 					this.enableSeats.push( entity.seat );
@@ -2103,7 +2094,7 @@ export class UiTable extends Component {
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
 			uiEntity.endTurn();
-			uiEntity.clearUiAction();
+			uiEntity.ClearAction();
 
 			if( this.mySeat != seat ) {
 				uiEntity.ClearHandRank();
@@ -2404,14 +2395,15 @@ export class UiTable extends Component {
 			let winner = winners[i];
 
 			let uiEntity = this.GetEntityFromSeat( winner.seat );
+			if ( uiEntity != null ) {
+				uiEntity.SetPlay();
+				this.uiPot.UpdatePotTotal( winner.winAmount );
 
-			uiEntity?.setUiPlay();
-			this.uiPot.UpdatePotTotal( winner.winAmount );
-
-			let isReturn : boolean = winner.fold;
-			if ( isReturn == false ) {
-				uiEntity.SetWinner( this.uiRoundPotValue.node , winner.winAmount );
-				AudioController.instance.PlaySound('WIN');
+				let isReturn : boolean = winner.fold;
+				if ( isReturn == false ) {
+					uiEntity.SetWinner( this.uiRoundPotValue.node , winner.winAmount );
+					AudioController.instance.PlaySound('WIN');
+				}	
 			}
 		}
 		
@@ -2469,10 +2461,11 @@ export class UiTable extends Component {
 			}
 
 			let uiEntity = this.GetEntityFromSeat( pot.players[0] );
-
-			uiEntity?.setUiPlay();	
-			uiEntity?.SetReturn( pot.total );
-			retAnimCount++;
+			if ( uiEntity != null ) {
+				uiEntity.SetPlay();
+				uiEntity.SetReturn( pot.total );
+				retAnimCount++;
+			}
 		}
 
 		await new Promise( ret => setTimeout(ret, 1500) );
@@ -2489,10 +2482,9 @@ export class UiTable extends Component {
 					chip = pot.total;
 				}
 			
-				let uiEntity = this.GetEntityFromSeat( pot.winner[j] );
-				
+				let uiEntity = this.GetEntityFromSeat( pot.winner[j] );				
 				if(uiEntity != null ){
-					uiEntity?.setUiPlay();
+					uiEntity.SetPlay();
 					uiEntity.SetWinner( this.uiRoundPotValue.node , chip );
 				}
 			}

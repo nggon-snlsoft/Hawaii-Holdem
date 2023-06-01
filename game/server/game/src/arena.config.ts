@@ -2,6 +2,7 @@ import Arena from "@colyseus/arena";
 import { monitor } from "@colyseus/monitor";
 import path from "path";
 import express from "express";
+import basicAuth from 'express-basic-auth';
 
 const cors = require( "cors" );
 const methodOverride = require( "method-override" );
@@ -16,6 +17,13 @@ const dao = require( "./modules/dao" );
 import { HoldemRoom } from "./rooms/HoldemRoom";
 import TableController from "./controllers/TableController";
 const port = Number( process.env.PORT || 2568 );
+
+const basicAuthMiddleware = basicAuth({ 
+	users: {
+		'admin': 'admin0912',
+	},
+	challenge: true
+});
 
 export enum ENUM_RESULT_CODE {
     UNKNOWN_FAIL = -1,
@@ -71,7 +79,7 @@ export default Arena( {
 		} );
 
 		// app.use( "/", express.static( path.join( __dirname, "static" ) ) );
-		app.use( "/colyseus", monitor() );
+		app.use( "/monitor/rooms", basicAuthMiddleware, monitor() );
 
 		process.on( "uncaughtException", function( err ) {
 			console.error( "Caught exception: " + err.stack );

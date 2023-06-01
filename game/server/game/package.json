@@ -42,6 +42,7 @@
     "crypto": "^1.0.1",
     "errorhandler": "^1.5.1",
     "express": "^4.16.4",
+    "express-basic-auth": "^1.2.1",
     "express-session": "^1.17.2",
     "ip-address": "^8.1.0",
     "method-override": "^3.0.0",

@@ -129,8 +129,8 @@ export class UiEntityAvatar extends Component {
         this.rootActions.active = true;
     }
 
-    public setUiPlay() {
-        // this.rootFoldCover.active = false;
+    public SetPlay() {
+
         this.rootSelected.active = false;
         this.spriteTimer.node.active = true;
         this.spriteTimer.color = Color.GRAY;
@@ -210,15 +210,21 @@ export class UiEntityAvatar extends Component {
         }
     }    
 
-    public SetWait() {
-        this.endTurn();
-        this.SetStatus( ENUM_STATUS_TYPE.WAITING );
+    public SetWait( entity: any ) {
+        this.spriteTimer.node.active = false;
+        this.spriteTimer.color = Color.GRAY;
+        this.spriteTimer.fillRange = 1;
+        this.spriteTimer.node.active = false;
 
-        // if ( this.uiEntity.getIsUiSitOut() == true ) {
-        //     this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
-        // } else {
-        //     this.SetStatus( ENUM_STATUS_TYPE.WAITING );
-        // }
+        this.endTurn();
+
+        if ( entity != null ) {
+            if ( this.entity.isSitOut == true ) {
+                this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
+            } else {
+                this.SetStatus( ENUM_STATUS_TYPE.WAITING );
+            }
+        }
     }
 
     public SetReserveLeave() {
@@ -227,7 +233,6 @@ export class UiEntityAvatar extends Component {
 
 
     public setUiWait() {
-        // this.rootFoldCover.active = false;
         this.spriteTimer.node.active = false;
         this.spriteTimer.color = Color.GRAY;
         this.spriteTimer.fillRange = 1;

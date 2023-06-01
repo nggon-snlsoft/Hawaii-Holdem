@@ -320,7 +320,6 @@ export class DealerCalculation {
 
             if ( e.dealable == true && e.wait == false && e.isSitOut == false) {
                 seat = e.seat;
-                //logger.error("Last Blinder is %s ", e.seat)
                 break;
             }
         }

@@ -3906,6 +3906,7 @@ export class HoldemRoom extends Room<RoomState> {
 		if ( player.wait == true || player.fold == true ) {
 			player.wait = true;
 			player.isSitOut = true;
+			player.longSitOut = false;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );
 			this.broadcast("SIT_OUT", { seat : player.seat });
@@ -3916,6 +3917,7 @@ export class HoldemRoom extends Room<RoomState> {
 		if( this.state.gameState === eGameState.Suspend || this.state.gameState === eGameState.Ready || this.state.gameState === eGameState.ClearRound ) {
 			player.wait = true;
 			player.isSitOut = true;
+			player.longSitOut = false;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );			
 			this.broadcast("SIT_OUT", { seat : player.seat });
@@ -3939,10 +3941,6 @@ export class HoldemRoom extends Room<RoomState> {
 		if ( player == null ) {
 			logger.error(" [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);			
 		}
-
-		// if ( player.isSitOut == true ) {
-		// 	return;
-		// }
 
 		player.pendSitout = false;
 		this.UpdateSeatInfo();
