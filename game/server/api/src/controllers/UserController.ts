@@ -83,6 +83,8 @@ export class UserController {
     public async reqLOGIN( req: any, res: any ) {
         let login_id = req.body.login_id;
         let password = req.body.password;
+        let platform = req.body.platform;
+        let os = req.body.os;
         if ( req.body.version == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -164,12 +166,38 @@ export class UserController {
             console.log(error);
         }
 
-        affected = null;
 
+        let rake_back_rate: any = 50;
+        if ( data != null ) {
+            let partner_id = data.partner_id;
+            let partner: any = null;
+            try {
+                partner = await this.getPARTNER_ByPARTNER_ID( req.app.get('DAO'), partner_id );            
+            } catch (error) {
+                console.log(error);
+            }
+            
+            if ( partner != null ) {
+                rake_back_rate = partner.rake_back_rate;
+            }
+        }
+
+        if ( platform == null ) {
+            platform = '';
+        }
+
+        if ( os == null ) {
+            os = '';
+        }
+
+        affected = null;
         try {
             affected = await this.updateLOGIN_ByUSER_ID( req.app.get('DAO'), {
                 user_id: data.id,
                 login_ip: clientIp,
+                platform: platform,
+                os: os,
+                rake_back_rate: rake_back_rate,
             } );
         } catch (error) {
             console.log(error);
@@ -289,6 +317,18 @@ export class UserController {
 
     public async reqJOIN( req: any, res: any) {
         let user = req.body.user;
+        let platform = req.body.platform;
+        if ( platform == null ) {
+            platform = '';
+        }
+        user.platform = platform;
+
+        let os = req.body.os;
+        if ( os == null ) {
+            os = '';
+        }
+        user.os = os;
+
         if ( user.login_id == null || user.login_id.length < 1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -399,6 +439,7 @@ export class UserController {
             user.store_id = partner.store_id;
             user.distributor_id = partner.distributor_id;
             user.partner_id = partner.id;
+            user.rake_back_rate = partner.rake_back_rate;
 
             if ( partner.alive == 0 ) {
                 res.status( 200 ).json({
@@ -1719,6 +1760,21 @@ export class UserController {
     private async getPARTNER_ByCODE( dao: any, code: any ) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_PARTNERS_ByCODE ( code, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async getPARTNER_ByPARTNER_ID( dao: any, id: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_PARTNERS_ByPARTNER_ID ( id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

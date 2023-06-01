@@ -70,9 +70,12 @@ dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
 
 	let login_ip = data.login_ip;
 	let id = data.user_id;
+	let rake_back_rate = data.rake_back_rate;
+	let platform = data.platform;
+	let os = data.os;
 
-	let sql = "UPDATE USERS SET LOGIN_IP = ?, LOGINCOUNT = LOGINCOUNT + 1, LOGINDATE = current_timestamp() WHERE ID = ? ";
-	let args = [ login_ip, id ];
+	let sql = "UPDATE USERS SET LOGIN_IP = ?, PLATFORM = ?, OS = ?, RAKE_BACK_RATE = ?, LOGINCOUNT = LOGINCOUNT + 1, LOGINDATE = current_timestamp() WHERE ID = ? ";
+	let args = [ login_ip, platform, os, rake_back_rate, id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -246,9 +249,9 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 
-	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, join_ip, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, rake_back_rate, join_ip, platform, os, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
-		user.bank, user.holder, user.account, user.recommender, user.join_ip, 1 ];
+		user.bank, user.holder, user.account, user.recommender, user.rake_back_rate, user.join_ip, user.platform, user.os, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 
@@ -418,6 +421,31 @@ dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
 
 	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
 	let args = [code];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
+dao.SELECT_PARTNERS_ByPARTNER_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM PARTNERS WHERE ID = ?';
+	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {

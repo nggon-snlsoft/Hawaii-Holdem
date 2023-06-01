@@ -336,6 +336,7 @@ export class HoldemRoom extends Room<RoomState> {
 			tableBuyInAmount: 0,
 			tableBuyInCount: 0,
 			pendSitout: false,
+			rake_back_rate: auth.rake_back_rate * 0.0001,
 		} );
 
 		entity.seat = -2;
@@ -575,7 +576,8 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: entity.tableInitChips,
 			tableBuyInAmount: entity.tableBuyInAmount,
 			tableBuyInCount: entity.tableBuyInCount,
-			useLog : this.conf["useLog"]
+			useLog : this.conf["useLog"],
+			rake_back_rate: auth.rake_back_rate * 0.0001,			
 		} );
 	}
 
@@ -1584,11 +1586,11 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onPRE_FLOP_END() {
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
+
 		let rakePercentage = this.conf['rakePercentage'];
-		this.participants.forEach ( (e)=>{
+		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rake_back = Math.trunc( rolling * e.rake_back_rate );
 			let rolling_rake = Math.trunc( rolling * rakePercentage );
 
 			e.rolling += rolling;
@@ -1618,14 +1620,12 @@ export class HoldemRoom extends Room<RoomState> {
 		if ( this.participants == null || this.participants.length == 0 ) {
 			return;
 		}
-
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( (e)=>{
 			if ( e.roundBet > 0 ) {
 				let rolling = e.roundBet;
-				let rake_back = Math.trunc( rolling * rakeBackPercentage );
+				let rake_back = Math.trunc( rolling * e.rake_back_rate );
 				let rolling_rake = Math.trunc( rolling * rakePercentage );
 
 				e.rolling += rolling;
@@ -1649,11 +1649,10 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onFLOP_END() {
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
 		let rakePercentage = this.conf['rakePercentage'];		
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rake_back = Math.trunc( rolling * e.rake_back_rate );
 			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
@@ -1680,12 +1679,11 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onTURN_END() {
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rake_back = Math.trunc( rolling * e.rake_back_rate );
 			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
@@ -1713,12 +1711,11 @@ export class HoldemRoom extends Room<RoomState> {
 	
 	onRIVER_END() {
 		console.log('onRIVER_END');
-		let rakeBackPercentage = this.conf['rakeBackPercentage'];
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * rakeBackPercentage );
+			let rake_back = Math.trunc( rolling * e.rake_back_rate );
 			let rolling_rake = Math.trunc( rolling * rakePercentage );			
 
 			e.rolling += rolling;
@@ -1953,9 +1950,9 @@ export class HoldemRoom extends Room<RoomState> {
 			let hands: number = entity.statics.hands;
 			entity.statics.hands = hands + 1;
 
-			logger.debug( "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
-			logger.debug( "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
-			logger.debug( "[ cardDispensing ] eval : %s ", entity.eval );
+			logger.info( "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
+			logger.info( "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
+			logger.info( "[ cardDispensing ] eval : %s ", entity.eval );
 		}
 	}
 
@@ -2049,6 +2046,7 @@ export class HoldemRoom extends Room<RoomState> {
 				win: 0,
 				rake: 0,
 				rake_back: 0,
+				rake_back_rate: p.rake_back_rate,
 				rolling: 0,
 			});
 		});
@@ -2676,10 +2674,9 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 
 		try {
-			let rakeBackPercentage = this.conf['rakeBackPercentage'];
 			let rakePercentage = this.conf['rakePercentage'];
 
-			this._SalesReporter.UpdateUser( this._dao, this.participants, rakePercentage, rakeBackPercentage );
+			this._SalesReporter.UpdateUser( this._dao, this.participants, rakePercentage );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
 			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
 

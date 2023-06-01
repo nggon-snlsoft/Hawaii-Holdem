@@ -250,11 +250,15 @@ export class NetworkManager extends cc.Component {
 		let error: string = null;
 		let isConnect: boolean = true;
 		let version: string = GameManager.Instance().GetVersion();
+		let platform: string = cc.sys.platform;
+		let os: string = cc.sys.os;
 
 		await this.Post( this.API_SERVER, '/users/login', {
 			login_id: login_id,
 			password: password,
 			version: version,
+			platform: platform,
+			os: os,
 
 		} ).then(( res: string ) => {
 			isConnect = true;
@@ -1059,10 +1063,14 @@ export class NetworkManager extends cc.Component {
 		let result: string = null;
 		let error: string = null;
 		let isConnect = false;
+		let platform: string = cc.sys.platform;
+		let os: string = cc.sys.os;		
 
 		try {
 			await this.Post( this.API_SERVER, "/users/join", {
 				user: user,
+				platform: platform,
+				os: os,
 			}).then(( res: string ) => {
 				isConnect = true;
 				result = res;

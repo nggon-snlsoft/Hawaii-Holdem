@@ -56,6 +56,7 @@ export class EntityState extends Schema {
 	tableBuyInCount: number = 0;
 	background: boolean = false;
 	backgroundTimestamp: number = 0;
+	rake_back_rate: number = 0;
 	
 	statics: any = null;
 

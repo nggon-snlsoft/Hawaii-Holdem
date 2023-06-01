@@ -3,8 +3,8 @@ module.exports = {
     name: 'hawaii-holdem',
     script: './lib/index.js',
     watch: 'false',
-    instances: 4,
-    exec_mode: 'cluster',
+    instances: 1,
+    exec_mode: 'fork',
 
     env: {
 	NODE_ENV: 'production',

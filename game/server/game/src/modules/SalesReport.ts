@@ -7,7 +7,7 @@ export class SalesReport {
         this.dao = dao;
     }    
 
-    public async UpdateUser( dao: any, participants: any, rakePercentage: number, rakeBackPercentage: number  ) {
+    public async UpdateUser( dao: any, participants: any, rakePercentage: number  ) {
         if ( participants == null ) {
             return;
         }
@@ -21,16 +21,19 @@ export class SalesReport {
             let betting = participants[i].totalBet;
             let rolling = participants[i].roundBet;
             let rake = participants[i].rake;
-            let rake_back = Math.trunc( rolling * rakeBackPercentage );
+            let rake_back_rate = participants[i].rake_back_rate;
+            let rake_back = Math.trunc( rolling * rake_back_rate );
 			let rolling_rake = Math.trunc( rolling * rakePercentage );
 
 			participants[i].rolling += rolling;
-			participants[i].rolling_rake += rolling_rake;            
+			participants[i].rolling_rake += rolling_rake;
 			participants[i].rake_back += rake_back;
 			participants[i].roundBet = 0;
 
             totalPotRake += participants[i].rake;
             totalRollingRake += participants[i].rolling_rake;
+
+            console.log('id: ' + id + ' ,rake_back_rate: ' + participants[i].rake_back_rate + ' ,rake_back: ' + participants[i].rake_back );
 
             let affected: any = null;
             try {
