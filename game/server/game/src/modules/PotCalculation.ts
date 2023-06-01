@@ -40,6 +40,10 @@ export class PotCalculation {
   }
 
   public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
+    if ( seat == null || value == null || handValue == null || isFold == null ) {
+      console.log('WHY????');
+      return;
+    }
 
     let target: any = this.player.find(element => {
       return seat === element.seat;

@@ -575,7 +575,9 @@ export class UiTable extends Component {
 		room.onMessage( "TOKEN_VERIFY", this.onTOKEN_VERIFY.bind(this));
 
 		room.onMessage( "SYNC_TABLE", this.onSYNC_TABLE.bind(this));
-		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));		
+		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));
+
+		room.onMessage( "MASTER_CALL", this.onMASTER_CALL.bind(this));
 
         
         this.room.onMessage( "JOIN", msg => {
@@ -643,6 +645,15 @@ export class UiTable extends Component {
 	private onEXIT_TABLE( msg ) {
 		this.uiSeats.end();
 		this.room?.leave( false );
+	}
+
+	private onMASTER_CALL( msg ) {
+		let popup = msg['popup'];
+		if ( popup != null ) {
+			UiGameSystemPopup.instance.showOkPopup('SYSTEM', popup, ()=>{
+				UiGameSystemPopup.instance.closePopup();
+			});
+		}
 	}
 
 	private onTOKEN_VERIFY( msg ) {
@@ -1930,6 +1941,7 @@ export class UiTable extends Component {
 	}
 
     private onCLEAR_ROUND( msg ) {
+		console.log( msg );
 		console.log('onCLEAR_ROUND');
 
 		this.uiCommunityCards.Reset();

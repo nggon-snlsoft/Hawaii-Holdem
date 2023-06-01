@@ -31,6 +31,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
     private balance: number = 0;
     private remain: number = 0;
     private transfer_min: number = 0;
+    private amount: number = 0;
 
     public Init( cbEXIT: any, cbAPPLY: any ) {
         if ( cbEXIT != null ) {
@@ -60,6 +61,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
 
         this.balance = 0;
         this.remain = 0;
+        this.amount = 0;
 
         this.buttonExit.node.off( 'click' );
         this.buttonExit.node.on( 'click', this.onEXIT.bind(this), this );
@@ -89,7 +91,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         }
 
         this.buttonApply.interactable = true;
-        this.labelTransferMin.string = '( 최소 환전 신청금액: ' + CommonUtil.getKoreanNumber( this.transfer_min ) + ' )';
+        this.labelTransferMin.string = '( 최소 환전 신청금액: ' + CommonUtil.getKoreanNumber( this.transfer_min ) + ' / 단위:' + CommonUtil.getKoreanNumber(10000)+ ' )';
 
         NetworkManager.Instance().getTRANSFER_REQUESTS( ( res )=>{
             let transfers = res.transfers;
@@ -130,6 +132,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         this.labelPhone.string = '';
         this.balance = 0;
         this.remain = 0;
+        this.amount = 0;
 
         this.editboxTransferAmount.string = '';
         this.editboxTransferPassword.string = '';
@@ -152,6 +155,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
                 this.balance = user.balance;
 
                 this.labelBalance.string = CommonUtil.getKoreanNumber(this.balance);
+                this.labelAfterBalance.string = CommonUtil.getKoreanNumber(this.balance);
                 this.node.active = true;                
             }
 
@@ -176,7 +180,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
 
     private onAPPLY( button: Button ) {
         button.interactable = false;
-        let value: number = Number( this.editboxTransferAmount.string );
+        let value: number = this.amount;
         let password: string = this.editboxTransferPassword.string;
         if ( password.length <= 0 ) {
             LobbySystemPopup.instance.showPopUpOk('출금 신청', '출금 비밀번호를 입력해 주세요.', ()=>{
@@ -185,7 +189,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
             return;
         }
 
-        if ( this.editboxTransferAmount.string.length == 0 || value < this.transfer_min ) {
+        if ( value <= 0 || value < this.transfer_min ) {
             LobbySystemPopup.instance.showPopUpOk('출금 신청', CommonUtil.getKoreanNumber(this.transfer_min) + ' 이하는 환전신청 할수 없습니다.', ()=>{
                 button.interactable = true;            
             });
@@ -247,7 +251,7 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
 
     private onAMOUNT_EDITBOX_DID_BEGAN( editbox, customEventData ) {
         editbox.string = '';
-        this.labelAfterBalance.string = '0';
+        this.labelAfterBalance.string = CommonUtil.getKoreanNumber( this.balance );
 
         this.labelKorAmount.string = '0';
         this.labelKorAmount.node.active = false;
@@ -265,12 +269,18 @@ export class UiLOBBY_POPUP_TRANSFER extends Component {
         editbox.string = editbox.string.trim();
 
         let n = Number( editbox.string );
-        let s = CommonUtil.getKoreanNumber( n );
+        let s: string = '';
+        n = n - ( n % 10000 );
+        if ( isNaN( n ) == false ) {
+            this.amount = n;
+            s = '신청금액: ' + CommonUtil.getKoreanNumber( this.amount );            
+        }
+
         if ( s.length > 0) {
             this.labelKorAmount.string = s;
             this.labelKorAmount.node.active = true;
 
-            let remain = this.balance - n;
+            let remain = this.balance - this.amount;
             if ( remain < 0 ) {
                 this.labelAfterBalance.string = '출금불가';
             } else {

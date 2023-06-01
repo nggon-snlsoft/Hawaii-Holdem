@@ -11,7 +11,6 @@ export enum ENUM_STATUS_TYPE {
     FOLD,
     WAITING,
     SITOUT,
-    RESERVE_LEAVE,
 }
 
 @ccclass('UiEntityAvatar')
@@ -219,29 +218,12 @@ export class UiEntityAvatar extends Component {
         this.endTurn();
 
         if ( entity != null ) {
-            if ( this.entity.isSitOut == true ) {
+            this.entity = entity;
+            if ( entity.isSitOut == true ) {
                 this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
             } else {
                 this.SetStatus( ENUM_STATUS_TYPE.WAITING );
             }
-        }
-    }
-
-    public SetReserveLeave() {
-        this.SetStatus( ENUM_STATUS_TYPE.RESERVE_LEAVE );
-    }
-
-
-    public setUiWait() {
-        this.spriteTimer.node.active = false;
-        this.spriteTimer.color = Color.GRAY;
-        this.spriteTimer.fillRange = 1;
-        this.spriteTimer.node.active = false;
-
-        if ( this.uiEntity.getIsUiSitOut() == true ) {
-            this.SetStatus( ENUM_STATUS_TYPE.SITOUT );
-        } else {
-            this.SetStatus( ENUM_STATUS_TYPE.WAITING );
         }
     }
 
@@ -332,16 +314,6 @@ export class UiEntityAvatar extends Component {
                 }
 
                 break;
-            case ENUM_STATUS_TYPE.RESERVE_LEAVE:
-                {
-                    this.spriteDimmed.node.active = true;
-                    let sf: SpriteFrame = this.spriteFrameStatus[3];
-                    this.spriteStatus.spriteFrame = sf;
-                    this.spriteStatus.node.active = true;
-                    this.rootStatus.active = true;
-                }
-
-                break;                
             default:
                 this.spriteDimmed.node.active = false;
                 this.spriteStatus.node.active = false;

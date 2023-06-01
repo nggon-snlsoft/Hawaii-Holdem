@@ -3,7 +3,7 @@ const winston = require('winston');
 
 var logLevel = 'info';
 if (process.env.NODE_ENV !== 'production') {
-  logLevel = 'silly';//silly
+  logLevel = 'info';//silly
 } else {
   logLevel = 'info';
 }
@@ -45,7 +45,7 @@ logger.setLevels({
 
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
-      level: logLevel || 'silly',
+      level: logLevel || 'info',
       
       format: winston.format.combine(
         winston.format.colorize(),

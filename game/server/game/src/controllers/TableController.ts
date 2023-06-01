@@ -202,7 +202,7 @@ export class TableController {
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     msg: 'TABLE_IS_FULL',
                 });
-                return;                                
+                return;
             }
         }
 

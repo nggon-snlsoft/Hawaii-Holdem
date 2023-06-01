@@ -275,9 +275,9 @@ export class DealerCalculation {
                 if (entity.missBb == false) {
                     entity.missBb = true;
                 } else {
-                    logger.error("This player (seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
-                    // entity.leave = true;
-                    // entity.longSitOut = true;
+                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    entity.leave = true;
+                    entity.longSitOut = true;
                 }
             }
         }
@@ -320,6 +320,7 @@ export class DealerCalculation {
 
             if ( e.dealable == true && e.wait == false && e.isSitOut == false) {
                 seat = e.seat;
+                //logger.error("Last Blinder is %s ", e.seat)
                 break;
             }
         }

@@ -33,15 +33,16 @@ export class SalesReport {
             totalPotRake += participants[i].rake;
             totalRollingRake += participants[i].rolling_rake;
 
-            console.log('id: ' + id + ' ,rake_back_rate: ' + participants[i].rake_back_rate + ' ,rake_back: ' + participants[i].rake_back );
+            let res = 'id: ' + id.toString() + ' ,rake_back_rate: ' + participants[i].rake_back_rate.toString() + ' ,rake_back: ' + participants[i].rake_back.toString();
+            logger.info('[RAKE] rake info %s', res );
 
             let affected: any = null;
             try {
-                affected = await this.UPDATE_USERS_BETTINGS( dao, {
+                affected = this.UPDATE_USERS_BETTINGS( dao, {
                     id: id,
                     win: win,
                     betting: betting,
-                    rolling,
+                    rolling: rolling,
                     rake: rake,
                     rake_back: rake_back,
                     rolling_rake: rolling_rake
@@ -76,7 +77,7 @@ export class SalesReport {
             let id = participants[i].id;
             let row: any = null;
             try {
-                row = await this.GetSalesUserFromDB( dao, {
+                row = this.GetSalesUserFromDB( dao, {
                     id: id,
                     date: date,
                 });                
@@ -104,7 +105,7 @@ export class SalesReport {
                 let index = row.id;
                 let affected: any = null;
                 try {
-                    affected = await this.UpdateSalesUserInfo( dao, {
+                    affected = this.UpdateSalesUserInfo( dao, {
                         index: index,
                         bettings: bettings,
                         wins: wins,
@@ -122,7 +123,7 @@ export class SalesReport {
             } else {
                 let affected: any = null;
                 try {
-                    affected = await this.CreateSalesUserInfo( dao, {
+                    affected = this.CreateSalesUserInfo( dao, {
                         user_id: user_id,
                         store_id: store_id,
                         distributor_id: distributor_id,
@@ -160,7 +161,7 @@ export class SalesReport {
 
         let row: any = null;
         try {
-            row = await this.GetSalesTableFromDB( dao, {
+            row = this.GetSalesTableFromDB( dao, {
                 table_id: table_id,
                 date: date,
             });            
@@ -172,7 +173,7 @@ export class SalesReport {
             let index = row.id;
             let affected: any = null;
             try {
-                affected = await this.UpdateSalesTableInfo( dao, {
+                affected = this.UpdateSalesTableInfo( dao, {
                     id: index,
                     bettings: bettings,
                     rakes: rakes,
@@ -183,7 +184,7 @@ export class SalesReport {
         } else {
             let affected: any = null; 
             try {
-                affected = await this.CreateSalesTableInfo( dao, {
+                affected = this.CreateSalesTableInfo( dao, {
                     table_id: table_id,
                     store_id: 0,
                     rakes: rakes,
