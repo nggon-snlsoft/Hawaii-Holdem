@@ -190,6 +190,8 @@ export class TableController {
 
         let _tables = ClientUserData.getClientTableData(table);
         let gameSize = (_tables.maxPlayers == 9) ? 'holdem_full' : 'holdem_short';
+
+
         let room = await matchMaker.query({
             private: false,
             name: gameSize,

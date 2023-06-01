@@ -38,7 +38,7 @@ if ( pid == null ) {
     pid = '0';
 }
 
-let uAddress = 'server-' + pid + '.hw-123.com';
+let uAddress = 'server-' + pid + '.hawaiiholdem.com';
 
 export default config({
     options: {
