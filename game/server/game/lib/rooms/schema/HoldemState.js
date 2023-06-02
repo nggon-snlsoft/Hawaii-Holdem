@@ -58,6 +58,7 @@ class EntityState extends schema_1.Schema {
         this.tableBuyInCount = 0;
         this.background = false;
         this.backgroundTimestamp = 0;
+        this.rake_back_rate = 0;
         this.statics = null;
         this.missSb = false;
         this.missBb = false;

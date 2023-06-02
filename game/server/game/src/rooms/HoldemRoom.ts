@@ -642,10 +642,15 @@ export class HoldemRoom extends Room<RoomState> {
 
 				entity.chips += winAmount;
 				entity.winAmount += winAmount;
-				if ( entity .eval != null ) {
-					entity.winHandRank = entity.eval.handName;
+				if ( entity.eval != null ) {
+					if ( entity.eval.handName != null ) {
+						entity.winHandRank = entity.eval.handName;
+					} else {
+						entity.winHandRank = '';
+					}
+				} else {
+					entity.winHandRank = '';
 				}
-				entity.winHandRank = '';
 
 				winners.push( {
 					seat: entity.seat,
@@ -919,6 +924,7 @@ export class HoldemRoom extends Room<RoomState> {
 					player.pendSitout = false;
 
 					this.UpdateSeatInfo();
+					logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');						
 					this.broadcast("SIT_OUT", { seat : player.seat });
 				}
 			}
@@ -1083,7 +1089,7 @@ export class HoldemRoom extends Room<RoomState> {
 			let e = this.state.entities[ i ];
 
 			e.enoughChip = this.isEnoughChip( e.chips );
-			if ( e.enoughChip === true && e.isSitOut === false) {
+			if ( e.enoughChip === true && e.isSitOut === false ) {
 				e.wait = false;
 			} else {
 				e.wait = true;
@@ -1929,13 +1935,16 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			if( true === entity.wait || true === entity.fold ) {
-				logger.info('[cardDispensing] true === entity.wait || true === entity.fold ' );
 				entity.client.send( "CARD_DISPENSING", {
 					primary: -1, 
 					secondary: -1,
 					eval: ''
 				} );
 				continue;
+			}
+
+			if ( entity.isSitOut == true ) {
+				logger.info('[CARD_DISPENSING]SITOUT PLAYER CARD DISPENCING');
 			}
 
 			let primary = parseInt( this.totalCards2[ this.cardPickPos++ ] );
@@ -1950,7 +1959,7 @@ export class HoldemRoom extends Room<RoomState> {
 				[ entity.primaryCard, entity.secondaryCard,
 					this.communityCardString[ 0 ], this.communityCardString[ 1 ], this.communityCardString[ 2 ],
 					this.communityCardString[ 3 ], this.communityCardString[ 4 ] ] );
-
+			
 			entity.client.send( "CARD_DISPENSING", {
 				primary: primary,
 				secondary: secondary,
@@ -1992,7 +2001,11 @@ export class HoldemRoom extends Room<RoomState> {
 				sb.ante = 0;
 				this.state.pot += sb.currBet;
 
-				this._PotCalculator.SetBet( this.state.sbSeat, sb.totalBet, sb.eval.value, false);
+				try {
+					this._PotCalculator.SetBet( this.state.sbSeat, sb.totalBet, sb.eval.value, false);					
+				} catch (error) {
+					console.log( error );
+				}
 			}
 		}
 
@@ -2007,7 +2020,11 @@ export class HoldemRoom extends Room<RoomState> {
 				bb.chips -= bb.currBet;
 				this.state.pot += bb.currBet;
 
-				this._PotCalculator.SetBet( this.state.bbSeat, bb.totalBet, bb.eval.value, false);
+				try {
+					this._PotCalculator.SetBet( this.state.bbSeat, bb.totalBet, bb.eval.value, false);					
+				} catch (error) {
+					logger.error( error );
+				}
 			}
 		}
 
@@ -2041,7 +2058,12 @@ export class HoldemRoom extends Room<RoomState> {
 				e.totalBet = ante;
 				e.ante = ante;
 				e.chips -= ante;
-				this._PotCalculator.SetAnte( e.seat, e.totalBet, e.eval.value, false );
+				try {
+					this._PotCalculator.SetAnte( e.seat, e.totalBet, e.eval.value, false );					
+				} catch (error) {
+					logger.error( error );
+				}
+
 			}
 			player.push( e );
 		}
@@ -2255,11 +2277,9 @@ export class HoldemRoom extends Room<RoomState> {
 		e.initRoundChips = e.chips;
 
 		if ( e.eval == null || e.eval.value == null ) {
-			logger.info('e.eval == null || e.eval.value == null = why???');
+			logger.error('e.eval == null || e.eval.value == null is critical');
 			this.broadcast( "FOLD", {
-				seat: seat,
-				sitout: e.isSitOut,
-				wait: e.wait,
+				seat: seat
 			} );
 			return;
 		}
@@ -2271,9 +2291,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		this.broadcast( "FOLD", {
-			seat: seat,
-			sitout: e.isSitOut,
-			wait: e.wait,
+			seat: seat
 		} );
 
 		let fold = e.statics.fold;
@@ -2310,7 +2328,8 @@ export class HoldemRoom extends Room<RoomState> {
 			e.wait = true;
 			e.pendSitout = false;
 			e.sitoutTimestamp = Number ( Date.now() );
-			this.UpdateSeatInfo();			
+			this.UpdateSeatInfo();
+			logger.info( "[ SIT_OUT ] %s", e.seat );			
 			this.broadcast( "SIT_OUT", { seat : e.seat } );
 		}
 
@@ -2483,7 +2502,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 					entity.chips += winAmount;
 					entity.winAmount += winAmount;
-					entity.winHandRank = entity.eval.handName;
+					if ( entity.eval == null || entity.eval.handName == null ) {
+						entity.winHandRank = '';
+					} else {
+						entity.winHandRank = entity.eval.handName;
+					}
 
 					let store_id: number = -1;
 					if ( entity.client != null && entity.client.auth != null && entity.client.auth.store_id != null ) {
@@ -2607,7 +2630,13 @@ export class HoldemRoom extends Room<RoomState> {
 							}
 	
 							let best_rank = entity.statics.best_rank;
-							let handValue = w.eval.value;
+							let handValue: number = -1;
+
+							if ( w.eval == null || w.eval.value == null ) {
+								handValue = -1;
+							} else {
+								handValue = w.eval.value;															
+							}
 	
 							if ( handValue > best_rank ) {
 								entity.statics.best_rank = handValue;
@@ -3349,7 +3378,12 @@ export class HoldemRoom extends Room<RoomState> {
 			this.state.minRaise = this.state.maxBet;
 		}
 
-		this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);
+		try {
+			this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);			
+		} catch (error) {
+			logger.error( error );
+		}
+
 		let p = this.participants.find( (player)=>{
 			return e.seat == player.seat;
 		});
@@ -3531,7 +3565,12 @@ export class HoldemRoom extends Room<RoomState> {
 			e.chips = 0;
 		}
 
-		this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false);
+		try {
+			this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false);			
+		} catch (error) {
+			logger.error( error );
+		}
+
 		let p = this.participants.find( (player)=>{
 			return e.seat == player.seat;
 		});
@@ -3933,6 +3972,7 @@ export class HoldemRoom extends Room<RoomState> {
 			player.isSitOut = true;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );
+			logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');
 			this.broadcast("SIT_OUT", { seat : player.seat });
 			this.UpdateSeatInfo();
 			return;
@@ -3943,7 +3983,7 @@ export class HoldemRoom extends Room<RoomState> {
 			player.isSitOut = true;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );
-			logger.error(" [ onSIT_OUT ] The seat " + seat + ' is SIT_OUT');			
+			logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');			
 			this.broadcast("SIT_OUT", { seat : player.seat });
 			this.UpdateSeatInfo();
 

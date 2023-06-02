@@ -357,9 +357,10 @@ dao.UPDATE_USERS_BETTINGS = function (data, cb) {
     let rake = data.rake;
     let rake_back = data.rake_back;
     let point = data.rake_back;
-    let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let rolling_rake = data.rolling_rake;
+    let query = "UPDATE USERS SET WINS = WINS + ?, BETTINGS = BETTINGS + ?, RAKE = RAKE + ?, ROLLINGS = ROLLINGS + ?, ROLLING_RAKES = ROLLING_RAKES + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
     let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-    let args = [win, betting, rake, rolling, rake_back, point, now, id];
+    let args = [win, betting, rake, rolling, rolling_rake, rake_back, point, now, id];
     _client.query(query, args, function (err, res) {
         if (err !== null) {
             cb(err, null);
@@ -379,9 +380,10 @@ dao.UPDATE_ROLLINGS = function (data, cb) {
     let rolling = data.rolling;
     let rake_back = data.rake_back;
     let point = data.rake_back;
-    let query = "UPDATE USERS SET ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let rolling_rake = data.rolling_rake;
+    let query = "UPDATE USERS SET ROLLINGS = ROLLINGS + ?, ROLLING_RAKES = ROLLING_RAKES + ?,  RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
     let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-    let args = [rolling, rake_back, point, now, id];
+    let args = [rolling, rolling_rake, rake_back, point, now, id];
     _client.query(query, args, function (err, res) {
         if (err !== null) {
             cb(err, null);
@@ -454,11 +456,12 @@ dao.UPDATE_SALES_USER = (data, cb) => {
     let wins = data.wins;
     let rakes = data.rakes;
     let rollings = data.rollings;
+    let rolling_rake = data.rolling_rake;
     let rake_back = data.rake_back;
     let point = data.point;
     let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");
-    let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, ROLLINGS = ROLLINGS + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
-    let args = [wins, rakes, bettings, rollings, rake_back, point, now, id];
+    let query = "UPDATE SALES_USER SET WINS = WINS + ?, RAKES = RAKES + ?, BETTINGS = ?, ROLLINGS = ROLLINGS + ?, ROLLING_RAKES = ROLLING_RAKES + ?, RAKE_BACK = RAKE_BACK + ?, POINT = POINT + ?, UPDATEDATE = ? WHERE ID = ?";
+    let args = [wins, rakes, bettings, rollings, rolling_rake, rake_back, point, now, id];
     _client.query(query, args, function (err, res) {
         if (err !== null) {
             cb(err, null);
@@ -483,10 +486,11 @@ dao.INSERT_SALES_USER = function (data, cb) {
     let rakes = data.rakes;
     let rollings = data.rollings;
     let rake_back = data.rake_back;
+    let rolling_rake = data.rolling_rake;
     let point = data.point;
     let date = data.date;
-    let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings, rollings, rake_back, point ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
-    let args = [user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings, rollings, rake_back, point];
+    let sql = 'INSERT INTO SALES_USER ( user_Id, store_id, distributor_id, partner_id, year, month, day, timestamp, wins, rakes, bettings, rollings, rolling_rakes, rake_back, point ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+    let args = [user_id, store_id, distributor_id, partner_id, date.year, date.month, date.day, date.timestamp, wins, rakes, bettings, rollings, rolling_rake, rake_back, point];
     _client.query(sql, args, function (err, res) {
         if (err !== null) {
             cb(err, null);

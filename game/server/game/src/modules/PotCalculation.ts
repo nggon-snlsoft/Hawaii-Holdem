@@ -41,29 +41,32 @@ export class PotCalculation {
 
   public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
     if ( seat == null || value == null || handValue == null || isFold == null ) {
-      console.log('WHY????');
       return;
     }
 
-    let target: any = this.player.find(element => {
-      return seat === element.seat;
-    });
-
-    if (null === target || undefined === target) {
-      this.player.push({
-        seat: seat,
-        amount: value,
-        hand: handValue,
-        fold: isFold
+    try {
+      let target: any = this.player.find(element => {
+        return seat === element.seat;
       });
-
-    } else {
-      target.amount = value;
-      target.hand = handValue;
-      target.fold = isFold;
+  
+      if (null === target || undefined === target) {
+        this.player.push({
+          seat: seat,
+          amount: value,
+          hand: handValue,
+          fold: isFold
+        });
+  
+      } else {
+        target.amount = value;
+        target.hand = handValue;
+        target.fold = isFold;
+      }
+  
+      this.CalculatePot();      
+    } catch (error) {
+      logger.error( error );      
     }
-
-    this.CalculatePot();
   }
 
   public CalculatePot() {
@@ -78,25 +81,29 @@ export class PotCalculation {
 
   public SetAnte( seat: number, value: number, handValue: number, isFold: boolean ) {
 
-    let target: any = this.player.find(element => {
-      return seat === element.seat;
-    })
-
-    if (null === target || undefined === target) {
-      this.player.push({
-        seat: seat,
-        amount: value,
-        hand: handValue,
-        fold: isFold
-      });
-
-    } else {
-      target.amount = value;
-      target.hand = handValue;
-      target.fold = isFold;
+    try {
+      let target: any = this.player.find(element => {
+        return seat === element.seat;
+      })
+  
+      if (null === target || undefined === target) {
+        this.player.push({
+          seat: seat,
+          amount: value,
+          hand: handValue,
+          fold: isFold
+        });
+  
+      } else {
+        target.amount = value;
+        target.hand = handValue;
+        target.fold = isFold;
+      }
+  
+      this.CalculatePot();      
+    } catch (error) {
+      logger.error( error );      
     }
-
-    this.CalculatePot();
   }  
 
   private CalculateMinBet(players: any[]): number {

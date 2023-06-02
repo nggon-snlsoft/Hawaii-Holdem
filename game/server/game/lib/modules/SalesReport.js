@@ -8,42 +8,64 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesReport = void 0;
+const logger_1 = __importDefault(require("../util/logger"));
 class SalesReport {
     constructor(dao) {
         this.dao = null;
         this.dao = dao;
     }
-    UpdateUser(dao, participants, rakeBackPercentage) {
+    UpdateUser(dao, participants, rakePercentage) {
         return __awaiter(this, void 0, void 0, function* () {
             if (participants == null) {
                 return;
             }
+            let totalPotRake = 0;
+            let totalRollingRake = 0;
             for (let i = 0; i < participants.length; i++) {
                 let id = participants[i].id;
                 let win = participants[i].win;
                 let betting = participants[i].totalBet;
                 let rolling = participants[i].roundBet;
                 let rake = participants[i].rake;
-                let rake_back = Math.trunc(rolling * rakeBackPercentage);
+                let rake_back_rate = participants[i].rake_back_rate;
+                let rake_back = Math.trunc(rolling * rake_back_rate);
+                let rolling_rake = Math.trunc(rolling * rakePercentage);
                 participants[i].rolling += rolling;
+                participants[i].rolling_rake += rolling_rake;
                 participants[i].rake_back += rake_back;
                 participants[i].roundBet = 0;
+                totalPotRake += participants[i].rake;
+                totalRollingRake += participants[i].rolling_rake;
+                let res = 'id: ' + id.toString() + ' ,rake_back_rate: ' + participants[i].rake_back_rate.toString() + ' ,rake_back: ' + participants[i].rake_back.toString();
+                logger_1.default.info('[RAKE] rake info %s', res);
                 let affected = null;
                 try {
-                    affected = yield this.UPDATE_USERS_BETTINGS(dao, {
+                    affected = this.UPDATE_USERS_BETTINGS(dao, {
                         id: id,
                         win: win,
                         betting: betting,
-                        rolling,
+                        rolling: rolling,
                         rake: rake,
-                        rake_back: rake_back
+                        rake_back: rake_back,
+                        rolling_rake: rolling_rake
                     });
                 }
                 catch (error) {
                     console.log(error);
                 }
+            }
+            if (Math.abs(totalPotRake - totalRollingRake) > 10) {
+                let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+                logger_1.default.error('[RAKE] diff rake %s', err);
+            }
+            else {
+                let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
+                logger_1.default.error('[RAKE] rake %s', err);
             }
         });
     }
@@ -61,7 +83,7 @@ class SalesReport {
                 let id = participants[i].id;
                 let row = null;
                 try {
-                    row = yield this.GetSalesUserFromDB(dao, {
+                    row = this.GetSalesUserFromDB(dao, {
                         id: id,
                         date: date,
                     });
@@ -76,6 +98,7 @@ class SalesReport {
                 let wins = participants[i].win;
                 let bettings = participants[i].totalBet;
                 let rollings = participants[i].rolling;
+                let rolling_rake = participants[i].rolling_rake;
                 let rake_back = participants[i].rake_back;
                 let point = rake_back;
                 let rakes = 0;
@@ -86,7 +109,7 @@ class SalesReport {
                     let index = row.id;
                     let affected = null;
                     try {
-                        affected = yield this.UpdateSalesUserInfo(dao, {
+                        affected = this.UpdateSalesUserInfo(dao, {
                             index: index,
                             bettings: bettings,
                             wins: wins,
@@ -94,6 +117,7 @@ class SalesReport {
                             rake_back: rake_back,
                             rakes: rakes,
                             point: point,
+                            rolling_rake: rolling_rake
                         });
                     }
                     catch (error) {
@@ -103,7 +127,7 @@ class SalesReport {
                 else {
                     let affected = null;
                     try {
-                        affected = yield this.CreateSalesUserInfo(dao, {
+                        affected = this.CreateSalesUserInfo(dao, {
                             user_id: user_id,
                             store_id: store_id,
                             distributor_id: distributor_id,
@@ -114,6 +138,7 @@ class SalesReport {
                             rollings: rollings,
                             rake_back: rake_back,
                             point: point,
+                            rolling_rake: rolling_rake,
                             date: date,
                         });
                     }
@@ -139,7 +164,7 @@ class SalesReport {
             });
             let row = null;
             try {
-                row = yield this.GetSalesTableFromDB(dao, {
+                row = this.GetSalesTableFromDB(dao, {
                     table_id: table_id,
                     date: date,
                 });
@@ -151,7 +176,7 @@ class SalesReport {
                 let index = row.id;
                 let affected = null;
                 try {
-                    affected = yield this.UpdateSalesTableInfo(dao, {
+                    affected = this.UpdateSalesTableInfo(dao, {
                         id: index,
                         bettings: bettings,
                         rakes: rakes,
@@ -164,7 +189,7 @@ class SalesReport {
             else {
                 let affected = null;
                 try {
-                    affected = yield this.CreateSalesTableInfo(dao, {
+                    affected = this.CreateSalesTableInfo(dao, {
                         table_id: table_id,
                         store_id: 0,
                         rakes: rakes,

@@ -35,23 +35,31 @@ class PotCalculation {
         logger_1.default.error("CenterState Changed : " + state);
     }
     SetBet(seat, value, handValue, isFold) {
-        let target = this.player.find(element => {
-            return seat === element.seat;
-        });
-        if (null === target || undefined === target) {
-            this.player.push({
-                seat: seat,
-                amount: value,
-                hand: handValue,
-                fold: isFold
+        if (seat == null || value == null || handValue == null || isFold == null) {
+            return;
+        }
+        try {
+            let target = this.player.find(element => {
+                return seat === element.seat;
             });
+            if (null === target || undefined === target) {
+                this.player.push({
+                    seat: seat,
+                    amount: value,
+                    hand: handValue,
+                    fold: isFold
+                });
+            }
+            else {
+                target.amount = value;
+                target.hand = handValue;
+                target.fold = isFold;
+            }
+            this.CalculatePot();
         }
-        else {
-            target.amount = value;
-            target.hand = handValue;
-            target.fold = isFold;
+        catch (error) {
+            logger_1.default.error(error);
         }
-        this.CalculatePot();
     }
     CalculatePot() {
         this.pots = this.Calculate();
@@ -61,23 +69,28 @@ class PotCalculation {
         this.CalculateRake();
     }
     SetAnte(seat, value, handValue, isFold) {
-        let target = this.player.find(element => {
-            return seat === element.seat;
-        });
-        if (null === target || undefined === target) {
-            this.player.push({
-                seat: seat,
-                amount: value,
-                hand: handValue,
-                fold: isFold
+        try {
+            let target = this.player.find(element => {
+                return seat === element.seat;
             });
+            if (null === target || undefined === target) {
+                this.player.push({
+                    seat: seat,
+                    amount: value,
+                    hand: handValue,
+                    fold: isFold
+                });
+            }
+            else {
+                target.amount = value;
+                target.hand = handValue;
+                target.fold = isFold;
+            }
+            this.CalculatePot();
         }
-        else {
-            target.amount = value;
-            target.hand = handValue;
-            target.fold = isFold;
+        catch (error) {
+            logger_1.default.error(error);
         }
-        this.CalculatePot();
     }
     CalculateMinBet(players) {
         var min = Infinity;
@@ -230,7 +243,7 @@ class PotCalculation {
             contribution = Math.round((contribution + Number.EPSILON) * 100) / 100;
             element.rake = Math.round(rake * contribution);
             tempCopare += element.rake;
-            logger_1.default.info("total : " + element.total + " / Rake : " + element.rake + " / contribution : " + contribution);
+            logger_1.default.info("t: " + element.total + " / r: " + element.rake + " / c: " + contribution);
         });
         this.rakeTotal = tempCopare;
         tempCopare = 0;
@@ -250,7 +263,6 @@ class PotCalculation {
             contribution = Math.round((contribution + Number.EPSILON) * 1000) / 1000;
             userRake.push({ seat: element.seat, rake: Math.round(rake * contribution) });
             tempCopare += Math.round(rake * contribution);
-            logger_1.default.info("User " + element.seat + " has ReturnPot : " + (myReturnInfo != null) + " / Amount : " + myAmount + " / RakeCollect : " + (rake * contribution) + " / contribution : " + contribution);
         });
         this.userRakeInfo = userRake;
     }

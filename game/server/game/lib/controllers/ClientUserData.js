@@ -27,7 +27,8 @@ class ClientUserData {
             bank: dbUserData.bank,
             holder: dbUserData.holder,
             account: dbUserData.account,
-            join_ip: dbUserData.join_ip
+            join_ip: dbUserData.join_ip,
+            rake_back_rate: dbUserData.rake_back_rate,
         };
         return user;
     }

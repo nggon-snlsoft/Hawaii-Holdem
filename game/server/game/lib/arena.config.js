@@ -6,11 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ENUM_RESULT_CODE = void 0;
 const arena_1 = __importDefault(require("@colyseus/arena"));
 const monitor_1 = require("@colyseus/monitor");
-const path_1 = __importDefault(require("path"));
-const express_1 = __importDefault(require("express"));
+const express_basic_auth_1 = __importDefault(require("express-basic-auth"));
 const cors = require("cors");
 const methodOverride = require("method-override");
-const session = require("express-session");
+// const session = require( "express-session" );
 const bodyParser = require("body-parser");
 const errorHandler = require("errorhandler");
 const favicon = require("serve-favicon");
@@ -19,6 +18,12 @@ const dao = require("./modules/dao");
 const HoldemRoom_1 = require("./rooms/HoldemRoom");
 const TableController_1 = __importDefault(require("./controllers/TableController"));
 const port = Number(process.env.PORT || 2568);
+const basicAuthMiddleware = express_basic_auth_1.default({
+    users: {
+        'admin': 'admin0912',
+    },
+    challenge: true
+});
 var ENUM_RESULT_CODE;
 (function (ENUM_RESULT_CODE) {
     ENUM_RESULT_CODE[ENUM_RESULT_CODE["UNKNOWN_FAIL"] = -1] = "UNKNOWN_FAIL";
@@ -39,13 +44,13 @@ exports.default = arena_1.default({
     },
     initializeExpress: (app) => {
         app.use(cors());
-        app.use(favicon(__dirname + "/static/favicon.ico"));
+        // app.use( favicon( __dirname + "/static/favicon.ico" ) );
         app.use(methodOverride());
-        app.use(session({
-            resave: true,
-            saveUninitialized: true,
-            secret: "uwotm8"
-        }));
+        // app.use( session( {
+        // 	resave: true,
+        // 	saveUninitialized: true,
+        // 	secret: "uwotm8"
+        // } ) );
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
         if (app.get("env") === "development") {
@@ -62,8 +67,8 @@ exports.default = arena_1.default({
         app.get("/", (req, res) => {
             res.send("It could not be a better day to die~~ :)");
         });
-        app.use("/", express_1.default.static(path_1.default.join(__dirname, "static")));
-        app.use("/colyseus", monitor_1.monitor());
+        // app.use( "/", express.static( path.join( __dirname, "static" ) ) );
+        app.use("/monitor/rooms", basicAuthMiddleware, monitor_1.monitor());
         process.on("uncaughtException", function (err) {
             console.error("Caught exception: " + err.stack);
         });

@@ -84,6 +84,7 @@ export class UiLobby extends Component {
         if ( leaveReason == 4001 ) {
             leaveReason = -1;            
             LobbySystemPopup.instance.showPopUpOk('테이블', '장시간 자리비움으로 테이블을 떠났습니다.', ()=>{
+                NetworkManager.Instance().leaveReason = -1;
             });
         }
 
