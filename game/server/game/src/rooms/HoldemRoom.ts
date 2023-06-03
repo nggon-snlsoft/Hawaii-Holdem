@@ -6,11 +6,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ENUM_RESULT_CODE } from "../arena.config";
 import { ClientUserData } from "../controllers/ClientUserData";
-import { levels, prependListener } from "../util/logger";
 import { SalesReport } from "../modules/SalesReport";
-import { application } from "express";
-import { cli } from "winston/lib/winston/config";
 
+const moment = require('moment')
+const timeZone = 'Asia/Tokyo';
 const logger = require( "../util/logger" );
 const PokerEvaluator = require( "poker-evaluator" );
 
@@ -44,6 +43,13 @@ export enum ENUM_SHOWDOWN_STEP {
 	SHOW_TURN,
 	SHOW_RIVER,
 	SHOWDOWN_END,
+}
+
+export enum ENUM_LOG_TYPE {
+	LOG_NONE,
+	LOG_INFO,
+	LOG_ERROR,
+	LOG_CRITICAL,
 }
 
 export class HoldemRoom extends Room<RoomState> {
@@ -84,6 +90,7 @@ export class HoldemRoom extends Room<RoomState> {
 	_roomConf: any = null;
 	_initPot: number = 0;
 	_id: number = -1;
+	_tableIdString: string = '';
 
 	private participants: any[] = [];
 	private lastBet: any = null;
@@ -91,8 +98,8 @@ export class HoldemRoom extends Room<RoomState> {
 	private SHOWDOWN_STATE: ENUM_SHOWDOWN_STEP = ENUM_SHOWDOWN_STEP.NONE;
 
 	async onCreate( options: any ) : Promise<any> {
-		logger.info("[ onCreate ] options : %s", options);
-
+		this._tableIdString = '[TABLE:' + options.serial + ']';
+		logger.info( this._tableIdString + "[ onCreate ] options : %s", options);
 		this.maxClients = options.clientLimit;
 
 		this.tableSize = "full";
@@ -107,10 +114,10 @@ export class HoldemRoom extends Room<RoomState> {
 		let onDBFinish : (err : any, res : any) => void = (err: any, res: any) => {
 
 			if (!!err) {
-				logger.error("[ onCreate::selectRoomByUID ] query error : %s", err);
+				logger.error( this._tableIdString + "[ onCreate::selectRoomByUID ] query error : %s", err);
 			} else {
 				if (res.length <= 0) {
-					logger.error("[ onCreate ] invalid room id");
+					logger.error( this._tableIdString + "[ onCreate ] invalid room id");
 				} else {
 					let roomInfo = res;
 
@@ -174,8 +181,8 @@ export class HoldemRoom extends Room<RoomState> {
 				this.onMessage('FORE_GROUND', this.onFORE_GROUND.bind(this));
 				this.onMessage('BACK_GROUND', this.onBACK_GROUND.bind(this));
 
-				this._PotCalculator = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"] );
-				this._SalesReporter = new SalesReport( this._dao );
+				this._PotCalculator = new PotCalculation( this.conf["useRake"], this.conf["rakePercentage"], this._tableIdString );
+				this._SalesReporter = new SalesReport( this._dao, this._tableIdString );
 
 				this.pingTimerID = setInterval(() => this.ping(), 2000);
 				this._id = options["serial"];
@@ -187,14 +194,14 @@ export class HoldemRoom extends Room<RoomState> {
 		try {
 			await this._dao.SELECT_TABLES_ByTABLE_ID( options["serial"], onDBFinish);
 		} catch (error) {
-			console.log(error);
+			logger.error( this._tableIdString + error );
 		}
 	}
 
 	init() {
 		this.state.gameState = eGameState.Suspend;
 
-		this.state.dealerSeat = this._DealerCalculator.init(this.maxClients);
+		this.state.dealerSeat = this._DealerCalculator.init(this.maxClients, this._tableIdString);
 		this.state.sbSeat = -1;
 		this.state.bbSeat = -1;
 
@@ -213,20 +220,18 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onAuth( client: Client, options: any, request: any ): Promise<any> {
-		logger.info( "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );	
+		logger.info( this._tableIdString + "[ onAuth ] sid(%s), options(%s)", client.sessionId, options );	
 
 		return new Promise( ( resolve, reject ) => {
 			let self = this;
 
 			this._dao.SELECT_USERS_ByACTIVE_SESSION_ID( client.sessionId, function( err: any, res: any ) {				
 				if( !!err ) {
-					logger.error( "[ onAuth ] query error : %s", err );
 					reject( new ServerError( 400, "bad access token" ) );
 				}
 				else {
 
 					if( res.length <= 0 ) {
-						logger.error( "[ onAuth ] invalid session id" );
 						reject( new ServerError( 400, "bad session id" ) );
 						return;
 					}
@@ -271,13 +276,8 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			} );			
 		} catch (error) {
-			console.log(error);			
+			console.log( this._tableIdString + error);			
 		}
-
-		// if( true === auth[ "reconnected" ] ) {
-		// 	this.reJoin( client, options, auth );
-		// 	return;
-		// }
 
 		await this.playerJoin( client, options, auth );
 	}
@@ -290,7 +290,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async playerJoin( client: Client, option: any, auth: any ) {
-		logger.info( "[ playerJoin ]" );
+		logger.info(  this._tableIdString + "[ playerJoin ]" );
 		this._buyInWaiting[ client.sessionId ] = auth;
 		// logger.info( "[ playerJoin ] waiting list : %s", JSON.stringify( this._buyInWaiting ) );
 
@@ -349,7 +349,7 @@ export class HoldemRoom extends Room<RoomState> {
 			entity.statics = _statics;
 		}
 
-		logger.info( "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
+		logger.info(  this._tableIdString + "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
 		this.state.entities.push( entity );
 		return;
 	}
@@ -358,7 +358,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if(null == auth || undefined == auth){
 
-			logger.error(" OnLoadDone -  Auth is null session ID : " + client.sessionId);
+			logger.error( this._tableIdString + " OnLoadDone -  Auth is null session ID : " + client.sessionId);
 			return;
 		}
 
@@ -434,7 +434,7 @@ export class HoldemRoom extends Room<RoomState> {
 		});
 
 		if ( eGameState.Suspend === this.state.gameState ) {
-			logger.info("[ onBuyPass ] Now suspend state");
+			logger.info( this._tableIdString + "[ onBuyPass ] Now suspend state");
 			entity.isNew = false;
 			let isStart = this.checkStartCondition();
 			if (true === isStart) {
@@ -507,11 +507,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let entity = this.state.entities.find( elem => elem.id === auth.id );
 		if( undefined === entity ) {
-			logger.error( "[ reJoin ] why?? fatality error." );
+			logger.error(  this._tableIdString + "[ reJoin ] why?? fatality error." );
 			return;
 		}
 
-		logger.info( "[ reJoin ] entity state : %s", JSON.stringify( entity ) );
+		logger.info(  this._tableIdString + "[ reJoin ] entity state : %s", JSON.stringify( entity ) );
 		entity.lastPingTime = Date.now();
 		entity.sid = client.sessionId;
 		entity.client = client;
@@ -528,7 +528,7 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		logger.info( "[ reJoin ] seat : %s", entity.seat );
+		logger.info( this._tableIdString +  "[ reJoin ] seat : %s", entity.seat );
 		let openCards: number[] = [];
 
 		switch( this.centerCardState ) {
@@ -549,7 +549,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let prim = entity.cardIndex.length > 0 ? entity.cardIndex[0] : -1;
 		let sec = entity.cardIndex.length > 1 ? entity.cardIndex[1] : -1;
 
-		logger.info( "[ reJoin ] send reconnection succeed" );
+		logger.info(  this._tableIdString + "[ reJoin ] send reconnection succeed" );
 
 		client.send( "REJOIN", {
 			yourself: entity,
@@ -608,24 +608,9 @@ export class HoldemRoom extends Room<RoomState> {
 
 	private GetWinners( skip : boolean, isAllIn : boolean): any {
 
-		// let rakeInfo = this._PotCalculator.userRakeInfo;
 		let pots = this._PotCalculator.GetPots(true);
 		let winners = [];
 		let folders: number[] = [];
-
-		// if (null != rakeInfo) {
-		// 	for (let i = 0; i < rakeInfo.length; i++) {
-		// 		let element = rakeInfo[i];
-				
-		// 		let ent = this.state.entities.find((e) => { return e.seat == element.seat; });
-
-		// 		if(null == ent){
-		// 			continue;
-		// 		}
-
-		// 		ent.rake += element.rake;
-		// 	}
-		// }
 
 		for(let i = 0; i < pots.length; i++){
 			let pot : any = pots[i];
@@ -639,26 +624,17 @@ export class HoldemRoom extends Room<RoomState> {
 				if(null === entity || undefined === entity){
 					continue;
 				}
-
-				entity.chips += winAmount;
-				entity.winAmount += winAmount;
-				if ( entity.eval != null ) {
-					if ( entity.eval.handName != null ) {
-						entity.winHandRank = entity.eval.handName;
-					} else {
-						entity.winHandRank = '';
-					}
-				} else {
-					entity.winHandRank = '';
-				}
+				
+				let chips = entity.chips + winAmount;
+				let amount = entity.winAmount + winAmount;
 
 				winners.push( {
 					seat: entity.seat,
 					cards: entity.cardIndex,
 					nickname: entity.nickname,
 					eval: entity.eval,
-					chips: entity.chips,
-					winAmount: entity.winAmount,
+					chips: chips,
+					winAmount: amount,
 					fold : entity.fold
 				} );
 			}
@@ -734,10 +710,10 @@ export class HoldemRoom extends Room<RoomState> {
 	checkReBuyCondition( e: any, max: number, reBuy: boolean) :number {
 		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 		const MAX_RE_BUY_COUNT: number = this.conf["limitReBuyCount"];
-		logger.info("seat:%d, amount:%d, reBuy: %d", e.seat, max, reBuy);
+		logger.info( this._tableIdString + "seat:%d, amount:%d, reBuy: %d", e.seat, max, reBuy);
 
 		if ( null === e || undefined === e) {
-			logger.error("checkReBuyCondition null" );
+			logger.error( this._tableIdString + "checkReBuyCondition null" );
 			return -1;
 		} else {
 			if ( this.conf["useReBuy"] == true ) {
@@ -761,7 +737,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async onLeave( client: Client, consented?: boolean ) {
-		logger.info( "[ onLeave ] sessionID(%s), consented(%s)", client.sessionId, consented );
+		logger.info(  this._tableIdString + "[ onLeave ] sessionID(%s), consented(%s)", client.sessionId, consented );
 
 		delete this._buyInWaiting[ client.sessionId ];
 		delete this._rejoinWaiting[ client.sessionId ];
@@ -775,11 +751,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let runaway = this.findEntityBySessionID( client.sessionId );
 		if( null === runaway || undefined === runaway ) {
-			logger.error( "[ onLeave ] entity is null" );
+			logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
 			return;
 		}
 
-		logger.info( "[ onLeave ] seat(%s), nickname(%s), balance(%s), chips(%s)", 
+		logger.info(  this._tableIdString + "[ onLeave ] seat(%s), nickname(%s), balance(%s), chips(%s)", 
 			runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
 
 		runaway.leave = true;
@@ -797,7 +773,7 @@ export class HoldemRoom extends Room<RoomState> {
 	findEntityBySessionID( sid: string ) {
 		let entity = this.state.entities.find( elem => elem.sid == sid );
 		if( null === entity || undefined === entity ) {
-			logger.error( "[ findEntityBySessionID ] entity is null" );
+			logger.error(  this._tableIdString + "[ findEntityBySessionID ] entity is null" );
 			return null;
 		}
 
@@ -814,7 +790,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onDispose(): void | Promise<any> {
-		logger.error( "[ onDISPOSE ] Room is dispose: " + this._id );
+		logger.error(  this._tableIdString + "[ onDISPOSE ] Room is dispose: " + this._id );
 
 		try {
 			this.onUPDATE_ROLLING();
@@ -822,7 +798,7 @@ export class HoldemRoom extends Room<RoomState> {
 			this.participants = [];
 
 		} catch ( error ) {
-			console.log( error );
+			console.log( this._tableIdString +  error );
 		}
 
 		clearInterval(this.pingTimerID);
@@ -841,7 +817,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this._dao.UPDATE_USERS_TABLE_ID_ByUSER( data , (err: any, res: boolean) => {
 				if (null != err) {
-					logger.error(err);
+					logger.error( this._tableIdString + err);
 				}
 			});
 
@@ -850,7 +826,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this._dao.UPDATE_STATICS( e.id, e.statics, ( err: any, res: boolean  )=> {
 				if ( err != null ) {
-					logger.error( err );
+					logger.error(  this._tableIdString + err );
 				} else {
 
 				}
@@ -859,7 +835,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		this._dao.UPDATE_USERS_CLEAR_TABLE_ID( this._id, -1, ( err: any, res: boolean )=>{
 			if ( err != null ) {
-				logger.error( err );
+				logger.error(  this._tableIdString + err );
 			} else {
 
 			}
@@ -874,9 +850,10 @@ export class HoldemRoom extends Room<RoomState> {
 				if( entity.chips != entity.oldChips ) {
 					this._dao.UPDATE_USERS_CHIP(entity.id, entity.chips, (err: any, res: any) => {
 						if (!!err) {
-							logger.error("[ update ] updateChip query error : %s", err.sqlMessage);
+							logger.error( this._tableIdString + "[ update ] updateChip query error : %s", err.sqlMessage);
 						}
 					});
+					logger.error( this._tableIdString + "[ update ] id: %s, name: %s, oldChips: %s, chips: %s", entity.id, entity.nickname, entity.oldChips, entity.chips );					
 					entity.oldChips = entity.chips;
 				}
 			}
@@ -895,7 +872,7 @@ export class HoldemRoom extends Room<RoomState> {
 			if( pos > -1 ) {
 				let entity = this.state.entities[ pos ];
 				if( false === entity.fold && true === entity.leave ) {
-					logger.info( "[ update ] runaway user fold." );
+					logger.info(  this._tableIdString + "[ update ] runaway user fold." );
 					let next = this.funcFold( this.betSeat );
 					if( next ) {
 						this.broadTurn();
@@ -907,7 +884,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			if( this.elapsedTick >= this.conf[ "betTimeLimit" ] ) {
 				this.elapsedTick = 0;
-				logger.info( "[ update ] seat %s bet timeout. call fold", this.betSeat );
+				logger.info(  this._tableIdString + "[ update ] seat %s bet timeout. call fold", this.betSeat );
 
 				let next = this.funcFold( this.betSeat );
 				let player = this.getEntity(this.betSeat);
@@ -924,7 +901,7 @@ export class HoldemRoom extends Room<RoomState> {
 					player.pendSitout = false;
 
 					this.UpdateSeatInfo();
-					logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');						
+					logger.error( this._tableIdString + " [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');						
 					this.broadcast("SIT_OUT", { seat : player.seat });
 				}
 			}
@@ -932,7 +909,7 @@ export class HoldemRoom extends Room<RoomState> {
 		else if( eGameState.Result === this.state.gameState ) {
 			this.elapsedTick += dt;
 			if( this.elapsedTick >= this.showdownTime ) {
-				logger.info( "[ update ] RESULT STATE TIME OVER. duration : %s", this.showdownTime );
+				logger.info( this._tableIdString +  "[ update ] RESULT STATE TIME OVER. duration : %s", this.showdownTime );
 				this.elapsedTick = 0;
 				this.changeState( eGameState.ClearRound );
 			}
@@ -946,7 +923,7 @@ export class HoldemRoom extends Room<RoomState> {
 		else if( eGameState.ClearRound === this.state.gameState ) {
 			this.elapsedTick += dt;
 			if( this.elapsedTick >= this.conf[ "clearTerm" ] ) {				
-				logger.info( "[ update ] CLEAR_ROUND STATE TIME OVER. duration : %s", this.conf[ "clearTerm" ] );
+				logger.info( this._tableIdString +  "[ update ] CLEAR_ROUND STATE TIME OVER. duration : %s", this.conf[ "clearTerm" ] );
 				this.elapsedTick = 0;
 
 				this.state.entities.forEach( (e)=>{
@@ -966,14 +943,14 @@ export class HoldemRoom extends Room<RoomState> {
 					this.updateButtons();
 					isSTART = this.checkStartCondition();
 					if ( isSTART == true ) {
-						logger.info( "[ update ] GAME STATE TO PREPARE" );
+						logger.info(  this._tableIdString + "[ update ] GAME STATE TO PREPARE" );
 						this.changeState( eGameState.Prepare );
 					} else {
-						logger.info( "[ update ] GAME STATE TO SUSPEND" );
+						logger.info(  this._tableIdString + "[ update ] GAME STATE TO SUSPEND" );
 						this.changeState( eGameState.Suspend );
 					}
 				} else {
-					logger.info( "[ update ] GAME STATE TO SUSPEND" );
+					logger.info(  this._tableIdString + this._tableIdString +  "[ update ] GAME STATE TO SUSPEND" );
 					this.changeState( eGameState.Suspend );
 				}
 			}
@@ -981,7 +958,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this.elapsedTick += dt;
 			if (this.elapsedTick >= this.conf["readyTerm"] ) {
-				logger.info( "[ update ] READY STATE TIME OVER. duration : %s", this.conf[ "readyTerm" ] );
+				logger.info(  this._tableIdString + "[ update ] READY STATE TIME OVER. duration : %s", this.conf[ "readyTerm" ] );
 				this.elapsedTick = 0;
 				this.handleEscapee();
 				this.updatePlayerEligible();
@@ -1043,7 +1020,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
 					if (null != err) {
-						logger.error(err);
+						logger.error( this._tableIdString + err);
 					}
 				});
 
@@ -1052,7 +1029,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this._dao.UPDATE_STATICS( this.state.entities[l].id, this.state.entities[l].statics, ( err: any, res: boolean  )=> {
 					if ( err != null ) {
-						logger.error( err );
+						logger.error(  this._tableIdString + err );
 					} else {
 
 					}
@@ -1078,7 +1055,7 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 			}
 			else {
-				logger.error( "[ handleEscapee ] why??. seat : %s", s );
+				logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );
 			}
 		}
 		this.UpdateSeatInfo();
@@ -1168,6 +1145,7 @@ export class HoldemRoom extends Room<RoomState> {
 				e.pendReBuy = 0;
 				if ( amount > 0 ) {
 					e.balance -= amount;
+					logger.error( this._tableIdString + "[ addchips ] id: %s, name: %s, oldChips: %s, chips: %s", e.id, e.nickname, e.chips, chips );					
 					e.chips = chips;
 					e.initRoundChips = e.chips;
 					e.tableInitChips += amount;
@@ -1184,18 +1162,18 @@ export class HoldemRoom extends Room<RoomState> {
 
 					this._dao.SELECT_BALANCE_ByUSER_ID(e.id, (err: any, res : any) => {
 						if (!!err) {
-							logger.error("[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
+							logger.error( this._tableIdString + "[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
 						} else {
 							this._dao.BUY_IN(e.id, this.conf["tableID"], beforeBalance, e.balance, beforeChips, e.chips, amount, (err: any, res : any) => {
 								if (!!err) {
-									logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
+									logger.error( this._tableIdString + "[ processPendingAddChips ] buyIn query error : %s", err);
 								} else {
 								}
 							});
 
 							this._dao.UPDATE_USERS_BALANCE(e.id, e.balance, (err: any, res: any) => {
 								if (!!err) {
-									logger.error("[ processPendingAddChips ] updateBalance query error : %s", err);
+									logger.error( this._tableIdString + "[ processPendingAddChips ] updateBalance query error : %s", err);
 								} else {
 
 								}
@@ -1216,10 +1194,10 @@ export class HoldemRoom extends Room<RoomState> {
 			const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 			this._dao.SELECT_BALANCE_ByUSER_ID( e.id, (err: any, res : any ) => {
 				if (!!err) {
-					logger.error("[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
+					logger.error( this._tableIdString + "[ processPendingAddChips ] selectBalanceByUID query error : %s", err);
 				} else {
 					if (res.length <= 0) {
-						logger.error("[ processPendingAddChips ] selectBalanceByUID invalid user id");
+						logger.error( this._tableIdString + "[ processPendingAddChips ] selectBalanceByUID invalid user id");
 					} else {
 
 						e.balance = res[0]["balance"];
@@ -1244,6 +1222,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 						if ( reBuyAmount > 0 ) {
 							e.balance = balance;
+							logger.error( this._tableIdString + "[ addchips ] id: %s, name: %s, oldChips: %s, chips: %s", e.id, e.nickname, e.chips, chips );												
 							e.chips = chips;
 							e.initRoundChips = e.chips;
 							e.tableBuyInAmount += reBuyAmount;
@@ -1260,13 +1239,13 @@ export class HoldemRoom extends Room<RoomState> {
 
 							this._dao.BUY_IN(e.id, this.conf['tableID'], oldBalance, e.balance, oldChips, e.chips, reBuyAmount, (err: any, res : any) => {
 									if (!!err) {
-										logger.error("[ processPendingAddChips ] buyIn query error : %s", err);
+										logger.error( this._tableIdString + "[ processPendingAddChips ] buyIn query error : %s", err);
 									}
 								});
 
 							this._dao.UPDATE_USERS_BALANCE( e.id, e.balance, (err: any, res : any) => {
 								if (!!err) {
-									logger.error("[ processPendingAddChips ] updateBalance query error : %s", err);
+									logger.error( this._tableIdString + "[ processPendingAddChips ] updateBalance query error : %s", err);
 								}
 							});
 						}
@@ -1328,7 +1307,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.Prepare: // reset room, set dealer pos, card shuffle, pick community cards
-				logger.info( "[ changeState ] PREPARE" );
+				logger.info(  this._tableIdString + "[ changeState ] PREPARE" );
 				this.SHOWDOWN_STATE = ENUM_SHOWDOWN_STEP.NONE;
 				this._PotCalculator.Clear();
 				this.prepareRound();
@@ -1337,7 +1316,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.PreFlop: // card draw, blind bet
-				logger.info( "[ changeState ] PRE_FLOP" );
+				logger.info(  this._tableIdString + "[ changeState ] PRE_FLOP" );
 				this.centerCardState = eCommunityCardStep.PRE_FLOP;
 				this._PotCalculator.UpdateCenterCard(this.centerCardState);
 
@@ -1349,7 +1328,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.Bet:
-				logger.info( "[ changeState ] BET." );
+				logger.info(  this._tableIdString + "[ changeState ] BET." );
 				if( null !== this.bufferTimerID ) {
 					clearTimeout( this.bufferTimerID );
 					this.bufferTimerID = null;
@@ -1375,7 +1354,7 @@ export class HoldemRoom extends Room<RoomState> {
 			case eGameState.Flop:
 				this._PotCalculator.CalculatePot();
 				
-				logger.info( "[ changeState ] FLOP. card : %s", this.communityCardIndex.slice( 0, 3 ).toString() );
+				logger.info(  this._tableIdString + "[ changeState ] FLOP. card : %s", this.communityCardIndex.slice( 0, 3 ).toString() );
 
 				this._initPot = this.state.pot;
 				this.broadcast( "SHOW_FLOP", 
@@ -1391,7 +1370,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.Turn:
-				logger.info( "[ changeState ] TURN. card : %s", this.communityCardIndex.slice( 3, 4 ).toString() );
+				logger.info(  this._tableIdString + "[ changeState ] TURN. card : %s", this.communityCardIndex.slice( 3, 4 ).toString() );
 				this._initPot = this.state.pot;
 				this.broadcast( "SHOW_TURN", { 
 					cards: this.communityCardIndex.slice( 3, 4 ), 
@@ -1406,7 +1385,7 @@ export class HoldemRoom extends Room<RoomState> {
 				break;
 
 			case eGameState.River:
-				logger.info( "[ changeState ] RIVER. card : %s", this.communityCardIndex.slice( 4 ).toString() );
+				logger.info(  this._tableIdString + "[ changeState ] RIVER. card : %s", this.communityCardIndex.slice( 4 ).toString() );
 				this._initPot = this.state.pot;
 				this.broadcast( "SHOW_RIVER", { 
 					cards: this.communityCardIndex.slice( 4 ), 
@@ -1420,7 +1399,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				break;
 			case eGameState.Result:
-				logger.info( "[ changeState ] RESULT" );
+				logger.info( this._tableIdString +  "[ changeState ] RESULT" );
 				this.showdownTime = 5500;//this.conf[ "showDownTerm" ];
 				let isAllIn = false;
 				let allFold = this.isAllFold();
@@ -1444,7 +1423,7 @@ export class HoldemRoom extends Room<RoomState> {
 					}
 
 				}
-				this.finishProc( this.isAllFold(), isAllIn );				
+				this.finishProc( this.isAllFold(), isAllIn );
 
 				this.elapsedTick = 0;
 				break;
@@ -1598,7 +1577,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage );
+			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
 
 			e.rolling += rolling;
 			e.rolling_rake += rolling_rake;
@@ -1633,7 +1612,7 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( e.roundBet > 0 ) {
 				let rolling = e.roundBet;
 				let rake_back = Math.trunc( rolling * e.rake_back_rate );
-				let rolling_rake = Math.trunc( rolling * rakePercentage );
+				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
 
 				e.rolling += rolling;
 				e.rolling_rake += rolling_rake;				
@@ -1645,7 +1624,7 @@ export class HoldemRoom extends Room<RoomState> {
 					id: e.id,
 					rolling: rolling,
 					rake_back: rake_back,
-					rolling_rake: rolling_rake,					
+					rolling_rake: rolling_rake,
 				});
 	
 			}
@@ -1660,10 +1639,10 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage );			
+			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
 
 			e.rolling += rolling;
-			e.rolling_rake += rolling_rake;			
+			e.rolling_rake += rolling_rake;
 			e.rake_back += rake_back;
 			e.totalBet += rolling;						
 			e.roundBet = 0;
@@ -1691,7 +1670,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( (e)=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage );			
+			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
 
 			e.rolling += rolling;
 			e.rolling_rake += rolling_rake;			
@@ -1717,13 +1696,13 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 	
 	onRIVER_END() {
-		console.log('onRIVER_END');
+		console.log(this._tableIdString + 'onRIVER_END');
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( ( e )=>{
 			let rolling = e.roundBet;
 			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage );			
+			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
 
 			e.rolling += rolling;
 			e.rolling_rake += rolling_rake;			
@@ -1750,25 +1729,15 @@ export class HoldemRoom extends Room<RoomState> {
 	
     private async UPDATE_ROLLINGS( data: any  ) {
 		let log = 'id: ' + data.id + ' / rolling: ' + data.rolling + ' ,' + ' / rolling_rake: ' + data.rolling_rake + ' / rake_back: ' + data.rake_back;
-		logger.info( "[ UPDATE_ROLLINGS] %s",  log);
+		logger.info( this._tableIdString +  "[ UPDATE_ROLLINGS] %s",  log);
 
 		try {
-            this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
+            	await this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
 
 			});			
 		} catch (error) {
-			console.log(error);
+			console.log(this._tableIdString + error);
 		}
-
-        // return new Promise<any>( ( resolve, reject )=>{
-        //     this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
-        //         if ( err != null ) {
-        //             reject( err );
-        //             return;
-        //         }
-        //         resolve( res ); 
-        //     });
-        // });
     }	
 
 	changeCenterCardState() {
@@ -1817,7 +1786,7 @@ export class HoldemRoom extends Room<RoomState> {
 				}, 1000 );
 				break;
 			default:
-				logger.error( "[ changeCenterCardState ] invalid state : %s", this.centerCardState );
+				logger.error(  this._tableIdString + "[ changeCenterCardState ] invalid state : %s", this.centerCardState );
 				break;
 		}
 	}
@@ -1837,7 +1806,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		});
 
-		logger.info( "[ entryPlayerCount %s",  entryPlayerCount);
+		logger.info( this._tableIdString +  "[ entryPlayerCount %s",  entryPlayerCount);
 
 		this._PotCalculator.SetRoundPlayerCount(entryPlayerCount);
 
@@ -1854,7 +1823,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.communityCardIndex = [];
 		this.centerCardState = eCommunityCardStep.PREPARE;
 
-		logger.info( "[ card shuffle ]");
+		logger.info(  this._tableIdString + "[ card shuffle ]");
 
 		// card shuffle
 		for( let i = 0; i < 10; i++ ) {
@@ -1872,7 +1841,7 @@ export class HoldemRoom extends Room<RoomState> {
 			shuStr = shuStr + temp + " ";
 		}
 
-		logger.info( "[ prepareRound ] shuffle : %s ", shuStr );
+		logger.info(  this._tableIdString + "[ prepareRound ] shuffle : %s ", shuStr );
 
 		// community card pick.
 		for( this.cardPickPos = 0; this.cardPickPos < this.conf[ "communityCard" ]; this.cardPickPos++ ) {
@@ -1881,7 +1850,7 @@ export class HoldemRoom extends Room<RoomState> {
 			this.communityCardIndex.push( parseInt( this.totalCards2[ this.cardPickPos ] ) );
 		}
 
-		logger.info( "[ prepareRound ] community cards : %s ", this.communityCardString );
+		logger.info(  this._tableIdString + "[ prepareRound ] community cards : %s ", this.communityCardString );
 
 		this.resetEntities();
 
@@ -1944,7 +1913,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			if ( entity.isSitOut == true ) {
-				logger.info('[CARD_DISPENSING]SITOUT PLAYER CARD DISPENCING');
+				logger.info( this._tableIdString + '[CARD_DISPENSING]SITOUT PLAYER CARD DISPENCING');
 			}
 
 			let primary = parseInt( this.totalCards2[ this.cardPickPos++ ] );
@@ -1969,13 +1938,13 @@ export class HoldemRoom extends Room<RoomState> {
 			let hands: number = entity.statics.hands;
 			entity.statics.hands = hands + 1;
 
-			logger.info( "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
-			logger.info( "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
+			logger.info(  this._tableIdString + "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
+			logger.info(  this._tableIdString + "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
 			if ( entity.eval == null ) {
-				logger.info( "[ cardDispensing ] eval is null why?" );
-				console.error( entity );
+				logger.info(  this._tableIdString + "[ cardDispensing ] eval is null why?" );
+				console.error( this._tableIdString + entity );
 			} else {
-				logger.info( "[ cardDispensing ] eval : %s ", entity.eval );
+				logger.info(  this._tableIdString + "[ cardDispensing ] eval : %s ", entity.eval );
 			}
 		}
 	}
@@ -1988,7 +1957,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants = [];
 		this.lastBet = null;
 
-		let sbBet = this.conf["smallBlind"];
+		let sbBet: number = this.conf["smallBlind"];
 
 		if ( sb != null ) {
 			if( sb.chips > sbBet &&
@@ -1997,14 +1966,15 @@ export class HoldemRoom extends Room<RoomState> {
 				sb.roundBet = sbBet;
 				sb.totalBet = sbBet;
 				sb.isSb = true;
+				logger.info( this._tableIdString + "[ blindBet-sb] id: %s, name: %s, seat: %s, oldChips: %s, newChips: %s", sb.id, sb.nickname, sb.seat, sb.chips, sb.chips - sb.currBet );
 				sb.chips -= sb.currBet;
 				sb.ante = 0;
 				this.state.pot += sb.currBet;
 
 				try {
-					this._PotCalculator.SetBet( this.state.sbSeat, sb.totalBet, sb.eval.value, false);					
+					this._PotCalculator.SetBet( this.state.sbSeat, sb.totalBet, sb.eval.value, false);
 				} catch (error) {
-					console.log( error );
+					console.error( this._tableIdString + error );
 				}
 			}
 		}
@@ -2017,13 +1987,14 @@ export class HoldemRoom extends Room<RoomState> {
 				bb.totalBet = this.state.startBet;
 				bb.isBb = true;
 				bb.ante = 0;
+				logger.info( this._tableIdString + "[ blindBet-bb] id: %s, name: %s, seat: %s, oldChips: %s, newChips: %s", bb.id, bb.nickname, bb.seat, bb.chips, bb.chips - bb.currBet );				
 				bb.chips -= bb.currBet;
 				this.state.pot += bb.currBet;
 
 				try {
 					this._PotCalculator.SetBet( this.state.bbSeat, bb.totalBet, bb.eval.value, false);					
 				} catch (error) {
-					logger.error( error );
+					logger.error( this._tableIdString + error );
 				}
 			}
 		}
@@ -2040,7 +2011,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		let player: any[] = [];
-		let ante = this.conf['ante'];		
+		let ante: number = this.conf['ante'];		
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
 			if ( null === e || undefined === e ) {
@@ -2057,11 +2028,12 @@ export class HoldemRoom extends Room<RoomState> {
 				e.roundBet = ante;				
 				e.totalBet = ante;
 				e.ante = ante;
-				e.chips -= ante;
+				logger.info( this._tableIdString + "[ blindBet-ante] id: %s, name: %s, seat: %s, oldChips: %s, newChips: %s", e.id, e.nickname, e.seat, e.chips, e.chips - ante );								
+				e.chips -= e.ante;
 				try {
 					this._PotCalculator.SetAnte( e.seat, e.totalBet, e.eval.value, false );					
 				} catch (error) {
-					logger.error( error );
+					logger.error(  this._tableIdString + error );
 				}
 
 			}
@@ -2069,6 +2041,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		player.forEach( (p)=>{
+			logger.info( this._tableIdString + "[participants] id: %s, name: %s, seat: %s, chips: %s, rake_back_rate: %s", p.id, p.nickname, p.seat, p.chips, p.rake_back_rate );
 			this.participants.push({
 				id: p.client.auth.id,
 				seat: p.seat,
@@ -2138,10 +2111,10 @@ export class HoldemRoom extends Room<RoomState> {
 				if( true === entity.leave &&//true === entity.waitReconnection || true === entity.leave &&
 					false === entity.wait &&
 					false === entity.fold ) {
-					logger.info( "[ broadTurn ] seat %s is leave. fold", entity.seat );
+					logger.info(  this._tableIdString + "[ broadTurn ] seat %s is leave. fold", entity.seat );
 					let next = this.funcFold( entity.seat );
 					if( false === next ) {
-						console.log('false === next');
+						console.log(this._tableIdString + 'false === next');
 						return;
 					}
 				}
@@ -2187,11 +2160,11 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( null === currPlayer ) {
-			logger.error( "[ broadTurn ] %s seat player is null", this.betSeat );
+			logger.error(  this._tableIdString + "[ broadTurn ] %s seat player is null", this.betSeat );
 			return;
 		}
 
-		logger.info( "[ broadTurn ] seat : %s // player index : %s // currBet : %s // chips : %s // maxBet : %s // minRaise : %s // allin : %s",
+		logger.info(  this._tableIdString + "[ broadTurn ] seat : %s // player index : %s // currBet : %s // chips : %s // maxBet : %s // minRaise : %s // allin : %s",
 			this.betSeat, locIndex, currPlayer.currBet, currPlayer.chips, this.state.maxBet, this.state.minRaise, currPlayer.allIn );
 
 		// find max chip
@@ -2239,7 +2212,7 @@ export class HoldemRoom extends Room<RoomState> {
 			maxChip = 0;
 		}
 
-		logger.info( "[ broadTurn ] seat : %s // maxChip : %s", currPlayer.seat, maxChip );
+		logger.info(  this._tableIdString + "[ broadTurn ] seat : %s // maxChip : %s", currPlayer.seat, maxChip );
 
 		this.broadcast( "YOUR_TURN", {
 			player: currPlayer.seat,
@@ -2277,7 +2250,7 @@ export class HoldemRoom extends Room<RoomState> {
 		e.initRoundChips = e.chips;
 
 		if ( e.eval == null || e.eval.value == null ) {
-			logger.error('e.eval == null || e.eval.value == null is critical');
+			logger.error( this._tableIdString + 'e.eval == null || e.eval.value == null is critical');
 			this.broadcast( "FOLD", {
 				seat: seat
 			} );
@@ -2287,7 +2260,7 @@ export class HoldemRoom extends Room<RoomState> {
 		try {
 			this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, true );
 		} catch (error) {
-			logger.info( error );
+			logger.info(  this._tableIdString + error );
 		}
 
 		this.broadcast( "FOLD", {
@@ -2329,12 +2302,12 @@ export class HoldemRoom extends Room<RoomState> {
 			e.pendSitout = false;
 			e.sitoutTimestamp = Number ( Date.now() );
 			this.UpdateSeatInfo();
-			logger.info( "[ SIT_OUT ] %s", e.seat );			
+			logger.info(  this._tableIdString + "[ SIT_OUT ] %s", e.seat );			
 			this.broadcast( "SIT_OUT", { seat : e.seat } );
 		}
 
 		if( this.isAllFold() ) {
-			logger.info( "[ funcFold ] all fold" );
+			logger.info(  this._tableIdString + "[ funcFold ] all fold" );
 			this.bufferTimerID = setTimeout( () => {
 				this.changeState( eGameState.Result );
 			}, 1000 );
@@ -2342,7 +2315,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( this.checkCount() < 1 ) {
-			logger.info( "[ funcFold ] not player." );
+			logger.info(  this._tableIdString + "[ funcFold ] not player." );
 			this.bufferTimerID = setTimeout( () => {
 				this.changeState( eGameState.Result );
 			}, 1000 );
@@ -2352,7 +2325,7 @@ export class HoldemRoom extends Room<RoomState> {
 		if( true === this.isLastTurn( seat ) ) {
 
 			if( this.checkCount() <= 1 ) {
-				logger.info( "[ funcFold ] this is last turn" );
+				logger.info(  this._tableIdString + "[ funcFold ] this is last turn" );
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Result );
 				}, 1000 );
@@ -2476,6 +2449,7 @@ export class HoldemRoom extends Room<RoomState> {
 				winAmount = Math.trunc( potAmount / wc );
 				if ( this.lastBet != null && this.lastBet.seat == pot.winner[0] ) {
 					if ( this.lastBet.bet > 0 ) {
+						logger.info( this._tableIdString + '[LASTBET: %s] bet: %s', this.lastBet.seat, this.lastBet.bet );						
 						rake = Math.trunc( (potAmount - this.lastBet.bet) * rakePercent / wc );
 					} else {
 						rake = Math.trunc( winAmount * rakePercent );
@@ -2492,14 +2466,15 @@ export class HoldemRoom extends Room<RoomState> {
 					rake = Math.trunc( winAmount * rakePercent );
 				}				
 			}
-
 			winAmount -= rake;
+			logger.info( this._tableIdString + '[-----------------]');
+			logger.info( this._tableIdString + '[POT: %s] total: %s / player: %s / winner: %s / estimate rake: %s ', i, potAmount, pot.players, pot.winner, rake );
 
 			for(let j = 0; j < pot.winner.length ; j++){
 				let entity = this.getEntity( pot.winner[j] );
 
 				if ( entity !== null && entity !== undefined ) {
-
+					logger.info( this._tableIdString + "[WINNERS] id: %s, name: %s, seat: %s, chips: %s, win: %s, newChips: %s", entity.id, entity.nickname, entity.seat, entity.chips, winAmount, entity.chips + winAmount );
 					entity.chips += winAmount;
 					entity.winAmount += winAmount;
 					if ( entity.eval == null || entity.eval.handName == null ) {
@@ -2694,12 +2669,16 @@ export class HoldemRoom extends Room<RoomState> {
 			let entity = this.getEntity( et.seat );
 			if ( entity != null ) {
 				try {
+					if ( entity.seat > -1 ) {
+						logger.info( this._tableIdString + "[HAND-END] id: %s, name: %s, seat: %s, balance: %s, chips: %s", entity.id, entity.nickname, entity.seat, entity.balance, entity.chips );
+					}
+
 					this._dao.UPDATE_STATICS( entity.id, entity.statics, ( err: any, res: any )=>{
 
 					});
 
 				} catch (error) {
-					console.log( error );
+					console.log( this._tableIdString + error );
 				}
 			}
 		} );
@@ -2741,7 +2720,7 @@ export class HoldemRoom extends Room<RoomState> {
 			this.participants = [];
 
 		} catch ( error ) {
-			console.log( error );
+			console.log( this._tableIdString + error );
 		}
 	}
 
@@ -2776,7 +2755,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	updateEndSeat( currBetSeat: number, reOpen: boolean ) {
-		logger.info( "[ updateEndSeat ] [ BET ] previous seat : %s // curr seat : %s", this.betSeat, currBetSeat );
+		logger.info(  this._tableIdString + "[ updateEndSeat ] [ BET ] previous seat : %s // curr seat : %s", this.betSeat, currBetSeat );
 		this.betSeat = currBetSeat;
 		let locBetSeat: number = this.betSeat;
 		let find = false;
@@ -2788,7 +2767,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 
 			if( locBetSeat === this.betSeat ) {
-				logger.error( "[ updateEndSeat ] what happening?!" );
+				logger.error(  this._tableIdString + "[ updateEndSeat ] what happening?!" );
 				// this.changeState(eGameState.Result);
 				// break;
 			}
@@ -2810,7 +2789,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		logger.info( "[ updateEndSeat ] bet seat : %s // end seat [ %s ] to [ %s ]", this.betSeat, this.endSeat, locBetSeat );
+		logger.info(  this._tableIdString + "[ updateEndSeat ] bet seat : %s // end seat [ %s ] to [ %s ]", this.betSeat, this.endSeat, locBetSeat );
 		this.endSeat = locBetSeat;
 	}
 
@@ -2851,7 +2830,7 @@ export class HoldemRoom extends Room<RoomState> {
 				r += 1;
 			}
 		}
-		logger.info( "[ checkCount ] remain player : %s", r );
+		logger.info(  this._tableIdString + "[ checkCount ] remain player : %s", r );
 		return r;
 	}
 
@@ -2862,7 +2841,7 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		logger.error( "[ getEntity ] no entity" );
+		logger.error( this._tableIdString +  "[ getEntity ] no entity" );
 		return null;
 	}
 
@@ -2874,11 +2853,11 @@ export class HoldemRoom extends Room<RoomState> {
 	kickPlayer(sessionId : string, returnCode : number){
 		
 		if(returnCode < 4000){
-			console.error("returnCode Is Already took by system please use < 4000");
+			console.error( this._tableIdString + "returnCode Is Already took by system please use < 4000");
 			return;
 		}
 
-		logger.info("Kick Player SessionID : " + sessionId + "  returnCode : " + returnCode);
+		logger.info( this._tableIdString + "Kick Player SessionID : " + sessionId + "  returnCode : " + returnCode);
 
 		delete this._buyInWaiting[ sessionId ];
 		delete this._rejoinWaiting[ sessionId ];
@@ -2893,7 +2872,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let runaway = this.findEntityBySessionID( sessionId );
 		if( null === runaway || undefined === runaway ) {
-			logger.error( "[ kickPlayer ] entity is null" );
+			logger.error(  this._tableIdString + "[ kickPlayer ] entity is null" );
 			return;
 		}
 
@@ -2953,7 +2932,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
 				if (null != err) {
-					logger.error(err);
+					logger.error( this._tableIdString + err);
 				}
 			});
 
@@ -2969,7 +2948,7 @@ export class HoldemRoom extends Room<RoomState> {
 			this.state.entities.splice( idx, 1 );
 		}
 		else {
-			logger.error( "[ handleEscapee ] why??. seat : %s", entity.seat);
+			logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", entity.seat);
 		}
 
 		this.UpdateSeatInfo();
@@ -3000,7 +2979,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if(null != auth && undefined != auth){
 			this.OnLoadDoneFirstJoin(client, auth);
-			logger.info(" OnLoadDone - _buyInWaiting : " + client.sessionId);
+			logger.info( this._tableIdString + " OnLoadDone - _buyInWaiting : " + client.sessionId);
 			return;
 		}
 
@@ -3008,20 +2987,20 @@ export class HoldemRoom extends Room<RoomState> {
 		
 		if(null != auth && undefined != auth){
 			this.OnLoadDoneRejoin(client, auth);
-			logger.info(" OnLoadDone - _rejoinWaiting : " + client.sessionId);
+			logger.info( this._tableIdString + " OnLoadDone - _rejoinWaiting : " + client.sessionId);
 			return;
 		}
 
-		logger.error("OnLoadDone - Player Call LoadDone But No waiting exist");
+		logger.error( this._tableIdString + "OnLoadDone - Player Call LoadDone But No waiting exist");
 	}
 
 	onBUY_IN( client: Client, msg: any ) {
 		try {
-			logger.info( "[ onBuyIn ] msg : %s", msg );
+			logger.info(  this._tableIdString + "[ onBuyIn ] msg : %s", msg );
 
 			let entity = this.findEntityBySessionID( client.sessionId );
 			if( null === entity || undefined === entity ) {
-				logger.error( "[ onBuyIn ] entity is null" );
+				logger.error(  this._tableIdString + "[ onBuyIn ] entity is null" );
 				return;
 			}
 
@@ -3041,12 +3020,12 @@ export class HoldemRoom extends Room<RoomState> {
 
 			this._dao.SELECT_BALANCE_ByUSER_ID( entity.id, ( err: any, res: any ) => {
 				if( !!err ) {
-					logger.error( "[ onBuyIn ] selectBalanceByUID query error : %s", err );
+					logger.error( this._tableIdString +  "[ onBuyIn ] selectBalanceByUID query error : %s", err );
 					return;
 				}
 
 				if( res.length <= 0 ) {
-					logger.error( "[ onBuyIn ] selectBalanceByUID invalid user id" );
+					logger.error(  this._tableIdString + "[ onBuyIn ] selectBalanceByUID invalid user id" );
 					return;
 				}
 				else {
@@ -3073,17 +3052,17 @@ export class HoldemRoom extends Room<RoomState> {
 					entity.balance, oldChips, entity.chips, buyInAmount, ( err: any, res: any ) => 
 					{
 						if( !!err ) {
-							logger.error( "[ onBuyIn ] buyIn query error : %s", err );
+							logger.error(  this._tableIdString + "[ onBuyIn ] buyIn query error : %s", err );
 						}
 					} );
 
 					this._dao.UPDATE_USERS_BALANCE( entity.id, entity.balance, ( err: any, res: any ) => {
 						if( !!err ) {
-							logger.error( "[ onBuyIn ] updateBalance query error : %s", err );
+							logger.error(  this._tableIdString + "[ onBuyIn ] updateBalance query error : %s", err );
 						}
 					} );
 
-					logger.info( "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
+					logger.info(  this._tableIdString + "[ onBuyIn ] balance(%s), chips(%s), buyInAmount(%s)", entity.balance, entity.chips, buyInAmount );
 
 					let openCards: number[] = [];
 					switch( this.centerCardState ) {
@@ -3211,16 +3190,15 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onCHECK( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onCheck ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			logger.error(  this._tableIdString + "[ onCheck ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
 		}
 
-		logger.info( "[ onCheck ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
 		let e = this.getEntity( msg[ "seat" ] );
+		logger.info(  this._tableIdString + "[ onCHECK ] seat: %s // name %s // chips %s // send msg : %s", e.seat, e.nickname, e.chips, msg );
 
 		if(e.fold === true){
-			logger.error("onCheck - player " + msg["seat"] + " is fold but try Check");
+			logger.error( this._tableIdString + "onCheck - player " + msg["seat"] + " is fold but try Check");
 			return;
 		}
 
@@ -3237,7 +3215,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.elapsedTick = 0;
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onCheck ] this is last turn" );
+			logger.info( this._tableIdString +  "[ onCheck ] this is last turn" );
 			this.changeCenterCardState();
 			return;
 		}
@@ -3247,17 +3225,14 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onCALL( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			logger.error(  this._tableIdString + "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
 		}
 
-		logger.info( "[ onCALL ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
 		let amount = msg["betAmount"];
 		let e = this.getEntity( msg[ "seat" ] );
-
 		if(e.fold === true){
-			logger.error("onCall - player " + msg["seat"] + " is fold but try Call");
+			logger.error( this._tableIdString + "onCall - player " + msg["seat"] + " is fold but try Call");
 			return;
 		}
 
@@ -3266,8 +3241,10 @@ export class HoldemRoom extends Room<RoomState> {
 		if( true == isAllIn ) {
 			e.allIn = 1;
 			bet = e.chips;
-			logger.info( "[ onCall ] all-in" );
+			logger.info(  this._tableIdString + "[ onCall ] all-in" );
 		}
+
+		logger.info(  this._tableIdString + "[ onCALL ] seat: %s // name %s // oldChips %s // newChips %s // send msg : %s", e.seat, e.nickname, e.chips, e.chips - bet, msg );
 
 		e.currBet += bet;
 		e.roundBet += bet;
@@ -3278,7 +3255,12 @@ export class HoldemRoom extends Room<RoomState> {
 		e.timeLimitCount = 0;
 
 		this.state.pot += bet;
-		this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);
+
+		try {
+			this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);			
+		} catch (error) {
+			logger.error( this._tableIdString + error );
+		}
 
 		let p = this.participants.find( (player)=>{
 			return e.seat == player.seat;
@@ -3303,7 +3285,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
 			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onCall ] round finished." );
+				logger.info( this._tableIdString +  "[ onCall ] round finished." );
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Result );
 				}, 500 );
@@ -3320,35 +3302,32 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onBET( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			logger.error(  this._tableIdString + "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
 		}
 
-		logger.info( "[ onBET ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
 		if( msg[ "betAmount" ] < this.state.startBet ) {
-			logger.error( "[ onBet ] bet amount is larger than startBet??" );
+			logger.error(  this._tableIdString + "[ onBet ] bet amount is larger than startBet??" );
 		}
 
 		let e = this.getEntity( msg[ "seat" ] );
-		
 		if(e.fold === true){
-			logger.error("onBet - player " + msg["seat"] + " is fold but try bet");
+			logger.error( this._tableIdString + "onBet - player " + msg["seat"] + " is fold but try bet");
 			return;
 		}
 
 		if( msg[ "betAmount" ] > e.chips ) {
-			logger.error( "[ onBet ] bet > stack!!!" );
+			logger.error( this._tableIdString +  "[ onBet ] bet > stack!!!" );
 			msg[ "betAmount" ] = e.chips;
 		}
 
 		let callValue = msg['callValue'];
 		let betValue = msg[ "betAmount" ];
-
+		logger.info(  this._tableIdString + "[ onBET ] seat: %s // name %s // chips %s // amount %s // newChips %s // send msg : %s", e.seat, e.nickname, e.chips, msg[ "betAmount" ], e.chips - betValue, msg );
 		e.chips -= betValue;
 
 		if( e.chips <= 0 ) {
-			logger.info( "[ onBet ] allin" );
+			logger.info(  this._tableIdString + "[ onBet ] allin" );
 			e.chips = 0;
 			e.allIn = 1;
 		}
@@ -3381,7 +3360,7 @@ export class HoldemRoom extends Room<RoomState> {
 		try {
 			this._PotCalculator.SetBet(e.seat, e.totalBet, e.eval.value, false);			
 		} catch (error) {
-			logger.error( error );
+			logger.error(  this._tableIdString + error );
 		}
 
 		let p = this.participants.find( (player)=>{
@@ -3410,14 +3389,13 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onRAISE( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			logger.error(  this._tableIdString + "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
 		}
-		logger.info( "[ onRAISE ] player index : %s // send msg : %s", msg[ "seat" ], msg );
 		let e = this.getEntity( msg[ "seat" ] );
 
 		if(e.fold === true){
-			logger.error("onRaise - player " + msg["seat"] + " is fold but try Raise");
+			logger.error( this._tableIdString + "onRaise - player " + msg["seat"] + " is fold but try Raise");
 			return;
 		}
 
@@ -3427,7 +3405,6 @@ export class HoldemRoom extends Room<RoomState> {
 		let locBet = betValue;
 
 		let locChangeEndSeat = false;
-		logger.info( "[ onRaise ] player index : %s // send msg : %s", msg[ "seat" ], msg );
 
 		this.state.maxBet = locBet;
 		this.state.minRaise = this.state.maxBet;
@@ -3436,11 +3413,12 @@ export class HoldemRoom extends Room<RoomState> {
 		let bet = this.state.maxBet - e.currBet;
 
 		if( bet >= e.chips ) {
-			logger.info( "[ onRaise ] allin?? But??" );
+			logger.info( this._tableIdString + "[ onRAISE ] ALLIN" );
 			e.allIn = 1;
 			bet = e.chips;
 		}
 
+		logger.info(  this._tableIdString + "[ onRAISE ] seat: %s // name %s // chips %s // amount %s // newChips %s // send msg : %s", e.seat, e.nickname, e.chips, msg[ "betAmount" ], e.chips - bet, msg );
 		e.chips -= bet;
 		e.currBet += bet;
 		e.roundBet += bet;
@@ -3483,7 +3461,7 @@ export class HoldemRoom extends Room<RoomState> {
 		} );
 
 		if( this.checkCount() < 1 ) {
-			logger.info( "[ onRaise ] round finished." );
+			logger.info(  this._tableIdString + "[ onRaise ] round finished." );
 			this.bufferTimerID = setTimeout( () => {
 				this.changeState( eGameState.Result );
 			}, 500 );
@@ -3492,15 +3470,15 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( locChangeEndSeat ) {
-			logger.info( "[ onRaise ] max bet updated. change end seat??" );
+			logger.info(  this._tableIdString + "[ onRaise ] max bet updated. change end seat??" );
 			this.updateEndSeat( e.seat , true);
 		}
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onRaise ] this is last turn" );
+			logger.info(  this._tableIdString + "[ onRaise ] this is last turn" );
 
 			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onRaise ] round finished." );
+				logger.info( this._tableIdString + "[ onRaise ] round finished." );
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Result );
 				}, 1000 );
@@ -3518,15 +3496,14 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onALLIN( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s",
+			logger.error(  this._tableIdString + "[ onRaiseShort ] INVALID RAISE_SHORT. seat : %s // now state : %s",
 				msg[ "seat" ], this.state.gameState );
 			return;
 		}
-		logger.info( "[ onALLIN ] player index : %s // send msg : %s", msg[ "seat" ], msg );
 
 		let e = this.getEntity( msg[ "seat" ] );
 		if(e.fold === true){
-			logger.error("onAllIn - player " + msg["seat"] + " is fold but try AllIn");
+			logger.error( this._tableIdString + "onAllIn - player " + msg["seat"] + " is fold but try AllIn");
 			return;
 		}
 
@@ -3544,6 +3521,8 @@ export class HoldemRoom extends Room<RoomState> {
 		if ( bet < callValue ) {
 			callValue = bet;
 		}
+
+		logger.info(  this._tableIdString + "[ onALLIN ] seat: %s // name %s // chips %s // amount %s // newChips %s // send msg : %s", e.seat, e.nickname, e.chips, msg[ "betAmount" ], e.chips - bet, msg );		
 
 		e.chips -= bet;
 		e.currBet += bet;
@@ -3568,7 +3547,7 @@ export class HoldemRoom extends Room<RoomState> {
 		try {
 			this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false);			
 		} catch (error) {
-			logger.error( error );
+			logger.error(  this._tableIdString + error );
 		}
 
 		let p = this.participants.find( (player)=>{
@@ -3597,15 +3576,15 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( locChangeEndSeat ) {
-			logger.info( "[ onRaise ] max bet updated. change end seat" );
+			logger.info( this._tableIdString +  " this._tableIdString + [ onRaise ] max bet updated. change end seat" );
 			this.updateEndSeat( e.seat , false);
 		}
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info( "[ onRaise ] this is last turn" );
+			logger.info(  this._tableIdString + " this._tableIdString + [ onRaise ] this is last turn" );
 
 			if( this.checkCount() <= 1 ) {
-				logger.info( "[ onRaise ] round finished." );
+				logger.info( " this._tableIdString + [ onRaise ] round finished." );
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Result );
 				}, 1000 );
@@ -3624,16 +3603,16 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onFOLD( client: Client, msg: any ) {
 		if( eGameState.Bet !== this.state.gameState ) {
-			logger.error( "[ onFold ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
+			logger.error(  this._tableIdString + "[ onFold ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
 		}
 
-		logger.info( "[ onFOLD ] player index : %s // send msg : %s", msg[ "seat" ], msg );
-
 		let e = this.getEntity(  msg[ "seat" ] );
+		logger.info(  this._tableIdString + "[ onFOLD ] seat: %s // name %s // chips %s // send msg : %s", e.seat, e.nickname, e.chips, msg );		
+
 		if ( e != null ) {
 			if(e.fold === true){
-				logger.error(" onFold - player " + e.seat + " is fold but try fold");
+				logger.error( this._tableIdString + " onFold - player " + e.seat + " is fold but try fold");
 				return;
 			}
 			
@@ -3646,7 +3625,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onRE_BUY( client: Client, msg: any ) {
-		logger.info( "[ onReBuy ] msg : %s", msg );
+		logger.info(  this._tableIdString + "[ onReBuy ] msg : %s", msg );
 		let locSeatIndex = msg[ "seat" ];
 		let locBuyAmount = msg[ "amount" ];
 		let code = -1;
@@ -3661,7 +3640,7 @@ export class HoldemRoom extends Room<RoomState> {
 			e = this.state.entities[ idx ];
 		}
 		if( null === e ) {
-			logger.error( "[ onReBuy ] entity is null. seat(%s), msg(%s)", locSeatIndex, JSON.stringify( msg ) );
+			logger.error(  this._tableIdString + "[ onReBuy ] entity is null. seat(%s), msg(%s)", locSeatIndex, JSON.stringify( msg ) );
 			return client.send( "RES_RE_BUY", {
 				resultCode: -1,
 				amount: 0,
@@ -3672,40 +3651,40 @@ export class HoldemRoom extends Room<RoomState> {
 		} else {
 			this._dao.SELECT_BALANCE_ByUSER_ID( e.id, ( err: any, res: any ) => {
 				if( !!err ) {
-					logger.error( "[ onReBuy ] selectBalanceByUID query error : %s", err );
+					logger.error(  this._tableIdString + "[ onReBuy ] selectBalanceByUID query error : %s", err );
 				}
 				else {
 					if( res.length <= 0 ) {
-						logger.error( "[ onReBuy ] selectBalanceByUID invalid user id" );
+						logger.error( this._tableIdString +  "[ onReBuy ] selectBalanceByUID invalid user id" );
 					}
 					else {
 						e.balance = res[0]["balance"];
 						let oldBalance = e.balance;
 						let oldChips = e.chips;
 
-						logger.info( "[ onReBuy ] seat : %s // wait : %s // balance : %s // buy amount : %s",
+						logger.info(  this._tableIdString + "[ onReBuy ] seat : %s // wait : %s // balance : %s // buy amount : %s",
 							locSeatIndex, e.wait, e.balance, locBuyAmount );
 		
 						//check chips
 						if( e.chips >= this.conf[ "minStakePrice" ] ) {
-							logger.warn( "[ onReBuy ] already enough chips. your chip : %s // min stake : %s", e.chips, this.conf[ "minStakePrice" ] );
+							logger.warn(  this._tableIdString + "[ onReBuy ] already enough chips. your chip : %s // min stake : %s", e.chips, this.conf[ "minStakePrice" ] );
 							message = "You can't stack any more chips.";
 							code = 1;
 						}
 						else if( e.fold === false && ( this.state.gameState >= eGameState.Prepare &&
 								this.state.gameState <= eGameState.Result ) &&
 							e.wait === false ) {
-							logger.warn( "[ onReBuy ] You can't buy chips during the game. gameState : %s", this.state.gameState );
+							logger.warn( this._tableIdString +  "[ onReBuy ] You can't buy chips during the game. gameState : %s", this.state.gameState );
 							message = "You can only purchase chips in a fold or wait state.";
 							code = 1;
 						}
 						else if( e.balance <= 0 ) {
-							logger.warn( "[ onReBuy ] not enough balance. balance : %s", e.balance );
+							logger.warn( this._tableIdString +  "[ onReBuy ] not enough balance. balance : %s", e.balance );
 							code = 1;
 							message = "not enough balance.";
 						}
 						else if( e.balance <= locBuyAmount ) {
-							logger.warn( "[ onReBuy ] It has less balance than the chip you want to purchase. balance : %s // desired chips : %s",
+							logger.warn(  this._tableIdString + "[ onReBuy ] It has less balance than the chip you want to purchase. balance : %s // desired chips : %s",
 								e.balance, locBuyAmount );
 							code = 0;
 							chips = e.balance;// entity.chips = entity.balance;
@@ -3716,19 +3695,19 @@ export class HoldemRoom extends Room<RoomState> {
 							e.balance -= locBuyAmount;
 							chips = locBuyAmount;// entity.chips = locBuyAmount;
 			
-							logger.info( "[ onReBuy ] succeed. balance : %s // chips : %s", e.balance, chips );
+							logger.info(  this._tableIdString + "[ onReBuy ] succeed. balance : %s // chips : %s", e.balance, chips );
 						}
 			
 						if( 0 === code ) {
 							e.chips = e.chips + chips;
 							e.initRoundChips = e.chips;
-							logger.info( "[ onReBuy ] entity state. chips : %s // enough chip : %s // wait : %s", e.chips, e.enoughChip, e.wait );
+							logger.info(  this._tableIdString + "[ onReBuy ] entity state. chips : %s // enough chip : %s // wait : %s", e.chips, e.enoughChip, e.wait );
 				
 							if( eGameState.Suspend === this.state.gameState ) {
 								e.isNew = false;
 								let isStart = this.checkStartCondition();
 								if ( true === isStart ) {
-									logger.info( "[ onReBuy ] GAME STATE TO READY" );
+									logger.info(  this._tableIdString + "[ onReBuy ] GAME STATE TO READY" );
 									this.changeState( eGameState.Ready );
 								}
 							} else if ( eGameState.Ready === this.state.gameState ) {
@@ -3738,17 +3717,17 @@ export class HoldemRoom extends Room<RoomState> {
 			
 						this._dao.BUY_IN( e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, locBuyAmount, ( err: any, res: any ) => {
 							if( !!err ) {
-								logger.error( "[ onReBuy ] buyIn query error : %s", err );
+								logger.error(  this._tableIdString + "[ onReBuy ] buyIn query error : %s", err );
 							}
 						} );
 				
 						this._dao.UPDATE_USERS_BALANCE( e.id, e.balance, ( err: any, res: any ) => {
 							if( !!err ) {
-								logger.error( "[ onReBuy ] updateBalance query error : %s", err );
+								logger.error(  this._tableIdString + "[ onReBuy ] updateBalance query error : %s", err );
 							}
 						} );
 				
-						logger.info( "[ onReBuy ] done. send packet to client. result code : %s // msg : %s", code, message );
+						logger.info( this._tableIdString +  "[ onReBuy ] done. send packet to client. result code : %s // msg : %s", code, message );
 
 						e.tableBuyInAmount += locBuyAmount;
 						e.tableBuyInCount ++;
@@ -3769,7 +3748,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onADD_CHIPS_REQUEST( client: Client, msg: any ) {
-		logger.info("onAddChipsRequest : msg(%s)", msg);
+		logger.info( this._tableIdString + "onAddChipsRequest : msg(%s)", msg);
 		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 		let res: number = -1;
 
@@ -3787,11 +3766,11 @@ export class HoldemRoom extends Room<RoomState> {
 		} else {
 			this._dao.SELECT_BALANCE_ByUSER_ID(e.id, (err: any, res : any) => {
 				if (!!err) {
-					logger.error("[ onAddChipsRequest ] selectBalanceByUID query error : %s", err);
+					logger.error( this._tableIdString + "[ onAddChipsRequest ] selectBalanceByUID query error : %s", err);
 				}
 				else {
 					if (res.length <= 0) {
-						logger.error("[ onAddChipsRequest ] selectBalanceByUID invalid user id");
+						logger.error( this._tableIdString + "[ onAddChipsRequest ] selectBalanceByUID invalid user id");
 					}
 					else {
 						e.balance = res[0]["balance"];
@@ -3802,7 +3781,7 @@ export class HoldemRoom extends Room<RoomState> {
 						}
 
 						res = this.checkReBuyCondition(e, max, false );
-						logger.error("checkReBuyCondition res:%d, initChip: %d", res, e.initRoundChips);
+						logger.error( this._tableIdString + "checkReBuyCondition res:%d, initChip: %d", res, e.initRoundChips);
 						client.send( "RES_ADD_CHIPS_REQUEST", {
 							code: res,
 							balance: e.balance,
@@ -3818,7 +3797,7 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onADD_CHIPS( client: Client, msg: any ) {
-		logger.info( "[ onAddChips ] msg(%s)", msg );
+		logger.info( this._tableIdString +  "[ onAddChips ] msg(%s)", msg );
 		const MAX_BUY_IN: number = this.conf["maxStakePrice"];
 
 		let seat = msg[ "seat" ];
@@ -3837,11 +3816,11 @@ export class HoldemRoom extends Room<RoomState> {
 			} else {
 				this._dao.SELECT_BALANCE_ByUSER_ID( e.id, (err: any, res : any ) => {
 					if (!!err) {
-						logger.error("[ onAddChips ] selectBalanceByUID query error : %s", err);
+						logger.error( this._tableIdString + "[ onAddChips ] selectBalanceByUID query error : %s", err);
 					}
 					else {
 						if (res.length <= 0) {
-							logger.error("[ onAddChips ] selectBalanceByUID invalid user id");
+							logger.error( this._tableIdString + "[ onAddChips ] selectBalanceByUID invalid user id");
 						}
 						else {
 							e.balance = res[0]["balance"];
@@ -3849,18 +3828,18 @@ export class HoldemRoom extends Room<RoomState> {
 							let oldChips = e.chips;
 	
 							let gap = MAX_BUY_IN - (e.initRoundChips + amount);
-							logger.info( "[ onAddChips ] e.initRoundChips: %d, gap : %d", e.initRoundChips, gap );
+							logger.info(  this._tableIdString + "[ onAddChips ] e.initRoundChips: %d, gap : %d", e.initRoundChips, gap );
 			
 							if ( gap < 0) {
 								amount = amount + gap;
 							}
 			
 							code = this.checkReBuyCondition(e, amount, true );
-							logger.info( "[ onAddChips ] amount: %d, code : %d", amount, code );
+							logger.info(  this._tableIdString + "[ onAddChips ] amount: %d, code : %d", amount, code );
 			
 							let pending: boolean = false;
 							if ( -1 === code || null === e || undefined === e) {
-								logger.error( "[ onAddChips ] why??" );
+								logger.error(  this._tableIdString + "[ onAddChips ] why??" );
 								client.send( "RES_ADD_CHIPS", {
 									code: -1,
 									balance: -1,
@@ -3888,13 +3867,13 @@ export class HoldemRoom extends Room<RoomState> {
 			
 									this._dao.BUY_IN(e.id, this.conf["tableID"], oldBalance, e.balance, oldChips, e.chips, amount, (err: any, res : any) => {
 										if (!!err) {
-											logger.error("[ onAddChips ] buyIn query error : %s", err);
+											logger.error( this._tableIdString + "[ onAddChips ] buyIn query error : %s", err);
 										}
 									});
 					
 									this._dao.UPDATE_USERS_BALANCE(e.id, e.balance, (err: any, res : any) => {
 										if (!!err) {
-											logger.error("[ onAddChips ] updateBalance query error : %s", err);
+											logger.error( this._tableIdString + "[ onAddChips ] updateBalance query error : %s", err);
 										}
 									});
 								} else {
@@ -3938,16 +3917,16 @@ export class HoldemRoom extends Room<RoomState> {
 
 	onSHOW_CARD(client: Client, msg: any){
 		let seat = msg["seat"];
-		logger.info("OnShowCard - Seat : " + seat);
+		logger.info( this._tableIdString + "OnShowCard - Seat : " + seat);
 		if(eGameState.Result != this.state.gameState){
-			logger.error("OnShowCard GameState is Not ShowDown");
+			logger.error( this._tableIdString + "OnShowCard GameState is Not ShowDown");
 			return;
 		}
 		
 		let entity = this.getEntity(seat);
 
 		if(null == entity){
-			logger.error("OnShowCard entity is null SeatNumber : " + seat);
+			logger.error( this._tableIdString + "OnShowCard entity is null SeatNumber : " + seat);
 			return;
 		}
 		this.broadcast( "SHOW_CARD", { seat: entity.seat, cards: entity.cardIndex } );
@@ -3956,23 +3935,23 @@ export class HoldemRoom extends Room<RoomState> {
 	private onSIT_OUT(client : Client, msg : any){
 		let seat: number = msg['seat'];
 		if ( seat == null ) {
-			logger.error(" [ onSIT_OUT ] Seat number is null!" + msg);			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] Seat number is null!" + msg);			
 		}
 
 		let player = this.getEntity( seat );
 		if ( player == null ) {
-			logger.error(" [ onSIT_OUT ] Can't find player!" + msg);
+			logger.error( this._tableIdString + " [ onSIT_OUT ] Can't find player!" + msg);
 		}
 
 		if ( player.isSitOut == true ) {
-			logger.error(" [ onSIT_OUT ] The seat " + seat + ' is already sitout but try sit-out again');			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] The seat " + seat + ' is already sitout but try sit-out again');			
 		}
 
 		if ( player.wait == true || player.fold == true ) {
 			player.isSitOut = true;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );
-			logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');
+			logger.error( this._tableIdString + " [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');
 			this.broadcast("SIT_OUT", { seat : player.seat });
 			this.UpdateSeatInfo();
 			return;
@@ -3983,7 +3962,7 @@ export class HoldemRoom extends Room<RoomState> {
 			player.isSitOut = true;
 			player.pendSitout = false;
 			player.sitoutTimestamp = Number( Date.now() );
-			logger.error(" [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] The seat " + player.seat + ' is SIT_OUT');			
 			this.broadcast("SIT_OUT", { seat : player.seat });
 			this.UpdateSeatInfo();
 
@@ -3998,12 +3977,12 @@ export class HoldemRoom extends Room<RoomState> {
 	private onSIT_OUT_CANCEL(client : Client, msg : any){
 		let seat: number = msg["seat"];
 		if ( seat == null ) {
-			logger.error(" [ onSIT_OUT ] onSIT_OUT fail seat is null " + msg);
+			logger.error( this._tableIdString + " [ onSIT_OUT ] onSIT_OUT fail seat is null " + msg);
 		}
 
 		let player = this.getEntity( seat );
 		if ( player == null ) {
-			logger.error(" [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);			
 		}
 
 		player.pendSitout = false;
@@ -4016,16 +3995,16 @@ export class HoldemRoom extends Room<RoomState> {
 	private onSIT_BACK( client : Client, msg : any ){
 		let seat : number = msg["seat"];
 		if ( seat == null ) {
-			logger.error(" [ onSIT_BACK ] onSIT_BACK fail seat is null " + msg);
+			logger.error( this._tableIdString + " [ onSIT_BACK ] onSIT_BACK fail seat is null " + msg);
 		}
 
 		let player = this.getEntity(seat);
 		if ( player == null ) {
-			logger.error(" [ onSIT_BACK ] onSIT_BACK fail can't find player " + msg);
+			logger.error( this._tableIdString + " [ onSIT_BACK ] onSIT_BACK fail can't find player " + msg);
 		}
 
 		if ( player.isSitOut == false ) {
-			logger.error(" [ onSIT_BACK ] The seat " + seat + ' is not sitback but try sitback again');			
+			logger.error( this._tableIdString + " [ onSIT_BACK ] The seat " + seat + ' is not sitback but try sitback again');			
 		}
 
 		player.isSitOut = false;
@@ -4047,7 +4026,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			let isSTART = this.checkStartCondition();
 			if ( true === isSTART ) {
-				logger.info( "[ onSitBack ] GAME STATE TO READY" );
+				logger.info(  this._tableIdString + "[ onSitBack ] GAME STATE TO READY" );
 				this.changeState( eGameState.Ready );
 			}
 		} 
@@ -4199,7 +4178,7 @@ export class HoldemRoom extends Room<RoomState> {
 					id: id
 				}, (err: any, res: boolean) => {
 					if (null != err) {
-						logger.error(err);
+						logger.error( this._tableIdString + err);
 					}
 				});
 			}

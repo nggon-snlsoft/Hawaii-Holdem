@@ -8,13 +8,15 @@ export class DealerCalculation {
     private players: number = -1;
 
     private firstRound: boolean = false;
+    private tableidString: string = '';
 
-    public init(maxSeats: number):number {
+    public init(maxSeats: number, tableid: string):number {
         this.dealer = 0;
         this.sb = -1;
         this.bb = -1;
         this.maxSeats = maxSeats;
         this.firstRound = true;
+        this.tableidString = tableid;
         return this.dealer;
     }
 
@@ -275,7 +277,7 @@ export class DealerCalculation {
                 if (entity.missBb == false) {
                     entity.missBb = true;
                 } else {
-                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    logger.error(this.tableidString + "player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
                     entity.leave = true;
                     entity.longSitOut = true;
                 }
@@ -320,7 +322,6 @@ export class DealerCalculation {
 
             if ( e.dealable == true && e.wait == false && e.isSitOut == false) {
                 seat = e.seat;
-                //logger.error("Last Blinder is %s ", e.seat)
                 break;
             }
         }
@@ -343,7 +344,6 @@ export class DealerCalculation {
             }
 
             if ( e.wait === false && e.isSitOut === false) {
-                logger.error("No Last Blinder is %s ", e.seat)
                 seat = e.seat;
                 break;
             }

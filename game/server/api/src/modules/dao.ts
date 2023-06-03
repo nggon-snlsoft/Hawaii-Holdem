@@ -467,6 +467,31 @@ dao.SELECT_PARTNERS_ByPARTNER_ID = function ( id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM DISTRIBUTORS WHERE ID = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
 dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
 	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';

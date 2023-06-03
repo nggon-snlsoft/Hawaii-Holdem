@@ -7,21 +7,19 @@ export class PotCalculation {
   private pots: any[];
   private playerCount: number = 0;
   private rakePercentage: number = 0;
-  // private rakeCap: number[] = [];
   private useRake: boolean = false;
-  // private flopRake : boolean = false;
   public userRakeInfo: any[] = [];
   public deadBlind : number = 0;
   public antes: number = 0;
+  private tableid: string = '';
 
   private centerCardState : eCommunityCardStep = eCommunityCardStep.PREPARE;
   public rakeTotal : number = 0;
 
-  constructor( useRake: boolean, rakePercentage: number /*, rakeCap: number[], flopRake : boolean*/ ) {
+  constructor( useRake: boolean, rakePercentage: number, tableid: string ) {
+    this.tableid = tableid;
     this.rakePercentage = rakePercentage;
-    // this.rakeCap = rakeCap;
     this.useRake = useRake;
-    // this.flopRake = flopRake;
     
     this.Clear();
   }
@@ -36,7 +34,7 @@ export class PotCalculation {
 
   public UpdateCenterCard(state : eCommunityCardStep){
     this.centerCardState = state;
-    logger.error("CenterState Changed : " + state);
+    logger.error( this.tableid + "CenterState Changed : " + state);
   }
 
   public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
@@ -65,7 +63,7 @@ export class PotCalculation {
   
       this.CalculatePot();      
     } catch (error) {
-      logger.error( error );      
+      logger.error( this.tableid + error );      
     }
   }
 
@@ -102,7 +100,7 @@ export class PotCalculation {
   
       this.CalculatePot();      
     } catch (error) {
-      logger.error( error );      
+      logger.error( this.tableid + error );      
     }
   }  
 
@@ -264,7 +262,7 @@ export class PotCalculation {
   private CalculateRake() {
 
     if (null == this.pots || null == this.player) {
-      logger.error(" pot : " + this.pots + "   Player : " + this.player + " someting is null ");
+      logger.error( this.tableid + " pot : " + this.pots + "   Player : " + this.player + " someting is null ");
       return;
     }
 
@@ -280,7 +278,7 @@ export class PotCalculation {
     });
 
     if (totalAmount < 1) {
-      logger.info("totalAmount < 1");
+      logger.info( this.tableid + "totalAmount < 1");
       return;
     }
 
@@ -308,7 +306,7 @@ export class PotCalculation {
       element.rake = Math.round(rake * contribution);
       tempCopare += element.rake;
 
-      logger.info("t: " + element.total + " / r: " + element.rake + " / c: " + contribution);
+      logger.info( this.tableid + "total: " + element.total + " / estimate rake: " + element.rake);
     });
 
     this.rakeTotal = tempCopare;

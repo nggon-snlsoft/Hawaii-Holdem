@@ -255,8 +255,10 @@ export class UiPlayerAction extends Component {
 
 		if ( this.callValue > 0 ) {
 			this.buttonCall.node.active = true;
+			this.isBet = false;
 		} else {
 			this.buttonCall.node.active = false;
+			this.isBet = true;
 		}
 
 		if ( this.buttonCall.node.active == true ) {

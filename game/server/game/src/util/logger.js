@@ -42,7 +42,6 @@ logger.setLevels({
     error:4,
 });
 
-
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
       level: logLevel || 'info',
@@ -53,7 +52,7 @@ if (process.env.NODE_ENV !== 'production') {
         winston.format.splat(),
         winston.format.printf((info) => {
           if(info instanceof Error) {
-            return `[${info.level}] : ${info.timestamp} : ${info.message} ${info.stack}`;
+            return `[${info.level}]:  ${info.timestamp} : ${info.message} ${info.stack}`;
           }
           return `[${info.level}] : ${info.timestamp} :  ${info.message}`;
         })
@@ -86,4 +85,4 @@ logger.stream = {
     }
 };
 
-module.exports = logger;
+module.exports = logger

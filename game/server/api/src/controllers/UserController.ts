@@ -166,19 +166,23 @@ export class UserController {
             console.log(error);
         }
 
-
         let rake_back_rate: any = 50;
         if ( data != null ) {
-            let partner_id = data.partner_id;
-            let partner: any = null;
+            let distributor_id = data.distributor_id;
+            let distributor: any = null;
             try {
-                partner = await this.getPARTNER_ByPARTNER_ID( req.app.get('DAO'), partner_id );            
+                distributor = await this.getDISTRIBUTOR_ByDISTRIBUTOR_ID( req.app.get('DAO'), distributor_id );            
             } catch (error) {
                 console.log(error);
             }
             
-            if ( partner != null ) {
-                rake_back_rate = partner.rake_back_rate;
+            if ( distributor != null ) {
+                let enable_rake_back = distributor.enable_rake_back;
+                if ( enable_rake_back == 1 ) {
+                    rake_back_rate = 50;
+                } else {
+                    rake_back_rate = 0;
+                }
             }
         }
 
@@ -1786,6 +1790,21 @@ export class UserController {
             });
         });
     }
+
+    private async getDISTRIBUTOR_ByDISTRIBUTOR_ID( dao: any, id: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID ( id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }    
 
     private async createSETTING( dao: any, user_id: any ) {
         return new Promise ( (resolve, reject ) =>{
