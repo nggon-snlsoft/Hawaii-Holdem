@@ -279,7 +279,7 @@ export class HoldemRoom extends Room<RoomState> {
 			console.log( this._tableIdString + error);			
 		}
 
-		await this.playerJoin( client, options, auth );
+		this.playerJoin( client, options, auth );
 	}
 
 	reJoin( client: Client, options?: any, auth?: any ) {
@@ -1732,7 +1732,7 @@ export class HoldemRoom extends Room<RoomState> {
 		logger.info( this._tableIdString +  "[ UPDATE_ROLLINGS] %s",  log);
 
 		try {
-            	await this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
+            	this._dao.UPDATE_ROLLINGS( data, (err: any, res: any)=>{
 
 			});			
 		} catch (error) {
@@ -2715,7 +2715,7 @@ export class HoldemRoom extends Room<RoomState> {
 			let rakePercentage = this.conf['rakePercentage'];
 			this._SalesReporter.UpdateUser( this._dao, this.participants, rakePercentage );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
-			this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
+			// this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
 
 			this.participants = [];
 

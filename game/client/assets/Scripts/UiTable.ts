@@ -627,7 +627,7 @@ export class UiTable extends Component {
 	private onSHOW_PROFILE(msg) {
 
 		let statics = msg['statics'];
-		let entity = msg['entity']
+		let entity = msg['entity'];
 		let seat = msg['seat'];
 
 		let me = (this.mySeat == seat) ;
