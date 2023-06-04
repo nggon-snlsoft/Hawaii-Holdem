@@ -39,7 +39,7 @@ if (process.env.NODE_ENV !== 'production') {
         level: logLevel || 'info',
         format: winston.format.combine(winston.format.colorize(), winston.format.prettyPrint(), winston.format.splat(), winston.format.printf((info) => {
             if (info instanceof Error) {
-                return `[${info.level}] : ${info.timestamp} : ${info.message} ${info.stack}`;
+                return `[${info.level}]:  ${info.timestamp} : ${info.message} ${info.stack}`;
             }
             return `[${info.level}] : ${info.timestamp} :  ${info.message}`;
         })),

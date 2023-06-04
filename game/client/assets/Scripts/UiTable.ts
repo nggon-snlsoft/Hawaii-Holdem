@@ -1471,6 +1471,7 @@ export class UiTable extends Component {
 		let bb = msg[ "bb" ];
 		this.betMin = msg[ "maxBet" ];
 
+		this.uiWinEffect.hide();
 		this.clearUiEntitiesAction();
 		this.clearUiEntitiesBetValue();
 
@@ -1584,6 +1585,7 @@ export class UiTable extends Component {
     private onPREPARE_ROUND( msg ) {
 		console.log('onPREPARE_ROUND');
 		this.roundState = "PREPARE_ROUND";
+		this.uiWinEffect.hide();
 
 		this.nodeCardShuffleMessage.active = false;
 		this.labelReadyMessage.node.active = false;

@@ -13,6 +13,7 @@ import { Platform } from '../../extensions/colyseus-sdk/runtime/colyseus';
 import { GameManager } from './GameManager';
 import { ENUM_LEAVE_REASON } from './HoldemDefines';
 import { CommonUtil } from './CommonUtil';
+import { ENUM_EVENT_POPUP_TYPE } from './Lobby/UiLOBBY_POPUP_EVENT';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobby')
@@ -75,9 +76,8 @@ export class UiLobby extends Component {
             this.uiLobbyBottom.show();
         }
         
-        this.onREFRESH();
-
-        this.onREGIST_SCHEDULE();
+        // this.onREFRESH();
+        // this.onREGIST_SCHEDULE();
         this.CheckEventPopup();
 
         let leaveReason = NetworkManager.Instance().leaveReason;
@@ -95,6 +95,8 @@ export class UiLobby extends Component {
         let isSHOW_POPUP = GameManager.Instance().GetShowEventPopup();
         if ( isSHOW_POPUP == false ) {
             this.canRefresh = true;
+            this.onREFRESH();
+            this.onREGIST_SCHEDULE();
             return;
         }
 
@@ -103,20 +105,29 @@ export class UiLobby extends Component {
                 let popups: any[] = res.popups;
 
                 if ( popups != null && popups.length > 0 ) {
-                    this.uiLobbyPopup.OpenEventPopup( popups, ()=>{
-                        this.uiLobbyPopup.CloseEventPopup();
-                        GameManager.Instance().SetShowEventPopup( false );
-                        this.canRefresh = true;
-                        this.onREFRESH();
+                    this.uiLobbyPopup.OpenEventPopup( popups, ( type: ENUM_EVENT_POPUP_TYPE )=>{
+                        if ( type == 1 ) {
+                            this.EXIT_LOBBY();
+
+                        } else {
+                            this.uiLobbyPopup.CloseEventPopup();
+                            GameManager.Instance().SetShowEventPopup( false );
+                            this.canRefresh = true;
+
+                            this.onREFRESH();
+                            this.onREGIST_SCHEDULE();
+                        }
                     });
                 } else {
                     this.canRefresh = true;
                     this.onREFRESH();
+                    this.onREGIST_SCHEDULE();
                 }
             }
         }, (err)=>{
             this.canRefresh = true;
             this.onREFRESH();
+            this.onREGIST_SCHEDULE();
         });
     }
 
@@ -160,6 +171,7 @@ export class UiLobby extends Component {
         }
 
         NetworkManager.Instance().reqREFRESH((res: any )=>{
+            console.log('onREFRESH');            
             if ( res != null ) {
                 this.refreshPlayer();
                 this.SetUnreadAnswer( res.unreads );

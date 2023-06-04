@@ -7,11 +7,12 @@ import * as path from 'path';
 import { ENUM_RESULT_CODE } from "../arena.config";
 import { ClientUserData } from "../controllers/ClientUserData";
 import { SalesReport } from "../modules/SalesReport";
+import * as PokerEvaluator from 'poker-evaluator-ts';
+import { HandHistoryController } from "../modules/HandHistotyController";
 
 const moment = require('moment')
 const timeZone = 'Asia/Tokyo';
 const logger = require( "../util/logger" );
-const PokerEvaluator = require( "poker-evaluator" );
 
 enum eGameState {
 	Suspend,	//0
@@ -85,6 +86,7 @@ export class HoldemRoom extends Room<RoomState> {
 	_PotCalculator : PotCalculation = null;
 	_DealerCalculator: DealerCalculation = null;
 	_SalesReporter: SalesReport = null;
+	_HandHistoryController: HandHistoryController = null;
 
 	seatWaitingList : string[] = [];
 	_roomConf: any = null;
@@ -151,6 +153,10 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.setState(new RoomState());
 				this._DealerCalculator = new DealerCalculation();
+				this._HandHistoryController = new HandHistoryController();
+				if ( this._HandHistoryController != null ) {
+					this._HandHistoryController.Init();
+				}
 				this.init();
 
 				this.setSimulationInterval((deltaTime) => this.update(deltaTime));
@@ -1938,13 +1944,13 @@ export class HoldemRoom extends Room<RoomState> {
 			let hands: number = entity.statics.hands;
 			entity.statics.hands = hands + 1;
 
-			logger.info(  this._tableIdString + "[ cardDispensing ] sid : %s // seat : %s", entity.sid, entity.seat );
-			logger.info(  this._tableIdString + "[ cardDispensing ] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
+			logger.info(  this._tableIdString + "[DISPENSING] id: %s / nickname: %s / seat : %s", entity.id, entity.nickname, entity.seat );
+			logger.info(  this._tableIdString + "[DISPENSING] primary : %s // secondary : %s", entity.primaryCard, entity.secondaryCard );
 			if ( entity.eval == null ) {
-				logger.info(  this._tableIdString + "[ cardDispensing ] eval is null why?" );
+				logger.info(  this._tableIdString + "[DISPENSING ] eval is null why?" );
 				console.error( this._tableIdString + entity );
 			} else {
-				logger.info(  this._tableIdString + "[ cardDispensing ] eval : %s ", entity.eval );
+				logger.info(  this._tableIdString + "[DISPENSING ] eval: %s ", entity.eval );
 			}
 		}
 	}
@@ -3331,6 +3337,7 @@ export class HoldemRoom extends Room<RoomState> {
 			e.chips = 0;
 			e.allIn = 1;
 		}
+
 		e.currBet += betValue;
 		e.roundBet += betValue;
 		e.totalBet += betValue;
@@ -3338,7 +3345,7 @@ export class HoldemRoom extends Room<RoomState> {
 		this.lastBet = null;
 		this.lastBet = {
 			seat: e.seat,
-			call: callValue,	//maybe call = 0
+			call: callValue,
 			bet: betValue - callValue
 		};
 
@@ -3441,7 +3448,12 @@ export class HoldemRoom extends Room<RoomState> {
 			e.chips = 0;
 		}
 
-		this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false );
+		try {
+			this._PotCalculator.SetBet( e.seat, e.totalBet, e.eval.value, false );			
+		} catch (error) {
+			logger.info(  this._tableIdString + "[onRAISE] SET BET ERROR WHY?" );			
+		}
+
 		let p = this.participants.find( (player)=>{
 			return e.seat == player.seat;
 		});

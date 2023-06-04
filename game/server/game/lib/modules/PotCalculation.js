@@ -7,21 +7,19 @@ exports.PotCalculation = void 0;
 const logger_1 = __importDefault(require("../util/logger"));
 const HoldemRoom_1 = require("../rooms/HoldemRoom");
 class PotCalculation {
-    constructor(useRake, rakePercentage /*, rakeCap: number[], flopRake : boolean*/) {
+    constructor(useRake, rakePercentage, tableid) {
         this.playerCount = 0;
         this.rakePercentage = 0;
-        // private rakeCap: number[] = [];
         this.useRake = false;
-        // private flopRake : boolean = false;
         this.userRakeInfo = [];
         this.deadBlind = 0;
         this.antes = 0;
+        this.tableid = '';
         this.centerCardState = HoldemRoom_1.eCommunityCardStep.PREPARE;
         this.rakeTotal = 0;
+        this.tableid = tableid;
         this.rakePercentage = rakePercentage;
-        // this.rakeCap = rakeCap;
         this.useRake = useRake;
-        // this.flopRake = flopRake;
         this.Clear();
     }
     SetRoundPlayerCount(count) {
@@ -32,7 +30,7 @@ class PotCalculation {
     }
     UpdateCenterCard(state) {
         this.centerCardState = state;
-        logger_1.default.error("CenterState Changed : " + state);
+        logger_1.default.error(this.tableid + "CenterState Changed : " + state);
     }
     SetBet(seat, value, handValue, isFold) {
         if (seat == null || value == null || handValue == null || isFold == null) {
@@ -58,7 +56,7 @@ class PotCalculation {
             this.CalculatePot();
         }
         catch (error) {
-            logger_1.default.error(error);
+            logger_1.default.error(this.tableid + error);
         }
     }
     CalculatePot() {
@@ -89,7 +87,7 @@ class PotCalculation {
             this.CalculatePot();
         }
         catch (error) {
-            logger_1.default.error(error);
+            logger_1.default.error(this.tableid + error);
         }
     }
     CalculateMinBet(players) {
@@ -213,7 +211,7 @@ class PotCalculation {
     }
     CalculateRake() {
         if (null == this.pots || null == this.player) {
-            logger_1.default.error(" pot : " + this.pots + "   Player : " + this.player + " someting is null ");
+            logger_1.default.error(this.tableid + " pot : " + this.pots + "   Player : " + this.player + " someting is null ");
             return;
         }
         let totalAmount = 0;
@@ -224,7 +222,7 @@ class PotCalculation {
             totalAmount += element.total;
         });
         if (totalAmount < 1) {
-            logger_1.default.info("totalAmount < 1");
+            logger_1.default.info(this.tableid + "totalAmount < 1");
             return;
         }
         let rakePerc = this.rakePercentage;
@@ -243,7 +241,7 @@ class PotCalculation {
             contribution = Math.round((contribution + Number.EPSILON) * 100) / 100;
             element.rake = Math.round(rake * contribution);
             tempCopare += element.rake;
-            logger_1.default.info("t: " + element.total + " / r: " + element.rake + " / c: " + contribution);
+            logger_1.default.info(this.tableid + "total: " + element.total + " / estimate rake: " + element.rake);
         });
         this.rakeTotal = tempCopare;
         tempCopare = 0;

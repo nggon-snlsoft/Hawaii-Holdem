@@ -1,6 +1,12 @@
 import { _decorator, Component, Node, Button, Label, Sprite, assetManager, ImageAsset, SpriteFrame, Texture2D, Color } from 'cc';
 const { ccclass, property } = _decorator;
 
+export enum ENUM_EVENT_POPUP_TYPE {
+    EVENT_POPUP_NONE,
+    EVENT_POPUP_NORMAL,
+    EVENT_POPUP_INSPECTION,
+}
+
 @ccclass('UiLOBBY_POPUP_EVENT')
 export class UiLOBBY_POPUP_EVENT extends Component {
     @property(Label) labelTitle: Label = null;
@@ -15,7 +21,7 @@ export class UiLOBBY_POPUP_EVENT extends Component {
     private popups: any[] = null;
     private current: number = 0;
     private maxPopup: number = 0;
-    private cbDONE: ()=>void = null;
+    private cbDONE: (type: number)=>void = null;
 
     public Init() {
         this.labelTitle.string = '';
@@ -31,7 +37,7 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         this.node.active = false;
     }
 
-    public Show( popups: any[], done:()=>void ) {
+    public Show( popups: any[], done:( type: ENUM_EVENT_POPUP_TYPE )=>void ) {
         if ( done != null ) {
             this.cbDONE = done;
         }
@@ -53,7 +59,7 @@ export class UiLOBBY_POPUP_EVENT extends Component {
             this.node.active = true;
 
         } else {
-            this.onDONE();
+            this.onDONE( ENUM_EVENT_POPUP_TYPE.EVENT_POPUP_NONE );
         }
     }
 
@@ -62,19 +68,25 @@ export class UiLOBBY_POPUP_EVENT extends Component {
         this.node.active = false;
     }
 
-    private onDONE() {
+    private onDONE( type: ENUM_EVENT_POPUP_TYPE ) {
         if ( this.cbDONE != null ) {
-            this.cbDONE();
+            this.cbDONE( type );
         }
     }
 
     private onCONFIRM( button: Button ) {
+        let type: ENUM_EVENT_POPUP_TYPE = this.popups[this.current].type;
+        if ( type == 1) {
+            this.onDONE(type);
+            return;
+        }
+
         let next = this.current + 1;
         if ( next < this.maxPopup ) {
             this.current = next;            
             this.SetPopup( this.popups[next] );
         } else {
-            this.onDONE();
+            this.onDONE(type);
         }
     }
 

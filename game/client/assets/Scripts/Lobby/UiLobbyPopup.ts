@@ -12,7 +12,7 @@ import { UiLOBBY_POPUP_CHARGE } from './UiLOBBY_POPUP_CHARGE';
 import { UiLOBBY_POPUP_TRANSFER } from './UiLOBBY_POPUP_TRANSFER';
 import { UiLOBBY_POPUP_QnA } from './UiLOBBY_POPUP_QnA';
 import { UiLOBBY_POPUP_NOTICE } from './UiLOBBY_POPUP_NOTICE';
-import { UiLOBBY_POPUP_EVENT } from './UiLOBBY_POPUP_EVENT';
+import { ENUM_EVENT_POPUP_TYPE, UiLOBBY_POPUP_EVENT } from './UiLOBBY_POPUP_EVENT';
 import { UiLOBBY_POPUP_TICKETS } from './UiLOBBY_POPUP_TICKETS';
 const { ccclass, property } = _decorator;
 
@@ -57,9 +57,9 @@ export class UiLobbyPopup extends Component {
         this.isOpen = false;
     }
 
-    public OpenEventPopup( popups: any[], done: ()=>void ) {
+    public OpenEventPopup( popups: any[], done: ( type: ENUM_EVENT_POPUP_TYPE )=>void ) {
         this.closeAllPopup();
-        this.uiLOBBY_POPUP_EVENT.Show( popups, done );
+        this.uiLOBBY_POPUP_EVENT.Show( popups, done.bind(this) );
 
         this.isOpen = true;
         this.node.active = true;

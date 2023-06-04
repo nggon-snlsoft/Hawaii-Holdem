@@ -38,9 +38,9 @@ export class PotCalculation {
   }
 
   public SetBet( seat: number, value: number, handValue: number, isFold: boolean ) {
-    if ( seat == null || value == null || handValue == null || isFold == null ) {
-      return;
-    }
+    // if ( seat == null || value == null || handValue == null || isFold == null ) {
+    //   return;
+    // }
 
     try {
       let target: any = this.player.find(element => {
@@ -161,13 +161,12 @@ export class PotCalculation {
         return 1;
       });
 
-      let highstVelueHand = currentPot.players[0].hand;
+      let highestValueHand = currentPot.players[0].hand;
 
       for (let i = 0; i < currentPot.players.length; i++) {
         let player = currentPot.players[i];
 
-        if (highstVelueHand != player.hand || player.fold === true) {
-          //Check is fold Return Pot
+        if (highestValueHand != player.hand || player.fold === true) {
           if (currentPot.players.length > 1) {
             continue;
           }
@@ -286,7 +285,7 @@ export class PotCalculation {
 
     let rake: number = Math.trunc(totalAmount * rakePerc);
 
-    let tempCopare: number = 0;
+    let tempCompare: number = 0;
 
     this.pots.forEach(element => {
 
@@ -304,14 +303,14 @@ export class PotCalculation {
       contribution = Math.round((contribution + Number.EPSILON) * 100) / 100;
 
       element.rake = Math.round(rake * contribution);
-      tempCopare += element.rake;
+      tempCompare += element.rake;
 
       logger.info( this.tableid + "total: " + element.total + " / estimate rake: " + element.rake);
     });
 
-    this.rakeTotal = tempCopare;
+    this.rakeTotal = tempCompare;
 
-    tempCopare = 0;
+    tempCompare = 0;
 
     let userRake: any[] = [];
 
@@ -333,7 +332,7 @@ export class PotCalculation {
       contribution = Math.round((contribution + Number.EPSILON) * 1000) / 1000;
 
       userRake.push({ seat: element.seat, rake: Math.round( rake * contribution) });
-      tempCopare += Math.round(rake * contribution);
+      tempCompare += Math.round(rake * contribution);
     });
 
     this.userRakeInfo = userRake;
@@ -364,7 +363,7 @@ export class PotCalculation {
     return results;
   }
 
-  public IsWinner(seat: number): boolean {
+  public IsWinner( seat: number ): boolean {
     if (null === this.pots || undefined === this.pots) {
       return;
     }

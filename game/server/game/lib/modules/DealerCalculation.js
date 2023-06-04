@@ -10,13 +10,15 @@ class DealerCalculation {
         this.maxSeats = 9;
         this.players = -1;
         this.firstRound = false;
+        this.tableidString = '';
     }
-    init(maxSeats) {
+    init(maxSeats, tableid) {
         this.dealer = 0;
         this.sb = -1;
         this.bb = -1;
         this.maxSeats = maxSeats;
         this.firstRound = true;
+        this.tableidString = tableid;
         return this.dealer;
     }
     moveButtons(entities) {
@@ -253,7 +255,7 @@ class DealerCalculation {
                     entity.missBb = true;
                 }
                 else {
-                    logger.error("This player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                    logger.error(this.tableidString + "player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
                     entity.leave = true;
                     entity.longSitOut = true;
                 }
@@ -289,7 +291,6 @@ class DealerCalculation {
             }
             if (e.dealable == true && e.wait == false && e.isSitOut == false) {
                 seat = e.seat;
-                //logger.error("Last Blinder is %s ", e.seat)
                 break;
             }
         }
@@ -307,7 +308,6 @@ class DealerCalculation {
                 continue;
             }
             if (e.wait === false && e.isSitOut === false) {
-                logger.error("No Last Blinder is %s ", e.seat);
                 seat = e.seat;
                 break;
             }

@@ -14,10 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesReport = void 0;
 const logger_1 = __importDefault(require("../util/logger"));
+const moment = require('moment');
+const timeZone = 'Asia/Tokyo';
 class SalesReport {
-    constructor(dao) {
+    constructor(dao, tableid) {
         this.dao = null;
+        this.tableid = '';
         this.dao = dao;
+        this.tableid = tableid;
     }
     UpdateUser(dao, participants, rakePercentage) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -34,7 +38,7 @@ class SalesReport {
                 let rake = participants[i].rake;
                 let rake_back_rate = participants[i].rake_back_rate;
                 let rake_back = Math.trunc(rolling * rake_back_rate);
-                let rolling_rake = Math.trunc(rolling * rakePercentage);
+                let rolling_rake = Math.trunc(rolling * rakePercentage) - rake_back;
                 participants[i].rolling += rolling;
                 participants[i].rolling_rake += rolling_rake;
                 participants[i].rake_back += rake_back;
@@ -42,7 +46,7 @@ class SalesReport {
                 totalPotRake += participants[i].rake;
                 totalRollingRake += participants[i].rolling_rake;
                 let res = 'id: ' + id.toString() + ' ,rake_back_rate: ' + participants[i].rake_back_rate.toString() + ' ,rake_back: ' + participants[i].rake_back.toString();
-                logger_1.default.info('[RAKE] rake info %s', res);
+                logger_1.default.info(this.tableid + '[RAKE] rake info %s', res);
                 let affected = null;
                 try {
                     affected = this.UPDATE_USERS_BETTINGS(dao, {
@@ -56,16 +60,16 @@ class SalesReport {
                     });
                 }
                 catch (error) {
-                    console.log(error);
+                    console.log(this.tableid + error);
                 }
             }
             if (Math.abs(totalPotRake - totalRollingRake) > 10) {
                 let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
-                logger_1.default.error('[RAKE] diff rake %s', err);
+                logger_1.default.error(this.tableid + '[RAKE] diff rake %s', err);
             }
             else {
                 let err = 'pot rake: ' + totalPotRake.toString() + ' / rolling rake: ' + totalRollingRake.toString();
-                logger_1.default.error('[RAKE] rake %s', err);
+                logger_1.default.error(this.tableid + '[RAKE] rake %s', err);
             }
         });
     }
@@ -74,22 +78,18 @@ class SalesReport {
             if (participants == null || participants.length == 0) {
                 return;
             }
-            let now = new Date();
-            let date = this.GetReportDate(now);
-            if (participants == null) {
-                return;
-            }
+            let date = this.GetReportDate();
             for (let i = 0; i < participants.length; i++) {
                 let id = participants[i].id;
                 let row = null;
                 try {
-                    row = this.GetSalesUserFromDB(dao, {
+                    row = yield this.GetSalesUserFromDB(dao, {
                         id: id,
                         date: date,
                     });
                 }
                 catch (error) {
-                    console.log(error);
+                    console.log(this.tableid + error);
                 }
                 let user_id = participants[i].id;
                 let store_id = participants[i].store_id;
@@ -98,8 +98,8 @@ class SalesReport {
                 let wins = participants[i].win;
                 let bettings = participants[i].totalBet;
                 let rollings = participants[i].rolling;
-                let rolling_rake = participants[i].rolling_rake;
                 let rake_back = participants[i].rake_back;
+                let rolling_rake = participants[i].rolling_rake;
                 let point = rake_back;
                 let rakes = 0;
                 if (participants[i].rake != null) {
@@ -121,7 +121,7 @@ class SalesReport {
                         });
                     }
                     catch (error) {
-                        console.log(error);
+                        console.log(this.tableid + error);
                     }
                 }
                 else {
@@ -143,7 +143,7 @@ class SalesReport {
                         });
                     }
                     catch (error) {
-                        console.log(error);
+                        console.log(this.tableid + error);
                     }
                 }
             }
@@ -151,8 +151,7 @@ class SalesReport {
     }
     UpdateReportByTable(dao, participants, table_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            let now = new Date();
-            let date = this.GetReportDate(now);
+            let date = this.GetReportDate();
             let rakes = 0;
             let bettings = 0;
             if (participants == null) {
@@ -164,13 +163,13 @@ class SalesReport {
             });
             let row = null;
             try {
-                row = this.GetSalesTableFromDB(dao, {
+                row = yield this.GetSalesTableFromDB(dao, {
                     table_id: table_id,
                     date: date,
                 });
             }
             catch (error) {
-                console.log(error);
+                console.log(this.tableid + error);
             }
             if (row != null) {
                 let index = row.id;
@@ -183,7 +182,7 @@ class SalesReport {
                     });
                 }
                 catch (error) {
-                    console.log(error);
+                    console.log(this.tableid + error);
                 }
             }
             else {
@@ -198,7 +197,7 @@ class SalesReport {
                     });
                 }
                 catch (error) {
-                    console.log(error);
+                    console.log(this.tableid + error);
                 }
             }
         });
@@ -294,11 +293,12 @@ class SalesReport {
             });
         });
     }
-    GetReportDate(date) {
-        let timestamp = Number(date);
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let day = date.getDate();
+    GetReportDate() {
+        moment().tz(timeZone);
+        let timestamp = moment().format('x');
+        let year = moment().format('YYYY');
+        let month = moment().format('M');
+        let day = moment().format('D');
         return {
             timestamp: timestamp,
             year: year,
