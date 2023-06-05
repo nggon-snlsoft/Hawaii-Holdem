@@ -2341,16 +2341,16 @@ export class HoldemRoom extends Room<RoomState> {
 
 			return false;
 		}
-		else
-		{
-			if(this.checkCount() <= 1 && e.currBet <= 0){
-				this.bufferTimerID = setTimeout(() => {
-					this.changeState(eGameState.Result);
-				}, 1000);
+		// else
+		// {
+		// 	if(this.checkCount() <= 1 && e.currBet <= 0){
+		// 		this.bufferTimerID = setTimeout(() => {
+		// 			this.changeState(eGameState.Result);
+		// 		}, 1000);
 
-				return false;
-			} 
-		}
+		// 		return false;
+		// 	} 
+		// }
 
 		return true;
 	}
