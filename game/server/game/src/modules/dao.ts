@@ -117,22 +117,6 @@ dao.SELECT_USERS_ByTABLE_ID = function (table_id: any, cb: any) {
 	});
 };
 
-dao.SELECT_USERS_ByPENDING_ID = function (pendingID: any, cb: any ) {
-	let sql = "SELECT * FROM USERS WHERE PENDINGSESSIONID = ?";
-	let args = [pendingID];
-
-	_client.query(sql, args, function (err: any, res: any) {
-		if (!!err) {
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, res);
-	});
-};
-
 dao.SELECT_USERS_ByACTIVE_SESSION_ID = function (sessing_id: any, cb: any ) {
 	let sql = "SELECT * FROM USERS WHERE activeSessionId = ?";
 	let args = [sessing_id];

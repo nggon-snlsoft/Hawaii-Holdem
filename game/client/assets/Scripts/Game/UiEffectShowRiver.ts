@@ -50,6 +50,7 @@ export class UiEffectShowRiver extends Component {
         if ( this.done != null ) {
             this.done = null;
         }
+        this.unscheduleAllCallbacks();
         this.node.active = false;
     }
 

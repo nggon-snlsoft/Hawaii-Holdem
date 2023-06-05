@@ -76,15 +76,13 @@ export class UiLobby extends Component {
             this.uiLobbyBottom.show();
         }
         
-        // this.onREFRESH();
-        // this.onREGIST_SCHEDULE();
         this.CheckEventPopup();
 
         let leaveReason = NetworkManager.Instance().leaveReason;
         if ( leaveReason == 4001 ) {
-            leaveReason = -1;            
+            NetworkManager.Instance().leaveReason = -1;
             LobbySystemPopup.instance.showPopUpOk('테이블', '장시간 자리비움으로 테이블을 떠났습니다.', ()=>{
-                NetworkManager.Instance().leaveReason = -1;
+
             });
         }
 
@@ -107,8 +105,17 @@ export class UiLobby extends Component {
                 if ( popups != null && popups.length > 0 ) {
                     this.uiLobbyPopup.OpenEventPopup( popups, ( type: ENUM_EVENT_POPUP_TYPE )=>{
                         if ( type == 1 ) {
-                            this.EXIT_LOBBY();
-
+                            console.log( this.user )
+                            if ( this.user.tester == 1 ) {
+                                this.uiLobbyPopup.CloseEventPopup();
+                                GameManager.Instance().SetShowEventPopup( false );
+                                this.canRefresh = true;
+    
+                                this.onREFRESH();
+                                this.onREGIST_SCHEDULE();
+                            } else {
+                                this.EXIT_LOBBY();                                
+                            }
                         } else {
                             this.uiLobbyPopup.CloseEventPopup();
                             GameManager.Instance().SetShowEventPopup( false );
@@ -171,7 +178,6 @@ export class UiLobby extends Component {
         }
 
         NetworkManager.Instance().reqREFRESH((res: any )=>{
-            console.log('onREFRESH');            
             if ( res != null ) {
                 this.refreshPlayer();
                 this.SetUnreadAnswer( res.unreads );

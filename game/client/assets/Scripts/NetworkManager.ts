@@ -758,11 +758,8 @@ export class NetworkManager extends cc.Component {
 	async reqCOMPANY( onSuccess : ( res : any) => void, onFail : (err : string) => void ) {
 		let result: string = null;
 		let errMessage: string = null;
-		let user_id = this.user.id;
 
 		await this.Post(this.API_SERVER, '/store/company', {
-			user_id: user_id,
-			token: this.token,
 		} ).then(( res: string ) => {
 			result = res;
 		}
@@ -781,11 +778,6 @@ export class NetworkManager extends cc.Component {
 		let obj : any = JSON.parse( result );
 		if(null == obj){
 			onFail("JSON_PARSE_FAIL");
-			return;
-		}
-
-		if ( obj.msg != null && obj.msg == 'INVALID_TOKEN') {
-			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 			return;
 		}
 

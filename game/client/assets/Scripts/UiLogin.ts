@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite, EventHandler, input, Input, EventKeyboard, KeyCode, Game } from 'cc';
+import { _decorator, Component, Node, Button, EditBox, Label, AudioSource, AudioClip, director, Scene, game, Sprite, EventHandler, input, Input, EventKeyboard, KeyCode, Game, sys } from 'cc';
 import { ENUM_RESULT_CODE, NetworkManager } from './NetworkManager';
 import { Main } from './Main';
 import { CommonUtil } from './CommonUtil';
@@ -6,11 +6,14 @@ import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { ResourceManager } from './ResourceManager';
 import { GameManager } from './GameManager';
 import { ENUM_LEAVE_REASON } from './HoldemDefines';
+import { UiLoginPOPUP } from './Login/UiLoginPOPUP';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLogin')
 export class UiLogin extends Component {
+    @property (UiLoginPOPUP) uiLoginPOPUP = null;
+
     @property (EditBox) editBoxUID: EditBox = null;
     @property (EditBox) editBoxPassword: EditBox = null;    
     @property (Label) labelLoginState: Label = null;
@@ -31,6 +34,7 @@ export class UiLogin extends Component {
         NetworkManager.Instance().logout();
         GameManager.Instance().SetShowEventPopup( true );
         this.RegistEditboxEvent();
+        this.uiLoginPOPUP.Init();
 
         this.spriteEventBlocker.node.active = false;
 
@@ -138,7 +142,21 @@ export class UiLogin extends Component {
                 switch ( res.msg ) {
                     case 'INVALID_VERSION':
                         desc = '버전이 맞지 않습니다.\n새 버전을 다운로드 해 주세요.';
-                        break;                    
+                        break;
+                    case 'VERSION_MISMATCH':
+                        let referal: string = '';
+                        if ( res != null || res.obj != null || res.obj.referal != null ) {
+                            referal = res.obj.referal;
+                        }
+
+                        if ( referal.length > 0 ) {
+                            this.uiLoginPOPUP.OPEN_VersionMismatch( referal, this.onEXIT_GAME.bind(this), this.onDOWNLOAD_PAGE.bind(this) );
+                            return;
+
+                        } else {
+                            desc = 'VERSION_MISMATCH';
+                        }
+                        break;
                     case 'INVALID_UID':
                         desc = '잘못된 아이디 입니다.';
                         break;
@@ -352,5 +370,15 @@ export class UiLogin extends Component {
             // this.editBoxUID.focus();
         }        
         editbox.string = editbox.string.trim();
+    }
+
+    private onEXIT_GAME() {
+        this.uiLoginPOPUP.Hide();
+        this.exitGame();
+    }
+
+    private onDOWNLOAD_PAGE( url: string ) {
+        sys.openURL(url);
+        this.onEXIT_GAME();
     }
 }

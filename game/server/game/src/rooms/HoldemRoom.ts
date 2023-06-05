@@ -1631,8 +1631,7 @@ export class HoldemRoom extends Room<RoomState> {
 					rolling: rolling,
 					rake_back: rake_back,
 					rolling_rake: rolling_rake,
-				});
-	
+				});	
 			}
 		} );
 
@@ -2455,8 +2454,12 @@ export class HoldemRoom extends Room<RoomState> {
 				winAmount = Math.trunc( potAmount / wc );
 				if ( this.lastBet != null && this.lastBet.seat == pot.winner[0] ) {
 					if ( this.lastBet.bet > 0 ) {
-						logger.info( this._tableIdString + '[LASTBET: %s] bet: %s', this.lastBet.seat, this.lastBet.bet );						
+						logger.info( this._tableIdString + '[LASTBET: %s] bet: %s', this.lastBet.seat, this.lastBet.bet );
 						rake = Math.trunc( (potAmount - this.lastBet.bet) * rakePercent / wc );
+						if ( rake < 0 ) {
+							logger.info( this._tableIdString + '[RAKE] RAKE < 0 Why?? rake: %s', rake );
+							rake = Math.trunc( (potAmount) * rakePercent / wc );;
+						}
 					} else {
 						rake = Math.trunc( winAmount * rakePercent );
 					}
@@ -2721,8 +2724,6 @@ export class HoldemRoom extends Room<RoomState> {
 			let rakePercentage = this.conf['rakePercentage'];
 			this._SalesReporter.UpdateUser( this._dao, this.participants, rakePercentage );
 			this._SalesReporter.UpdateReportByUser( this._dao, this.participants );
-			// this._SalesReporter.UpdateReportByTable( this._dao, this.participants, this._id );
-
 			this.participants = [];
 
 		} catch ( error ) {

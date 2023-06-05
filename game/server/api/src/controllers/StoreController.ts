@@ -34,24 +34,6 @@ export class StoreController {
     }
 
     public async onGET_COMPANY( req: any, res: any ) {
-        let user_id = req.body.user_id;
-        let token = req.body.token;
-
-        let verify: any = null;
-        try {
-            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
-        } catch (error) {
-            console.log( error );
-        }
-
-        if ( verify == null || verify == false ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_TOKEN'
-            });
-            return;
-        }
-
         let store: any = null;
         try {
             store = await this.getCOMPANY( req.app.get('DAO') );

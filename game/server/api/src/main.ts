@@ -74,6 +74,7 @@ export class HoldemApiServer {
 			res.send( "It could not be a better day to die" );
         });
         this.app.use( '/check', this.CheckVersion.bind(this) );
+		this.app.use( "/ios", express.static( path.join( __dirname, "static" ) ) );
     }
 
     private CheckServer( req: any, res: any ) {

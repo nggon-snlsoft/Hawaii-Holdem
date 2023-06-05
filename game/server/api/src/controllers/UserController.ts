@@ -85,23 +85,6 @@ export class UserController {
         let password = req.body.password;
         let platform = req.body.platform;
         let os = req.body.os;
-        if ( req.body.version == null ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_VERSION'
-            });
-            return;
-        }
-
-        let cv: string = req.body.version;
-        let sv = this.conf.version;
-        if ( cv != sv ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_VERSION'
-            });
-            return;
-        }
 
         if ( login_id == null || login_id.length < 4 ) {
             res.status( 200 ).json({
@@ -148,6 +131,25 @@ export class UserController {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'DISABLE_ACCOUNT'
+            });
+            return;
+        }
+
+        if ( req.body.version == null ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_VERSION'
+            });
+            return;
+        }
+
+        let cv: string = req.body.version;
+        let sv = this.conf.version;
+        if ( cv != sv ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                referal: data.recommender,
+                msg: 'VERSION_MISMATCH'
             });
             return;
         }

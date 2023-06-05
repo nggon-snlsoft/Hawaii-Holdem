@@ -1471,7 +1471,8 @@ export class UiTable extends Component {
 		let bb = msg[ "bb" ];
 		this.betMin = msg[ "maxBet" ];
 
-		this.uiWinEffect.hide();
+		this.CLEAR_EFFECT();
+
 		this.clearUiEntitiesAction();
 		this.clearUiEntitiesBetValue();
 
@@ -1530,6 +1531,8 @@ export class UiTable extends Component {
 
 		this.enableSeats = [];
 
+		this.CLEAR_EFFECT();
+
 		this.labelReadyMessage.string = '다른 플레이어를 기다리고 있습니다';
 		this.labelReadyMessage.node.active = true;
 
@@ -1560,9 +1563,17 @@ export class UiTable extends Component {
 		this.ResetCurrentPot();
     }
 
+	private CLEAR_EFFECT() {
+		this.uiWinEffect.hide();
+		this.uiEffectShowRiver.Hide();
+		this.uiShowDownEffect.Hide();
+	}
+
     private onREADY_ROUND( msg ) {
 		console.log('onREADY_ROUND');		
 		this.roundState = "READY_ROUND";
+
+		this.CLEAR_EFFECT();
 		clearInterval(this.readyMessageHandler);		
 
 		let timeMs = msg[ "timeMS" ] / 1000;
@@ -1585,7 +1596,8 @@ export class UiTable extends Component {
     private onPREPARE_ROUND( msg ) {
 		console.log('onPREPARE_ROUND');
 		this.roundState = "PREPARE_ROUND";
-		this.uiWinEffect.hide();
+
+		this.CLEAR_EFFECT();
 
 		this.nodeCardShuffleMessage.active = false;
 		this.labelReadyMessage.node.active = false;
@@ -1905,6 +1917,7 @@ export class UiTable extends Component {
 	}
 
 	private onSHOWDOWN_RIVER( msg ) {
+
 		console.log('onSHOWDOWN_RIVER');
 		let cards = msg['cards'];
 		let river = cards[0];
@@ -1954,6 +1967,9 @@ export class UiTable extends Component {
 		this.nodeCardShuffleMessage.active = false;
 
 		this.uiWinEffect.hide();
+		this.uiEffectShowRiver.Hide();
+		this.uiShowDownEffect.Hide();
+
 		this.uiPotChips.hide();
 		this.uiRoundPotValue.hide();
 
@@ -2333,6 +2349,7 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
+		console.log( msg );
 
 		this.msgWINNERS = msg;
 		this.uiPlayerActionReservation.reset();
@@ -2346,7 +2363,9 @@ export class UiTable extends Component {
 			return e == this.mySeat;
 		});
 
-		if ( folder != null ) {
+		let skip = msg['skip'];
+
+		if ( folder != null || skip == true ) {
 			this.buttonShowCard.node.active = true;
 		} else {
 			this.buttonShowCard.node.active = false;			
