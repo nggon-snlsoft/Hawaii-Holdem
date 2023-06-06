@@ -8,10 +8,11 @@ import exitHook from './modules/hookExit';
 
 import * as fs from 'fs';
 import * as path from 'path';
-
 import requestIp from 'request-ip';
 
 const cors = require('cors');
+const favicon = require('serve-favicon');
+const methodOverride = require( "method-override" );
 
 import UserController from './controllers/UserController';
 import TableController from './controllers/TableController';
@@ -55,7 +56,6 @@ export class HoldemApiServer {
         this.tableController = new TableController(this.sqlClient, devServerInfo);
 
         this.initRoutes();
-
         this.Init();
     }
 
@@ -66,6 +66,15 @@ export class HoldemApiServer {
     }
 
     private initRoutes() {
+        this.app.use( cors() );
+		this.app.use( favicon( __dirname + "/static/favicon.ico" ) );
+        this.app.use( methodOverride() );
+        this.app.use ( bodyParser.json() );
+        this.app.use ( bodyParser.urlencoded({
+            extended: true 
+        }));
+        
+        this.app.set( 'DAO', dao );
 
         this.app.use( '/users', this.userController.router );
         this.app.use( '/store', this.storeController.router );        
@@ -74,7 +83,7 @@ export class HoldemApiServer {
 			res.send( "It could not be a better day to die" );
         });
         this.app.use( '/check', this.CheckVersion.bind(this) );
-		this.app.use( "/ios", express.static( path.join( __dirname, "static" ) ) );
+		this.app.use( "/", express.static( path.join( __dirname, "static" ) ) );
     }
 
     private CheckServer( req: any, res: any ) {
@@ -108,28 +117,27 @@ export class HoldemApiServer {
     }
 
     private initMiddleWares() {
-        this.app.use ( cors() );
-        this.app.use ( express.json() );
-        this.app.use ( bodyParser.json() );
-        this.app.use ( bodyParser.urlencoded({
-            extended: true 
-        }));
+        // this.app.use ( express.json() );
+        // this.app.use ( bodyParser.json() );
+        // this.app.use ( bodyParser.urlencoded({
+        //     extended: true 
+        // }));
 
-        this.app.use((req: Request, res: Response, next: NextFunction) => {
-            // console.log(`Request occur! ${req.method}, ${req.url}`);
-            next();
-        });
+        // this.app.use((req: Request, res: Response, next: NextFunction) => {
+        //     // console.log(`Request occur! ${req.method}, ${req.url}`);
+        //     next();
+        // });
 
-        this.app.use ( session ( {
-            secret: `@#@$MYSIGN#@$#$`,
-            resave: false,
-            saveUninitialized: true            
-        }));
+        // this.app.use ( session ( {
+        //     secret: `@#@$MYSIGN#@$#$`,
+        //     resave: false,
+        //     saveUninitialized: true            
+        // }));
 
         // this.app.use( passport.initialize());
         // this.app.use( passport.session() );
 
-        this.app.set( 'DAO', dao );
+        //this.app.set( 'DAO', dao );
     }
 
     public listen( port: number ) {
