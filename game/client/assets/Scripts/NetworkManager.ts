@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -688,6 +688,14 @@ export class NetworkManager extends cc.Component {
 				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
 				msg: 'JSON_PARSE_ERROR'
 			});
+		}
+
+		if ( result.msg != null && result.msg == 'DISABLE_ACCOUNT') {
+			onFail({
+				code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+				msg: 'DISABLE_ACCOUNT',
+			});	
+			return;
 		}
 
 		if ( result.msg != null && result.msg == 'VERSION_MISMATCH') {

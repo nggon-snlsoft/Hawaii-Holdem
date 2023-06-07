@@ -22,12 +22,12 @@ export class SalesReport {
         for ( let i: number = 0 ; i < participants.length ; i++ ) {
             let id = participants[i].id;
             let win = participants[i].win;
-            let betting = participants[i].totalBet;
-            let rolling = participants[i].roundBet;
+            let betting = Math.max(participants[i].totalBet, 0) ;
+            let rolling = Math.max(participants[i].roundBet, 0) ;
             let rake = participants[i].rake;
             let rake_back_rate = participants[i].rake_back_rate;
-            let rake_back = Math.trunc( rolling * rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
+            let rake_back = Math.max(Math.trunc( rolling * rake_back_rate ), 0 ) ;
+			let rolling_rake = Math.max(Math.trunc( rolling * rakePercentage ) - rake_back, 0) ;
 
 			participants[i].rolling += rolling;
 			participants[i].rolling_rake += rolling_rake;
@@ -87,11 +87,11 @@ export class SalesReport {
             let store_id = participants[i].store_id;
             let distributor_id = participants[i].distributor_id;
             let partner_id = participants[i].partner_id;
-            let wins = participants[i].win;
-            let bettings = participants[i].totalBet;
-            let rollings = participants[i].rolling;
-            let rake_back = participants[i].rake_back;            
-            let rolling_rake = participants[i].rolling_rake;
+            let wins = Math.max(participants[i].win, 0);
+            let bettings = Math.max(participants[i].totalBet, 0);
+            let rollings = Math.max(participants[i].rolling, 0);
+            let rake_back = Math.max(participants[i].rake_back, 0);            
+            let rolling_rake = Math.max( participants[i].rolling_rake, 0);
             let point = rake_back;
 
             let rakes: number = 0;

@@ -68,7 +68,7 @@ dao.SELECT_TABLES_ByTABLE_ID = ( table_id: any, cb: any )=> {
 
 dao.SELECT_USERS_ByUSER_ID = function (id: any, cb: any) {
 
-	let sql = "SELECT * FROM USERS WHERE ALIVE = 1 AND DISABLE = 0 AND ID = ?";
+	let sql = "SELECT * FROM USERS WHERE ALIVE = 1 AND ID = ?";
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -130,6 +130,22 @@ dao.SELECT_USERS_ByACTIVE_SESSION_ID = function (sessing_id: any, cb: any ) {
 		}
 
 		cb?.(null, res);
+	});
+};
+
+dao.SELECT_USERS_DISABLE_ByUSER_ID = function (user_id: any, cb: any ) {
+	let sql = "SELECT disable FROM USERS WHERE ID = ?";
+	let args = [user_id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res[0] );
 	});
 };
 

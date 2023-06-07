@@ -29,6 +29,7 @@ export class ClientUserData{
             account: dbUserData.account,
 			join_ip: dbUserData.join_ip,
 			rake_back_rate: dbUserData.rake_back_rate,
+			disable: dbUserData.disable,
 		}
 
 		return user;

@@ -75,16 +75,22 @@ export class UiLobby extends Component {
             this.uiTableList.show();
             this.uiLobbyBottom.show();
         }
-        
-        this.CheckEventPopup();
 
         let leaveReason = NetworkManager.Instance().leaveReason;
         if ( leaveReason == 4001 ) {
-            NetworkManager.Instance().leaveReason = -1;
             LobbySystemPopup.instance.showPopUpOk('테이블', '장시간 자리비움으로 테이블을 떠났습니다.', ()=>{
 
             });
+        } else if ( leaveReason == 4002 ) {
+            LobbySystemPopup.instance.showPopUpOk('테이블', '게임을 이용할 수 없습니다.', ()=>{
+                this.EXIT_LOBBY();
+
+            });
         }
+
+        NetworkManager.Instance().leaveReason = -1;
+        this.CheckEventPopup();
+
 
         this.node.active = true;
     }
@@ -179,6 +185,13 @@ export class UiLobby extends Component {
 
         NetworkManager.Instance().reqREFRESH((res: any )=>{
             if ( res != null ) {
+                if ( res.user != null && res.user.disable == 1) {
+                    GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_DISABLE_ACCOUNT );
+                    this.EXIT_LOBBY();
+                    return;
+                }
+                console.log( res );
+
                 this.refreshPlayer();
                 this.SetUnreadAnswer( res.unreads );
                 this.ShowTicketResult( res.tickets );
@@ -266,6 +279,10 @@ export class UiLobby extends Component {
                         LobbySystemPopup.instance.closePopup();
                     });                                                        
                     break;
+                case 'DISABLE_ACCOUNT':
+                    GameManager.Instance().ForceExit(ENUM_LEAVE_REASON.LEAVE_DISABLE_ACCOUNT);
+                    this.EXIT_LOBBY();
+                    break;                    
                 case 'TABLE_IS_FULL':
                     LobbySystemPopup.instance.showPopUpOk("테이블입장", "테이블이 가득 찼습니다.", ()=>{
                         LobbySystemPopup.instance.closePopup();
@@ -335,6 +352,9 @@ export class UiLobby extends Component {
 
     private EXIT_LOBBY() {
         this.spriteBlocker.node.active = true;
+        this.uiTableList.end();
+        NetworkManager.Instance().logout();
+
         this.onUNREGIST_SCHEDULE();        
         director.loadScene('LoginScene', ()=>{
 

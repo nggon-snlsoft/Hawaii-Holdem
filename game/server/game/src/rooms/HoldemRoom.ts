@@ -9,6 +9,7 @@ import { ClientUserData } from "../controllers/ClientUserData";
 import { SalesReport } from "../modules/SalesReport";
 import * as PokerEvaluator from 'poker-evaluator-ts';
 import { HandHistoryController } from "../modules/HandHistotyController";
+import { error } from "../util/logger";
 
 const moment = require('moment')
 const timeZone = 'Asia/Tokyo';
@@ -332,6 +333,7 @@ export class HoldemRoom extends Room<RoomState> {
 			missSb: false,
 			missBb: false,
 			longSitOut: false,
+			banned: false,
 			sitoutTimestamp: 0,
 			oldChips: auth.chip,			
 			oldRake: auth.rake,			
@@ -928,6 +930,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}		
 		else if( eGameState.ClearRound === this.state.gameState ) {
 			this.elapsedTick += dt;
+
 			if( this.elapsedTick >= this.conf[ "clearTerm" ] ) {				
 				logger.info( this._tableIdString +  "[ update ] CLEAR_ROUND STATE TIME OVER. duration : %s", this.conf[ "clearTerm" ] );
 				this.elapsedTick = 0;
@@ -983,22 +986,18 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( this.elapsedSuspend >= 10000 ) {
 				let term = this.conf['longSitoutTerm'];
 
-				let checkLongSitout: boolean = false;
 				this.state.entities.forEach( (e)=>{
 					if ( e.isSitOut == true ) {
 						let pasteTime: number = Number( Date.now() ) - e.sitoutTimestamp;
 						if ( pasteTime > term ) {
 							e.leave = true;
 							e.longSitOut = true;
-							checkLongSitout = true;
 						}
 					}
+					this.KickDisablePlayer( e );
 				});
 
-				if ( checkLongSitout ) {
-					this.handleEscapee();
-				}
-
+				this.handleEscapee();
 				this.elapsedSuspend = 0;
 			}
 		}
@@ -1049,13 +1048,19 @@ export class HoldemRoom extends Room<RoomState> {
 				return e.seat === s;
 			} );
 			if( idx > -1 ) {
-				let entry = this.state.entities[idx];
-				if ( entry != null ) {
-					if ( entry.longSitOut == true ) {
-						entry.longSitOut = false;
-						let sessionId = entry.client.sessionId;
+				let entity = this.state.entities[idx];
+				if ( entity != null ) {
+					if ( entity.longSitOut == true ) {
+						entity.longSitOut = false;
+						let sessionId = entity.client.sessionId;
 						this.kickPlayer( sessionId, 4001 );
-					} else {
+					}
+					else if ( entity.banned == true ) {
+						entity.banned = false;
+						let sessionId = entity.client.sessionId;						
+						this.kickPlayer( sessionId, 4002 );
+					} 
+					else {
 						this.state.entities.splice( idx, 1 );
 					}
 				}
@@ -1456,6 +1461,8 @@ export class HoldemRoom extends Room<RoomState> {
 
 						this.broadcast( 'SIT_OUT', { seat: e.seat });						
 					}
+
+					this.KickDisablePlayer( e );
 				});
 
 				this.processPendingAddChips();
@@ -1581,22 +1588,24 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let rakePercentage = this.conf['rakePercentage'];
 		this.participants.forEach ( ( e )=>{
-			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
-
-			e.rolling += rolling;
-			e.rolling_rake += rolling_rake;
-			e.rake_back += rake_back;
-			e.totalBet += rolling;
-			e.roundBet = 0;
-
-			this.UPDATE_ROLLINGS({
-				id: e.id,
-				rolling: rolling,
-				rake_back: rake_back,
-				rolling_rake: rolling_rake,
-			});
+			if ( e.roundBet > 0 ) {
+				let rolling =  e.roundBet;
+				let rake_back = Math.trunc( rolling * e.rake_back_rate );
+				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
+	
+				e.rolling += rolling;
+				e.rolling_rake += rolling_rake;
+				e.rake_back += rake_back;
+				e.totalBet += rolling;
+				e.roundBet = 0;
+	
+				this.UPDATE_ROLLINGS({
+					id: e.id,
+					rolling: rolling,
+					rake_back: rake_back,
+					rolling_rake: rolling_rake,
+				});	
+			}
 		} );
 
 		this.ResetRoundBets();
@@ -1617,8 +1626,8 @@ export class HoldemRoom extends Room<RoomState> {
 		this.participants.forEach ( (e)=>{
 			if ( e.roundBet > 0 ) {
 				let rolling = e.roundBet;
-				let rake_back = Math.trunc( rolling * e.rake_back_rate );
-				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
+				let rake_back = this.SafeNUMBER( rolling * e.rake_back_rate );
+				let rolling_rake = this.SafeNUMBER(rolling * rakePercentage - rake_back);
 
 				e.rolling += rolling;
 				e.rolling_rake += rolling_rake;				
@@ -1642,22 +1651,24 @@ export class HoldemRoom extends Room<RoomState> {
 	onFLOP_END() {
 		let rakePercentage = this.conf['rakePercentage'];		
 		this.participants.forEach ( (e)=>{
-			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
-
-			e.rolling += rolling;
-			e.rolling_rake += rolling_rake;
-			e.rake_back += rake_back;
-			e.totalBet += rolling;						
-			e.roundBet = 0;
-
-			this.UPDATE_ROLLINGS({
-				id: e.id,
-				rolling: rolling,
-				rake_back: rake_back,
-				rolling_rake: rolling_rake,				
-			});
+			if ( e.roundBet > 0 ) {
+				let rolling = e.roundBet;
+				let rake_back = Math.trunc( rolling * e.rake_back_rate );
+				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
+	
+				e.rolling += rolling;
+				e.rolling_rake += rolling_rake;
+				e.rake_back += rake_back;
+				e.totalBet += rolling;						
+				e.roundBet = 0;
+	
+				this.UPDATE_ROLLINGS({
+					id: e.id,
+					rolling: rolling,
+					rake_back: rake_back,
+					rolling_rake: rolling_rake,				
+				});	
+			}
 		} );
 
 		this.ResetRoundBets();
@@ -1673,22 +1684,24 @@ export class HoldemRoom extends Room<RoomState> {
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( (e)=>{
-			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
-
-			e.rolling += rolling;
-			e.rolling_rake += rolling_rake;			
-			e.rake_back += rake_back;
-			e.totalBet += rolling;		
-			e.roundBet = 0;
-
-			this.UPDATE_ROLLINGS({
-				id: e.id,
-				rolling: rolling,
-				rake_back: rake_back,
-				rolling_rake: rolling_rake,				
-			});
+			if ( e.roundBet > 0 ) {
+				let rolling = e.roundBet;
+				let rake_back = Math.trunc( rolling * e.rake_back_rate );
+				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;			
+	
+				e.rolling += rolling;
+				e.rolling_rake += rolling_rake;			
+				e.rake_back += rake_back;
+				e.totalBet += rolling;		
+				e.roundBet = 0;
+	
+				this.UPDATE_ROLLINGS({
+					id: e.id,
+					rolling: rolling,
+					rake_back: rake_back,
+					rolling_rake: rolling_rake,				
+				});	
+			}
 		} );
 
 		this.ResetRoundBets();
@@ -1705,22 +1718,24 @@ export class HoldemRoom extends Room<RoomState> {
 		let rakePercentage = this.conf['rakePercentage'];
 
 		this.participants.forEach ( ( e )=>{
-			let rolling = e.roundBet;
-			let rake_back = Math.trunc( rolling * e.rake_back_rate );
-			let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
-
-			e.rolling += rolling;
-			e.rolling_rake += rolling_rake;			
-			e.rake_back += rake_back;
-			e.totalBet += rolling;
-			e.roundBet = 0;
-
-			this.UPDATE_ROLLINGS({
-				id: e.id,
-				rolling: rolling,
-				rake_back: rake_back,
-				rolling_rake: rolling_rake,				
-			});
+			if ( e.roundBet > 0 ) {
+				let rolling = e.roundBet;
+				let rake_back = Math.trunc( rolling * e.rake_back_rate );
+				let rolling_rake = Math.trunc( rolling * rakePercentage ) - rake_back;
+	
+				e.rolling += rolling;
+				e.rolling_rake += rolling_rake;			
+				e.rake_back += rake_back;
+				e.totalBet += rolling;
+				e.roundBet = 0;
+	
+				this.UPDATE_ROLLINGS({
+					id: e.id,
+					rolling: rolling,
+					rake_back: rake_back,
+					rolling_rake: rolling_rake,				
+				});	
+			}
 		} );
 
 		this.ResetRoundBets();
@@ -2455,6 +2470,7 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( skip == true ) {
 				potAmount = pot.total;
 				winAmount = Math.trunc( potAmount / wc );
+				winAmount = Math.max( winAmount, 0 );
 				if ( this.lastBet != null && this.lastBet.seat == pot.winner[0] ) {
 					if ( this.lastBet.bet > 0 ) {
 						logger.info( this._tableIdString + '[LASTBET: %s] bet: %s', this.lastBet.seat, this.lastBet.bet );
@@ -2478,6 +2494,7 @@ export class HoldemRoom extends Room<RoomState> {
 					rake = Math.trunc( winAmount * rakePercent );
 				}				
 			}
+
 			winAmount -= rake;
 			logger.info( this._tableIdString + '[-----------------]');
 			logger.info( this._tableIdString + '[POT: %s] total: %s / player: %s / winner: %s / estimate rake: %s ', i, potAmount, pot.players, pot.winner, rake );
@@ -2706,16 +2723,20 @@ export class HoldemRoom extends Room<RoomState> {
 
 				if ( w.return == true ) {
 					p.totalBet -= w.winAmount;
+					p.totalBet = this.SafeNUMBER(p.totalBet);
 					p.roundBet -= w.winAmount;
+					p.roundBet = this.SafeNUMBER(p.roundBet);
 					p.win -= w.winAmount;
+					p.win = this.SafeNUMBER(p.roundBet);
+					
 				}
 				else {
 					if ( skip == true ) {
 						if ( this.lastBet != null && this.lastBet.seat == p.seat ) {
 							if ( this.lastBet.bet != null && this.lastBet.bet > 0 ) {
-								p.roundBet = Math.max (p.roundBet - this.lastBet.bet, 0 );
-								p.totalBet = Math.max (p.totalBet - this.lastBet.bet, 0 );
-								p.win = Math.max (p.win - this.lastBet.bet, 0 );
+								p.roundBet = Math.max ( p.roundBet - this.lastBet.bet, 0 );
+								p.totalBet = Math.max ( p.totalBet - this.lastBet.bet, 0 );
+								p.win = Math.max ( p.win - this.lastBet.bet, 0 );
 							}
 						}
 					}
@@ -4327,4 +4348,28 @@ export class HoldemRoom extends Room<RoomState> {
             });
         });
     }
+
+	private SafeNUMBER( num: any ): number {
+		let ret = 0;
+		if ( isNaN( num ) == true ) {
+			ret = Math.max( num, 0 );
+			ret = Math.trunc(ret);
+		}
+		return ret;
+	}
+
+	private KickDisablePlayer( entity: any  ) {
+		if ( entity != null ) {
+			this._dao.SELECT_USERS_DISABLE_ByUSER_ID( entity.id, (err: any, res: any)=>{
+
+				if ( err == null && res != null ) {
+					if ( res.disable == 1 && entity.leave == 0 ) {
+						logger.error(  this._tableIdString + "[ KickDisablePlayer ] id: %s, name: %s", entity.id, entity.nickname );
+						entity.leave = true;
+						entity.banned = true;
+					}
+				}
+			} );	
+		}
+	}
 }

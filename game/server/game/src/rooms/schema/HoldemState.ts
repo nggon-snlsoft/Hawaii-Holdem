@@ -47,6 +47,7 @@ export class EntityState extends Schema {
 
 	isNew: boolean = false;
 	longSitOut: boolean = false;
+	banned: boolean = false;
 	reBuyCount: number = 0;
 	pendReBuy: number = 0;
 	initRoundChips: number = 0;

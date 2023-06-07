@@ -122,7 +122,7 @@
     "canvasLogin": {
       "__id__": 450
     },
-    "version": "18",
+    "version": "19",
     "_id": "38MqJ78DJKkr68ZtALei29"
   },
   {
@@ -225,7 +225,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 640,
-      "y": 384,
+      "y": 383.99999999999994,
       "z": 0
     },
     "_lrot": {
@@ -308,7 +308,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 384,
+    "_orthoHeight": 458.38529176658676,
     "_near": 0,
     "_far": 1000,
     "_color": {
@@ -14470,7 +14470,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -559.292,
-      "y": 353.914,
+      "y": 346.78,
       "z": 0
     },
     "_lrot": {
@@ -14572,7 +14572,7 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 717.914,
+    "_bottom": 710.78,
     "_horizontalCenter": -559.292,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -16430,8 +16430,8 @@
     "_target": null,
     "_left": -5.684341886080802e-14,
     "_right": -5.684341886080802e-14,
-    "_top": 0,
-    "_bottom": 0,
+    "_top": -5.684341886080802e-14,
+    "_bottom": -5.684341886080802e-14,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -20199,8 +20199,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -29482,8 +29482,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -523.514,
-      "y": 348.25699999999995,
+      "x": -267.51399999999995,
+      "y": 604.257,
       "z": 0
     },
     "_lrot": {
@@ -31353,8 +31353,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1280,
-      "height": 768
+      "width": 768,
+      "height": 1280
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -31370,7 +31370,7 @@
     "node": {
       "__id__": 4
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "_alignFlags": 45,
     "_target": {

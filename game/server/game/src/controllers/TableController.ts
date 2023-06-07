@@ -153,6 +153,14 @@ export class TableController {
             return;
         }
 
+        if ( user.disable == 1 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'DISABLE_ACCOUNT',
+            });
+            return;            
+        }        
+
         if ( user.table_id != -1 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

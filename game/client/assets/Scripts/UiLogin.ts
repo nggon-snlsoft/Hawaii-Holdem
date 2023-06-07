@@ -278,6 +278,10 @@ export class UiLogin extends Component {
                 forceExit = true;
                 desc = '버전이 맞지 않습니다.\n새로운 버전을 설치하세요..';
                 break;
+            case ENUM_LEAVE_REASON.LEAVE_DISABLE_ACCOUNT:
+                forceExit = false;
+                desc = '게임을 이용할 수 없습니다.';
+                break;
             case ENUM_LEAVE_REASON.LEAVE_LONG_AFK:
                 forceExit = false;
                 desc = '장시간 자리비움입니다.\n게임을 다시 실행해주세요';
