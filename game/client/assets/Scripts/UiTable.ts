@@ -79,7 +79,7 @@ export class UiTable extends Component {
 	@property(UiShowDownEffect) uiShowDownEffect: UiShowDownEffect = null;
 	@property(UiEffectShowRiver) uiEffectShowRiver: UiEffectShowRiver = null;
 
-	@property(PlayerActionInformation) playerActionInformation: PlayerActionInformation = null;
+	// @property(PlayerActionInformation) playerActionInformation: PlayerActionInformation = null;
 
 	private GAME_STATE: number = GAME_STATE_SUSPEND;
 	private SHOWDOWN_STATE: number = SHOWDOWN_NONE;
@@ -164,8 +164,7 @@ export class UiTable extends Component {
 		this.uiShowDownEffect.Init();
 		this.uiEffectShowRiver.Init();
 		this.uiCommunityCards.Init();
-
-		this.playerActionInformation.Init();
+		// this.playerActionInformation.Init();
 
         if ( null == NetworkManager.Instance().room ) {
             return;
@@ -1369,8 +1368,6 @@ export class UiTable extends Component {
 			this.uiPlayerActionReservation.hide();
 
 			this.uiPlayerAction.show( this.betMin, curBet, minRaise, curPot, myBet, chips, maxChips, isLast, hasAction);
-			// this.playerActionInformation.Set( this.betMin, msg );
-			// this.playerActionInformation.Show();
 
 			this.uiPlayerAction.cbCheck = () => {
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );

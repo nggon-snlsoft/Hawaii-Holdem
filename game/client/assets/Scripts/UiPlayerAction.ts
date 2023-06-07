@@ -1,31 +1,27 @@
 import { _decorator, Component, Node, Button, Label, Slider, EventHandler, sys } from 'cc';
 import { CommonUtil } from './CommonUtil';
-import { ENUM_BETTING_KIND, ENUM_BETTING_TYPE, UiBettingControl } from './Game/UiBettingControl';
+import { ENUM_BETTING_TYPE, UiBettingControl } from './Game/UiBettingControl';
 import { AudioController } from './Game/AudioController';
 import { ENUM_BET_SOUND, ENUM_CARD_TYPE, ENUM_DEVICE_TYPE } from './HoldemDefines';
-import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
+
+export enum ENUM_BETTING_KIND {
+    NONE = 0,
+    MAX = 1,
+    FULL = 2,
+    HALF = 3,
+    QUATER = 4,
+}
 
 @ccclass('UiPlayerAction')
 export class UiPlayerAction extends Component {
-	@property (Node) rootPortraitController: Node = null;
-	@property (Node) rootLandscapeContoller: Node = null;
-
-	// @property (Node) NodeMobileContoller: Node = null;
-	
-	// private uiBettingControl: UiBettingControl = null;
-
-	private nodeRoot: Node = null;
+	@property(UiBettingControl) uiBettingControl: UiBettingControl = null;
 
 	private isChildRegistered: boolean = false;
-
 	private buttonFold: Button = null;    
 	private buttonCheck: Button = null;
 	private buttonCall: Button = null;
 
-	// private buttonBet: Button = null;
-	// private buttonRaise: Button = null;
-	// private buttonConfirm: Button = null;
 	private buttonAllIn: Button = null;
 
 	private turnBet: number = 0;
@@ -86,127 +82,120 @@ export class UiPlayerAction extends Component {
 		}
 
 		this.isChildRegistered = true;
-		let info = GameManager.Instance().GetInfo();
-		this.rotateType = info.device;
 
-		if ( this.rotateType == ENUM_DEVICE_TYPE.MOBILE_PORTRAIT ) {
-			this.nodeRoot = this.rootPortraitController;
-
-		} else {
-			this.nodeRoot = this.rootLandscapeContoller;
-		}		
-
-		this.buttonFold = this.nodeRoot.getChildByPath( "BUTTON_FOLD" )?.getComponent( Button );
+		this.buttonFold = this.node.getChildByPath( "BUTTON_FOLD" )?.getComponent( Button );
 		this.buttonFold?.node.on( "click", this.onClickFold.bind( this ), this );
 
-		this.buttonCheck = this.nodeRoot.getChildByPath( "BUTTON_CHECK" )?.getComponent( Button );
+		this.buttonCheck = this.node.getChildByPath( "BUTTON_CHECK" )?.getComponent( Button );
 		this.buttonCheck?.node.on( "click", this.onClickCheck.bind( this ), this );
 
-		this.buttonCall = this.nodeRoot.getChildByPath( "BUTTON_CALL" )?.getComponent( Button );
+		this.buttonCall = this.node.getChildByPath( "BUTTON_CALL" )?.getComponent( Button );
 		this.buttonCall?.node.on( "click", this.onClickCall.bind( this ), this );
 		this.labelCallValue = this.buttonCall.node.getChildByPath('LABEL_VALUE').getComponent( Label );
 
-		this.buttonAllIn = this.nodeRoot.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
+		this.buttonAllIn = this.node.getChildByPath( "BUTTON_ALLIN" )?.getComponent( Button );
 		this.buttonAllIn?.node.on( "click", this.onClickAllin.bind( this ), this );
 
-		this.buttonQuater = this.nodeRoot.getChildByPath('BUTTON_QUATER').getComponent( Button );
+		this.buttonQuater = this.node.getChildByPath('BUTTON_QUATER').getComponent( Button );
 		if ( this.buttonQuater != null ) {
 			this.buttonQuater.node.off('click');
 			this.buttonQuater.node.on( 'click', this.onClickQuater.bind( this ), this );
 			this.buttonQuater.node.active = false;
 		}
 
-		this.buttonHalf = this.nodeRoot.getChildByPath('BUTTON_HALF').getComponent( Button );
+		this.buttonHalf = this.node.getChildByPath('BUTTON_HALF').getComponent( Button );
 		if ( this.buttonHalf != null ) {
 			this.buttonHalf.node.off('click');				
 			this.buttonHalf.node.on( 'click', this.onClickHalf.bind( this ), this );
 			this.buttonHalf.node.active = false;
 		}
 
-		this.buttonFull = this.nodeRoot.getChildByPath('BUTTON_FULL').getComponent( Button );
+		this.buttonFull = this.node.getChildByPath('BUTTON_FULL').getComponent( Button );
 		if ( this.buttonFull != null ) {
 			this.buttonFull.node.off('click');
 			this.buttonFull.node.on( 'click', this.onClickFull.bind( this ), this );
 			this.buttonFull.node.active = false;
 		}
 
-		this.buttonMax = this.nodeRoot.getChildByPath('BUTTON_MAX').getComponent( Button );
+		this.buttonMax = this.node.getChildByPath('BUTTON_MAX').getComponent( Button );
 		if ( this.buttonMax != null ) {
 			this.buttonMax.node.off('click');
 			this.buttonMax.node.on( 'click', this.onClickMax.bind( this ), this );
 			this.buttonMax.node.active = false;
 		}
 
-		this.labelQuaterValue = this.nodeRoot.getChildByPath('BUTTON_QUATER/LABEL_VALUE').getComponent( Label );
+		this.labelQuaterValue = this.node.getChildByPath('BUTTON_QUATER/LABEL_VALUE').getComponent( Label );
 		if ( this.labelQuaterValue != null ) {
 			this.labelQuaterValue.string = '';
 			this.labelQuaterValue.node.active = false;
 		}
 
-		this.labelHalfValue = this.nodeRoot.getChildByPath('BUTTON_HALF/LABEL_VALUE').getComponent( Label );
+		this.labelHalfValue = this.node.getChildByPath('BUTTON_HALF/LABEL_VALUE').getComponent( Label );
 		if ( this.labelHalfValue != null ) {
 			this.labelHalfValue.string = '';
 			this.labelHalfValue.node.active = false;
 		}
 
-		this.labelFullValue = this.nodeRoot.getChildByPath('BUTTON_FULL/LABEL_VALUE').getComponent( Label );
+		this.labelFullValue = this.node.getChildByPath('BUTTON_FULL/LABEL_VALUE').getComponent( Label );
 		if ( this.labelFullValue != null ) {
 			this.labelFullValue.string = '';
 			this.labelFullValue.node.active = false;
 		}
 
-		this.labelMaxValue = this.nodeRoot.getChildByPath('BUTTON_MAX/LABEL_VALUE').getComponent( Label );
+		this.labelMaxValue = this.node.getChildByPath('BUTTON_MAX/LABEL_VALUE').getComponent( Label );
 		if ( this.labelMaxValue != null ) {
 			this.labelMaxValue.string = '';
 			this.labelMaxValue.node.active = false;
 		}
 
-		this.buttonQuaterDisable = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE').getComponent( Button );
+		this.buttonQuaterDisable = this.node.getChildByPath('BUTTON_QUATER_DISABLE').getComponent( Button );
 		if ( this.buttonQuaterDisable != null ) {
 			this.buttonQuaterDisable.interactable = false;
 			this.buttonQuaterDisable.node.active = false;
 		}
 
-		this.buttonHalfDisable = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE').getComponent( Button );
+		this.buttonHalfDisable = this.node.getChildByPath('BUTTON_HALF_DISABLE').getComponent( Button );
 		if ( this.buttonHalfDisable != null ) {
 			this.buttonHalfDisable.interactable = false;
 			this.buttonHalfDisable.node.active = false;
 		}
 
-		this.buttonFullDisable = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE').getComponent( Button );
+		this.buttonFullDisable = this.node.getChildByPath('BUTTON_FULL_DISABLE').getComponent( Button );
 		if ( this.buttonFullDisable != null ) {
 			this.buttonFullDisable.interactable = false;
 			this.buttonFullDisable.node.active = false;
 		}
 
-		this.labelQuaterDisableValue = this.nodeRoot.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
+		this.labelQuaterDisableValue = this.node.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelQuaterDisableValue != null ) {
 			this.labelQuaterDisableValue.string = '';
 			this.labelQuaterDisableValue.node.active = false;
 		}
 
-		this.labelHalfDisableValue = this.nodeRoot.getChildByPath('BUTTON_HALF_DISABLE/LABEL_VALUE').getComponent( Label );
+		this.labelHalfDisableValue = this.node.getChildByPath('BUTTON_HALF_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelHalfDisableValue != null ) {
 			this.labelHalfDisableValue.string = '';
 			this.labelHalfDisableValue.node.active = false;
 		}
 
-		this.labelFullDisableValue = this.nodeRoot.getChildByPath('BUTTON_FULL_DISABLE/LABEL_VALUE').getComponent( Label );
+		this.labelFullDisableValue = this.node.getChildByPath('BUTTON_FULL_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelFullDisableValue != null ) {
 			this.labelFullDisableValue.string = '';
 			this.labelFullDisableValue.node.active = false;
 		}
 
-		this.nodeRoot.active = true;
+		this.node.active = true;
 	}
 
-	onLoad() {
+	onLoad() {		
 		this.childRegistered();
 	}
 
 	init( sb: number, bb: number ) {		
 		this.sb = sb;
 		this.bb = bb;
+
+		this.uiBettingControl.init( this.onCLICK_BETTING.bind(this) );
 	}
     
 	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, maxChips:number, isLast : boolean, hasAction: boolean) {
@@ -217,9 +206,6 @@ export class UiPlayerAction extends Component {
 		this.fullValue = 0;
 		this.maxValue = 0;
 		this.betType =  ENUM_BETTING_TYPE.None;
-
-		// this.uiBettingControl.hide();
-		// this.buttonConfirm.node.active = false;
 
 		this.betMin = minBet;
 		this.turnBet = turnBet;
@@ -401,7 +387,8 @@ export class UiPlayerAction extends Component {
 				this.buttonAllIn.node.active = false;
 			}
 		}
-		
+
+		this.uiBettingControl.Set(this.isBet, minBet, minRaise, this.myChips );		
 		this.node.active = true;
 	}
 
@@ -481,5 +468,14 @@ export class UiPlayerAction extends Component {
 		}
 
 		AudioController.instance.PlaySound('VOICE_ACTION_ALLIN');
+	}
+
+	private onCLICK_BETTING( result: any ) {
+		let value = result.value + this.myBet;
+		if ( result.type == ENUM_BETTING_TYPE.Bet ) {
+			this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_QUATER );
+		} else {
+			this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_QUATER );
+		}
 	}
 }
