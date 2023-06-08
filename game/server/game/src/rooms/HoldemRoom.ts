@@ -2105,6 +2105,7 @@ export class HoldemRoom extends Room<RoomState> {
 	//------------------------------------
 	setTurnBet() {
 		this.state.maxBet = 0;
+		this.state.minRaise = this.state.maxBet;
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			this.state.entities[ i ].currBet = 0;
 			this.state.entities[ i ].hasAction = true;

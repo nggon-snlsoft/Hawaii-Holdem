@@ -32,10 +32,12 @@ const SOUNDS_NAME: any = [
 	{ name: 'VOICE_WELCOME',			url: 'voice_welcome' },	
 	{ name: 'VOICE_START', 				url: 'voice_start' },
 
-	{ name: 'VOICE_ACTION_ALLIN', 		url: 'voice_action_allin' },	
-	{ name: 'VOICE_ACTION_CALL',		url: 'voice_action_call' },	
+	{ name: 'VOICE_ACTION_ALLIN', 		url: 'voice_action_allin' },
+	{ name: 'VOICE_ACTION_CALL',		url: 'voice_action_call' },
 	{ name: 'VOICE_ACTION_CHECK',		url: 'voice_action_check' },	
 	{ name: 'VOICE_ACTION_DIE',			url: 'voice_action_die'	},
+	{ name: 'VOICE_ACTION_BET',			url: 'voice_action_bet'	},
+	{ name: 'VOICE_ACTION_RAISE',		url: 'voice_action_raise' },
 
 	{ name: 'VOICE_BETTING_FULL',		url: 'voice_betting_full' },	
 	{ name: 'VOICE_BETTING_HALF',		url: 'voice_betting_half' },	

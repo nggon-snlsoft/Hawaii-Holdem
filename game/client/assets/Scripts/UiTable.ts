@@ -344,7 +344,6 @@ export class UiTable extends Component {
 
 			this.objPotReturnChips[ i ] = {sprChips : clone};
 		}
-		/////////////////////////
 
 		this.labelReadyMessage = this.node.getChildByPath("LABLE_READY_MESSAGE").getComponent( Label );
 		this.labelReadyMessage.string = "";
@@ -1320,12 +1319,6 @@ export class UiTable extends Component {
 
 			let curBet = msg[ "maxBet" ];
 			let myBet = msg[ "currBet" ];
-			let minRaise = msg[ "minRaise" ];
-			let chips = msg[ "chips" ];
-			let curPot = msg[ "currPot" ];
-			let isLast = msg["isLast"];
-			let hasAction = msg["action"];
-			let maxChips = msg['maxChip'];
 
 			AudioController.instance.PlaySound('MY_TURN');
 			let reservation = this.uiPlayerActionReservation.checkReservation( myBet, curBet );
@@ -1366,8 +1359,7 @@ export class UiTable extends Component {
 				}
 			}
 			this.uiPlayerActionReservation.hide();
-
-			this.uiPlayerAction.show( this.betMin, curBet, minRaise, curPot, myBet, chips, maxChips, isLast, hasAction);
+			this.uiPlayerAction.show( msg, this.betMin );
 
 			this.uiPlayerAction.cbCheck = () => {
 				this.ENTITY_ELEMENTS.forEach( element => element.endTurn() );
@@ -1459,11 +1451,11 @@ export class UiTable extends Component {
 
     private onBLIND_BET( msg ) {
 		console.log('onBLIND_BET');
+		console.log( msg );
 
 		this.roundState = "BLIND_BET";
 
 		let PLAYERS = msg["player"];
-
 		let sb = msg[ "sb" ];
 		let bb = msg[ "bb" ];
 		this.betMin = msg[ "maxBet" ];
@@ -1495,9 +1487,7 @@ export class UiTable extends Component {
 					uiEntity.SetBlindBet( PLAYERS[i].chips, false, true )
 				}
 
-				if ( PLAYERS[i].seat != sb.seat && PLAYERS[i].seat != bb.seat ) {
-					uiEntity.SetChips( PLAYERS[i].chips );
-				}
+				uiEntity.SetChips( PLAYERS[i].chips );
 
 				if ( seat == this.mySeat ) {
 					this.myChips == PLAYERS[i].chips;

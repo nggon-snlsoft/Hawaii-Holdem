@@ -40,6 +40,7 @@ export class UiPlayerAction extends Component {
 	private buttonFull: Button = null;
 	private buttonMax: Button = null;
 
+	private buttonCallDisable: Button = null;
 	private buttonQuaterDisable: Button = null;
 	private buttonHalfDisable: Button = null;
 	private buttonFullDisable: Button = null;
@@ -50,12 +51,10 @@ export class UiPlayerAction extends Component {
 	private labelFullValue: Label = null;
 	private labelMaxValue: Label = null;
 
+	private labelCallDisableValue: Label = null;
 	private labelQuaterDisableValue: Label = null;
 	private labelHalfDisableValue: Label = null;
 	private labelFullDisableValue: Label = null;
-	
-	private labelBet: Label = null;
-	private labelRaise: Label = null;
 
 	private quaterValue: number = 0;
 	private halfValue: number = 0;
@@ -65,8 +64,6 @@ export class UiPlayerAction extends Component {
 
 	private sb: number = 0;
 	private bb: number = 0;
-
-	private rotateType: ENUM_DEVICE_TYPE = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
 
 	cbFold: () => void = null;
 	cbCall: ( betValue: number ) => void = null;
@@ -148,6 +145,12 @@ export class UiPlayerAction extends Component {
 			this.labelMaxValue.node.active = false;
 		}
 
+		this.buttonCallDisable = this.node.getChildByPath('BUTTON_CALL_DISABLE').getComponent( Button );
+		if ( this.buttonCallDisable != null ) {
+			this.buttonCallDisable.interactable = false;
+			this.buttonCallDisable.node.active = false;
+		}
+
 		this.buttonQuaterDisable = this.node.getChildByPath('BUTTON_QUATER_DISABLE').getComponent( Button );
 		if ( this.buttonQuaterDisable != null ) {
 			this.buttonQuaterDisable.interactable = false;
@@ -164,6 +167,12 @@ export class UiPlayerAction extends Component {
 		if ( this.buttonFullDisable != null ) {
 			this.buttonFullDisable.interactable = false;
 			this.buttonFullDisable.node.active = false;
+		}
+
+		this.labelCallDisableValue = this.node.getChildByPath('BUTTON_CALL_DISABLE/LABEL_VALUE').getComponent( Label );
+		if ( this.labelCallDisableValue != null ) {
+			this.labelCallDisableValue.string = '-';
+			this.labelCallDisableValue.node.active = false;
 		}
 
 		this.labelQuaterDisableValue = this.node.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
@@ -195,37 +204,44 @@ export class UiPlayerAction extends Component {
 		this.sb = sb;
 		this.bb = bb;
 
-		this.uiBettingControl.init( this.onCLICK_BETTING.bind(this) );
+		this.uiBettingControl.init( this.sb, this.bb, this.onCLICK_BETTING.bind(this) );
 	}
     
-	show( minBet: number, turnBet: number, minRaise: number, pot: number, myBet: number, myChips: number, maxChips:number, isLast : boolean, hasAction: boolean) {
+	show( msg: any, minBet: number ) {
 		this.childRegistered();
+
+		this.betMin = minBet;
+		this.turnBet = msg[ "maxBet" ];
+		this.myBet = msg[ "currBet" ];
+		this.myChips = msg['chips'];
+		this.pot = msg['currPot'];
+		this.maxChips = msg['maxChip'];
+		let minRaise = msg['minRaise'];
+
+		let hasAction = msg['action'];
+		let isLast = msg['isLast'];
+		let allin: boolean = false;
+		let allinCall: boolean = false;
 
 		this.quaterValue  = 0;
 		this.halfValue = 0;
 		this.fullValue = 0;
 		this.maxValue = 0;
 		this.betType =  ENUM_BETTING_TYPE.None;
-
-		this.betMin = minBet;
-		this.turnBet = turnBet;
-		this.myBet = myBet;
-		this.myChips = myChips;
-		this.pot = pot;
-		this.maxChips = maxChips;
-
 		this.callValue = 0;
 
 		this.buttonQuaterDisable.node.active = false;
 		this.buttonHalfDisable.node.active = false;
-		this.buttonFullDisable.node.active = false;		
+		this.buttonFullDisable.node.active = false;
+		this.buttonAllIn.node.active = false;
 
 		if ( this.turnBet != 0 && this.myChips < 0 ) {
 			this.buttonFold.node.active = false;
-			this.buttonAllIn.node.active = false;
 
 			this.buttonCheck.node.active = false;
 			this.buttonCall.node.active = true;
+			this.buttonCallDisable.node.active = false;
+
 			this.labelCallValue.string = '';
 			return;
 		}
@@ -241,6 +257,8 @@ export class UiPlayerAction extends Component {
 
 		if ( this.callValue > 0 ) {
 			this.buttonCall.node.active = true;
+			this.buttonCallDisable.node.active = false;
+
 			this.isBet = false;
 		} else {
 			this.buttonCall.node.active = false;
@@ -250,71 +268,70 @@ export class UiPlayerAction extends Component {
 		if ( this.buttonCall.node.active == true ) {
 			if ( this.callValue >= this.myChips ) {
 				this.buttonCall.node.active = false;
+				this.buttonCallDisable.node.active = true;
+
+				allin = true;
+				allinCall = true;
 			} else {
 				this.labelCallValue.string = CommonUtil.getKoreanNumber( this.callValue );
 			}	
 		}
 
 		if ( this.turnBet == 0 ) {
-			this.betStart = this.betMin;
+			this.betStart = this.callValue + this.betMin;
 		} else {
-			this.betStart = this.turnBet * 2;
+			this.betStart = this.callValue + minRaise;
 		}
 
 		this.betRange = this.myChips;
 
 		if ( this.turnBet != 0 && this.turnBet >= this.betRange ) {
-			this.buttonAllIn.node.active = true;
+			allin = true;
 		} else {
-			this.buttonAllIn.node.active = false;
+			allin = false;
 		}
 
-		if ( this.buttonAllIn.node.active == true ) {
+		let quater: number = 0;
+		let half: number = 0;
+		let full: number = 0;
 
+		let currentPot = this.pot + this.callValue;
+		quater = Math.floor( currentPot * 0.25 );
+		half = Math.floor( currentPot * 0.5 );
+		full = Math.floor( currentPot * 1.0 );
+
+		this.quaterValue  = quater + this.callValue;
+		this.halfValue = half + this.callValue;
+		this.fullValue = full + this.callValue;
+
+		this.maxValue = this.maxChips;
+
+		if ( this.isBet == true ) {
+			this.betType = ENUM_BETTING_TYPE.Bet;
+		} else {
+			this.betType = ENUM_BETTING_TYPE.Raise;
+		}
+
+		this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
+		this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
+		this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
+
+		this.labelQuaterDisableValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
+		this.labelHalfDisableValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
+		this.labelFullDisableValue.string = CommonUtil.getKoreanNumber( this.fullValue );
+
+		this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
+
+		if ( allin == true ) {
 			this.buttonQuater.node.active = false;
 			this.buttonHalf.node.active = false;
 			this.buttonFull.node.active = false;
 
-			this.buttonQuaterDisable.node.active = false;
-			this.buttonHalfDisable.node.active = false;
-			this.buttonFullDisable.node.active = false;
-
-			this.buttonMax.node.active = false;
+			this.buttonQuaterDisable.node.active = true;
+			this.buttonHalfDisable.node.active = true;
+			this.buttonFullDisable.node.active = true;
 			
 		} else {
-
-			let quater: number = 0;
-			let half: number = 0;
-			let full: number = 0;
-			let max: number = 0;
-
-			let currentPot = this.pot + this.callValue;
-			quater = Math.floor( currentPot * 0.25 );
-			half = Math.floor( currentPot * 0.5 );
-			full = Math.floor( currentPot * 1.0 );
-			max = this.betRange;
-
-			this.quaterValue  = quater + this.callValue;
-			this.halfValue = half + this.callValue;
-			this.fullValue = full + this.callValue;
-
-			this.maxValue = this.maxChips;
-
-			if ( this.isBet == true ) {
-				this.betType = ENUM_BETTING_TYPE.Bet;
-			} else {
-				this.betType = ENUM_BETTING_TYPE.Raise;
-			}
-
-			this.labelQuaterValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
-			this.labelHalfValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
-			this.labelFullValue.string = CommonUtil.getKoreanNumber( this.fullValue );
-
-			this.labelQuaterDisableValue.string = CommonUtil.getKoreanNumber( this.quaterValue );
-			this.labelHalfDisableValue.string = CommonUtil.getKoreanNumber( this.halfValue  );
-			this.labelFullDisableValue.string = CommonUtil.getKoreanNumber( this.fullValue );
-
-			this.labelMaxValue.string = CommonUtil.getKoreanNumber( this.maxValue - this.myBet );
 
 			let m = this.maxValue - this.myBet;
 			if ( this.quaterValue > m ) {
@@ -359,36 +376,90 @@ export class UiPlayerAction extends Component {
 				this.buttonFullDisable.node.active = false;
 			}
 
-			this.labelMaxValue.node.active = true;				
-			this.buttonMax.node.active = true;
-
+			this.labelMaxValue.node.active = true;
 		}
 
 		if ( isLast == true ) {
 
 			if (this.buttonCall.node.active == true) {
-				this.buttonAllIn.node.active = false;
+				this.buttonCallDisable.node.active = false;
+
+				allin = false;
 
 				this.buttonQuater.node.active = false;
 				this.buttonHalf.node.active = false;
 				this.buttonFull.node.active = false;
 
-				this.buttonQuaterDisable.node.active = false;
-				this.buttonHalfDisable.node.active = false;
-				this.buttonFullDisable.node.active = false;
-
-				this.buttonMax.node.active = false;
+				this.buttonQuaterDisable.node.active = true;
+				this.buttonHalfDisable.node.active = true;
+				this.buttonFullDisable.node.active = true;
 			}
 		}
 
 		if ( hasAction == false ) {
-
 			if ( this.buttonCall.node.active == true ) {
-				this.buttonAllIn.node.active = false;
+				this.buttonCallDisable.node.active = false;				
+				allin = false;
 			}
 		}
 
-		this.uiBettingControl.Set(this.isBet, minBet, minRaise, this.myChips );		
+		if ( allin = true ) {
+			if ( this.maxValue >= this.betRange ) {
+				this.buttonMax.node.active = false;
+				this.buttonAllIn.node.active = true;
+			} else {
+				this.betRange = this.maxValue;				
+				this.buttonMax.node.active = true;
+				this.buttonAllIn.node.active = false;
+			}
+
+			if ( allinCall == true ) {
+				this.buttonAllIn.node.active = true;				
+				this.buttonMax.node.active = false;
+			}
+
+		} else {
+			this.buttonMax.node.active = false;
+			this.buttonAllIn.node.active = false;
+		}
+
+		if ( this.maxValue <= 0 ) {
+			this.buttonMax.node.active = false;			
+		}
+
+		let enable = true;
+		if ( this.betStart > this.myChips || this.betRange <= 0 ) {
+			enable = false;
+		}
+
+		if ( this.buttonQuater.node.active == true ) {
+			if ( this.quaterValue < this.betStart ) {
+				this.buttonQuater.node.active = false;
+				this.buttonQuaterDisable.node.active = true;
+
+				this.labelQuaterDisableValue.node.active = true;		
+			}
+		}
+
+		if ( this.buttonHalf.node.active == true ) {
+			if ( this.halfValue < this.betStart ) {
+				this.buttonHalf.node.active = false;
+				this.buttonQuaterDisable.node.active = true;
+
+				this.labelHalfDisableValue.node.active = true;
+			}
+		}
+
+		if ( this.buttonFull.node.active == false ) {
+			if ( this.fullValue < this.betStart ) {
+				this.buttonFull.node.active = false;
+				this.buttonFullDisable.node.active = true;
+
+				this.labelFullDisableValue.node.active = true;
+			}
+		}
+
+		this.uiBettingControl.Set(this.isBet, this.betMin, this.betStart, this.betRange, hasAction, enable );
 		this.node.active = true;
 	}
 

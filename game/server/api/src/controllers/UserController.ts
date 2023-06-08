@@ -146,12 +146,21 @@ export class UserController {
         let cv: string = req.body.version;
         let sv = this.conf.version;
         if ( cv != sv ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                referal: data.recommender,
-                msg: 'VERSION_MISMATCH'
-            });
-            return;
+            if ( cv == '17') {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    referal: data.recommender,
+                    msg: 'INVALID_VERSION'
+                });
+                return;
+            } else {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    referal: data.recommender,
+                    msg: 'VERSION_MISMATCH'
+                });
+                return;
+            }
         }
 
         let token = sign({

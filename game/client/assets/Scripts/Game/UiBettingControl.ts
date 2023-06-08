@@ -1,10 +1,11 @@
-import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math } from 'cc';
+import { _decorator, Component, Node, Button, Slider, Label, EventHandler, math, MATH_FLOAT_ARRAY } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 import { AudioController } from './AudioController';
 const { ccclass, property } = _decorator;
 
 export enum ENUM_BETTING_TYPE {
     None,
+    call,
     Bet,
     Raise,
 }
@@ -18,35 +19,34 @@ export class UiBettingControl extends Component {
 
     @property(Slider) sliderBetting: Slider = null;
     @property(Label) labelDisplayValue: Label = null;
-    @property(Label) labelBetValue: Label = null;
-    @property(Label) labelRaiseValue: Label = null;
+
+    @property(Button) buttonMinusDisable: Button = null;
+    @property(Button) buttonPlusDisable: Button = null;
+    @property(Button) buttonBetDisable: Button = null;
+    @property(Button) buttonRaiseDisable: Button = null;
+    @property(Node) sliderBettingDisable: Node = null;
 
     private betStart: number = 0;
-    private betMax: number = 0;
+    private betRange: number = 0;
     private value: number = 0;
-
-    private displayValue: number = 0;    
-    private valueRange: number = 0;
-    private valueStart: number = 0;
-    private CONST_BET_STEP = 0.0;
-    private bb: number = 0;
+    private betMin: number = 0;
+    private sb: number = 0;
 
     private type: ENUM_BETTING_TYPE = ENUM_BETTING_TYPE.None;
     private cbBet: ( result: any )=>void;
 
-    init( cbBet: (resutlt: any)=>void ) {
+    init( sb: number, bb: number, cbBet: (resutlt: any)=>void ) {
         if ( cbBet != null ) {
             this.cbBet = cbBet;
         }
+        this.sb = sb;
 
         this.labelDisplayValue.string = '-';
-        this.labelBetValue.string = '-';
-        this.labelRaiseValue.string = '-';
 
 		const sliderEventHandler = new EventHandler();
 		sliderEventHandler.target = this.node;
 		sliderEventHandler.component = "UiBettingControl";
-		sliderEventHandler.handler = "onSliderChangeBetValue";
+		sliderEventHandler.handler = "onSLIDE_CHANGE";
 		sliderEventHandler.customEventData = "???";
 		this.sliderBetting?.slideEvents.push( sliderEventHandler );
 
@@ -68,163 +68,192 @@ export class UiBettingControl extends Component {
         this.node.active = true;
     }
 
-    public Set( isBet: boolean, minBet: number, minRaise: number, chips: number ) {
+    public Set( isBet: boolean, betMin: number, betStart: number, betRange: number, hasAction: boolean, enable: boolean ) {
+        this.betMin = betMin;
 
-        if ( isBet == true ) {
-            this.type = ENUM_BETTING_TYPE.Bet;
-            this.buttonBet.node.active = true;
-            this.buttonRaise.node.active = false;
+        if ( enable == true ) {
+            this.onENABLE();
 
-            this.betStart = minBet;
-            this.value = this.betStart;
+            this.sliderBetting.progress = 0.0;
+            this.SetValue( this.sliderBetting.progress );
 
-            this.labelBetValue.string = CommonUtil.getKoreanNumber( this.value );
+            if ( isBet == true ) {
+                this.type = ENUM_BETTING_TYPE.Bet;
+                this.buttonBet.node.active = true;
+                this.buttonRaise.node.active = false;
+    
+                this.betStart = betStart;
+                this.betRange = betRange;
+                this.value = this.betStart;
+            } else {
+                this.type = ENUM_BETTING_TYPE.Raise;
+                this.buttonBet.node.active = false;            
+                this.buttonRaise.node.active = true;
+    
+                this.betStart = betStart;
+                this.betRange = betRange;
+                this.value = this.betStart;
+            }
+
+            this.buttonMinus.node.active = false;
+            this.buttonMinusDisable.node.active = true;
             this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+
         } else {
-            this.type = ENUM_BETTING_TYPE.Raise;
-            this.buttonBet.node.active = false;            
-            this.buttonRaise.node.active = true;
+            this.onDISABLE();
+            if ( isBet == true ) {
+                this.type = ENUM_BETTING_TYPE.Bet;
+                this.buttonBetDisable.node.active = true;
+                this.buttonRaiseDisable.node.active = false;
+    
+                this.betStart = betStart;
+                this.betRange = betRange;
 
-            this.betStart = minRaise;
+                this.value = Math.min(this.betStart, this.betRange );
+    
+                this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+            } else {
+                this.type = ENUM_BETTING_TYPE.Raise;
+                this.buttonBetDisable.node.active = false;            
+                this.buttonRaiseDisable.node.active = true;
+    
+                this.betStart = betStart;
+                this.betRange = betRange;
+                this.value = this.betStart;
+                
+                this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+            }    
+        }
+    }
+
+    private onENABLE() {
+        this.buttonMinusDisable.node.active = false;
+        this.buttonPlusDisable.node.active = false;
+        this.buttonBetDisable.node.active = false;
+        this.buttonRaiseDisable.node.active = false;
+        
+        this.sliderBettingDisable.active = false;
+
+        this.buttonMinus.node.active = true;
+        this.buttonPlus.node.active = true;
+        this.buttonBet.node.active = true;
+        this.buttonRaise.node.active = true;
+
+        this.sliderBetting.node.active = true;
+    }
+
+    private onDISABLE() {
+        this.buttonMinus.node.active = false;
+        this.buttonPlus.node.active = false;
+        this.buttonBet.node.active = false;
+        this.buttonRaise.node.active = false;
+
+        this.sliderBetting.node.active = false;
+
+        this.buttonMinusDisable.node.active = true;
+        this.buttonPlusDisable.node.active = true;
+        this.buttonBetDisable.node.active = true;
+        this.buttonRaiseDisable.node.active = true;
+        
+        this.sliderBettingDisable.active = true;
+    }
+
+    private SetValue( ratio: number ) {
+        let result = 0;
+        if ( ratio <= 0 ) {
+            this.sliderBetting.progress = 0.0;
             this.value = this.betStart;
 
-            this.labelRaiseValue.string = CommonUtil.getKoreanNumber( this.value );
-            this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+            this.buttonMinus.node.active = false;
+            this.buttonMinusDisable.node.active = true;
+
+        } else if ( ratio >= 1.0 ) {
+            this.sliderBetting.progress = 1.0;
+            this.value = this.betRange;
+
+            this.buttonPlus.node.active = false;
+            this.buttonPlusDisable.node.active = true;
+
+        } else {
+
+            result = this.betStart + Math.floor( ratio * (this.betRange - this.betStart) );
+            let remain = result % this.sb;
+            result -= remain;
+            result = Math.max( result, this.betStart );
+
+            this.value = result;
+        }
+
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+        this.SetSlide( this.value );
+
+        if ( this.value > this.betStart ) {
+            this.buttonMinus.node.active = true;
+            this.buttonMinusDisable.node.active = false;
+        }
+
+        if ( this.value < this.betRange ) {
+            this.buttonPlus.node.active = true;
+            this.buttonPlusDisable.node.active = false;
         }
     }
 
-    public show( sb: number, bb: number, type: ENUM_BETTING_TYPE, valueStart: number, valueRange: number, pot: number, chips: number , cbBet: ( result: any )=> void ) {
-        this.type = type;
-
-        if ( cbBet != null ) {
-            this.cbBet = cbBet;
-        }
-
-        this.valueStart = Math.min(valueStart, valueRange) ;
-        this.valueRange = chips;
-
-        // this.labelMaxValue.string = CommonUtil.getKoreanNumber( valueRange );
-
-        let result: number = 0;
-        result = pot;
-        result = Math.max( result, this.valueStart );
-        result = Math.min( result, this.valueRange);
-        // this.labelFullValue.string = CommonUtil.getKoreanNumber(result);
-
-        result = Math.floor(pot * 0.5);
-        result = Math.max( result, this.valueStart );
-        result = Math.min( result, this.valueRange);
-        // this.labelHalfValue.string = CommonUtil.getKoreanNumber(result);
-
-        result = Math.floor(pot * 0.25);
-        result = Math.max( result, this.valueStart );
-        result = Math.min( result, this.valueRange);
-        // this.labelQuaterValue.string = CommonUtil.getKoreanNumber(result);
-
-        this.setRatio(0);
-        this.node.active = true;
-    }
-
-    private setRatio( ratio: number ) {
-		let result: number = 0;
-		let remain: number = 0;
-
-		if ( ratio >= 1) {
-			ratio = 1;
-            result = Math.floor( ratio * this.valueRange );
-		} else {
-
-            if ( ratio <= 0 ) {
-                result = this.valueStart;
-            }
-            else {
-                result = Math.floor( ratio * this.valueRange );
-                remain = result % ( this.CONST_BET_STEP );
-                result -= remain;
-            }
-		}
-
-        result = Math.max( result, this.valueStart );
-
-        this.sliderBetting.progress = result / this.valueRange;
-
-        this.displayValue = result;
-        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );
-    }
-
-    private onClickBetMinus( button:Button ) {
-		AudioController.instance.ButtonClick();        
-        let r = this.displayValue - this.CONST_BET_STEP;
-        this.setValue( r );
-    }
-
-    private setValue( value ) {
-		let result: number = 0;
-		let remain: number = 0;
-
-        result = value;
-        remain = result % ( this.CONST_BET_STEP );
-        result -= remain;
-        result = Math.max( result, this.valueStart );
-
-        this.sliderBetting.progress = result / this.valueRange;
-        this.displayValue = Math.min( result, this.valueRange);
-
-        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );        
-    }
-
-    private setPotValue( value ) {
-		let result: number = 0;
-        result = Math.floor(value);
-        result = Math.max( result, this.valueStart );
-
-        this.sliderBetting.progress = result / this.valueRange;
-        this.displayValue = Math.min( result, this.valueRange);
-
-        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.displayValue );        
-    }
-
-    private onClickBetPlus( button: Button ) {
-        let r = this.displayValue + this.CONST_BET_STEP;
-		AudioController.instance.ButtonClick();
-        this.setValue( r );
-    }
-
-    private onSliderChangeBetValue( slider: Slider ) {
-        // this.setRatio( slider.progress );
+    private onSLIDE_CHANGE( slider: Slider ) {
+        this.SetValue( slider.progress );
 	}
+
+    private SetSlide( value: number ) {
+        if ( this.betRange - this.betStart <= 0 ) {
+            return;
+        }
+
+        if ( value - this.betStart <= 0 ) {
+            this.sliderBetting.progress = 0.0;
+        }
+        else {
+            this.sliderBetting.progress = ( value - this.betStart ) / ( this.betRange - this.betStart );            
+        }
+    }
 
     hide() {
         this.node.active = false;
     }
 
-    public getResult(): any {
-        let result = 0;
-        switch ( this.type) {
-            case ENUM_BETTING_TYPE.None:
-                break;
+    private onCLICK_PLUS( button: Button ) {
+        this.value += this.betMin;
 
-            case ENUM_BETTING_TYPE.Bet:
-                result = this.displayValue;
-                break;
-
-            case ENUM_BETTING_TYPE.Raise:
-                result = this.displayValue;
-                break;
+        if ( this.value >= this.betRange ) {
+            this.value = this.betRange;
+            this.buttonPlus.node.active = false;
+            this.buttonPlusDisable.node.active = true;
         }
 
-        return {
-            result: result,
-            type: this.type,
-        };
-    }
+        if ( this.value > this.betStart ) {
+            this.buttonMinus.node.active = true;
+            this.buttonMinusDisable.node.active = false;
+        }
 
-    private onCLICK_PLUS( button: Button ) {
-
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+        this.SetSlide( this.value );
     }
 
     private onCLICK_MINUS( button: Button ) {
+        this.value -= this.betMin;
 
+        if ( this.value <= this.betStart ) {
+            this.value = this.betStart;
+            this.buttonMinus.node.active = false;
+            this.buttonMinusDisable.node.active = true;
+        }
+
+        if ( this.value < this.betRange ) {
+            this.buttonPlus.node.active = true;
+            this.buttonPlusDisable.node.active = false;
+        }
+
+        this.labelDisplayValue.string = CommonUtil.getKoreanNumber( this.value );
+
+        this.SetSlide( this.value );
     }
 
     private onCLICK_BET( button: Button ) {
