@@ -2077,6 +2077,12 @@ export class UiTable extends Component {
 			else {
 				uiEntity.SetAction( "raise" );
 				switch ( sound) {
+					case Number( ENUM_BET_SOUND.BET ) :	//quater
+						AudioController.instance.PlaySound('VOICE_ACTION_BET');					
+						break;
+					case Number( ENUM_BET_SOUND.RAISE) :	//half
+						AudioController.instance.PlaySound('VOICE_ACTION_RAISE');					
+						break;
 					case Number( ENUM_BET_SOUND.BET_QUATER ) :	//quater
 						AudioController.instance.PlaySound('VOICE_BETTING_QUATER');					
 						break;
@@ -2176,6 +2182,12 @@ export class UiTable extends Component {
 			} else {
 				uiEntity.SetAction( "bet" );
 				switch ( sound) {
+					case Number( ENUM_BET_SOUND.BET ) :	//quater
+						AudioController.instance.PlaySound('VOICE_ACTION_BET');					
+						break;
+					case Number( ENUM_BET_SOUND.RAISE ) :	//quater
+						AudioController.instance.PlaySound('VOICE_ACTION_RAISE');					
+						break;						
 					case Number( ENUM_BET_SOUND.BET_QUATER ) :	//quater
 						AudioController.instance.PlaySound('VOICE_BETTING_QUATER');					
 						break;

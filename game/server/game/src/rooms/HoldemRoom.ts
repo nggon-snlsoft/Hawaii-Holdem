@@ -1359,7 +1359,7 @@ export class HoldemRoom extends Room<RoomState> {
 				}
 
 				this.broadTurn();
-				this.updateEndSeat( this.betSeat, false );
+				this.updateEndSeat( this.betSeat );
 				break;
 
 			case eGameState.Flop:
@@ -2786,7 +2786,7 @@ export class HoldemRoom extends Room<RoomState> {
 		return locSeat;
 	}
 
-	updateEndSeat( currBetSeat: number, reOpen: boolean ) {
+	updateEndSeat( currBetSeat: number ) {
 		logger.info(  this._tableIdString + "[ updateEndSeat ] [ BET ] previous seat : %s // curr seat : %s", this.betSeat, currBetSeat );
 		this.betSeat = currBetSeat;
 		let locBetSeat: number = this.betSeat;
@@ -3270,9 +3270,15 @@ export class HoldemRoom extends Room<RoomState> {
 
 		let bet = amount - e.currBet;
 		let isAllIn = bet >= e.chips;
+
 		if( true == isAllIn ) {
 			e.allIn = 1;
 			bet = e.chips;
+
+			if( msg[ "betAmount" ] > this.state.maxBet ) {
+				this.state.maxBet = msg[ "betAmount" ];
+			}
+			this.updateEndSeat( e.seat );
 			logger.info(  this._tableIdString + "[ onCall ] all-in" );
 		}
 
@@ -3414,7 +3420,7 @@ export class HoldemRoom extends Room<RoomState> {
 			sound: msg['sound']
 		} );
 
-		this.updateEndSeat( e.seat, true );
+		this.updateEndSeat( e.seat );
 		this.broadTurn();
 
 		this.elapsedTick = 0;
@@ -3509,7 +3515,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if( locChangeEndSeat ) {
 			logger.info(  this._tableIdString + "[ onRaise ] max bet updated. change end seat??" );
-			this.updateEndSeat( e.seat , true);
+			this.updateEndSeat( e.seat );
 		}
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
@@ -3566,6 +3572,8 @@ export class HoldemRoom extends Room<RoomState> {
 		e.currBet += bet;
 		e.roundBet += bet;
 		e.totalBet += bet;
+
+		this.ReOpenAction();
 		e.hasAction = false;
 
 		e.timeLimitCount = 0;
@@ -3615,7 +3623,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 		if( locChangeEndSeat ) {
 			logger.info( this._tableIdString +  " this._tableIdString + [ onRaise ] max bet updated. change end seat" );
-			this.updateEndSeat( e.seat , false);
+			this.updateEndSeat( e.seat );
 		}
 
 		if( true === this.isLastTurn( this.betSeat ) ) {

@@ -346,7 +346,10 @@ export class ResourceManager extends Component {
 			return e['name'] == name;
 		})['name'];
 
-		return this.preloadSoundsResource[ clipName ];
+		if ( clipName != null && clipName.length > 0 ) {
+			return this.preloadSoundsResource[ clipName ];
+		}
+		return null;
 	}
 
 	public resetCardsPreload() {

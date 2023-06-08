@@ -111,7 +111,6 @@ export class UiLobby extends Component {
                 if ( popups != null && popups.length > 0 ) {
                     this.uiLobbyPopup.OpenEventPopup( popups, ( type: ENUM_EVENT_POPUP_TYPE )=>{
                         if ( type == 1 ) {
-                            console.log( this.user )
                             if ( this.user.tester == 1 ) {
                                 this.uiLobbyPopup.CloseEventPopup();
                                 GameManager.Instance().SetShowEventPopup( false );
@@ -190,7 +189,6 @@ export class UiLobby extends Component {
                     this.EXIT_LOBBY();
                     return;
                 }
-                console.log( res );
 
                 this.refreshPlayer();
                 this.SetUnreadAnswer( res.unreads );
@@ -330,8 +328,6 @@ export class UiLobby extends Component {
     public onEVENT_SHOW() {
         let now: any = new Date();
         let ts = Number(now);
-
-        console.log(ts - this.onHideTimestamp);
 
         if ( ts - this.onHideTimestamp > 1000 * 60 * 10 ) {
 			GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_LONG_AFK );
