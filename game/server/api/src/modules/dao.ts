@@ -567,6 +567,22 @@ dao.SELECT_POPUPS_BySTORE_ID = function ( cb: any ) {
 	});
 };
 
+dao.SELECT_NOTICES = function ( cb: any ) {
+
+	let sql = 'SELECT * FROM NOTICES WHERE DISABLE = 0';
+
+	_client.query(sql, null, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 	let sql = 'SELECT * FROM TICKETS WHERE USER_ID = ? AND ALIVE = 1';

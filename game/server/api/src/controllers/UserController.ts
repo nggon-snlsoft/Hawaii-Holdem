@@ -145,8 +145,10 @@ export class UserController {
 
         let cv: string = req.body.version;
         let sv = this.conf.version;
+        let VERSION = parseInt(cv);        
+        console.log('VERSION: ' + VERSION );        
         if ( cv != sv ) {
-            if ( cv == '17') {
+            if ( VERSION < 18) {
                 res.status( 200 ).json({
                     code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                     referal: data.recommender,

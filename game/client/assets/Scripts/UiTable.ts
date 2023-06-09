@@ -1469,12 +1469,11 @@ export class UiTable extends Component {
 		this.uiPlayerActionReservation.showCheck( false );
 
 		for ( let i: number = 0 ; i < PLAYERS.length ; i++ ) {
-			let seat = PLAYERS[i].seat;
-			if ( PLAYERS[i] == null || PLAYERS[i].seat == null || seat < 0 ) {
+			if ( PLAYERS[i] == null || PLAYERS[i].seat == null ) {
 				continue;
 			}
 
-			let uiEntity = this.GetEntityFromSeat( seat );
+			let uiEntity = this.GetEntityFromSeat( PLAYERS[i].seat );
 			if ( uiEntity != null ) {
 				uiEntity.SetStatus( PLAYERS[i] );
 				uiEntity.SetBetValue( PLAYERS[i].totalBet );
@@ -1489,7 +1488,7 @@ export class UiTable extends Component {
 
 				uiEntity.SetChips( PLAYERS[i].chips );
 
-				if ( seat == this.mySeat ) {
+				if ( PLAYERS[i].seat == this.mySeat ) {
 					this.myChips == PLAYERS[i].chips;
 					if ( PLAYERS[i].isBB == true) {
 						this.uiPlayerActionReservation.showCheck( true );

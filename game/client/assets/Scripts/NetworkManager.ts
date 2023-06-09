@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-const apiHost: string = '127.0.0.1';
-const gameHost: string = '127.0.0.1';
+// const apiHost: string = '127.0.0.1';
+// const gameHost: string = '127.0.0.1';
 
-// const apiHost: string = '43.207.193.204';
-// const gameHost: string = '43.207.193.204';
+const apiHost: string = '43.207.193.204';
+const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -546,6 +546,34 @@ export class NetworkManager extends cc.Component {
 
 		await this.Post( this.API_SERVER, "/users/qna/read", {
 			id: id,
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFAIL({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		onSUCCESS(result);
+	}
+
+	public async reqNOTICES( onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+
+		await this.Post( this.API_SERVER, "/store/notices/get", {
 
 		}).then((res: string)=>{
 			isConnect = true;

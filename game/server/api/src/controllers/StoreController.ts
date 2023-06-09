@@ -24,12 +24,13 @@ export class StoreController {
 
     private InitRouter() {
         this.router.post( '/get', this.onGET_STORE.bind( this ));
-        this.router.post( '/company', this.onGET_COMPANY.bind( this ));        
+        this.router.post( '/company', this.onGET_COMPANY.bind( this ));
         this.router.post( '/charge/req', this.onREQ_CHARGE.bind( this ));
         this.router.post( '/transfer/req', this.onREQ_TRANSFER.bind( this ));
         this.router.post( '/chargeRequest/get', this.onGET_CHARGE_REQUESTS.bind( this ));
         this.router.post( '/transferRequest/get', this.onGET_TRANSFER_REQUESTS.bind( this ));
         this.router.post( '/popups/get', this.onGET_POPUPS.bind( this ));
+        this.router.post( '/notices/get', this.onGET_NOTICES.bind( this ));
         this.router.post( '/ticket/check', this.onCHECK_TICKETS.bind( this ));
     }
 
@@ -424,6 +425,30 @@ export class StoreController {
         }
     }
 
+    public async onGET_NOTICES( req: any, res: any ) {
+
+        let notices: any = null;
+        try {
+            notices = await this.reqNOTICES_ByDB( req.app.get('DAO'));
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( notices == null ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'NOTICES_NULL',                
+            });
+        } else {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.SUCCESS,
+                msg: 'SUCCESS',
+                notices: notices,
+            });
+        }
+    }
+
+
     public async onCHECK_TICKETS( req: any, res: any ) {
         let ticket_id = req.body.ticket_id;
 
@@ -592,6 +617,22 @@ export class StoreController {
     private async reqPOPUPS_BySTORE_ID( dao: any) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_POPUPS_BySTORE_ID ( function(err: any, res: any ) {
+
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqNOTICES_ByDB( dao: any) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_NOTICES ( function(err: any, res: any ) {
 
                 if ( !!err ) {
                     reject({

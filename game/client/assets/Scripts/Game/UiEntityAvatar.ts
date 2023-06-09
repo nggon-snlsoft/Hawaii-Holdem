@@ -138,20 +138,10 @@ export class UiEntityAvatar extends Component {
         this.isFold = false;
 
         this.SetStatus( ENUM_STATUS_TYPE.NONE );
-        this.clearUiAction();
+        this.ClearAction();
     }
 
     public ClearAction() {
-        let keys = Object.keys( this.actions );
-        keys.forEach ( (e)=> {
-            let v: Node = this.actions[e];
-            v.active = false;
-        });
-        this.rootActions.active = false;
-    }
-
-    public clearUiAction() {
-        //deplicate
         let keys = Object.keys( this.actions );
         keys.forEach ( (e)=> {
             let v: Node = this.actions[e];
@@ -187,7 +177,7 @@ export class UiEntityAvatar extends Component {
         this.isFold = isFold;
 
         if ( isFold == true ) {
-            this.clearUiAction();
+            this.ClearAction();
 
             this.spriteTimer.fillRange = 0;
             this.spriteTimer.node.active = false;
@@ -235,6 +225,9 @@ export class UiEntityAvatar extends Component {
         this.rootSelected.active = false;
 
         this.SetAction('allin');
+
+        this.spriteDimmed.node.active = true;
+        this.rootStatus.active = true;
     }
 
     public SetSitout() {

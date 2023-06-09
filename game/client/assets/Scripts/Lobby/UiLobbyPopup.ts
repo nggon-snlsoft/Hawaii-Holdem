@@ -49,7 +49,7 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_CHARGE.Init( this.CloseCharge.bind(this), null );
         this.uiLOBBY_POPUP_TRANFER.Init( this.CloseTransfer.bind(this), this.onAPPLY_TRANSFER.bind(this) );
         this.uiLOBBY_POPUP_QNA.Init( this.CloseQNA.bind(this), null );
-        this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this), null );
+        this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this) );
         this.uiLOBBY_POPUP_EVENT.Init();
         this.uiLOBBY_POPUP_TICKETS.Init();
 

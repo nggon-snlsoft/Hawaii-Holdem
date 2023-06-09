@@ -136,9 +136,9 @@ export class DealerCalculation {
                         e.dealable = true;
                         return sb;
                     } else {
-                        e.missSb = true;
+                        // e.missSb = true;
                         // e.dealable = true;
-                        e.dealable = false;
+                        // e.dealable = false;
                     }
                 }
             }
@@ -171,11 +171,11 @@ export class DealerCalculation {
                     } else {
                         if ( true === e.isNew || true === e.isSitBack ) {
                             // e.wait = true;
-                            e.dealable = false;
+                            // e.dealable = false;
 
-                            if (true === e.isSitBack ) {
-                                e.missSb = true;
-                            }
+                            // if (true === e.isSitBack ) {
+                            //     e.missSb = true;
+                            // }
                             
                             this.players = this.countPlayablePlayers(entities);
                             if (this.players == 2) {
@@ -185,12 +185,12 @@ export class DealerCalculation {
                         }
                     }
                 } else {
-                    e.missSb = true;
-                    e.dealable = false;
+                    // e.missSb = true;
+                    // e.dealable = false;
                 }
             } else {
-                e.missSb = true;
-                e.dealable = false;
+                // e.missSb = true;
+                // e.dealable = false;
             }
         }
 
@@ -247,8 +247,8 @@ export class DealerCalculation {
                     entity.dealable = true;
                     return bb;
                 } else {
-                    entity.missSb = true;
-                    entity.dealable = false;
+                    // entity.missSb = true;
+                    // entity.dealable = false;
                 }
             }
             return bb;
@@ -274,13 +274,13 @@ export class DealerCalculation {
                 bb = entity.seat;
                 return bb;
             } else {
-                if (entity.missBb == false) {
-                    entity.missBb = true;
-                } else {
-                    logger.error(this.tableidString + "player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
-                    entity.leave = true;
-                    entity.longSitOut = true;
-                }
+                // if (entity.missBb == false) {
+                //     entity.missBb = true;
+                // } else {
+                //     logger.error(this.tableidString + "player(seat:%s, name:%s)  may be leave", entity.seat.toString(), entity.name);
+                //     entity.leave = true;
+                //     entity.longSitOut = true;
+                // }
             }
         }
 

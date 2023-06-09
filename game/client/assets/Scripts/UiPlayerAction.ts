@@ -124,25 +124,25 @@ export class UiPlayerAction extends Component {
 		this.labelQuaterValue = this.node.getChildByPath('BUTTON_QUATER/LABEL_VALUE').getComponent( Label );
 		if ( this.labelQuaterValue != null ) {
 			this.labelQuaterValue.string = '';
-			this.labelQuaterValue.node.active = false;
+			this.labelQuaterValue.node.active = true;
 		}
 
 		this.labelHalfValue = this.node.getChildByPath('BUTTON_HALF/LABEL_VALUE').getComponent( Label );
 		if ( this.labelHalfValue != null ) {
 			this.labelHalfValue.string = '';
-			this.labelHalfValue.node.active = false;
+			this.labelHalfValue.node.active = true;
 		}
 
 		this.labelFullValue = this.node.getChildByPath('BUTTON_FULL/LABEL_VALUE').getComponent( Label );
 		if ( this.labelFullValue != null ) {
 			this.labelFullValue.string = '';
-			this.labelFullValue.node.active = false;
+			this.labelFullValue.node.active = true;
 		}
 
 		this.labelMaxValue = this.node.getChildByPath('BUTTON_MAX/LABEL_VALUE').getComponent( Label );
 		if ( this.labelMaxValue != null ) {
 			this.labelMaxValue.string = '';
-			this.labelMaxValue.node.active = false;
+			this.labelMaxValue.node.active = true;
 		}
 
 		this.buttonCallDisable = this.node.getChildByPath('BUTTON_CALL_DISABLE').getComponent( Button );
@@ -178,19 +178,19 @@ export class UiPlayerAction extends Component {
 		this.labelQuaterDisableValue = this.node.getChildByPath('BUTTON_QUATER_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelQuaterDisableValue != null ) {
 			this.labelQuaterDisableValue.string = '';
-			this.labelQuaterDisableValue.node.active = false;
+			this.labelQuaterDisableValue.node.active = true;
 		}
 
 		this.labelHalfDisableValue = this.node.getChildByPath('BUTTON_HALF_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelHalfDisableValue != null ) {
 			this.labelHalfDisableValue.string = '';
-			this.labelHalfDisableValue.node.active = false;
+			this.labelHalfDisableValue.node.active = true;
 		}
 
 		this.labelFullDisableValue = this.node.getChildByPath('BUTTON_FULL_DISABLE/LABEL_VALUE').getComponent( Label );
 		if ( this.labelFullDisableValue != null ) {
 			this.labelFullDisableValue.string = '';
-			this.labelFullDisableValue.node.active = false;
+			this.labelFullDisableValue.node.active = true;
 		}
 
 		this.node.active = true;
@@ -276,13 +276,21 @@ export class UiPlayerAction extends Component {
 		}
 
 		if ( this.buttonCall.node.active == true ) {
-			if ( this.callValue >= this.myChips ) {
+			if ( this.callValue > this.myChips ) {
 				this.buttonCall.node.active = false;
 				this.buttonCallDisable.node.active = true;
 
 				allin = true;
 				allinCall = true;
-			} 
+			} else if ( this.callValue == this.myChips ) {
+				allin = false;
+				this.buttonAllIn.node.active = true;
+				this.buttonCallDisable.node.active = false;
+			} else {
+
+				//이경우 따로 처리해야 될까?
+
+			}
 		}
 
 		if ( this.turnBet == 0 ) {
@@ -343,44 +351,26 @@ export class UiPlayerAction extends Component {
 
 			let m = this.maxValue - this.myBet;
 			if ( this.quaterValue > m ) {
-				this.labelQuaterValue.node.active = false;
 				this.buttonQuater.node.active = false;
-
-				this.labelQuaterDisableValue.node.active = true;
 				this.buttonQuaterDisable.node.active = true;
 			} else {
-				this.labelQuaterValue.node.active = true;
 				this.buttonQuater.node.active = true;
-
-				this.labelQuaterDisableValue.node.active = false;
 				this.buttonQuaterDisable.node.active = false;
 			}
 
 			if ( this.halfValue > m ) {
-				this.labelHalfValue.node.active = false;
 				this.buttonHalf.node.active = false;
-
-				this.labelHalfDisableValue.node.active = true;
 				this.buttonHalfDisable.node.active = true;
 			} else {
-				this.labelHalfValue.node.active = true;
 				this.buttonHalf.node.active = true;
-
-				this.labelHalfDisableValue.node.active = false;
 				this.buttonHalfDisable.node.active = false;
 			}
 
 			if ( this.fullValue > m ) {
-				this.labelFullValue.node.active = false;
 				this.buttonFull.node.active = false;
-
-				this.labelFullDisableValue.node.active = true;
 				this.buttonFullDisable.node.active = true;
 			} else {
-				this.labelFullValue.node.active = true;
 				this.buttonFull.node.active = true;
-
-				this.labelFullDisableValue.node.active = false;
 				this.buttonFullDisable.node.active = false;
 			}
 
@@ -444,8 +434,6 @@ export class UiPlayerAction extends Component {
 			if ( this.quaterValue < this.betStart ) {
 				this.buttonQuater.node.active = false;
 				this.buttonQuaterDisable.node.active = true;
-
-				this.labelQuaterDisableValue.node.active = true;		
 			}
 		}
 
@@ -453,8 +441,6 @@ export class UiPlayerAction extends Component {
 			if ( this.halfValue < this.betStart ) {
 				this.buttonHalf.node.active = false;
 				this.buttonQuaterDisable.node.active = true;
-
-				this.labelHalfDisableValue.node.active = true;
 			}
 		}
 
@@ -462,12 +448,11 @@ export class UiPlayerAction extends Component {
 			if ( this.fullValue < this.betStart ) {
 				this.buttonFull.node.active = false;
 				this.buttonFullDisable.node.active = true;
-
-				this.labelFullDisableValue.node.active = true;
 			}
 		}
 
 		if ( hasAction == false ) {
+
 			this.buttonQuater.node.active = false;
 			this.buttonHalf.node.active = false;
 			this.buttonFull.node.active = false;
@@ -475,17 +460,28 @@ export class UiPlayerAction extends Component {
 			this.buttonQuaterDisable.node.active = true;
 			this.buttonHalfDisable.node.active = true;
 			this.buttonFullDisable.node.active = true;
+			this.buttonMax.node.active = false;
 
-			if ( this.myChips > this.callValue ) {
-				this.buttonCall.node.active = true;
+			if ( this.callValue > 0 ) {
+				if ( this.myChips >= this.callValue ) {
+					this.buttonCheck.node.active = false;
+					this.buttonCall.node.active = true;
+					this.buttonCallDisable.node.active = false;
+					this.buttonAllIn.node.active = false;
+	
+				} else {
+					this.buttonCheck.node.active = false;
+					this.buttonCall.node.active = false;
+					this.buttonCallDisable.node.active = true;
+					this.buttonAllIn.node.active = true;
+				}	
+			} else {
+				this.buttonCheck.node.active = true;
+				this.buttonCall.node.active = false;
 				this.buttonCallDisable.node.active = false;
 				this.buttonAllIn.node.active = false;
-
-			} else {
-				this.buttonCall.node.active = false;
-				this.buttonCallDisable.node.active = true;
-				this.buttonAllIn.node.active = true;
 			}
+
 			enable = false;
 		}
 
@@ -516,11 +512,17 @@ export class UiPlayerAction extends Component {
 	}
 
     private onClickAllin() {
-		let value = this.myChips + this.myBet;
-		if ( value < this.betStart ) {
+		// let value = this.myChips + this.myBet;
+		let value = this.myChips + this.callValue;
+		if ( value <= this.betStart ) {
 			this.cbCall( value );
 		} else {
-			this.cbAllIn( value, this.callValue );
+			if ( this.isBet == true ) {
+				this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN );
+			} else {
+				this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN  );
+			}
+			// this.cbAllIn( value, this.callValue );
 		}
 	}
 

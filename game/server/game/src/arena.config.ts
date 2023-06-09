@@ -50,13 +50,7 @@ export default Arena( {
 
 	initializeExpress: ( app ) => {
 		app.use( cors() );
-		// app.use( favicon( __dirname + "/static/favicon.ico" ) );
 		app.use( methodOverride() );
-		// app.use( session( {
-		// 	resave: true,
-		// 	saveUninitialized: true,
-		// 	secret: "uwotm8"
-		// } ) );
 		app.use( bodyParser.json() );
 		app.use( bodyParser.urlencoded( { extended: true } ) );
 
