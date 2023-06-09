@@ -144,6 +144,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
 					this.conf["ante"] = roomInfo['ante'];
+					this.conf['lastHandsCount'] = roomInfo['hands_count'];
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -154,10 +155,11 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.setState(new RoomState());
 				this._DealerCalculator = new DealerCalculation();
-				this._HandHistoryController = new HandHistoryController();
+				this._HandHistoryController = new HandHistoryController( this.conf["tableID"], this.conf['maxClient'], this.conf['lastHandsCount'] );
 				if ( this._HandHistoryController != null ) {
 					this._HandHistoryController.Init();
 				}
+
 				this.init();
 
 				this.setSimulationInterval((deltaTime) => this.update(deltaTime));
@@ -2083,6 +2085,8 @@ export class HoldemRoom extends Room<RoomState> {
 				rolling: 0,
 			});
 		});
+
+		// this._HandHistoryController.
 
 		this.state.maxBet = this.state.startBet;
 		this.state.minRaise = this.state.maxBet;
