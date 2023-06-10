@@ -143,7 +143,11 @@ export class UiLobby extends Component {
         });
     }
 
-    private SetUnreadAnswer( count: number ) {
+    // private SetUnreadAnswer( count: number ) {
+    //     this.uiLobbyBottom.SetUnreadBadge( count );
+    // }
+
+    private SetUnreadMessage( count: number ) {
         this.uiLobbyBottom.SetUnreadBadge( count );
     }
 
@@ -221,7 +225,7 @@ export class UiLobby extends Component {
                 }
 
                 this.refreshPlayer();
-                this.SetUnreadAnswer( res.unreads );
+                this.SetUnreadMessage( res.unreads );
                 this.ShowTicketResult( res.tickets, ()=>{
                     if ( res.point_receives != null && res.point_receives.length > 0 ) {
                         this.ShowPointReceives( res.point_receives, ()=>{

@@ -652,6 +652,24 @@ dao.SELECT_UNREAD_ANSWER_ByUSER_ID = function ( user_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_UNREAD_MESSAGE_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM MESSAGES WHERE (USER_ID = ? AND ALIVE = 1 AND UNREAD = 1 )';
+	let args = [ user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		let count = res[0].UNREAD_COUNT;
+		cb?.(null, count );
+	});
+};
+
 dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	let amount = data.amount;
 	let user = data.user;
@@ -736,6 +754,24 @@ dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
 dao.UPDATE_QNA_READ = function ( id: any, cb: any ) {
 
 	let sql = "UPDATE QUESTIONS SET UNREAD = 0 WHERE ID = ? ";
+	let args = [ id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb( null, res.affectedRows );				
+			} else {
+				cb( null, 0 );
+			}
+		}
+	});    
+}
+
+dao.UPDATE_MESSAGE_READ = function ( id: any, cb: any ) {
+
+	let sql = "UPDATE MESSAGES SET UNREAD = 0 WHERE ID = ? ";
 	let args = [ id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -902,6 +938,24 @@ dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
 
 dao.SELECT_QUESTIONS_ByUSER_ID = ( user_id: any, cb: any )=> {
 	let sql = 'SELECT * FROM QUESTIONS WHERE USER_ID = ? AND ALIVE = 1 ORDER BY questionDate DESC';
+	let args = [ user_id ];	
+
+	_client.query(sql, args, function (err: any, res: any) {        
+		if (!!err) {
+			cb(err, null);
+			return;
+		} else {
+			if ( res != null ) {
+				cb(null, res );
+			} else {
+				cb(null, null );
+			}
+		}
+	});
+}
+
+dao.SELECT_MESSAGES_ByUSER_ID = ( user_id: any, cb: any )=> {
+	let sql = 'SELECT * FROM MESSAGES WHERE USER_ID = ? AND ALIVE = 1 ORDER BY createDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        

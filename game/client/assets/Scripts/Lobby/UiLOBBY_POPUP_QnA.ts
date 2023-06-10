@@ -91,6 +91,75 @@ export class QnAElement {
     }
 }
 
+@ccclass('MessageElement')
+export class MessageElement {
+    @property( Node ) rootNode: Node = null;
+    @property( Button ) buttonMessage: Button = null;
+    @property( Sprite) spriteUnread: Sprite = null;    
+    @property( Label ) labelTitle: Label = null;
+    @property( Label ) labelSender: Label = null;
+    @property( Label ) labelDate: Label = null;
+
+    private message: any = null;
+    private cbSelect: ( info: any )=> void = null;
+
+    public CopyObject(): MessageElement {
+        let o: MessageElement = new MessageElement();
+        let n = instantiate( this.rootNode );
+
+        o.rootNode = n;
+        o.spriteUnread = n.getChildByPath('VALUES/TITLE/SPRITE_UNREAD').getComponent( Sprite );        
+        o.labelTitle = n.getChildByPath('VALUES/TITLE/LABEL_TITLE').getComponent( Label );
+        o.labelSender = n.getChildByPath('VALUES/LABEL_SENDER').getComponent( Label );        
+        o.buttonMessage = n.getComponent( Button );
+        o.labelDate = n.getChildByPath('VALUES/LABEL_DATE').getComponent( Label);
+
+        return o;
+    }
+
+    public Clear() {
+        this.labelTitle.string = '';        
+        this.labelDate.string = '';
+        this.spriteUnread.node.active = false;
+
+        this.cbSelect = null;
+    }
+
+    public Set( message: any, cb: ( message: any )=>void ) {
+        this.message = message;
+        this.labelTitle.string = CommonUtil.TruncateString(message.title, 15) ;
+        this.labelSender.string = '운영자';
+        this.labelDate.string = message.createDate;
+
+        if ( cb != null ) {
+            this.cbSelect = cb;
+        }
+
+        if ( message.unread == 1 ) {
+            this.spriteUnread.node.active = true; 
+        } else {
+            this.spriteUnread.node.active = false;             
+        }
+
+        this.buttonMessage.node.off( 'click' );
+        this.buttonMessage.node.on( 'click', this.onSELECT_MESSAGE.bind(this), this );
+    }
+
+    public SetActive( active: boolean ) {
+        this.rootNode.active = active;
+    }
+
+    public SetParent( parent: Node ) {
+        this.rootNode.parent = parent;
+    }
+
+    public onSELECT_MESSAGE(button: Button ) {
+        if ( this.cbSelect != null ) {
+            this.cbSelect( this.message );
+        }
+    }
+}
+
 @ccclass('UiLOBBY_POPUP_QnA')
 export class UiLOBBY_POPUP_QnA extends Component {
     @property(Label) labelTitle: Label = null;
@@ -108,9 +177,13 @@ export class UiLOBBY_POPUP_QnA extends Component {
     @property(Node) PANEL_MESSAGE_SHOW: Node = null;        
 
     @property(Layout) layoutQnAList: Layout = null;
+    @property(Layout) layoutMessageList: Layout = null;    
+
     @property(ScrollView) svQnAs: ScrollView = null;
+    @property(ScrollView) svMessagess: ScrollView = null;    
 
     @property(QnAElement) originQNA: QnAElement = new QnAElement();
+    @property(MessageElement) originMessage: MessageElement = new MessageElement();
 
     @property(EditBox) editboxTitle: EditBox = null;
     @property(EditBox) editboxQuestion: EditBox = null;
@@ -127,21 +200,36 @@ export class UiLOBBY_POPUP_QnA extends Component {
     @property(Button) buttonCancel: Button = null;    
     @property(Button) buttonWrite: Button = null;
     @property(Button) buttonBack: Button = null;
-    @property(Button) buttonDelete: Button = null;    
+    @property(Button) buttonDelete: Button = null;
+    
+    @property(Button) buttonMessageBack: Button = null;
 
     @property(Label) labelShowTitleText: Label = null;
     @property(Label) labelShowQuestionText: Label = null;
     @property(Label) labelShowAnswerText: Label = null;
     @property(Label) labelShowPending: Label = null;
 
+    @property(Label) labelMessageTitle: Label = null;
+    @property(Label) labelMessageSender: Label = null;
+    @property(Label) labelMessageDescription: Label = null;
+    @property(Label) labelMessageUpdate: Label = null;    
+
     @property(Label) labelQuestionUpdate: Label = null;
     @property(Label) labelAnswerUpdate: Label = null;    
 
+    @property(Node) BADGE_QNA: Node = null;
+    @property(Node) BADGE_MESSAGE: Node = null;    
+
+    @property(Label) labelQNAUnread: Label = null;
+    @property(Label) labelMessageUnread: Label = null;    
+
     private QNAAElementOnList: QnAElement[] = [];
+    private MessageElementOnList: MessageElement[] = [];    
 
     private cbEXIT: ()=>void = null;
     private cbAPPLY: ()=>void = null;
-    private selectedInfo: any = null;    
+    private selectedInfo: any = null;
+    private selectedMessage: any = null;
 
     public Init( cbEXIT: any, cbAPPLY: any ) {
         if ( cbEXIT != null ) {
@@ -174,7 +262,13 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelShowPending.string = '';
         this.labelQuestionUpdate.string = '';
         this.labelAnswerUpdate.string = '';
-        this.selectedInfo = null;        
+        this.selectedInfo = null;
+        
+        this.labelQNAUnread.string = '0';
+        this.labelMessageUnread.string = '0';
+
+        this.BADGE_QNA.active = false;
+        this.BADGE_MESSAGE.active = false;
 
         this.editboxTitle.node.on('editing-did-began', this.onTITLE_EDITBOX_DID_BEGAN.bind(this), this);
         this.editboxTitle.node.on('editing-return', this.onTITLE_EDITBOX_RETURN.bind(this), this);
@@ -198,6 +292,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.buttonBack.node.off( 'click' );
         this.buttonBack.node.on( 'click', this.onBACK_LIST.bind(this), this );
 
+        this.buttonMessageBack.node.off( 'click' );
+        this.buttonMessageBack.node.on( 'click', this.onBACK_MESSAGE_LIST.bind(this), this );
+
         this.buttonDelete.node.off( 'click' );
         this.buttonDelete.node.on( 'click', this.onDELETE_QNA.bind(this), this );        
 
@@ -213,6 +310,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
     public Show( button: Button ) {
         this.originQNA.rootNode.active = false;
+        this.originMessage.rootNode.active = false;
 
         this.rootQNA.active = true;
         this.rootMessage.active = false;
@@ -223,28 +321,65 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.selectedInfo = null;
         this.toggleQNA.isChecked = true;
 
-        NetworkManager.Instance().reqGET_QNA( (res: any)=>{
+        this.onREFRESH_UNREAD( ()=>{
             button.interactable = true;
+            this.onREFRESH();
+            this.node.active = true;
+        });
+    }
 
+    private onREFRESH_UNREAD( done: ()=>void  ) {
+        NetworkManager.Instance().reqUNREAD( (res: any)=>{
+            console.log( res );
             if ( res != null ) {
-                this.ShowList( res.qnas );
+                if ( res.unread_answer != null && res.unread_answer > 0 ) {
+                    this.labelQNAUnread.string = (res.unread_answer).toString();
+                    this.BADGE_QNA.active = true;
+
+                } else {
+                    this.BADGE_QNA.active = false;
+                }
+
+                if ( res.unread_message != null && res.unread_message > 0 ) {
+                    this.labelMessageUnread.string = (res.unread_message).toString();
+                    this.BADGE_MESSAGE.active = true;                    
+                } else {
+                    this.BADGE_MESSAGE.active = false;
+                }
+
+                if ( done != null ) {
+                    done();
+                }
+
             }
-
-            this.PANEL_QNA_LIST.active = true;
-            this.node.active = true;
-
         }, (err:any)=>{
-            this.PANEL_QNA_LIST.active = true;            
-            button.interactable = true;
-            this.node.active = true;
-        } );
+            this.BADGE_QNA.active = false;
+            this.BADGE_MESSAGE.active = false;
+
+            if ( done != null ) {
+                done();
+            }
+        } );        
     }
 
     private onREFRESH() {
         this.selectedInfo = null;
         NetworkManager.Instance().reqGET_QNA( (res: any)=>{
             if ( res != null ) {
+                this.PANEL_QNA_LIST.active = true;
                 this.ShowList( res.qnas );
+            }
+        }, (err:any)=>{
+
+        } );        
+    }
+
+    private onMESSAGE_REFRESH() {
+        this.selectedInfo = null;
+        NetworkManager.Instance().reqMESSAGE( (res: any)=>{
+            if ( res != null ) {
+                this.PANEL_MESSAGE_LIST.active = true;
+                this.ShowMessageList( res.messages );
             }
         }, (err:any)=>{
 
@@ -269,6 +404,27 @@ export class UiLOBBY_POPUP_QnA extends Component {
             this.QNAAElementOnList.push(o);
         }
         this.svQnAs.scrollToTop();
+    }
+
+    private ShowMessageList( messages: any[] ) {
+        if ( messages == null ) {
+            return;
+        }
+
+        this.ClearList();
+
+        let MessagesLength = Math.min( messages.length, 20 );
+        for ( let i: number = 0 ; i < MessagesLength ; i++ ) {
+            let o = this.originMessage.CopyObject();
+            
+            o.Clear();
+            o.Set( messages[i], this.onSELECT_MESSAGE.bind(this));
+            o.SetParent( this.layoutMessageList.node );
+            o.SetActive( true );
+
+            this.MessageElementOnList.push(o);
+        }
+        this.svMessagess.scrollToTop();
     }
 
     private onSELECT_QNA( info:any ) {
@@ -301,6 +457,11 @@ export class UiLOBBY_POPUP_QnA extends Component {
                     this.buttonExit.interactable = true;
                     this.buttonBack.interactable = true;
                     this.buttonDelete.interactable = true;
+
+                    this.onREFRESH_UNREAD(()=>{
+                    
+                    });
+                    
                 }, ( err: any )=>{
                     this.buttonExit.interactable = true;
                     this.buttonBack.interactable = true;
@@ -323,6 +484,29 @@ export class UiLOBBY_POPUP_QnA extends Component {
         }
     }
 
+    private onSELECT_MESSAGE( message:any ) {
+        this.ClearShowMessagePanel();
+        this.selectedMessage = message;
+
+        this.PANEL_MESSAGE_LIST.active = false;
+
+        this.labelMessageTitle.string = this.selectedMessage.title;
+        this.labelMessageSender.string = '보낸사람: 운영자';
+        this.labelMessageDescription.string = this.selectedMessage.desc;
+        this.labelMessageUpdate.string = this.selectedMessage.createDate;
+
+        if ( this.selectedMessage.unread == 1 ) {
+            NetworkManager.Instance().reqREAD_MESSAGE( this.selectedMessage.id, (res: any )=>{
+                this.onREFRESH_UNREAD(()=>{
+
+                });
+            }, ( err: any )=>{
+            });
+        }
+
+        this.PANEL_MESSAGE_SHOW.active = true;
+    }
+
     private ClearShowPanel() {
         this.labelShowTitleText.string = '';
         this.labelShowQuestionText.string = '';
@@ -335,8 +519,19 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.selectedInfo = null;
     }
 
+    private ClearShowMessagePanel() {
+        
+        this.labelMessageTitle.string = '';
+        this.labelMessageSender.string = '';
+        this.labelMessageDescription.string = '';
+        this.labelMessageUpdate.string = '';
+
+        this.selectedMessage = null;
+    }
+
     private ClearList() {
-        this.selectedInfo = null;        
+        this.selectedInfo = null;
+        this.selectedMessage = null;
         this.DestoryElements();
     }
 
@@ -346,11 +541,18 @@ export class UiLOBBY_POPUP_QnA extends Component {
             e.rootNode = null;
         } );
 
+        this.MessageElementOnList.forEach( (e)=>{
+            e.rootNode.destroy();
+            e.rootNode = null;
+        });
+
         this.QNAAElementOnList = [];
+        this.MessageElementOnList = [];
     }
 
     public Hide() {
         this.selectedInfo = null;
+        this.selectedMessage = null;
         this.DestoryElements();
         this.node.active = false;
     }
@@ -388,13 +590,20 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.onREFRESH();
     }
 
+    private onBACK_MESSAGE_LIST( button: Button ) {
+        this.PANEL_MESSAGE_SHOW.active = false;
+        this.PANEL_MESSAGE_LIST.active = true;
+
+        this.onMESSAGE_REFRESH();
+    }
+
     private onDELETE_QNA( button: Button  ) {
         LobbySystemPopup.instance.showPopUpYesOrNo('문의사항', '현재 문의를 삭제하시겠습니까?', ()=>{
             this.DELETE_QNA();
 
         }, ()=>{
-        })
 
+        });
     }
     
     private DELETE_QNA() {
@@ -555,6 +764,24 @@ export class UiLOBBY_POPUP_QnA extends Component {
         if ( toggle.isChecked == true ) {
             this.rootQNA.active = false;
             this.rootMessage.active = true;
+
+            NetworkManager.Instance().reqMESSAGE( (res: any)=>{
+                
+                if ( res != null ) {
+                    this.ShowMessageList( res.messages );
+                }
+
+                this.PANEL_MESSAGE_LIST.active = true;
+                this.PANEL_MESSAGE_SHOW.active = false;
+
+                this.node.active = true;
+    
+            }, (err:any)=>{
+                this.PANEL_MESSAGE_LIST.active = true;
+                this.PANEL_MESSAGE_SHOW.active = false;
+
+                this.node.active = true;
+            } );
         }
     }
 }

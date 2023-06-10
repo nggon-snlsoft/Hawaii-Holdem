@@ -569,6 +569,35 @@ export class NetworkManager extends cc.Component {
 		onSUCCESS(result);
 	}
 
+	public async reqREAD_MESSAGE( id: any, onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
+		let result: any = null;
+		let isConnect = false;
+
+		await this.Post( this.API_SERVER, "/users/message/read", {
+			id: id,
+
+		}).then((res: string)=>{
+			isConnect = true;
+			result = JSON.parse(res);
+
+		}).catch((err: any)=> {
+			if (err.length == 0) {
+				isConnect = false;
+				return;
+			}
+		});
+
+		if ( isConnect == false) {
+			onFAIL({
+				code: ENUM_RESULT_CODE.DISCONNECT_SERVER,
+				msg: 'NETWORK_REFUSE',
+			});
+			return;
+		}
+
+		onSUCCESS(result);
+	}
+
 	public async reqNOTICES( onSUCCESS: (res: any)=>void, onFAIL: (msg: any)=>void ) {
 		let result: any = null;
 		let isConnect = false;
@@ -1309,6 +1338,47 @@ export class NetworkManager extends cc.Component {
 			return onFAIL('CHECK_USER_ERROR');			
 		}
 	}
+
+	public async reqUNREAD( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
+		let result: string = null;
+		let user_id = this.user.id;
+		let error: string = null;
+
+		try {
+			await this.Post( this.API_SERVER, '/users/unread', { 
+				user_id: user_id,
+			}
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
+
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
+			}
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
+		}
+	}
 	
 	public async reqGET_QNA( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
 		let result: string = null;
@@ -1347,6 +1417,47 @@ export class NetworkManager extends cc.Component {
 					GameManager.Instance().ForceExit( ENUM_LEAVE_REASON.LEAVE_TOKEN_EXPIRE );
 					return;
 				}
+				onSUCCESS(obj);
+			} else {
+				return onFAIL('JSON_PARSE_ERROR');
+			}
+	
+		} else {
+			return onFAIL('CHECK_USER_ERROR');			
+		}
+	}
+
+	public async reqMESSAGE( onSUCCESS: (res: any)=>void, onFAIL:(err: any)=>void ) {
+		let result: string = null;
+		let user_id = this.user.id;
+		let error: string = null;
+
+		try {
+			await this.Post( this.API_SERVER, '/users/message/get', { 
+				user_id: user_id,
+			}
+			).then( ( res: string )=>{
+				result = res;
+			}).catch( ( err: any )=>{
+				if ( err.length == 0 ) {
+					return error = 'NETWORK_ERROR';
+				}
+
+				if ( err != null ) {
+					error = JSON.parse( err.msg );
+				}
+			});			
+		} catch (error) {
+			return onFAIL(error);
+		}
+
+		if ( error != null ) {
+			return onFAIL( error );
+		}
+
+		if ( result != null ) {
+			let obj: any = JSON.parse( result );
+			if ( obj != null ) {
 				onSUCCESS(obj);
 			} else {
 				return onFAIL('JSON_PARSE_ERROR');
