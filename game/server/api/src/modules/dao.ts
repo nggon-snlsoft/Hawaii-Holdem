@@ -600,6 +600,40 @@ dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 	});
 };
 
+dao.SELECT_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND ALIVE = 1';
+	let args = [ user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
+dao.SELECT_PENDING_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
+	let args = [ user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		cb?.(null, res);
+	});
+};
+
 dao.SELECT_UNREAD_ANSWER_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM QUESTIONS WHERE (USER_ID = ? AND ALIVE = 1 AND PENDING = 0 AND UNREAD = 1 )';
@@ -662,6 +696,41 @@ dao.INSERT_QNA = function ( user: any, data: any, cb: any ) {
 			}
 		}
 	});	
+}
+
+dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
+	let id = data.id;
+	let user_id = data.user_id;
+	let point = data.point;
+
+	let sql = "UPDATE USERS SET POINT = POINT + ? WHERE ID = ? ";
+	let args = [ point, user_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, 0);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				sql = "UPDATE POINT_RECEIVES SET PENDING = 0 WHERE ID = ? ";
+				args = [id];
+
+				_client.query( sql, args, function ( err1: any, res1: any) {
+					if ( !!err1 ) {
+						cb( err, 0 );
+					} else {
+						if ( !!res1 && res1.affectedRows > 0 ) {
+							cb( null, res.affectedRows );
+						} else {
+							cb( null, 0 );
+						}
+					}
+				});
+
+			} else {
+				cb( null, 0 );
+			}
+		}
+	});
 }
 
 dao.UPDATE_QNA_READ = function ( id: any, cb: any ) {
@@ -814,7 +883,7 @@ dao.SELECT_POINT_TRANSFER_LOG = ( id: any, cb: any )=> {
 }
 
 dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
-	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? ORDER BY createDate DESC';
+	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND PENDING = 0 AND ALIVE = 1 ORDER BY createDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        

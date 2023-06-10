@@ -91,7 +91,7 @@ export class PointGiftElement {
         this.labelDate.string = info.createDate;
         this.labelReceivePoint.string = CommonUtil.getKoreanNumber(info.point);
         this.labelPoint.string = CommonUtil.getKoreanNumber(info.newPoint);
-        this.labelSender.string = info.sender;
+        this.labelSender.string = '운영자';
 
         if ( info.desc != null ) {
             this.labelDescription.string = info.desc;

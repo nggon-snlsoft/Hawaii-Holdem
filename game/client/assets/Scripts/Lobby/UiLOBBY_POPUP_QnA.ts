@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, Button, instantiate, Sprite, Layout, ScrollView, EditBox, Color } from 'cc';
+import { _decorator, Component, Node, Label, Button, instantiate, Sprite, Layout, ScrollView, EditBox, Color, Toggle } from 'cc';
 import { NetworkManager } from '../NetworkManager';
 import { CommonUtil } from '../CommonUtil';
 import { EDITOR } from 'cc/env';
@@ -91,14 +91,21 @@ export class QnAElement {
     }
 }
 
-
-
 @ccclass('UiLOBBY_POPUP_QnA')
 export class UiLOBBY_POPUP_QnA extends Component {
     @property(Label) labelTitle: Label = null;
-    @property(Node) rootPANEL_LIST: Node = null;
-    @property(Node) rootPANEL_INPUT: Node = null;
-    @property(Node) rootPANEL_SHOW: Node = null;    
+    @property(Node) rootQNA: Node = null;
+    @property(Node) rootMessage: Node = null;
+
+    @property(Toggle) toggleQNA: Toggle = null;
+    @property(Toggle) toggleMessage: Toggle = null;
+
+    @property(Node) PANEL_QNA_LIST: Node = null;
+    @property(Node) PANEL_QNA_INPUT: Node = null;
+    @property(Node) PANEL_QNA_SHOW: Node = null;
+    
+    @property(Node) PANEL_MESSAGE_LIST: Node = null;
+    @property(Node) PANEL_MESSAGE_SHOW: Node = null;        
 
     @property(Layout) layoutQnAList: Layout = null;
     @property(ScrollView) svQnAs: ScrollView = null;
@@ -151,9 +158,15 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.labelTitle.string = '문 의';
         this.labelTitleText.string = '';
 
-        this.rootPANEL_LIST.active = true;
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_SHOW.active = false;
+        this.rootQNA.active = false;
+        this.rootMessage.active = false;
+
+        this.PANEL_QNA_LIST.active = false;
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_SHOW.active = false;
+
+        this.PANEL_MESSAGE_LIST.active = false;
+        this.PANEL_MESSAGE_SHOW.active = false;
 
         this.labelShowTitleText.string = '';
         this.labelShowQuestionText.string = '';
@@ -193,15 +206,22 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
         this.buttonCancel.node.off( 'click' );
         this.buttonCancel.node.on( 'click', this.onSEND_CANCEL.bind(this), this );
+
+        this.toggleQNA.node.on('toggle', this.onTOGGLE_QNA.bind(this), null);
+        this.toggleMessage.node.on('toggle', this.onTOGGLE_MESSAGE.bind(this), null);
     }
 
     public Show( button: Button ) {
         this.originQNA.rootNode.active = false;
 
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_SHOW.active = false;
+        this.rootQNA.active = true;
+        this.rootMessage.active = false;
+
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_SHOW.active = false;
 
         this.selectedInfo = null;
+        this.toggleQNA.isChecked = true;
 
         NetworkManager.Instance().reqGET_QNA( (res: any)=>{
             button.interactable = true;
@@ -210,11 +230,11 @@ export class UiLOBBY_POPUP_QnA extends Component {
                 this.ShowList( res.qnas );
             }
 
-            this.rootPANEL_LIST.active = true;
+            this.PANEL_QNA_LIST.active = true;
             this.node.active = true;
 
         }, (err:any)=>{
-            this.rootPANEL_LIST.active = true;            
+            this.PANEL_QNA_LIST.active = true;            
             button.interactable = true;
             this.node.active = true;
         } );
@@ -255,9 +275,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
         this.ClearShowPanel();
 
         this.selectedInfo = info;
-        this.rootPANEL_LIST.active = false;
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_SHOW.active = true;
+        this.PANEL_QNA_LIST.active = false;
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_SHOW.active = true;
 
         this.labelShowTitleText.string = info.title;
         this.labelShowQuestionText.string = info.question;
@@ -342,8 +362,8 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     private onWRITE( button: Button ) {
-        this.rootPANEL_LIST.active = false;
-        this.rootPANEL_INPUT.active = true;
+        this.PANEL_QNA_LIST.active = false;
+        this.PANEL_QNA_INPUT.active = true;
 
         this.onRESET_WRITE();
     }    
@@ -361,9 +381,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
     
     private onBACK_LIST( button: Button ) {
-        this.rootPANEL_SHOW.active = false;
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_LIST.active = true;
+        this.PANEL_QNA_SHOW.active = false;
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_LIST.active = true;
 
         this.onREFRESH();
     }
@@ -404,9 +424,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     private onSHOW_LIST() {
-        this.rootPANEL_SHOW.active = false;
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_LIST.active = true;
+        this.PANEL_QNA_SHOW.active = false;
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_LIST.active = true;
 
         this.onREFRESH();        
     }
@@ -447,9 +467,9 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
     
     private onSEND_CANCEL( button: Button ) {
-        this.rootPANEL_SHOW.active = false;
-        this.rootPANEL_INPUT.active = false;
-        this.rootPANEL_LIST.active = true;
+        this.PANEL_QNA_SHOW.active = false;
+        this.PANEL_QNA_INPUT.active = false;
+        this.PANEL_QNA_LIST.active = true;
 
         this.onREFRESH();
     }
@@ -507,6 +527,34 @@ export class UiLOBBY_POPUP_QnA extends Component {
         if ( editbox.string.includes(c) == true ) {
             editbox.string = editbox.string.replace(c, '');            
             editbox.blur();
+        }
+    }
+
+    private onTOGGLE_QNA( toggle: Toggle ) {
+        if ( toggle.isChecked == true ) {
+            this.rootQNA.active = true;
+            this.rootMessage.active = false;
+
+            NetworkManager.Instance().reqGET_QNA( (res: any)=>{
+                if ( res != null ) {
+                    this.ShowList( res.qnas );
+                }
+    
+                this.PANEL_QNA_LIST.active = true;
+                this.node.active = true;
+    
+            }, (err:any)=>{
+                this.PANEL_QNA_LIST.active = true;
+                this.node.active = true;
+            } );
+    
+        }
+    }
+
+    private onTOGGLE_MESSAGE( toggle: Toggle ) {
+        if ( toggle.isChecked == true ) {
+            this.rootQNA.active = false;
+            this.rootMessage.active = true;
         }
     }
 }

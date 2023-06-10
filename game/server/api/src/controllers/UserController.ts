@@ -400,7 +400,7 @@ export class UserController {
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'ERROR_GET_JOIN_USER'
             });
-            return;            
+            return;
         }
 
         data = null;
@@ -819,27 +819,11 @@ export class UserController {
     
     public async getPOINT_RECEIVE_LOG( req: any, res: any) {
         let user_id = req.body.user_id;
-        let token = req.body.token;
 
         if ( user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INVALID_UID'
-            });
-            return;
-        }
-
-        let verify: any = null;
-        try {
-            verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
-        } catch (error) {
-            console.log( error );
-        }
-
-        if ( verify == null || verify == false ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INVALID_TOKEN'
             });
             return;
         }
@@ -1231,6 +1215,36 @@ export class UserController {
             tickets = null;
         }
 
+        let points: any = null;
+        try {
+            points = await this.getPENDING_POINT_RECEIVES_ByUSER_ID( req.app.get('DAO'), user_id );
+        } catch (error) {
+            console.log( error );
+        }
+
+        let point_receives: any = [];
+
+        try {
+            if ( points != null && points.length > 0 ) {
+                let affected: any = 0;
+                for ( let i = 0 ; i < points.length ; i++ ) {
+                    affected = await this.updetePOINT_ByUSER_ID( req.app.get('DAO'), {
+                        id: points[i].id,
+                        user_id: user_id,
+                        point: points[i].point,
+                    });
+
+                    if ( affected > 0 ) {
+                        point_receives.push(points[i]);
+                    };
+                    affected = 0;
+                }
+            }
+                        
+        } catch (error) {
+            console.log( error );
+        }
+
         let unreads: any = null;
         try {
             unreads = await this.getUNREAD_MESSAGE_ByUSER_ID( req.app.get('DAO'), user_id );
@@ -1247,6 +1261,7 @@ export class UserController {
             msg: 'SUCCESS',
             user: _user,
             tickets: tickets,
+            point_receives: point_receives,
             unreads: unreads,
         });
     }
@@ -1471,6 +1486,36 @@ export class UserController {
     private async getTICKETS_ByUSER_ID( dao: any, user_id: string ) {
         return new Promise( (resolve, reject )=>{
             dao.SELECT_TICKETS_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async getPENDING_POINT_RECEIVES_ByUSER_ID( dao: any, user_id: string ) {
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_PENDING_POINT_RECEIVES_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+    
+    private async updetePOINT_ByUSER_ID( dao: any, data: any ) {
+        return new Promise( (resolve, reject )=>{
+            dao.UPDATE_POINT_ByPOINT_RECEIVES ( data, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

@@ -147,17 +147,47 @@ export class UiLobby extends Component {
         this.uiLobbyBottom.SetUnreadBadge( count );
     }
 
-    private ShowTicketResult( tickets: any ) {
+    private ShowTicketResult( tickets: any, done: ()=>void ) {
         if ( tickets != null ) {
             if ( tickets.length > 0 ) {
                 this.uiLobbyPopup.OpenTicketsPopup( tickets, ()=>{
                     this.uiLobbyPopup.CloseTicketsPopup();
+                    if ( done != null ) {
+                        done();
+                    }
                 });
             } else {
-
+                if ( done != null ) {
+                    done();
+                }
+            }
+        } else {
+            if ( done != null ) {
+                done();
             }
         }
     }
+
+    private ShowPointReceives( logs: any, done: ()=>void ) {
+        if ( logs != null ) {
+            if ( logs.length > 0 ) {
+                this.uiLobbyPopup.OpenPointsReceivesPopup( logs, ()=>{
+                    this.uiLobbyPopup.ClosePointsReceives();
+                    if ( done != null ) {
+                        done();
+                    }
+                });
+            } else {
+                if ( done != null ) {
+                    done();
+                }
+            }
+        } else {
+            if ( done != null ) {
+                done();
+            }
+        }
+    }    
 
     public refreshPlayer() {
         NetworkManager.Instance().getUSER_FromDB( ()=>{
@@ -192,7 +222,13 @@ export class UiLobby extends Component {
 
                 this.refreshPlayer();
                 this.SetUnreadAnswer( res.unreads );
-                this.ShowTicketResult( res.tickets );
+                this.ShowTicketResult( res.tickets, ()=>{
+                    if ( res.point_receives != null && res.point_receives.length > 0 ) {
+                        this.ShowPointReceives( res.point_receives, ()=>{
+
+                        } );
+                    }
+                } );
             }
         }, (err: any )=>{
             console.log(err);

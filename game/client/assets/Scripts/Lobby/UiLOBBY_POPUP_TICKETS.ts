@@ -49,7 +49,6 @@ export class UiLOBBY_POPUP_TICKETS extends Component {
     }
 
     private onDONE() {
-        console.log( 'onDONE');
         if ( this.cbDONE != null ) {
             this.cbDONE();
         }

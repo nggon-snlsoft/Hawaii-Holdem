@@ -14,6 +14,7 @@ import { UiLOBBY_POPUP_QnA } from './UiLOBBY_POPUP_QnA';
 import { UiLOBBY_POPUP_NOTICE } from './UiLOBBY_POPUP_NOTICE';
 import { ENUM_EVENT_POPUP_TYPE, UiLOBBY_POPUP_EVENT } from './UiLOBBY_POPUP_EVENT';
 import { UiLOBBY_POPUP_TICKETS } from './UiLOBBY_POPUP_TICKETS';
+import { UiLOBBY_POPUP_POINT_RECEIVE } from './UiLOBBY_POPUP_POINT_RECEIVE';
 const { ccclass, property } = _decorator;
 
 @ccclass('UiLobbyPopup')
@@ -30,7 +31,8 @@ export class UiLobbyPopup extends Component {
     @property (UiLOBBY_POPUP_QnA) uiLOBBY_POPUP_QNA: UiLOBBY_POPUP_QnA = null;
     @property (UiLOBBY_POPUP_NOTICE) uiLOBBY_POPUP_NOTICE: UiLOBBY_POPUP_NOTICE = null;
     @property (UiLOBBY_POPUP_EVENT) uiLOBBY_POPUP_EVENT: UiLOBBY_POPUP_EVENT = null;
-    @property (UiLOBBY_POPUP_TICKETS) uiLOBBY_POPUP_TICKETS: UiLOBBY_POPUP_TICKETS = null;            
+    @property (UiLOBBY_POPUP_TICKETS) uiLOBBY_POPUP_TICKETS: UiLOBBY_POPUP_TICKETS = null;
+    @property (UiLOBBY_POPUP_POINT_RECEIVE) UiLOBBY_POPUP_POINT_RECEIVE: UiLOBBY_POPUP_POINT_RECEIVE = null;    
 
     private uiLobby: UiLobby = null;
     private isOpen: boolean = false;
@@ -52,6 +54,7 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_NOTICE.Init( this.CloseNotice.bind(this) );
         this.uiLOBBY_POPUP_EVENT.Init();
         this.uiLOBBY_POPUP_TICKETS.Init();
+        this.UiLOBBY_POPUP_POINT_RECEIVE.Init();
 
         this.closeAllPopup();
         this.isOpen = false;
@@ -70,7 +73,14 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_TICKETS.Show( tickets, done );
 
         this.Open();
-    }    
+    }
+    
+    public OpenPointsReceivesPopup(  logs: any[], done: ()=>void  ) {
+        this.closeAllPopup();
+        this.UiLOBBY_POPUP_POINT_RECEIVE.Show( logs, done );
+
+        this.Open();
+    }
 
     public openProfile() {
         this.closeAllPopup();
@@ -122,6 +132,7 @@ export class UiLobbyPopup extends Component {
         this.uiLOBBY_POPUP_NOTICE.Hide();
         this.uiLOBBY_POPUP_EVENT.Hide();
         this.uiLOBBY_POPUP_TICKETS.Hide();
+        this.UiLOBBY_POPUP_POINT_RECEIVE.Hide();
 
         this.hide();
     }
@@ -220,6 +231,11 @@ export class UiLobbyPopup extends Component {
 
     public CloseTicketsPopup() {
         this.uiLOBBY_POPUP_TICKETS.Hide();
+        this.hide();
+    }
+
+    public ClosePointsReceives() {
+        this.UiLOBBY_POPUP_POINT_RECEIVE.Hide();
         this.hide();
     }
 
