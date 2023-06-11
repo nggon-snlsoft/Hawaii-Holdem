@@ -512,18 +512,24 @@ export class UiPlayerAction extends Component {
 	}
 
     private onClickAllin() {
-		// let value = this.myChips + this.myBet;
-		let value = this.myChips + this.callValue;
+		// let value = this.myChips + this.callValue;
+		// if ( value <= this.betStart ) {
+		// 	this.cbCall( value );
+		// } else {
+		// 	if ( this.isBet == true ) {
+		// 		this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN );
+		// 	} else {
+		// 		this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN  );
+		// 	}
+		// }
+
+		let value = this.myChips + this.myBet;
 		if ( value <= this.betStart ) {
 			this.cbCall( value );
 		} else {
-			if ( this.isBet == true ) {
-				this.cbBet( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN );
-			} else {
-				this.cbRaise( value, this.callValue, ENUM_BET_SOUND.BET_ALLIN  );
-			}
-			// this.cbAllIn( value, this.callValue );
+			this.cbAllIn( value, this.callValue );
 		}
+	
 	}
 
 	private onClickCheck() {

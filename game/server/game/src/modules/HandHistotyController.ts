@@ -5,6 +5,7 @@ export class HandHistoryController {
     private table_id: number = 0;
     private maxClient: number = 0;
     private id: number = 0;
+    private hands: number = 0;
     private boards: string[] = [];
     private players: any[] = [];
 
@@ -15,9 +16,10 @@ export class HandHistoryController {
     }
 
     public Init() {
-        console.log( 'this.table_id: ' + this.table_id  );
-        console.log( 'this.initHandsCount: ' + this.initHandsCount  );
+        logger.info( this.table_id.toString() + "[ HANDSHISTORY ] INIT");
+        logger.info( this.table_id.toString() + "[ HANDSHISTORY ] INIT HANDS COUNT: %s", this.initHandsCount.toString() );        
         this.id = this.initHandsCount;
+        this.hands = this.id;
     }
 
     private InitializePlayers() {
@@ -34,11 +36,11 @@ export class HandHistoryController {
 
     public Set( participants: any[] ) {
         this.id++;
-        this.boards = [];
-
+        this.hands = this.id;
+        logger.info( '[TABLE:' + this.table_id.toString() + "][ HANDSHISTORY ] HANDS INDEX: %s", this.hands.toString() );
+        // this.boards = [];
         //this.InitializePlayers();
-
-        this.players = [];
+        // this.players = [];
 
         //이거 몽고DB에 저장해야겠다!!
         //시트 순서로 정렬한다
@@ -47,5 +49,9 @@ export class HandHistoryController {
         //아이디
         //닉네임
         //
+    }
+
+    public GetHands(): number {
+        return this.hands;
     }
 }

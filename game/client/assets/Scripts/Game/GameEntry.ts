@@ -26,7 +26,8 @@ export class GameEntry extends Component {
     private _labelAnte: Label = null;    
     private _labelSB: Label = null;
     private _labelBB: Label = null;
-    private _labelIP: Label = null;    
+    private _labelIP: Label = null;
+    private _labelHandInfo: Label = null;
 
     onLoad() {
 		this.rootPortrait.active = false;
@@ -56,7 +57,7 @@ export class GameEntry extends Component {
 
         GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.GAME_SCENE );
 
-        this._table.init();
+        this._table.init(this.SetHandInfo.bind(this));
         this._table.show();
 
         if ( this._rootInformation != null ) {
@@ -83,6 +84,11 @@ export class GameEntry extends Component {
             if ( this._labelAnte != null ) {
                 this._labelAnte.string = ( Board.ante).toString();
                 this._labelAnte.node.active = true;
+            }
+
+            if ( this._labelHandInfo != null ) {
+                this._labelHandInfo.string = '';
+                this._labelHandInfo.node.active = false;
             }
 
             this._rootInformation.active = true;
@@ -145,6 +151,12 @@ export class GameEntry extends Component {
                 this._labelIP.string = '';                
                 this._labelIP.node.active = false;
             }
+
+            this._labelHandInfo = this._rootInformation.getChildByPath('LABEL_HAND_INFO').getComponent(Label);
+            if ( this._labelHandInfo != null ) {
+                this._labelHandInfo.string = '';                
+                this._labelHandInfo.node.active = false;
+            }
         }
 
         this._isChildrenRegisted = true;
@@ -165,6 +177,13 @@ export class GameEntry extends Component {
     protected onDestroy(): void {
         game.off( Game.EVENT_SHOW );
         game.off( Game.EVENT_HIDE );
+    }
+
+    private SetHandInfo( hands: any ) {
+        if ( this._labelHandInfo != null && hands != null ) {
+            this._labelHandInfo.string = (Board.table_id).toString() + ' - #' + hands.toString();
+            this._labelHandInfo.node.active = true;
+        }
     }
 }
 

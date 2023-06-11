@@ -60,6 +60,7 @@ export class UserController {
         this.router.post( '/qna/delete', this.reqDELETE_QNA.bind(this));
         
         this.router.post( '/message/get', this.reqGET_MESSAGE.bind(this));
+        this.router.post( '/message/unread', this.reqGET_UNREAD_MESSAGE.bind(this));
         this.router.post( '/message/read', this.reqREAD_MESSAGE.bind(this));
 
         this.router.post( '/getData', this.getDATA.bind(this));
@@ -1003,6 +1004,45 @@ export class UserController {
 
         return;
     }    
+
+    public async reqGET_UNREAD_MESSAGE( req: any, res: any) {
+        let user_id = req.body.user_id;
+
+        if ( user_id == null || user_id < 0 ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INVALID_UID'
+            });
+            return;
+        }
+
+        let unread_messages: any = null;
+        try {
+            unread_messages = await this.getUNREAD_MESSAGE_COUNT( req.app.get('DAO'), user_id );
+            if ( unread_messages == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INVALID_UID'
+                });
+                return;
+            }
+        } catch( error ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: error
+            });            
+            return;
+        }
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            msg: 'SUCCESS',
+            unread_messages: unread_messages
+
+        });
+
+        return;
+    }    
     
     public async reqSEND_QNA( req: any, res: any) {
         let user_id = req.body.user_id;
@@ -1743,6 +1783,22 @@ export class UserController {
 
         return new Promise( (resolve, reject )=>{
             dao.SELECT_MESSAGES_ByUSER_ID ( user_id, function(err: any, res: any ) {
+                if ( !!err ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async getUNREAD_MESSAGE_COUNT( dao: any, user_id: string ) {
+
+        return new Promise( (resolve, reject )=>{
+            dao.SELECT_UNREAD_MESSAGE_ByUSER_ID ( user_id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

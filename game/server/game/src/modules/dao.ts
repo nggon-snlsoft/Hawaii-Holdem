@@ -243,6 +243,23 @@ dao.UPDATE_USERS_CLEAR_TABLE_ID = function ( table_id: number, value: number, cb
 	});
 };
 
+dao.UPDATE_TABLES_HANDS_COUNT = function ( table_id: number, value: number, cb: any ){
+	let sql = 'UPDATE TABLES SET HANDS = ? WHERE ID = ?';
+	let args = [ value, table_id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
+};
+
 dao.UPDATE_USER_ACTIVE_SESSION_ID = function (sid: any, cb: any) {
 	let sql = 'UPDATE USERS SET ACTIVESESSIONID = ?, PENDINGSESSIONID = ?, UPDATEDATE = ?, LOGINDATE = ? WHERE PENDINGSESSIONID = ?';
 	let now = moment().tz(timeZone).format("YYYY-MM-DD HH:mm:ss");

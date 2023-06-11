@@ -10,6 +10,7 @@ export class Board {
 	static passPrice : number = 0;
 	static passTerm : number = 0;
 	static id: number = 0;
+	static table_id: number = 0;
 	static room: Colyseus.Room = null;
 	static table : UiTable = null;
 	static minStakePrice : number = 0;
@@ -23,6 +24,8 @@ export class Board {
 	static setInfo( info: any ) {
 		Board.info = info;
 		Board.id = info.id;
+		Board.table_id = info.id;
+		Board.table_id = info.id;
 
 		Board.small = info.smallBlind;
 		Board.big = info.bigBlind;

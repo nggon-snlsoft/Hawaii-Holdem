@@ -152,7 +152,6 @@ export class PotCalculation {
         }
       }
 
-      //Find Winner
       currentPot.players.sort((a: any, b: any) => {
         if (a.hand > b.hand) {
           return -1;
@@ -166,13 +165,13 @@ export class PotCalculation {
       for (let i = 0; i < currentPot.players.length; i++) {
         let player = currentPot.players[i];
 
-        if (highestValueHand != player.hand || player.fold === true) {
+        if ( highestValueHand != player.hand || player.fold === true) {
           if (currentPot.players.length > 1) {
             continue;
           }
         }
 
-        currentPot.winners.push(player.seat);
+        currentPot.winners.push( player.seat );
       }
 
       if (currentPot.winners.length < 1) {
@@ -189,7 +188,8 @@ export class PotCalculation {
         continue;
       }
 
-      result.push(currentPot);
+      result.push( currentPot );
+      console.log( result );
     }
 
     let final: any[] = [];
@@ -213,29 +213,32 @@ export class PotCalculation {
       return sameCount === a.length && sameCount === b.length;
     };
 
-    result.forEach(element => {
+    result.forEach( element => {
 
       let returnPot: boolean = element.winners.length === 1 && element.players.length === 1;
 
       let pls: any[] = [];
       for (let i = 0; i < element.players.length; i++) {
         if (element.players[i].fold === true && element.players.length > 1) {
-          //Check is only fold or returnPot
           continue;
         }
 
         pls.push(element.players[i]);
       }
 
-      let samePot = final.find((pot) => { return isSamePot(pls, pot.players) });
-      if (null == samePot) {
+      let samePot = final.find((pot) => { return isSamePot( pls, pot.players ) });
+
+      if ( null == samePot ) {
+        
         final.push({
           total: element.total,
           players: pls,
           winners: element.winners,
           isReturnPot: returnPot
         });
-
+        
+        console.log('final');
+        console.log(final);
         return;
       }
 
@@ -251,11 +254,45 @@ export class PotCalculation {
           return 1;
         }
       });
-
-      final[0].total += this.deadBlind;
     }
 
+
     return final;
+  }
+
+  private SearchWinners( pot: any ): any {
+      let winners: any[];
+
+      pot.players.sort((a: any, b: any) => {
+        if (a.hand > b.hand) {
+          return -1;
+        }
+
+        return 1;
+      });
+
+      let highestValueHand = pot.players[0].hand;
+
+      for (let i = 0; i < pot.players.length; i++) {
+        let player = pot.players[i];
+
+        if ( highestValueHand != player.hand || player.fold === true) {
+          if (pot.players.length > 1) {
+            continue;
+          }
+        }
+
+        winners.push( player.seat );
+      }
+
+      if (winners.length < 1) {
+        let winner: any = pot.players.find((elem: { fold: boolean; }) => { return elem.fold === false; });
+
+        if (null != winner) {
+          winners.push(winner.seat);              
+        }
+      }
+      return winners;
   }
 
   private CalculateRake() {

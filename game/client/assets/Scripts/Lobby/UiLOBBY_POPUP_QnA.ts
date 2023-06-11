@@ -375,7 +375,7 @@ export class UiLOBBY_POPUP_QnA extends Component {
     }
 
     private onMESSAGE_REFRESH() {
-        this.selectedInfo = null;
+        this.selectedMessage = null;
         NetworkManager.Instance().reqMESSAGE( (res: any)=>{
             if ( res != null ) {
                 this.PANEL_MESSAGE_LIST.active = true;

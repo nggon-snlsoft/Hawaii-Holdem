@@ -144,7 +144,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["rakeCap"] = [roomInfo["rakeCap1"],roomInfo["rakeCap2"],roomInfo["rakeCap3"]];
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
 					this.conf["ante"] = roomInfo['ante'];
-					this.conf['lastHandsCount'] = roomInfo['hands_count'];
+					this.conf['hands'] = roomInfo['hands'];
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -155,7 +155,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 				this.setState(new RoomState());
 				this._DealerCalculator = new DealerCalculation();
-				this._HandHistoryController = new HandHistoryController( this.conf["tableID"], this.conf['maxClient'], this.conf['lastHandsCount'] );
+				this._HandHistoryController = new HandHistoryController( this.conf["tableID"], this.conf['maxClient'], this.conf['hands'] );
 				if ( this._HandHistoryController != null ) {
 					this._HandHistoryController.Init();
 				}
@@ -418,6 +418,11 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.tableInitChips = entity.chips;
 		entity.initRoundChips = entity.chips;
 
+		let hands: number = 0;
+		if ( this._HandHistoryController != null ) {
+			hands = this._HandHistoryController.GetHands();
+		}
+
 		client.send("JOIN", {
 			yourself: entity,
 			buyIn: 0,
@@ -440,7 +445,8 @@ export class HoldemRoom extends Room<RoomState> {
 			tableInitChips: entity.tableInitChips,
 			tableBuyInAmount: entity.tableBuyInAmount,
 			tableBuyInCount: entity.tableBuyInCount,
-			initPot: this._initPot
+			initPot: this._initPot,
+			hands: hands
 		});
 
 		if ( eGameState.Suspend === this.state.gameState ) {
@@ -849,7 +855,20 @@ export class HoldemRoom extends Room<RoomState> {
 			} else {
 
 			}
-		})
+		});
+
+		let handsCount: number = 0;
+		if ( this._HandHistoryController != null ) {
+			handsCount = this._HandHistoryController.GetHands();
+		}
+
+		this._dao.UPDATE_TABLES_HANDS_COUNT( this._id, handsCount, ( err: any, res: boolean )=>{
+			if ( err != null ) {
+				logger.error(  this._tableIdString + err );
+			} else {
+				logger.error(  this._tableIdString + 'LAST HANDS: %s' + handsCount );
+			}
+		});
 	}
 
 	update( dt: any ) {
@@ -1858,8 +1877,8 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		// this.totalCards2 = [];
-		// this.totalCards2 = ['44', '35', '28', '48', '27', '0', '30', '25', '13', '8', '38', '26', '37', '49', '7', '15', '47', '5', '11', '14', '33', '9', '4', '21', '29', '18', '45', '43', '39', '20', '40', '34', '23', '42', '1', '32', '19', '12', '3', '41', '46', '2', '50', '16', '36', '6', '22', '51', '17', '24', '31', '10'];
-
+		// this.totalCards2 = ['35', '10', '45', '39', '50', '2', '11', '32', '36', '27', '49', '1', '18', '31', '16', '24', '28', '15', '42', '19', '25', '0', '17', '48', '23', '37', '26', '41', '44', '33', '3', '8', '30', '34', '51', '21', '12', '46', '40', '5', '7', '43', '22', '14', '38', '20', '6', '47', '29', '9', '13', '4'  ];
+		
 		let shuStr = "";
 		for( let i = 0; i < this.totalCards2.length; i++ ) {
 			let temp = this.totalCards2[ i ];
@@ -1921,6 +1940,15 @@ export class HoldemRoom extends Room<RoomState> {
 	// PRE_FLOP
 	//------------------------------------
 	cardDispensing() {
+
+		let handsCount: number = 0; 
+		if ( this._HandHistoryController != null ) {
+			this._HandHistoryController.Set(null);
+
+			handsCount = this._HandHistoryController.GetHands();
+			logger.info( this._tableIdString + '[CARD_DISPENSING] HANDS ID: %s' + handsCount.toString() );
+		}
+
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let entity = this.state.entities[ i ];
 
@@ -1932,7 +1960,8 @@ export class HoldemRoom extends Room<RoomState> {
 				entity.client.send( "CARD_DISPENSING", {
 					primary: -1, 
 					secondary: -1,
-					eval: ''
+					eval: '',
+					hands: handsCount,
 				} );
 				continue;
 			}
@@ -1958,6 +1987,7 @@ export class HoldemRoom extends Room<RoomState> {
 				primary: primary,
 				secondary: secondary,
 				eval: entity.eval,
+				hands: handsCount,
 			} );
 
 			let hands: number = entity.statics.hands;
@@ -2024,16 +2054,16 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		for( let i = 0; i < this.state.entities.length; i++ ) {
-			let e = this.state.entities[ i ];
-			if ( null === e || undefined === e ) {
-				continue;
-			}
+		// for( let i = 0; i < this.state.entities.length; i++ ) {
+		// 	let e = this.state.entities[ i ];
+		// 	if ( null === e || undefined === e ) {
+		// 		continue;
+		// 	}
 
-			if ( true === e.wait) {
-				continue;
-			}
-		}
+		// 	if ( true === e.wait) {
+		// 		continue;
+		// 	}
+		// }
 
 		let player: any[] = [];
 		let ante: number = this.conf['ante'];		
@@ -2055,6 +2085,7 @@ export class HoldemRoom extends Room<RoomState> {
 				e.ante = ante;
 				logger.info( this._tableIdString + "[ blindBet-ante] id: %s, name: %s, seat: %s, oldChips: %s, newChips: %s", e.id, e.nickname, e.seat, e.chips, e.chips - ante );								
 				e.chips -= e.ante;
+				
 				try {
 					this._PotCalculator.SetAnte( e.seat, e.totalBet, e.eval.value, false );					
 				} catch (error) {
@@ -3149,6 +3180,11 @@ export class HoldemRoom extends Room<RoomState> {
 								break;
 						}						
 					}
+
+					let hands: number = 0;
+					if ( this._HandHistoryController != null ) {
+						hands = this._HandHistoryController.GetHands();
+					}
 		
 					client.send( "JOIN", {
 						yourself: entity,
@@ -3176,6 +3212,7 @@ export class HoldemRoom extends Room<RoomState> {
 						playerCards: playerCards,
 						showdown: showdown,
 						winners: winners,
+						hands: hands,
 					} );
 
 					if( eGameState.Suspend === this.state.gameState ) {

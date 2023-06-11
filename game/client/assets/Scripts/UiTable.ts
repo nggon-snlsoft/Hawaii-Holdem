@@ -25,6 +25,7 @@ import { UiCommunityCards } from './Game/UiCommunityCards';
 import { PlayerActionInformation } from './Game/PlayerActionInformation';
 import { ENUM_BET_SOUND } from './HoldemDefines';
 import { UiPopupGameProfile } from './Game/UiPopupGameProfile';
+import { UiGamePOPUP_MESSAGES } from './Game/UiGamePOPUP_MESSAGES';
 
 const { ccclass, property } = _decorator;
 
@@ -60,6 +61,7 @@ export class UiTable extends Component {
     @property(UiSeats) uiSeats: UiSeats = null;
 	@property(UiPot) uiPot : UiPot = null;
 	@property(UiBuyIn) uiBuyIn: UiBuyIn = null;
+	@property(UiGamePOPUP_MESSAGES) uiGamePOPUP_MESSAGES: UiGamePOPUP_MESSAGES = null;	
 	@property(UiPopupGameProfile) uiProfile: UiPopupGameProfile = null;	
 	@property(UiPlayerActionReservation) uiPlayerActionReservation: UiPlayerActionReservation = null;
 	@property(UiCommunityCards) uiCommunityCards: UiCommunityCards = null;
@@ -141,7 +143,9 @@ export class UiTable extends Component {
 	private reserveLeave: boolean = false;
 	private updateClinet: boolean = true;
 
-    init() {
+	private cbHandInfo:( hands: any )=> void;
+
+    init( cbHandInfo: (hands: any)=>void ) {
         this.seatMax = UiTable.seatMaxFromServer;
         globalThis.lib = {};
 
@@ -153,6 +157,7 @@ export class UiTable extends Component {
 
         this.uiSeats.init(this.seatMax, this.onClickSeatSelect.bind(this));
 		this.uiBuyIn.init();
+		this.uiGamePOPUP_MESSAGES.init( this.onREFRESH_UNREAD_MSG.bind(this));
 		this.uiProfile.init();
 
 		this.uiGameChatting.init( this.onClickEmoticon.bind(this), this.onClickEmticonExit.bind(this));
@@ -164,7 +169,10 @@ export class UiTable extends Component {
 		this.uiShowDownEffect.Init();
 		this.uiEffectShowRiver.Init();
 		this.uiCommunityCards.Init();
-		// this.playerActionInformation.Init();
+
+		if ( cbHandInfo != null ) {
+			this.cbHandInfo = cbHandInfo;
+		}
 
         if ( null == NetworkManager.Instance().room ) {
             return;
@@ -172,7 +180,7 @@ export class UiTable extends Component {
 
         this.registRoomEvent(NetworkManager.Instance().room);
 
-		UiControls.instance.setExitCallback( this.onCLICK_EXIT.bind(this) );
+		UiControls.instance.SetCallback( this.onCLICK_MESSAGE.bind(this), this.onCLICK_EXIT.bind(this) );
 		UiControls.instance.show();
 
 		let bg: Sprite = this.node.getChildByPath('SPRITE_BACKGROUND').getComponent(Sprite);
@@ -502,6 +510,40 @@ export class UiTable extends Component {
 		}
     }
 
+	onCLICK_MESSAGE() {
+		this.uiGamePOPUP_MESSAGES.show();
+
+
+		// let user = NetworkManager.Instance().GetUser();
+		// if ( this.uiSeats.node.active == true ) {
+		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
+
+		// 		this.sendMsg("EXIT_TABLE", {
+		// 			seat : this.mySeat,
+		// 			id : user.id,
+		// 		});
+
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	}, ()=>{
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	});
+		// } else {
+		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
+
+		// 		this.sendMsg("EXIT_TABLE", {
+		// 			seat : this.mySeat,
+		// 			id : user.id,
+		// 		});
+
+
+
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	}, ()=>{
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	});
+		// }
+    }
+
     public show() {
         this.node.active = true;
     }
@@ -642,6 +684,7 @@ export class UiTable extends Component {
 	
 	private onEXIT_TABLE( msg ) {
 		this.uiSeats.end();
+		this.cbHandInfo = null;
 		this.room?.leave( false );
 	}
 
@@ -962,6 +1005,11 @@ export class UiTable extends Component {
 		this.uiRoundPotValue.hide();
 		this.uiProfile.hide();
 
+		let hands = msg['hands'];
+		if ( this.cbHandInfo != null ) {
+			this.cbHandInfo( hands );
+		}
+
 		this.msgWINNERS = '';
 
 		this.uiPlayerAction.init( Board.small, Board.big );
@@ -1097,6 +1145,8 @@ export class UiTable extends Component {
 
 		this.SetSitoutButtons( this.isSitout );
 
+
+
 		this.scheduleOnce(()=>{
 			AudioController.instance.PlaySound('VOICE_WELCOME');
 		}, 0.5);
@@ -1111,6 +1161,7 @@ export class UiTable extends Component {
 
 		this.uiPlayerAction.hide();
 		this.uiBuyIn.node.active = false;
+		this.uiGamePOPUP_MESSAGES.hide();
 
 		this.unscheduleAllCallbacks();
 		this.isAllIn = false;
@@ -1294,6 +1345,10 @@ export class UiTable extends Component {
     private onCARD_DISPENSING( msg ) {
 		console.log('onCARD_DISPENSING');
 		this.uiCommunityCards.Reset();
+		let hands = msg['hands'];
+		if ( this.cbHandInfo != null ) {
+			this.cbHandInfo( hands );
+		}
 
 		this.myCards = [msg[ "primary" ], msg[ "secondary" ]];
 		this.CardDispensing();
@@ -3133,6 +3188,10 @@ export class UiTable extends Component {
 
 	private CloseProfile( seat: number ) {
 
+	}
+
+	private onREFRESH_UNREAD_MSG() {
+		UiControls.instance.onREFRESH_UNREAD_BADGE();
 	}
 }
 
