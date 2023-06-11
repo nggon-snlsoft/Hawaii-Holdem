@@ -100,7 +100,7 @@ export class PotCalculation {
   
       this.CalculatePot();      
     } catch (error) {
-      logger.error( this.tableid + error );      
+      logger.error( this.tableid + error );
     }
   }  
 
@@ -124,7 +124,7 @@ export class PotCalculation {
 
     while ( remainPlayer.length > 0 ) {
       calcPlayers = remainPlayer;
-      minBet = this.CalculateMinBet(calcPlayers);
+      minBet = this.CalculateMinBet( calcPlayers );
 
       currentPot = {
         total: 0,
@@ -133,7 +133,7 @@ export class PotCalculation {
       };
 
       remainPlayer = [];
-      remainPlayer.sort()
+      remainPlayer.sort();
 
       for (let i = 0; i < calcPlayers.length; i++) {
         const seatNumber = calcPlayers[i].seat;
@@ -175,13 +175,14 @@ export class PotCalculation {
       }
 
       if (currentPot.winners.length < 1) {
+        //AllFold without winner
         let winner: any = currentPot.players.find((elem: { fold: boolean; }) => { return elem.fold === false; });
 
         if (null == winner) {
           continue;
         }
 
-        currentPot.winners.push(winner.seat);
+        currentPot.winners.push( winner.seat );
       }
 
       if (currentPot.total === 0) {
@@ -219,7 +220,7 @@ export class PotCalculation {
 
       let pls: any[] = [];
       for (let i = 0; i < element.players.length; i++) {
-        if (element.players[i].fold === true && element.players.length > 1) {
+        if (element.players[i].fold == true && element.players.length > 1) {
           continue;
         }
 
@@ -229,6 +230,7 @@ export class PotCalculation {
       let samePot = final.find((pot) => { return isSamePot( pls, pot.players ) });
 
       if ( null == samePot ) {
+        //새로운 팟
         
         final.push({
           total: element.total,
@@ -236,14 +238,16 @@ export class PotCalculation {
           winners: element.winners,
           isReturnPot: returnPot
         });
-        
-        console.log('final');
-        console.log(final);
+
         return;
       }
+      //같은 팟은 합친다.
 
       samePot.total += element.total;
     });
+
+    console.log('final');
+    console.log(final);
 
     if (final.length > 0) {
       final.sort((a: any, b: any) => {
@@ -256,15 +260,20 @@ export class PotCalculation {
       });
     }
 
+    final.forEach( (e)=>{
+      e.winners = this.SearchWinners( e );
+    });
+
+    console.log(final);
 
     return final;
   }
 
   private SearchWinners( pot: any ): any {
-      let winners: any[];
+      let winners: any[] = [];
 
       pot.players.sort((a: any, b: any) => {
-        if (a.hand > b.hand) {
+        if ( a.hand > b.hand ) {
           return -1;
         }
 
@@ -292,6 +301,7 @@ export class PotCalculation {
           winners.push(winner.seat);              
         }
       }
+      console.log(winners);
       return winners;
   }
 
