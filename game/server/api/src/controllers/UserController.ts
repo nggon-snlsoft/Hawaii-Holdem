@@ -152,7 +152,7 @@ export class UserController {
         let cv: string = req.body.version;
         let sv = this.conf.version;
         let VERSION = parseInt(cv);        
-        console.log('VERSION: ' + VERSION );        
+
         if ( cv != sv ) {
             if ( VERSION < 18) {
                 res.status( 200 ).json({

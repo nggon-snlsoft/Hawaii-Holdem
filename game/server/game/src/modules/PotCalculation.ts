@@ -190,7 +190,6 @@ export class PotCalculation {
       }
 
       result.push( currentPot );
-      console.log( result );
     }
 
     let final: any[] = [];
@@ -246,9 +245,6 @@ export class PotCalculation {
       samePot.total += element.total;
     });
 
-    console.log('final');
-    console.log(final);
-
     if (final.length > 0) {
       final.sort((a: any, b: any) => {
         if (a.players.length > b.players.length) {
@@ -265,7 +261,6 @@ export class PotCalculation {
     });
 
     console.log(final);
-
     return final;
   }
 
@@ -301,7 +296,6 @@ export class PotCalculation {
           winners.push(winner.seat);              
         }
       }
-      console.log(winners);
       return winners;
   }
 

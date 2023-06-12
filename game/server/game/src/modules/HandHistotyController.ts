@@ -16,8 +16,7 @@ export class HandHistoryController {
     }
 
     public Init() {
-        logger.info( this.table_id.toString() + "[ HANDSHISTORY ] INIT");
-        logger.info( this.table_id.toString() + "[ HANDSHISTORY ] INIT HANDS COUNT: %s", this.initHandsCount.toString() );        
+        logger.info( '[TABLE:' + this.table_id.toString() + "][ HANDSHISTORY ] INIT HANDS COUNT: %s", this.initHandsCount.toString() );        
         this.id = this.initHandsCount;
         this.hands = this.id;
     }

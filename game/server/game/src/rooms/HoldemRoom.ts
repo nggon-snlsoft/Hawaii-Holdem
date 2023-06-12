@@ -1876,8 +1876,8 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		this.totalCards2 = [];
-		this.totalCards2 = ['35', '10', '45', '39', '50', '2', '11', '32', '36', '27', '49', '1', '18', '31', '16', '24', '28', '15', '42', '19', '25', '0', '17', '48', '23', '37', '26', '41', '44', '33', '3', '8', '30', '34', '51', '21', '12', '46', '40', '5', '7', '43', '22', '14', '38', '20', '6', '47', '29', '9', '13', '4'  ];
+		// this.totalCards2 = [];
+		// this.totalCards2 = ['35', '10', '45', '39', '50', '2', '11', '32', '36', '27', '49', '1', '18', '31', '16', '24', '28', '15', '42', '19', '25', '0', '17', '48', '23', '37', '26', '41', '44', '33', '3', '8', '30', '34', '51', '21', '12', '46', '40', '5', '7', '43', '22', '14', '38', '20', '6', '47', '29', '9', '13', '4'  ];
 		
 		let shuStr = "";
 		for( let i = 0; i < this.totalCards2.length; i++ ) {
@@ -2254,7 +2254,9 @@ export class HoldemRoom extends Room<RoomState> {
 				continue;
 			}
 
-			let sumChip = locE.chips + locE.currBet;
+			let sumChip = locE.chips - currPlayer.currBet + locE.currBet;
+			// (this.state.maxBet - currPlayer.currBet);
+			//  + locE.currBet;
 
 			if( maxChip < sumChip ) {
 				maxChip = sumChip;
@@ -3279,8 +3281,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onCALL( client: Client, msg: any ) {
-		console.log('onCALL');		
-		console.log(msg);
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error(  this._tableIdString + "[ onCall ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
 			return;
@@ -3365,8 +3365,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onBET( client: Client, msg: any ) {
-		console.log('onBET')
-		console.log(msg);
 
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error(  this._tableIdString + "[ onBet ] INVALID CALL. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
@@ -3383,9 +3381,9 @@ export class HoldemRoom extends Room<RoomState> {
 			return;
 		}
 
-		if( msg[ "betAmount" ] > e.chips ) {
+		if( msg[ "betAmount" ] > e.chips + e.currBet ) {
 			logger.error( this._tableIdString +  "[ onBet ] bet > stack!!!" );
-			msg[ "betAmount" ] = e.chips;
+			msg[ "betAmount" ] = e.chips + e.currBet;
 		}
 
 		let callValue = msg['callValue'];
@@ -3456,7 +3454,6 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	onRAISE( client: Client, msg: any ) {
-		console.log(msg);
 
 		if( eGameState.Bet !== this.state.gameState ) {
 			logger.error(  this._tableIdString + "[ onRaise ] INVALID RAISE. seat : %s // now state : %s", msg[ "seat" ], this.state.gameState );
@@ -3586,7 +3583,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let callValue = msg['callValue'];		
 		let locChangeEndSeat = true;
 		this.state.maxBet = locBet;
-		// this.state.minRaise = this.state.maxBet;
+		this.state.minRaise = this.state.maxBet;
 
 		let bet = locBet - e.currBet;
 		if( bet >= e.chips ) {
@@ -3654,15 +3651,15 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		if( locChangeEndSeat ) {
-			logger.info( this._tableIdString +  " this._tableIdString + [ onRaise ] max bet updated. change end seat" );
+			logger.info( this._tableIdString +  " this._tableIdString + [ onALLLIN ] max bet updated. change end seat" );
 			this.updateEndSeat( e.seat );
 		}
 
 		if( true === this.isLastTurn( this.betSeat ) ) {
-			logger.info(  this._tableIdString + " this._tableIdString + [ onRaise ] this is last turn" );
+			logger.info(  this._tableIdString + " this._tableIdString + [ onALLLIN ] this is last turn" );
 
 			if( this.checkCount() <= 1 ) {
-				logger.info( " this._tableIdString + [ onRaise ] round finished." );
+				logger.info( " this._tableIdString + [ onALLLIN ] round finished." );
 				this.bufferTimerID = setTimeout( () => {
 					this.changeState( eGameState.Result );
 				}, 1000 );

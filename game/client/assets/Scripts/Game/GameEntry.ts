@@ -181,7 +181,7 @@ export class GameEntry extends Component {
 
     private SetHandInfo( hands: any ) {
         if ( this._labelHandInfo != null && hands != null ) {
-            this._labelHandInfo.string = (Board.table_id).toString() + ' - #' + hands.toString();
+            this._labelHandInfo.string = '핸드: ' + (Board.table_id).toString() + '-' + hands.toString();
             this._labelHandInfo.node.active = true;
         }
     }

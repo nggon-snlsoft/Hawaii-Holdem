@@ -1,8 +1,0 @@
-{
-  "server": {
-    "name": "room",
-    "version": "18",
-    "shutdown": false,
-    "checkIpDuplication": false
-  }
-}
