@@ -260,7 +260,6 @@ export class PotCalculation {
       e.winners = this.SearchWinners( e );
     });
 
-    console.log(final);
     return final;
   }
 

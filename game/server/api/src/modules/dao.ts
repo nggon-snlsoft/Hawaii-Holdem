@@ -442,9 +442,9 @@ dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
 	});
 };
 
-dao.SELECT_PARTNERS_ByPARTNER_ID = function ( id: any, cb: any ) {
+dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM PARTNERS WHERE ID = ?';
+	let sql = 'SELECT * FROM DISTRIBUTORS WHERE ID = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -467,9 +467,9 @@ dao.SELECT_PARTNERS_ByPARTNER_ID = function ( id: any, cb: any ) {
 	});
 };
 
-dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
+dao.SELECT_PARTNERS_ByPARTNERS_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM DISTRIBUTORS WHERE ID = ?';
+	let sql = 'SELECT * FROM PARTNERS WHERE ID = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -744,6 +744,24 @@ dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
 					}
 				});
 
+			} else {
+				cb( null, 0 );
+			}
+		}
+	});
+}
+
+dao.UPDATE_USERS_DISABLE = function ( id: any, cb: any ) {
+
+	let sql = "UPDATE USERS SET DISABLE = 1 WHERE ID = ? ";
+	let args = [ id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, 0);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb( null, res.affectedRows );
 			} else {
 				cb( null, 0 );
 			}

@@ -2546,7 +2546,7 @@ export class HoldemRoom extends Room<RoomState> {
 
 			winAmount -= rake;
 			logger.info( this._tableIdString + '[-----------------]');
-			logger.info( this._tableIdString + '[POT: %s] total: %s / player: %s / winner: %s / estimate rake: %s ', i, potAmount, pot.players, pot.winner, rake );
+			logger.info( this._tableIdString + '[POT: %s] total: %s / player: %s / winner: %s / winAmount rake: %s / estimate rake: %s ', i, potAmount, pot.players, pot.winner, winAmount, rake );
 
 			for(let j = 0; j < pot.winner.length ; j++){
 				let entity = this.getEntity( pot.winner[j] );

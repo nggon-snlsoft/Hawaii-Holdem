@@ -203,6 +203,25 @@ export class UserController {
                     rake_back_rate = 0;
                 }
             }
+
+            let partner_id = data.partner_id;
+            let partner: any = null;
+            try {
+                partner = await this.getPARTNERS_ByPARTNER_ID( req.app.get('DAO'), partner_id );
+                if ( partner != null ) {
+                    if ( partner.alive == 0 ) {
+                        data.disable = 1;
+                        await this.reqUSER_DISABLE( req.app.get('DAO'), partner_id );                        
+                        res.status( 200 ).json({
+                            code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                            msg: 'DISABLE_ACCOUNT'
+                        });
+                        return;
+                    }
+                }            
+            } catch (error) {
+                console.log(error);
+            }
         }
 
         if ( platform == null ) {
@@ -2071,9 +2090,9 @@ export class UserController {
         });
     }
 
-    private async getPARTNER_ByPARTNER_ID( dao: any, id: any ) {
+    private async getDISTRIBUTOR_ByDISTRIBUTOR_ID( dao: any, id: any ) {
         return new Promise( (resolve, reject )=>{
-            dao.SELECT_PARTNERS_ByPARTNER_ID ( id, function(err: any, res: any ) {
+            dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID ( id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -2084,11 +2103,11 @@ export class UserController {
                 }
             });
         });
-    }
+    }    
 
-    private async getDISTRIBUTOR_ByDISTRIBUTOR_ID( dao: any, id: any ) {
+    private async getPARTNERS_ByPARTNER_ID( dao: any, id: any ) {
         return new Promise( (resolve, reject )=>{
-            dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID ( id, function(err: any, res: any ) {
+            dao.SELECT_PARTNERS_ByPARTNERS_ID ( id, function(err: any, res: any ) {
                 if ( !!err ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -2136,6 +2155,22 @@ export class UserController {
 
         return new Promise ( (resolve, reject ) =>{
             dao.UPDATE_AVATAR( id, avatar, function( err: any, res: any ) {
+                if (!!err ) {
+                    reject( {
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'
+                    });
+                } else {
+                    resolve ( res );
+                }
+            });
+        });
+    }
+
+    private async reqUSER_DISABLE( dao: any, id: any ) {
+
+        return new Promise ( (resolve, reject ) =>{
+            dao.UPDATE_USERS_DISABLE( id, function( err: any, res: any ) {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

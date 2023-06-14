@@ -67,7 +67,7 @@ export class HoldemApiServer {
 
     private initRoutes() {
         this.app.use( cors() );
-		this.app.use( favicon( __dirname + "/static/favicon.ico" ) );
+		// this.app.use( favicon( __dirname + "/static/favicon.ico" ) );
         this.app.use( methodOverride() );
         this.app.use ( bodyParser.json() );
         this.app.use ( bodyParser.urlencoded({
@@ -83,7 +83,7 @@ export class HoldemApiServer {
 			res.send( "It could not be a better day to die" );
         });
         this.app.use( '/check', this.CheckVersion.bind(this) );
-		this.app.use( "/", express.static( path.join( __dirname, "static" ) ) );
+		// this.app.use( "/", express.static( path.join( __dirname, "static" ) ) );
     }
 
     private CheckServer( req: any, res: any ) {

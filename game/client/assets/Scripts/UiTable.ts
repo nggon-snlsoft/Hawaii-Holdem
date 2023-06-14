@@ -2563,9 +2563,9 @@ export class UiTable extends Component {
 			for(let j = 0; j < pot.winner.length; j++){
 				let chip: any = null;
 				if ( pot.rake != null ) {
-					chip = (pot.total - pot.rake) / pot.winner.length;
+					chip = Math.trunc( (pot.total - pot.rake) / pot.winner.length ) ;
 				} else {
-					chip = pot.total;
+					chip = Math.trunc( (pot.total / pot.winner.length) ) ;
 				}
 			
 				let uiEntity = this.GetEntityFromSeat( pot.winner[j] );				
@@ -2993,7 +2993,7 @@ export class UiTable extends Component {
 			return;
 		}
 
-		Board.balance = Number.parseInt( msg['balance ']);
+		Board.balance = Number.parseInt( msg['balance']);
 		let uiEntity = this.GetEntityFromSeat( this.mySeat );
 		let chips = Number.parseInt( msg ['chips'] );
 
