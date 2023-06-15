@@ -4410,4 +4410,34 @@ export class HoldemRoom extends Room<RoomState> {
 			} );	
 		}
 	}
+
+	public REMOTE_CALL_KICK_PLAYER( args: any[] ): any {
+		console.log('REMOTE_CALL_KICK_PLAYER: ' + args );
+
+		// args.forEach( (e)=>{
+		// 	console.log(e);
+
+		// });
+
+		let id = args;
+
+		// let entity = this.state.entities.find( elem => elem.id == id );
+		// console.log( this.state.entities );
+		// console.log( entity );
+		// if ( entity != null ) {
+		// 	if ( entity.leave != true ) {
+		// 		logger.error(  this._tableIdString + "[ KickDisablePlayer ] id: %s, name: %s", entity.id, entity.nickname );				
+		// 		entity.leave = true;
+		// 	}
+
+		// 	if ( eGameState.Suspend === this.state.gameState || 
+		// 		(entity.wait == true || entity.fold == true, entity.isSitOut == true) ) {
+		// 		this.handleEscapee();
+		// 	}
+		// }
+
+
+
+		return args;
+	}
 }

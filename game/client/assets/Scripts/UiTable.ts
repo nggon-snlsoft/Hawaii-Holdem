@@ -501,8 +501,6 @@ export class UiTable extends Component {
 					id : user.id,
 				});
 
-
-
 				UiGameSystemPopup.instance.closePopup();
 			}, ()=>{
 				UiGameSystemPopup.instance.closePopup();
@@ -512,36 +510,6 @@ export class UiTable extends Component {
 
 	onCLICK_MESSAGE() {
 		this.uiGamePOPUP_MESSAGES.show();
-
-
-		// let user = NetworkManager.Instance().GetUser();
-		// if ( this.uiSeats.node.active == true ) {
-		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-
-		// 		this.sendMsg("EXIT_TABLE", {
-		// 			seat : this.mySeat,
-		// 			id : user.id,
-		// 		});
-
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	}, ()=>{
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	});
-		// } else {
-		// 	UiGameSystemPopup.instance.showYesNoPopup("게임종료", "게임을 나가시겠습니까?", ()=>{
-
-		// 		this.sendMsg("EXIT_TABLE", {
-		// 			seat : this.mySeat,
-		// 			id : user.id,
-		// 		});
-
-
-
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	}, ()=>{
-		// 		UiGameSystemPopup.instance.closePopup();
-		// 	});
-		// }
     }
 
     public show() {
@@ -617,8 +585,10 @@ export class UiTable extends Component {
 		room.onMessage( "SYNC_TABLE", this.onSYNC_TABLE.bind(this));
 		room.onMessage( "EXIT_TABLE", this.onEXIT_TABLE.bind(this));
 
+		//MASTER CALL
 		room.onMessage( "MASTER_CALL", this.onMASTER_CALL.bind(this));
-
+		room.onMessage( "FORCE_LEAVE", this.onFORCE_LEAVE.bind(this));
+		room.onMessage( "MASTER_MESSAGE", this.onMASTER_MESSAGE.bind(this));
         
         this.room.onMessage( "JOIN", msg => {
             this.onJOIN(room, msg);
@@ -685,16 +655,7 @@ export class UiTable extends Component {
 	private onEXIT_TABLE( msg ) {
 		this.uiSeats.end();
 		this.cbHandInfo = null;
-		this.room?.leave( false );
-	}
-
-	private onMASTER_CALL( msg ) {
-		let popup = msg['popup'];
-		if ( popup != null ) {
-			UiGameSystemPopup.instance.showOkPopup('SYSTEM', popup, ()=>{
-				UiGameSystemPopup.instance.closePopup();
-			});
-		}
+		this.room?.leave( true );
 	}
 
 	private onTOKEN_VERIFY( msg ) {
@@ -1155,7 +1116,6 @@ export class UiTable extends Component {
 
     leaveRoom( code: any ) {
 		console.log('leaveRoom');
-
         this.ClearEntities();
 		this.ClearPot();
 
@@ -3193,6 +3153,35 @@ export class UiTable extends Component {
 	private onREFRESH_UNREAD_MSG() {
 		UiControls.instance.onREFRESH_UNREAD_BADGE();
 	}
+
+	private onMASTER_CALL( msg ) {
+		let popup = msg['popup'];
+		if ( popup != null ) {
+			UiGameSystemPopup.instance.showOkPopup('SYSTEM', popup, ()=>{
+				UiGameSystemPopup.instance.closePopup();
+			});
+		}
+	}
+
+	private onFORCE_LEAVE( msg ) {
+		let user = NetworkManager.Instance().GetUser();
+		if ( user != null && user.id > 0) {
+			this.sendMsg("EXIT_TABLE", {
+				seat : this.mySeat,
+				id : user.id,
+			});
+		}
+	}
+
+	private onMASTER_MESSAGE( msg ) {
+		// let popup = msg['popup'];
+		// if ( popup != null ) {
+		// 	UiGameSystemPopup.instance.showOkPopup('SYSTEM', popup, ()=>{
+		// 		UiGameSystemPopup.instance.closePopup();
+		// 	});
+		// }
+	}
+
 }
 
 

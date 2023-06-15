@@ -21,11 +21,11 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
-const apiHost: string = '43.207.193.204';
-const gameHost: string = '43.207.193.204';
+// const apiHost: string = '43.207.193.204';
+// const gameHost: string = '43.207.193.204';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;
@@ -315,6 +315,15 @@ export class NetworkManager extends cc.Component {
 
 		if ( obj.token != null ) {
 			this.token = obj.token;
+		}
+
+		if ( obj.table_id != -1 ) {
+			console.log('obj.table_id != -1');
+			await this.Post( this.GAME_SERVER, '/tables/check/table_id', {
+				user_id: obj.id,
+			} ).then(( res: string ) => {
+			} ).catch( function( err: any ) {
+			} );
 		}
 
 		this.user_id = obj.id;

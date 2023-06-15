@@ -33,6 +33,7 @@ export class TableController {
     private initRouter() {
         this.router.post( '/get', this.getTABLE_LIST.bind(this));
         this.router.post( '/enter', this.enterTABLE.bind(this));
+        this.router.post( '/check/table_id', this.reqCHECK_TABLE_ID.bind(this));
     }
 
     private async getIp( req: any, next: (ip: string )=>void ) {
@@ -303,6 +304,75 @@ export class TableController {
             seatReservation: seatReservation,
             info: _tables,
             count: _tables.maxPlayers,
+        });
+    }
+
+    public async reqCHECK_TABLE_ID( req: any, res: any ) {
+        let user_id = req.body.user_id;
+        let user: any = null;
+        try {
+            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id);            
+        } catch (error) {
+            console.log( error );
+        }
+
+        if ( user == undefined ) {
+            res.status( 200 ).json({
+                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                msg: 'INCORRECT_ID',
+            });
+            return;
+        }
+
+        user.table_id = 1;
+        if ( user.table_id != -1 ) {
+            let table: any = null;
+            try {
+                table = await this.getTABLE_ByTABLE_ID( req.app.get('DAO'), user.table_id );
+            } catch (error) {
+                console.log( error );
+            }
+
+            if ( table == null ) {
+                res.status( 200 ).json({
+                    code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                    msg: 'INCORRECT_TABLE_INFO',
+                });
+                return;            
+            }
+            let gameSize = (table.maxPlayers == 9) ? 'holdem_full' : 'holdem_short';
+            let room = await matchMaker.query({
+                private: false,
+                name: gameSize,
+                serial: table.id
+            });
+            
+            if ( room != null && room.length > 0) {
+                let roomId = room[0].roomId;
+                let args = [{
+                    user_id: user_id,
+                }];
+                matchMaker.remoteRoomCall(roomId, 'REMOTE_CALL_KICK_PLAYER', args).then( (value: any)=>{
+                    console.log( value );
+
+                }).catch( (reason: any )=>{
+                    console.log( reason );
+                });
+                //방에 쿼리를 해서 해당 플레이어를 leave 상태로 만든다.
+            }
+            else {
+                //reset tableId
+            }
+        }
+
+
+        res.status( 200 ).json({
+            code: ENUM_RESULT_CODE.SUCCESS,
+            // msg: 'SUCCESS',
+            // ip: clientIp,
+            // seatReservation: seatReservation,
+            // info: _tables,
+            // count: _tables.maxPlayers,
         });
     }
 
