@@ -70,15 +70,6 @@ export class UiLogin extends Component {
 
     onUIDEditboxChanged( text: string, editbox: EditBox, customEventData: any ) {
 
-        // console.log('text: ' + text + 'is input');
-        // if ( /\t/gi.test( text) == true ) {
-        //     console.log( '[[' + text.trim() + ']]');
-
-
-        //     this.editBoxPassword.focus();
-        //     editbox.string = text.trim();
-        //     editbox.textLabel.string = text.trim();            
-        // }
     }
 
     onUIDEditboxDidBegan() {

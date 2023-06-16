@@ -25,8 +25,6 @@ export class Board {
 		Board.info = info;
 		Board.id = info.id;
 		Board.table_id = info.id;
-		Board.table_id = info.id;
-
 		Board.small = info.smallBlind;
 		Board.big = info.bigBlind;
 		Board.ante = info.ante;

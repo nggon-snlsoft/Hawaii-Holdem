@@ -115,9 +115,6 @@ export class UiLOBBY_POPUP_CHARGE extends Component {
         NetworkManager.Instance().reqCOMPANY( ( res: any )=>{
             let store = res.store;
             if ( store != null ) {
-                console.log( store );
-                // this.labelAccount.string = store.bank + ' ' + store.account; 
-                // this.labelHolder.string = store.holder;
 
                 let telegram: string = '';
                 if ( store.telegram != null && store.telegram.length > 0 ) {

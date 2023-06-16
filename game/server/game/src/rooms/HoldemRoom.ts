@@ -111,6 +111,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let confFile = await fs.readFileSync(path.join(__dirname, "../config/roomConf.json"), {encoding : 'utf8'});
 		let confJson = JSON.parse( confFile.toString() );
 		this.conf = confJson[this.tableSize as keyof typeof confJson];
+		console.log(this.conf);
 
 		await this.setPrivate(options["private"]);
 
@@ -145,6 +146,7 @@ export class HoldemRoom extends Room<RoomState> {
 					this.conf["flopRake"] = roomInfo["useFlopRake"] == 1;
 					this.conf["ante"] = roomInfo['ante'];
 					this.conf['hands'] = roomInfo['hands'];
+					// this.conf['timeoutUnit'] = confJson['timeoutUnit'];
 				}
 
 				this.maxClients = this.conf["maxClient"];
@@ -957,12 +959,14 @@ export class HoldemRoom extends Room<RoomState> {
 				this.elapsedTick = 0;
 
 				this.state.entities.forEach( (e)=>{
-					if ( e.isSitOut == true ) {
-						let pasteTime = Number( Date.now() ) - e.sitoutTimestamp;
-						if ( pasteTime > this.conf['longSitoutTerm'] ) {
-							e.leave = true;
-							e.longSitOut = true;
-						}
+					if ( e != null ) {
+						if ( e.isSitOut == true ) {
+							let pasteTime = Number( Date.now() ) - e.sitoutTimestamp;
+							if ( pasteTime > this.conf['longSitoutTerm'] ) {
+								e.leave = true;
+								e.longSitOut = true;
+							}
+						}	
 					}
 				});
 
@@ -1008,12 +1012,14 @@ export class HoldemRoom extends Room<RoomState> {
 				let term = this.conf['longSitoutTerm'];
 
 				this.state.entities.forEach( (e)=>{
-					if ( e.isSitOut == true ) {
-						let pasteTime: number = Number( Date.now() ) - e.sitoutTimestamp;
-						if ( pasteTime > term ) {
-							e.leave = true;
-							e.longSitOut = true;
-						}
+					if ( e != null ) {
+						if ( e.isSitOut == true ) {
+							let pasteTime: number = Number( Date.now() ) - e.sitoutTimestamp;
+							if ( pasteTime > term ) {
+								e.leave = true;
+								e.longSitOut = true;
+							}
+						}	
 					}
 					this.KickDisablePlayer( e );
 				});
@@ -1033,24 +1039,30 @@ export class HoldemRoom extends Room<RoomState> {
 		let escapees = [];
 		for( let l = 0; l < this.state.entities.length; l++ ) {
 			if( true === this.state.entities[ l ].leave ) {
-				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat } );
-				escapees.push( this.state.entities[ l ].seat );
-
-				this._dao.UPDATE_USERS_ACTIVE_SESSION_ID( this.state.entities[ l ].id, '' );
-				this._dao.UPDATE_USERS_PENDING_SESSION_ID( this.state.entities[ l ].id, '' );
-
-				let data = {
-					table_id: -1,
-					id : this.state.entities[ l ].id
-				}
-
-				this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
-					if (null != err) {
-						logger.error( this._tableIdString + err);
-					}
+				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat, user_id: this.state.entities[ l ].id } );
+				escapees.push( {
+					seat: this.state.entities[ l ].seat,
+					id: this.state.entities[ l ].id,
 				});
 
-				this._dao.CHIP_OUT(this.state.entities[l].chips, this.state.entities[l].id);
+				this._dao.CLEAR_USERS_TABLE_ID_ByUSER( this.state.entities[ l ].id, ( err: any, res: boolean )=>{
+
+				} );
+
+				// this._dao.UPDATE_USERS_PENDING_SESSION_ID( this.state.entities[ l ].id, '' );
+
+				// let data = {
+				// 	table_id: -1,
+				// 	id : this.state.entities[ l ].id
+				// }
+
+				// this._dao.UPDATE_USERS_TABLE_ID_ByUSER(data, (err: any, res: boolean) => {
+				// 	if (null != err) {
+				// 		logger.error( this._tableIdString + err);
+				// 	}
+				// });
+
+				this._dao.CHIP_OUT( this.state.entities[l].chips, this.state.entities[l].id );
 				this.state.entities[l].chips = 0;
 
 				this._dao.UPDATE_STATICS( this.state.entities[l].id, this.state.entities[l].statics, ( err: any, res: boolean  )=> {
@@ -1065,29 +1077,46 @@ export class HoldemRoom extends Room<RoomState> {
 
 		for( let m = 0; m < escapees.length; m++ ) {
 			let s = escapees[ m ];
-			const idx = this.state.entities.findIndex( function( e ) {
-				return e.seat === s;
-			} );
-			if( idx > -1 ) {
-				let entity = this.state.entities[idx];
-				if ( entity != null ) {
-					if ( entity.longSitOut == true ) {
-						entity.longSitOut = false;
-						let sessionId = entity.client.sessionId;
-						this.kickPlayer( sessionId, 4001 );
-					}
-					else if ( entity.banned == true ) {
-						entity.banned = false;
-						let sessionId = entity.client.sessionId;						
-						this.kickPlayer( sessionId, 4002 );
-					} 
-					else {
-						this.state.entities.splice( idx, 1 );
+			if ( s.seat > -1 ) {
+				const idx = this.state.entities.findIndex( function( e ) {
+					return e.seat === s.seat;
+				} );
+
+				if( idx > -1 ) {
+					let entity = this.state.entities[idx];
+					if ( entity != null ) {
+						if ( entity.longSitOut == true ) {
+							entity.longSitOut = false;
+							let sessionId = entity.client.sessionId;
+							this.kickPlayer( sessionId, 4001 );
+						}
+						else if ( entity.banned == true ) {
+							entity.banned = false;
+							let sessionId = entity.client.sessionId;						
+							this.kickPlayer( sessionId, 4002 );
+						} 
+						else {
+							this.state.entities.splice( idx, 1 );
+						}
 					}
 				}
-			}
-			else {
-				logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );
+				else {
+					logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );
+				}
+
+			} else {
+				const idx = this.state.entities.findIndex( function( e ) {
+					return e.id === s.id;
+				} );
+
+				if ( idx > -1 ) {
+					let entity = this.state.entities[idx];
+					if ( entity != null ) {
+						this.state.entities.splice( idx, 1 );						
+					}				 	
+				} else {
+					logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );					
+				}				
 			}
 		}
 		this.UpdateSeatInfo();
@@ -1096,18 +1125,19 @@ export class HoldemRoom extends Room<RoomState> {
 	updatePlayerEligible() {
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let e = this.state.entities[ i ];
-
-			e.enoughChip = this.isEnoughChip( e.chips );
-			if ( e.enoughChip === true && e.isSitOut === false ) {
-				e.wait = false;
-			} else {
-				e.wait = true;
-			}
-
-			if (this.state.gameState == eGameState.Ready) {
-				e.isNew = false;
-				e.missSb = false;
-				e.missBb = false;
+			if ( e != null ) {
+				e.enoughChip = this.isEnoughChip( e.chips );
+				if ( e.enoughChip === true && e.isSitOut === false ) {
+					e.wait = false;
+				} else {
+					e.wait = true;
+				}
+	
+				if (this.state.gameState == eGameState.Ready) {
+					e.isNew = false;
+					e.missSb = false;
+					e.missBb = false;
+				}	
 			}
 		}
 	}
@@ -1465,25 +1495,28 @@ export class HoldemRoom extends Room<RoomState> {
 
 			case eGameState.ClearRound:
 				this.state.entities.forEach( (e)=>{
-					if ( e.isSitOut == true && e.wait == false ) {
-						e.isSitBack = false;
-						e.isSitOut = true;
-						e.wait = true;
-						e.pendSitout = false;
-						e.sitoutTimestamp = Number( Date.now() );
-
-						this.broadcast( 'SIT_OUT', { seat: e.seat });
-					} else if ( e.pendSitout == true ) {
-						e.isSitBack = false;
-						e.isSitOut = true;
-						e.pendSitout = false;
-						e.wait = true;
-						e.sitoutTimestamp = Number( Date.now() );
-
-						this.broadcast( 'SIT_OUT', { seat: e.seat });						
+					if ( e != null ) {
+						if ( e.isSitOut == true && e.wait == false ) {
+							e.isSitBack = false;
+							e.isSitOut = true;
+							e.wait = true;
+							e.pendSitout = false;
+							e.sitoutTimestamp = Number( Date.now() );
+	
+							this.broadcast( 'SIT_OUT', { seat: e.seat });
+						} else if ( e.pendSitout == true ) {
+							e.isSitBack = false;
+							e.isSitOut = true;
+							e.pendSitout = false;
+							e.wait = true;
+							e.sitoutTimestamp = Number( Date.now() );
+	
+							this.broadcast( 'SIT_OUT', { seat: e.seat });						
+						}
+	
+						this.KickDisablePlayer( e );
 					}
 
-					this.KickDisablePlayer( e );
 				});
 
 				this.processPendingAddChips();
@@ -1952,7 +1985,7 @@ export class HoldemRoom extends Room<RoomState> {
 		for( let i = 0; i < this.state.entities.length; i++ ) {
 			let entity = this.state.entities[ i ];
 
-			if ( -1 === entity.seat ) {
+			if ( -1 === entity.seat || entity == null ) {
 				continue;
 			}
 
@@ -2274,6 +2307,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		logger.info(  this._tableIdString + "[ broadTurn ] seat : %s // maxChip : %s", currPlayer.seat, maxChip );
+		console.log('betTimeUnit: this.conf:' + this.conf['timeoutUnit'], );
 
 		this.broadcast( "YOUR_TURN", {
 			player: currPlayer.seat,
@@ -2283,8 +2317,9 @@ export class HoldemRoom extends Room<RoomState> {
 			maxBet: this.state.maxBet,
 			minRaise: this.state.minRaise,
 			currPot: this.state.pot,
-			maxChip: maxChip,
+			maxChip: maxChip,			
 			duration: this.conf["betTimeLimit"],
+			betTimeUnit: this.conf['timeoutUnit'],
 			isLast : finishedCount == (this.state.entities.length - 1),
 		} );
 	}
@@ -4010,12 +4045,14 @@ export class HoldemRoom extends Room<RoomState> {
 	private onSIT_OUT(client : Client, msg : any){
 		let seat: number = msg['seat'];
 		if ( seat == null ) {
-			logger.error( this._tableIdString + " [ onSIT_OUT ] Seat number is null!" + msg);			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] Seat number is null!" + msg);
+			return;
 		}
 
 		let player = this.getEntity( seat );
 		if ( player == null ) {
 			logger.error( this._tableIdString + " [ onSIT_OUT ] Can't find player!" + msg);
+			return;
 		}
 
 		if ( player.isSitOut == true ) {
@@ -4076,6 +4113,7 @@ export class HoldemRoom extends Room<RoomState> {
 		let player = this.getEntity(seat);
 		if ( player == null ) {
 			logger.error( this._tableIdString + " [ onSIT_BACK ] onSIT_BACK fail can't find player " + msg);
+			return;
 		}
 
 		if ( player.isSitOut == false ) {
@@ -4407,37 +4445,34 @@ export class HoldemRoom extends Room<RoomState> {
 						entity.banned = true;
 					}
 				}
-			} );	
+			} );
 		}
 	}
 
 	public REMOTE_CALL_KICK_PLAYER( args: any[] ): any {
-		console.log('REMOTE_CALL_KICK_PLAYER: ' + args );
+		let id: any = args.user_id;
+		let msg: string = '';
 
-		// args.forEach( (e)=>{
-		// 	console.log(e);
+		let entity = this.state.entities.find( elem => elem.id == id );
+		if ( entity != null ) {
+			if ( entity.seat < 0 ) {
+				let sessionId = entity.client.sessionId;
+				this.kickPlayer( sessionId, 4005 );
+				msg = 'PLAYER_FORCE_KICK'
+			} else {
+				entity.leave = true;
 
-		// });
-
-		let id = args;
-
-		// let entity = this.state.entities.find( elem => elem.id == id );
-		// console.log( this.state.entities );
-		// console.log( entity );
-		// if ( entity != null ) {
-		// 	if ( entity.leave != true ) {
-		// 		logger.error(  this._tableIdString + "[ KickDisablePlayer ] id: %s, name: %s", entity.id, entity.nickname );				
-		// 		entity.leave = true;
-		// 	}
-
-		// 	if ( eGameState.Suspend === this.state.gameState || 
-		// 		(entity.wait == true || entity.fold == true, entity.isSitOut == true) ) {
-		// 		this.handleEscapee();
-		// 	}
-		// }
-
-
-
-		return args;
+				if ( eGameState.Suspend === this.state.gameState ) {
+					msg = 'PLAYER_FORCE_KICK'					
+					this.handleEscapee();
+				} else {
+					msg = 'PLAYER_PENDING_LEAVE'
+				}
+			}
+		} else {
+			msg = 'PLAYER_NOT_FOUND'
+		}
+		logger.error(  this._tableIdString + "[ REMOTE_CALL_KICK_PLAYER ] id: %s, name: %s, msg: %s", entity.id, entity.nickname, msg );
+		return msg;
 	}
 }

@@ -72,6 +72,7 @@ export class UiEntity extends Component {
     private rootCardDispensing: Node = null;
     private seat: number = -1;
     private rootReserveExit: Node = null;
+    private betTimerUnit: number = 10;
     
 
     childRegistered() {
@@ -280,13 +281,14 @@ export class UiEntity extends Component {
         this.ClearHands();
         this.ResetResultEffect();        
         this.isFold = false;
-        this.SetFold( this.isFold );
+
+        // this.SetFold( this.isFold );
 
         if( true == entity.wait ){
             this.SetWait( entity );
             return;
         }
-        this.SetPlay(); 
+        this.SetPlay();
     }
 
     SetPrepareRound( entity ) {
@@ -506,8 +508,9 @@ export class UiEntity extends Component {
         this.labelHandRank.string = '';
     }
 
-    startTurn( duration: number ) {
+    startTurn( duration: number, betTimerUnit: number  ) {
         this.turnDuration = duration / 1000;
+        this.betTimerUnit = betTimerUnit;
         this.uiEntityAvatar.startTurn();
     }
 
@@ -525,7 +528,7 @@ export class UiEntity extends Component {
 
     SetFold( fold: boolean ) {
         this.isFold = fold;        
-        this.uiEntityAvatar.SetUiFold( this.isFold );
+        this.uiEntityAvatar.SET_UI_FOLD( this.isFold );
         this.timerDeltaTime = 0;
 
         if ( fold == true ) {
@@ -590,24 +593,24 @@ export class UiEntity extends Component {
         }
 
         this.timerDeltaTime -= dt;
-        if( 0 > this.timerDeltaTime){
+        if( this.timerDeltaTime < 0 ){
             this.timerDeltaTime = 0;
             this.uiEntityAvatar.setShowTimer( false );
         }
 
-        if( this.isMe == true && this.timerDeltaTime <= 6 && this.playTimeLimitSound ){
+        let t = (this.timerDeltaTime * 10 ) / this.betTimerUnit ;
+
+        if( this.isMe == true && t <= 6 && this.playTimeLimitSound ){
             this.playTimeLimitSound = false;
             AudioController.instance.PlayTimeLimit();
         }
 
-        // if ( this.timerDeltaTime < 10 ) {
-        if ( this.timerDeltaTime <= 6 ) {
+        if ( t <= 6 ) {
             this.uiEntityAvatar.setWaitingTimerColor(Color.RED);
         } else {
             this.uiEntityAvatar.setWaitingTimerColor(Color.YELLOW);
         }
-        this.uiEntityAvatar.setWaitingTimer(this.timerDeltaTime);
-        // }
+        this.uiEntityAvatar.setWaitingTimer( t );
 
         this.uiEntityAvatar.setWaitingTimerProgress( this.timerDeltaTime / this.turnDuration );
     }

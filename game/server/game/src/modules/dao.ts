@@ -225,6 +225,25 @@ dao.UPDATE_USERS_TABLE_ID_ByUSER = function ( data: any, cb: any ){
 	});
 };
 
+dao.CLEAR_USERS_TABLE_ID_ByUSER = function ( id: any, cb: any ){
+
+	let sql = 'UPDATE USERS SET TABLE_ID = -1, ACTIVESESSIONID = ?, PENDINGSESSIONID = ?, PENDINGSESSIONTIMESTAMP = ?, UPDATEDATE = ? WHERE ID = ?';
+	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
+	let args = [ '', '', 0, now, id ];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (err !== null) {
+			cb(err, null);
+		} else {
+			if (!!res && res.affectedRows > 0) {
+				cb(null, true);
+			} else {
+				cb(null, false);
+			}
+		}
+	});
+};
+
 dao.UPDATE_USERS_CLEAR_TABLE_ID = function ( table_id: number, value: number, cb: any ){
 	let sql = 'UPDATE USERS SET TABLE_ID = ?, UPDATEDATE = ? WHERE TABLE_ID = ?';
 	let now = moment().tz(timeZone).format('YYYY-MM-DD HH:mm:ss');
@@ -298,6 +317,42 @@ dao.UPDATE_USERS_PENDING_SESSION_ID = function( id: any, session_id: any ){
 	 		return;
 	 	}
 	 });
+}
+
+dao.REQ_CHIP_OUT = function( id: any, cb: any ){
+	let query = 'SELECT * FROM USERS WHERE ID = ?';
+	let args = [id];
+
+	_client.query(query, args, function (err: any, res: any) {
+		if (!!err) {
+			cb(err, 0);
+		} else {
+			if ( res != null && res.length > 0 ) {
+				console.log( res[0]);
+				let user = res[0];
+				let chip = user.chip;
+				if ( chip > 0 ) {
+					let balance = user.balance + chip;
+					chip = 0;
+					query = 'UPDATE USERS SET BALANCE = ?, CHIP = ? WHERE ID = ?';
+					args = [ balance, chip, id ];
+					_client.query(query, args, function (err1: any, res1: any) {
+						if (!!err) {
+							cb(err, 0);
+						} else {
+							if (!!res && res.affectedRows > 0) {				
+								cb( null, res.affectedRows );
+							} else {
+								cb( null, 0 );
+							}
+						}
+					});			
+				} else {
+					cb( null, 0 );					
+				}
+			}
+		}
+	});
 }
 
 dao.CHIP_OUT = function(chip: any, id: any){

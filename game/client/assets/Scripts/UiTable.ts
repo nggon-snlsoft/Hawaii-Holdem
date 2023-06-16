@@ -655,6 +655,7 @@ export class UiTable extends Component {
 	private onEXIT_TABLE( msg ) {
 		this.uiSeats.end();
 		this.cbHandInfo = null;
+
 		this.room?.leave( true );
 	}
 
@@ -1106,8 +1107,6 @@ export class UiTable extends Component {
 
 		this.SetSitoutButtons( this.isSitout );
 
-
-
 		this.scheduleOnce(()=>{
 			AudioController.instance.PlaySound('VOICE_WELCOME');
 		}, 0.5);
@@ -1115,7 +1114,6 @@ export class UiTable extends Component {
     }
 
     leaveRoom( code: any ) {
-		console.log('leaveRoom');
         this.ClearEntities();
 		this.ClearPot();
 
@@ -1298,7 +1296,7 @@ export class UiTable extends Component {
 				uiEntity.SetEntity( entity, this.OpenProfile.bind(this), this.CloseProfile.bind(this) );
 			}
 		} else {
-			console.log('entity == null ');
+
 		}
     }
 
@@ -1319,11 +1317,12 @@ export class UiTable extends Component {
 
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
+		let timerUnit = msg['betTimeUnit'];
 
 		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
 			let uiEntity = this.ENTITY_ELEMENTS[ i ];
 			if( seat == this.SEAT_PLAYERS[ i ] ) {
-				uiEntity?.startTurn(duration);
+				uiEntity?.startTurn(duration, timerUnit);
 				uiEntity?.StartActionTimer();
 				continue;
 			}
@@ -1466,7 +1465,6 @@ export class UiTable extends Component {
 
     private onBLIND_BET( msg ) {
 		console.log('onBLIND_BET');
-		console.log( msg );
 
 		this.roundState = "BLIND_BET";
 
@@ -1665,9 +1663,17 @@ export class UiTable extends Component {
 
     private onHANDLE_ESCAPEE( msg ) {
 		let seat = msg[ "seat" ];
+		let id = msg['user_id'];
 		let uiEntity = this.GetEntityFromSeat( seat );
 		if ( uiEntity != null ) {
 			uiEntity.SetEscape();
+		}
+
+		console.log('onHANDLE_ESCAPEE');
+
+		let user = NetworkManager.Instance().GetUser();						
+		if ( id == user.id ) {
+			this.onEXIT_TABLE(null);
 		}
     }
 
@@ -1957,7 +1963,6 @@ export class UiTable extends Component {
 	}
 
     private onCLEAR_ROUND( msg ) {
-		console.log( msg );
 		console.log('onCLEAR_ROUND');
 
 		this.uiCommunityCards.Reset();
@@ -2362,7 +2367,6 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
-		console.log( msg );
 
 		this.msgWINNERS = msg;
 		this.uiPlayerActionReservation.reset();

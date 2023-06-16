@@ -42,6 +42,10 @@ export class UiEntityAvatar extends Component {
     private isMe: boolean = false;
     private uiEntity: any = null;
 
+    private SPRITE_FOLD: Sprite = null;
+    private SPRITE_ALLIN: Sprite = null;
+    private SPRITE_FRAME: Sprite = null;
+
     init() {
         this.childRegistered();
         this.isFold = false;
@@ -129,16 +133,19 @@ export class UiEntityAvatar extends Component {
     }
 
     public SetPlay() {
-
         this.rootSelected.active = false;
+
         this.spriteTimer.node.active = true;
         this.spriteTimer.color = Color.GRAY;
         this.spriteTimer.fillRange = 1;
         this.spriteTimer.node.active = false;
+
         this.isFold = false;
 
         this.SetStatus( ENUM_STATUS_TYPE.NONE );
         this.ClearAction();
+
+        this.SET_PLAY();
     }
 
     public ClearAction() {
@@ -173,7 +180,7 @@ export class UiEntityAvatar extends Component {
         this.spriteTimer.node.active = true;
     }
 
-    public SetUiFold( isFold: boolean ) {
+    public SET_UI_FOLD( isFold: boolean ) {
         this.isFold = isFold;
 
         if ( isFold == true ) {
@@ -181,23 +188,48 @@ export class UiEntityAvatar extends Component {
 
             this.spriteTimer.fillRange = 0;
             this.spriteTimer.node.active = false;
-            this.rootSelected.active = false;
+            // this.rootSelected.active = false;
             this.SetAction('fold');
 
-            this.spriteDimmed.node.active = true;
-            this.spriteFold.node.active = true;
-            this.rootStatus.active = true;            
-
+            // this.spriteDimmed.node.active = true;
+            // this.spriteFold.node.active = true;
+            // this.rootStatus.active = true;
+            
+            this.SET_FOLD();
         } else {
-            this.spriteFold.node.active = false;
-            if ( this.spriteStatus.node.active == true ) {
-                this.spriteDimmed.node.active = true;
-            } else {
-                this.spriteDimmed.node.active = false;
-                this.rootStatus.active = false;                
-            }
+            this.SPRITE_FOLD.node.active = false;
+            // this.spriteFold.node.active = false;
+            // if ( this.spriteStatus.node.active == true ) {
+            //     this.spriteDimmed.node.active = true;
+            // } else {
+            //     this.spriteDimmed.node.active = false;
+            //     this.rootStatus.active = false;
+            // }
         }
-    }    
+    }
+
+    private SET_FOLD() {
+        this.SPRITE_FOLD.node.active = true;
+        this.SPRITE_ALLIN.node.active = false;
+
+        if ( this.isMe != true ) {
+            this.labelChips.node.active = false;
+            this.labelNickname.node.active = false;
+            this.labelBlind.node.active = false;
+        }
+
+        this.SET_DIMMED( true );
+    }
+
+    private SET_PLAY() {
+        this.SPRITE_FOLD.node.active = false;
+        this.SPRITE_ALLIN.node.active = false;
+
+        this.labelChips.node.active = true;
+        this.labelNickname.node.active = true;
+
+        this.SET_DIMMED( false );
+    }
 
     public SetWait( entity: any ) {
         this.spriteTimer.node.active = false;
@@ -214,6 +246,8 @@ export class UiEntityAvatar extends Component {
             } else {
                 this.SetStatus( ENUM_STATUS_TYPE.WAITING );
             }
+
+            this.SET_DIMMED( true );
         }
     }
 
@@ -222,12 +256,36 @@ export class UiEntityAvatar extends Component {
 
         this.spriteTimer.fillRange = 0;
         this.spriteTimer.node.active = false;
-        this.rootSelected.active = false;
 
         this.SetAction('allin');
+        this.SET_ALLIN();
 
-        this.spriteDimmed.node.active = true;
-        this.rootStatus.active = true;
+        // this.rootSelected.active = false;
+        // this.spriteDimmed.node.active = true;
+        // this.rootStatus.active = true;
+    }
+
+    private SET_ALLIN() {
+        this.SPRITE_ALLIN.node.active = true;        
+        this.SPRITE_FOLD.node.active = false;
+
+        if ( this.isMe != true ) {
+            this.labelChips.node.active = false;
+            this.labelNickname.node.active = false;
+            this.labelBlind.node.active = false;
+        }
+
+        this.SET_DIMMED( true );
+    }
+
+    private SET_DIMMED( isDimmed: boolean ) {
+        if ( isDimmed == true ) {
+            this.SPRITE_FRAME.color = new Color(80, 80, 80);
+            this.spriteAvatarProfile.color = new Color(80, 80, 80);
+        } else {
+            this.SPRITE_FRAME.color = new Color(255, 255, 255);
+            this.spriteAvatarProfile.color = new Color(255, 255, 255);
+        }        
     }
 
     public SetSitout() {
@@ -242,7 +300,7 @@ export class UiEntityAvatar extends Component {
             this.SetStatus(ENUM_STATUS_TYPE.WAITING);
         }
         else if ( fold == true ) {
-            this.SetUiFold( fold );
+            this.SET_UI_FOLD( fold );
         } else {
             this.SetStatus(ENUM_STATUS_TYPE.NONE);
         }
@@ -282,35 +340,46 @@ export class UiEntityAvatar extends Component {
         switch ( type ) {
             case ENUM_STATUS_TYPE.NONE:
                 {
-                    this.spriteDimmed.node.active = false;
+                    // this.spriteDimmed.node.active = false;
                     this.spriteStatus.node.active = false;
-                    this.rootStatus.active = false;                
+                    this.rootStatus.active = false;
+
+                    this.SET_DIMMED( false );
                 }
                 break;
             case ENUM_STATUS_TYPE.WAITING:
                 {
-                    this.spriteDimmed.node.active = true;
+                    // this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[1];
                     this.spriteStatus.spriteFrame = sf;
                     this.spriteStatus.node.active = true;
                     this.rootStatus.active = true;
+
+                    this.SET_DIMMED( true );
                 }
 
                 break;
             case ENUM_STATUS_TYPE.SITOUT:
                 {
-                    this.spriteDimmed.node.active = true;
+                    // this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[2];
                     this.spriteStatus.spriteFrame = sf;
                     this.spriteStatus.node.active = true;
                     this.rootStatus.active = true;
+
+                    if ( this.isMe == true ) {
+                        this.SET_UI_FOLD( false );
+                    }
+
+                    this.SET_DIMMED( true );
                 }
 
                 break;
             default:
-                this.spriteDimmed.node.active = false;
+                // this.spriteDimmed.node.active = false;
                 this.spriteStatus.node.active = false;
                 this.rootStatus.active = false;
+                this.SET_DIMMED( false );
         }
     }
 
@@ -322,6 +391,11 @@ export class UiEntityAvatar extends Component {
         this.rootSelected = this.node.getChildByPath('SELECTED');
         if (this.rootSelected != null ) {
             this.rootSelected.active = false;
+        }
+
+        this.SPRITE_FRAME = this.node.getChildByPath('FRAME').getComponent(Sprite);
+        if (this.SPRITE_FRAME != null ) {
+            this.SPRITE_FRAME.node.active = true;
         }
 
         this.spriteAvatarProfile = this.node.getChildByPath('THUMBNAIL/SPRITE_AVATAR').getComponent(Sprite);
@@ -344,6 +418,16 @@ export class UiEntityAvatar extends Component {
             this.labelNickname = this.rootNameTag.getChildByPath('LABEL_NAME').getComponent(Label);
             this.labelChips = this.rootNameTag.getChildByPath('LABEL_CHIPS').getComponent(Label);
             this.labelBlind = this.rootNameTag.getChildByPath('LABEL_BLIND').getComponent(Label);
+
+            this.SPRITE_FOLD = this.rootNameTag.getChildByPath('SPRITE_FOLD').getComponent( Sprite );
+            if ( this.SPRITE_FOLD != null ) {
+                this.SPRITE_FOLD.node.active = false;
+            }
+
+            this.SPRITE_ALLIN = this.rootNameTag.getChildByPath('SPRITE_ALLIN').getComponent( Sprite );
+            if ( this.SPRITE_ALLIN != null ) {
+                this.SPRITE_ALLIN.node.active = false;
+            }
 
             this.rootNameTag.active = false;
         }

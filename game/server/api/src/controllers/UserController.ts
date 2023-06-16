@@ -250,6 +250,7 @@ export class UserController {
             msg: 'SUCCESS',
             id: data.id,
             ip: clientIp,
+            user: data,
             token: token,
         });
     }

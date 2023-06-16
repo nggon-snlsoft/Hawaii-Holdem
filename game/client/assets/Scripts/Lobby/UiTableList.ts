@@ -142,6 +142,11 @@ export class UiTableList extends Component {
     }
 
     private clearList() {
+        if ( this.elementOnList == null ) {
+            this.elementOnList = [];
+            return;
+        }
+
         this.elementOnList.forEach( (e)=> {
             e.clear();
             e.setActive(false);

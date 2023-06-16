@@ -85,7 +85,6 @@ export class UiPopupGameProfile extends Component {
         if ( this.isMe == true ) {
             if ( this.rootBalance != null ) {
                 if ( this.labelBalance != null ) {
-                    console.log('this.labelBalance != null');
                     this.labelBalance.string = CommonUtil.getKoreanNumber( this.entity.balance );
                     this.labelBalance.node.active = true;
                 }

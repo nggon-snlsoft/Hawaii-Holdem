@@ -317,12 +317,15 @@ export class NetworkManager extends cc.Component {
 			this.token = obj.token;
 		}
 
-		if ( obj.table_id != -1 ) {
-			console.log('obj.table_id != -1');
+		if ( obj.user != null && obj.user.table_id != -1 ) {
+
 			await this.Post( this.GAME_SERVER, '/tables/check/table_id', {
-				user_id: obj.id,
+				user_id: obj.user.id,
+				table_id: obj.user.table_id,
 			} ).then(( res: string ) => {
+
 			} ).catch( function( err: any ) {
+
 			} );
 		}
 

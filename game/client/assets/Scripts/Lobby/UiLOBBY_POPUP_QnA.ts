@@ -330,7 +330,6 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
     private onREFRESH_UNREAD( done: ()=>void  ) {
         NetworkManager.Instance().reqUNREAD( (res: any)=>{
-            console.log( res );
             if ( res != null ) {
                 if ( res.unread_answer != null && res.unread_answer > 0 ) {
                     this.labelQNAUnread.string = (res.unread_answer).toString();

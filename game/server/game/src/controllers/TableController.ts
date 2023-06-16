@@ -309,26 +309,12 @@ export class TableController {
 
     public async reqCHECK_TABLE_ID( req: any, res: any ) {
         let user_id = req.body.user_id;
-        let user: any = null;
-        try {
-            user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id);            
-        } catch (error) {
-            console.log( error );
-        }
+        let table_id = req.body.table_id;
 
-        if ( user == undefined ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'INCORRECT_ID',
-            });
-            return;
-        }
-
-        user.table_id = 1;
-        if ( user.table_id != -1 ) {
+        if ( table_id != -1 ) {
             let table: any = null;
             try {
-                table = await this.getTABLE_ByTABLE_ID( req.app.get('DAO'), user.table_id );
+                table = await this.getTABLE_ByTABLE_ID( req.app.get('DAO'), table_id );
             } catch (error) {
                 console.log( error );
             }
@@ -340,39 +326,45 @@ export class TableController {
                 });
                 return;            
             }
+
             let gameSize = (table.maxPlayers == 9) ? 'holdem_full' : 'holdem_short';
             let room = await matchMaker.query({
                 private: false,
                 name: gameSize,
                 serial: table.id
             });
+
+            let isExist: boolean = false;
+            let msg: string = '';
             
             if ( room != null && room.length > 0) {
                 let roomId = room[0].roomId;
-                let args = [{
+                let args: any[] = [];
+                args.push({
                     user_id: user_id,
-                }];
-                matchMaker.remoteRoomCall(roomId, 'REMOTE_CALL_KICK_PLAYER', args).then( (value: any)=>{
-                    console.log( value );
+                });
 
+                await matchMaker.remoteRoomCall(roomId, 'REMOTE_CALL_KICK_PLAYER', args)
+                .then( (value: any)=>{
+                    isExist = true;
+                    msg = value;
+                    if ( msg = 'PLAYER_NOT_FOUND') {
+                        isExist = false;
+                    }
                 }).catch( (reason: any )=>{
                     console.log( reason );
+                    isExist = false;                    
                 });
-                //방에 쿼리를 해서 해당 플레이어를 leave 상태로 만든다.
             }
-            else {
-                //reset tableId
+
+            if ( isExist == false ) {
+                await this.reqRESET_TABLE_ID_ByUSER_ID( req.app.get('DAO'), user_id );
+                await this.reqCHIP_OUT_ByUSER_ID( req.app.get('DAO'), user_id );
             }
         }
 
-
         res.status( 200 ).json({
             code: ENUM_RESULT_CODE.SUCCESS,
-            // msg: 'SUCCESS',
-            // ip: clientIp,
-            // seatReservation: seatReservation,
-            // info: _tables,
-            // count: _tables.maxPlayers,
         });
     }
 
@@ -443,6 +435,36 @@ export class TableController {
     private async getTABLE_ByTABLE_ID( dao: any, table_id: any  ) {
         return new Promise<any>( ( resolve, reject )=>{
             dao.SELECT_TABLES_ByTABLE_ID(table_id, (err: any, res: any)=>{
+                if ( err != null ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'                        
+                    });
+                    return;
+                }
+                resolve( res ); 
+            });
+        });
+    }
+
+    private async reqRESET_TABLE_ID_ByUSER_ID( dao: any, user_id: any  ) {
+        return new Promise<any>( ( resolve, reject )=>{
+            dao.CLEAR_USERS_TABLE_ID_ByUSER(user_id, (err: any, res: any)=>{
+                if ( err != null ) {
+                    reject({
+                        code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                        msg: 'BAD_ACCESS_TOKEN'                        
+                    });
+                    return;
+                }
+                resolve( res ); 
+            });
+        });
+    }
+
+    private async reqCHIP_OUT_ByUSER_ID( dao: any, user_id: any  ) {
+        return new Promise<any>( ( resolve, reject )=>{
+            dao.REQ_CHIP_OUT( user_id, (err: any, res: any )=>{
                 if ( err != null ) {
                     reject({
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

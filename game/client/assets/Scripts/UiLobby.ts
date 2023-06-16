@@ -381,7 +381,6 @@ export class UiLobby extends Component {
     public onEVENT_HIDE() {
         let now: any = new Date();
         this.onHideTimestamp = Number( now );
-        console.log( 'this.onHideTimestamp' + this.onHideTimestamp );
 
         this.onUNREGIST_SCHEDULE();
     }
