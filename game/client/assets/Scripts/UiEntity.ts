@@ -417,6 +417,10 @@ export class UiEntity extends Component {
         this.uiEntityAvatar.ClearAction();        
     }
 
+    CLEAR_ROUND_ACTION() {
+        this.uiEntityAvatar.CLEAR_ROUND_ACTION();
+    }
+
     SetStatus( player: any ) {
         if ( player != null ) {
             if ( player.isSitOut == true ) {

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, Color, native, Sprite, Vec3, Animation, animation, tween, Quat, Tween, bezier, SpriteFrame } from 'cc';
+import { _decorator, Component, Node, Label, Color, native, Sprite, Vec3, Animation, animation, tween, Quat, Tween, bezier, SpriteFrame, color } from 'cc';
 import { CommonUtil } from '../CommonUtil';
 import { ResourceManager } from '../ResourceManager';
 const { ccclass, property } = _decorator;
@@ -29,6 +29,7 @@ export class UiEntityAvatar extends Component {
     private spriteDimmed: Sprite = null;
     private spriteStatus: Sprite = null;
     private spriteFold: Sprite = null;
+    private SPRITE_NAME_TAG: Sprite = null;
 
     private labelNickname: Label = null;
     private labelChips: Label = null;
@@ -157,6 +158,19 @@ export class UiEntityAvatar extends Component {
         this.rootActions.active = false;
     }
 
+    public CLEAR_ROUND_ACTION() {
+        let keys = Object.keys( this.actions );
+        this.rootActions.active = false;
+        keys.forEach ( (e)=> {
+            if ( e == 'fold' || e == 'allin') {
+                this.rootActions.active = true;
+            } else {
+                let v: Node = this.actions[e];
+                v.active = false;                
+            }
+        });
+    }
+
     public endTurn() {
         this.rootSelected.active = false;
         this.spriteTimer.node.active = false;
@@ -212,11 +226,11 @@ export class UiEntityAvatar extends Component {
         this.SPRITE_FOLD.node.active = true;
         this.SPRITE_ALLIN.node.active = false;
 
-        if ( this.isMe != true ) {
-            this.labelChips.node.active = false;
-            this.labelNickname.node.active = false;
-            this.labelBlind.node.active = false;
-        }
+        // if ( this.isMe != true ) {
+        //     this.labelChips.node.active = false;
+        //     this.labelNickname.node.active = false;
+        //     this.labelBlind.node.active = false;
+        // }
 
         this.SET_DIMMED( true );
     }
@@ -246,8 +260,6 @@ export class UiEntityAvatar extends Component {
             } else {
                 this.SetStatus( ENUM_STATUS_TYPE.WAITING );
             }
-
-            this.SET_DIMMED( true );
         }
     }
 
@@ -259,21 +271,17 @@ export class UiEntityAvatar extends Component {
 
         this.SetAction('allin');
         this.SET_ALLIN();
-
-        // this.rootSelected.active = false;
-        // this.spriteDimmed.node.active = true;
-        // this.rootStatus.active = true;
     }
 
     private SET_ALLIN() {
         this.SPRITE_ALLIN.node.active = true;        
         this.SPRITE_FOLD.node.active = false;
 
-        if ( this.isMe != true ) {
-            this.labelChips.node.active = false;
-            this.labelNickname.node.active = false;
-            this.labelBlind.node.active = false;
-        }
+        // if ( this.isMe != true ) {
+        //     this.labelChips.node.active = false;
+        //     this.labelNickname.node.active = false;
+        //     this.labelBlind.node.active = false;
+        // }
 
         this.SET_DIMMED( true );
     }
@@ -282,9 +290,20 @@ export class UiEntityAvatar extends Component {
         if ( isDimmed == true ) {
             this.SPRITE_FRAME.color = new Color(80, 80, 80);
             this.spriteAvatarProfile.color = new Color(80, 80, 80);
+
+            this.labelChips.color = new Color(80, 80, 80);
+            this.labelNickname.color = new Color(80, 80, 80);
+
+            this.SPRITE_NAME_TAG.color = new Color(80, 80, 80, 80);
+
         } else {
             this.SPRITE_FRAME.color = new Color(255, 255, 255);
             this.spriteAvatarProfile.color = new Color(255, 255, 255);
+
+            this.labelChips.color = new Color(255, 200, 70);
+            this.labelNickname.color = new Color(255, 255, 255);
+
+            this.SPRITE_NAME_TAG.color = new Color(255, 255, 255);
         }        
     }
 
@@ -340,43 +359,33 @@ export class UiEntityAvatar extends Component {
         switch ( type ) {
             case ENUM_STATUS_TYPE.NONE:
                 {
-                    // this.spriteDimmed.node.active = false;
                     this.spriteStatus.node.active = false;
                     this.rootStatus.active = false;
-
-                    this.SET_DIMMED( false );
                 }
                 break;
             case ENUM_STATUS_TYPE.WAITING:
                 {
-                    // this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[1];
                     this.spriteStatus.spriteFrame = sf;
                     this.spriteStatus.node.active = true;
                     this.rootStatus.active = true;
-
-                    this.SET_DIMMED( true );
                 }
 
                 break;
             case ENUM_STATUS_TYPE.SITOUT:
                 {
-                    // this.spriteDimmed.node.active = true;
                     let sf: SpriteFrame = this.spriteFrameStatus[2];
                     this.spriteStatus.spriteFrame = sf;
                     this.spriteStatus.node.active = true;
                     this.rootStatus.active = true;
 
-                    if ( this.isMe == true ) {
-                        this.SET_UI_FOLD( false );
-                    }
-
-                    this.SET_DIMMED( true );
+                    // if ( this.isMe == true ) {
+                    //     this.SET_UI_FOLD( false );
+                    // }
                 }
 
                 break;
             default:
-                // this.spriteDimmed.node.active = false;
                 this.spriteStatus.node.active = false;
                 this.rootStatus.active = false;
                 this.SET_DIMMED( false );
@@ -418,6 +427,11 @@ export class UiEntityAvatar extends Component {
             this.labelNickname = this.rootNameTag.getChildByPath('LABEL_NAME').getComponent(Label);
             this.labelChips = this.rootNameTag.getChildByPath('LABEL_CHIPS').getComponent(Label);
             this.labelBlind = this.rootNameTag.getChildByPath('LABEL_BLIND').getComponent(Label);
+
+            this.SPRITE_NAME_TAG = this.rootNameTag.getChildByPath('NAME_TAG_BACK').getComponent(Sprite);
+            if ( this.SPRITE_NAME_TAG != null ) {
+                this.SPRITE_NAME_TAG.node.active = true;
+            }
 
             this.SPRITE_FOLD = this.rootNameTag.getChildByPath('SPRITE_FOLD').getComponent( Sprite );
             if ( this.SPRITE_FOLD != null ) {

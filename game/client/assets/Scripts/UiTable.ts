@@ -1274,6 +1274,12 @@ export class UiTable extends Component {
 		} );
     }
 
+	private CLEAR_ENTITIES_ROUND_ACTION() {
+		this.ENTITY_ELEMENTS.forEach( element => {
+			element.CLEAR_ROUND_ACTION();
+		} );		
+	}
+
     private clearUiEntitiesBetValue() {
 		this.ENTITY_ELEMENTS.forEach( element => {
 			element.clearUiBetValue();
@@ -1709,7 +1715,7 @@ export class UiTable extends Component {
 
 		this.uiPlayerActionReservation.resetCheck();
 
-		this.clearUiEntitiesAction();
+		this.CLEAR_ENTITIES_ROUND_ACTION();
 
 		let cards = msg[ "cards" ];
 
@@ -1757,7 +1763,7 @@ export class UiTable extends Component {
 		this.roundState = "SHOW_TURN";
 
 		this.uiPlayerActionReservation.resetCheck();
-		this.clearUiEntitiesAction();
+		this.CLEAR_ENTITIES_ROUND_ACTION();
 
 		let cards = msg[ "cards" ];
 
@@ -1805,7 +1811,7 @@ export class UiTable extends Component {
 		this.roundState = "SHOW_RIVER";
 
 		this.uiPlayerActionReservation.resetCheck();
-		this.clearUiEntitiesAction();
+		this.CLEAR_ENTITIES_ROUND_ACTION();
 
 		let cards = msg[ "cards" ];
 
@@ -1826,7 +1832,7 @@ export class UiTable extends Component {
 		console.log('onRIVER_END');
 		let potValue = msg['pot'];
 
-		this.clearUiEntitiesAction();
+		// this.clearUiEntitiesAction();
 
 		let cnt = 0;
 
