@@ -766,38 +766,39 @@ export class HoldemRoom extends Room<RoomState> {
 		entity.connected = false;
 		try {
 			if ( consented == true ) {
-				delete this._buyInWaiting[ client.sessionId ];
-				delete this._rejoinWaiting[ client.sessionId ];
-	
-				for(let i =0; i < this.seatWaitingList.length; i++){
-					if(this.seatWaitingList[i] != client.sessionId){
-						continue;
-					}
-					this.seatWaitingList[i] = "";
-				}
-	
-				if( entity == null ) {
-					logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
-					return;
-				}
-	
-				entity.leave = true;
-				if ( entity.fold == true || entity.wait == true ) {
-					this.handleEscapee();			
-					return;
-				}
-	
-				if( eGameState.Suspend === this.state.gameState ) {
-					this.handleEscapee();
-					return;
-				}
-			} else {
-				await this.allowReconnection( client, 30 );
-				entity.connected = true;
-				console.log('reconnect??');
-
+				throw new Error('concented leave');
 			}
+			await this.allowReconnection( client, 20 );
+			entity.connected = true;
+
 		} catch ( e ) {
+
+			logger.error( this._tableIdString +  "[ onLeave ] CLIENT LEAVE" );
+			delete this._buyInWaiting[ client.sessionId ];
+			delete this._rejoinWaiting[ client.sessionId ];
+
+			for(let i =0; i < this.seatWaitingList.length; i++){
+				if(this.seatWaitingList[i] != client.sessionId){
+					continue;
+				}
+				this.seatWaitingList[i] = "";
+			}
+
+			if( entity == null ) {
+				logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
+				return;
+			}
+
+			entity.leave = true;
+			if ( entity.fold == true || entity.wait == true ) {
+				this.handleEscapee();			
+				return;
+			}
+
+			if( eGameState.Suspend === this.state.gameState ) {
+				this.handleEscapee();
+				return;
+			}
 
 		}
 
