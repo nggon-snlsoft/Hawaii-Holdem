@@ -348,6 +348,7 @@ export class HoldemRoom extends Room<RoomState> {
 			tableBuyInCount: 0,
 			pendSitout: false,
 			rake_back_rate: auth.rake_back_rate * 0.0001,
+			connected: true,
 		} );
 
 		entity.seat = -2;
@@ -755,37 +756,80 @@ export class HoldemRoom extends Room<RoomState> {
 	}
 
 	async onLeave( client: Client, consented?: boolean ) {
-		logger.info(  this._tableIdString + "[ onLeave ] sessionID(%s), consented(%s)", client.sessionId, consented );
-
-		delete this._buyInWaiting[ client.sessionId ];
-		delete this._rejoinWaiting[ client.sessionId ];
-
-		for(let i =0; i < this.seatWaitingList.length; i++){
-			if(this.seatWaitingList[i] != client.sessionId){
-				continue;
-			}
-			this.seatWaitingList[i] = "";
-		}
-
-		let runaway = this.findEntityBySessionID( client.sessionId );
-		if( null === runaway || undefined === runaway ) {
+		logger.info(  this._tableIdString + "[ onLeave ] sessionID(%s), consented(%s)", client.sessionId, consented );		
+		let entity = this.findEntityBySessionID( client.sessionId );
+		if ( entity == null ) {
 			logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
 			return;
 		}
 
-		logger.info(  this._tableIdString + "[ onLeave ] seat(%s), nickname(%s), balance(%s), chips(%s)", 
-			runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
+		entity.connected = false;
+		try {
+			if ( consented == true ) {
+				delete this._buyInWaiting[ client.sessionId ];
+				delete this._rejoinWaiting[ client.sessionId ];
+	
+				for(let i =0; i < this.seatWaitingList.length; i++){
+					if(this.seatWaitingList[i] != client.sessionId){
+						continue;
+					}
+					this.seatWaitingList[i] = "";
+				}
+	
+				if( entity == null ) {
+					logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
+					return;
+				}
+	
+				entity.leave = true;
+				if ( entity.fold == true || entity.wait == true ) {
+					this.handleEscapee();			
+					return;
+				}
+	
+				if( eGameState.Suspend === this.state.gameState ) {
+					this.handleEscapee();
+					return;
+				}
+			} else {
+				await this.allowReconnection( client, 30 );
+				entity.connected = true;
+				console.log('reconnect??');
 
-		runaway.leave = true;
-		if ( runaway.fold == true || runaway.wait == true ) {
-			this.handleEscapee();			
-			return;
+			}
+		} catch ( e ) {
+
 		}
 
-		if( eGameState.Suspend === this.state.gameState ) {
-			this.handleEscapee();
-			return;
-		}
+		// delete this._buyInWaiting[ client.sessionId ];
+		// delete this._rejoinWaiting[ client.sessionId ];
+
+		// for(let i =0; i < this.seatWaitingList.length; i++){
+		// 	if(this.seatWaitingList[i] != client.sessionId){
+		// 		continue;
+		// 	}
+		// 	this.seatWaitingList[i] = "";
+		// }
+
+		// let runaway = this.findEntityBySessionID( client.sessionId );
+		// if( null === runaway || undefined === runaway ) {
+		// 	logger.error( this._tableIdString +  "[ onLeave ] entity is null" );
+		// 	return;
+		// }
+
+		// logger.info(  this._tableIdString + "[ onLeave ] seat(%s), nickname(%s), balance(%s), chips(%s)", 
+		// 	runaway.seat, runaway.nickname, runaway.balance, runaway.chips );
+
+		// runaway.leave = true;
+		// if ( runaway.fold == true || runaway.wait == true ) {
+		// 	this.handleEscapee();			
+		// 	return;
+		// }
+
+		// if( eGameState.Suspend === this.state.gameState ) {
+		// 	this.handleEscapee();
+		// 	return;
+		// }
 	}
 
 	findEntityBySessionID( sid: string ) {
@@ -4474,5 +4518,16 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 		logger.error(  this._tableIdString + "[ REMOTE_CALL_KICK_PLAYER ] id: %s, name: %s, msg: %s", entity.id, entity.nickname, msg );
 		return msg;
+	}
+
+	public REMOTE_CALL_EXIST_PLAYER( args: any[] ): boolean {
+		let id: any = args.user_id;
+
+		let ret = false;
+		let entity = this.state.entities.find( elem => elem.id == id );
+		if ( entity != null ) {
+			ret = true;
+		}
+		return ret;
 	}
 }

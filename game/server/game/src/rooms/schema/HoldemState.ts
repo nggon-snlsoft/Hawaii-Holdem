@@ -24,6 +24,7 @@ export class EntityState extends Schema {
 	eval: any = null;
 
 	@type( "boolean" ) leave : boolean = false;
+	@type( "boolean" ) connected : boolean = false;	
 	@type( "number" ) winAmount : number = 0;
 	winHandRank : string = '';
 	@type( "boolean" ) enoughChip : boolean = true;

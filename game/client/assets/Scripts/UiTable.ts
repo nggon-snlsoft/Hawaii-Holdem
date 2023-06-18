@@ -598,8 +598,9 @@ export class UiTable extends Component {
             this.onRE_JOIN(room, msg);
         });
 
-        room.onLeave((code)=>{
-            this.leaveRoom(code);
+        room.onLeave( ( code )=>{
+			
+            this.leaveRoom( code );
             this.hide();
 
 			if ( this.uiSeats.isSeatsSelectOpen() == true ) {
@@ -2031,14 +2032,14 @@ export class UiTable extends Component {
 				this.scheduleOnce(()=>{
 					if ( self != null ) {
 						UiGameSystemPopup.instance.closePopup();
-						self.room?.leave(false);						
+						self.room?.leave( true );						
 					}
 
 				}, 5 );
 
 				UiGameSystemPopup.instance.showOkPopup('리 바이인', '최소 바이인을 할 수 없습니다.\r\n테이블에서 나갑니다.', ()=>{
 					UiGameSystemPopup.instance.closePopup();
-					self.room?.leave(false);
+					self.room?.leave( true );
 					self = null;
 				} );
 
@@ -2052,7 +2053,7 @@ export class UiTable extends Component {
 					amount: res,
 				});
 			}, ()=>{
-				self.room?.leave();
+				self.room?.leave( true );
 			});
 		}
 
@@ -2951,7 +2952,7 @@ export class UiTable extends Component {
             this.show();
 
 			if ( ret != 0 ) {
-				this.room?.leave();
+				this.room?.leave( true );
 				return;
 			}
         }
@@ -3074,7 +3075,7 @@ export class UiTable extends Component {
 		if ( this.uiProfile != null ) {
 			this.uiProfile.hide();
 		}
-		this.room?.leave();
+		this.room?.leave( true );
     }
 
     private getAddChipsErrorMessage( code: number ) : string {
@@ -3177,6 +3178,7 @@ export class UiTable extends Component {
 		let user = NetworkManager.Instance().GetUser();
 		if ( user != null && user.id > 0) {
 			this.sendMsg("EXIT_TABLE", {
+
 				seat : this.mySeat,
 				id : user.id,
 			});
