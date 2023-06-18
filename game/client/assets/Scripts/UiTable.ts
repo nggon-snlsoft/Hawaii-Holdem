@@ -599,7 +599,7 @@ export class UiTable extends Component {
         });
 
         room.onLeave( ( code )=>{
-			
+
             this.leaveRoom( code );
             this.hide();
 
@@ -613,7 +613,7 @@ export class UiTable extends Component {
 			director.loadScene("LobbyScene");
         });
 
-        room.onMessage( "ping", this.onPING.bind( this ) );
+        this.room.onMessage( "ping", this.onPING.bind( this ) );
     }
 
 	private onSHOW_EMOTICON(msg) {
