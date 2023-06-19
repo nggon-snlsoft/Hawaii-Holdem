@@ -1359,11 +1359,12 @@ export class UiTable extends Component {
 
 		let seat = msg[ "player" ];
 		let duration = msg["duration"];
+		let timerUnit = msg['betTimeUnit'];
 
 		for( let i = 0; i < this.SEAT_PLAYERS.length; i++ ) {
 			let uiEntity = this.ENTITY_ELEMENTS[ i ];
 			if( seat == this.SEAT_PLAYERS[ i ] ) {
-				uiEntity?.startTurn(duration);
+				uiEntity?.startTurn(duration, timerUnit);
 				uiEntity?.StartActionTimer();
 				continue;
 			}

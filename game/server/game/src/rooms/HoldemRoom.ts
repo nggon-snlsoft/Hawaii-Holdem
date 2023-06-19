@@ -2304,6 +2304,7 @@ export class HoldemRoom extends Room<RoomState> {
 			currPot: this.state.pot,
 			maxChip: maxChip,
 			duration: this.conf["betTimeLimit"],
+			betTimeUnit: this.conf['timeoutUnit'],			
 			isLast : finishedCount == (this.state.entities.length - 1),
 		} );
 	}
