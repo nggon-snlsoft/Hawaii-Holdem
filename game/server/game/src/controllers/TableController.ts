@@ -166,7 +166,7 @@ export class TableController {
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'DUPLICATE_LOGIN',
             });
-            return;            
+            return;
         }
 
         let table: any = null;
@@ -181,8 +181,11 @@ export class TableController {
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
                 msg: 'INCORRECT_TABLE_INFO',
             });
-            return;            
+            return;
         }
+
+        let _tables = ClientUserData.getClientTableData(table);
+        let gameSize = (_tables.maxPlayers == 9) ? 'holdem_full' : 'holdem_short';
 
         let balance = user.balance;
         let minBuyIn = table.minStakePrice;
@@ -196,8 +199,6 @@ export class TableController {
             return;
         }
 
-        let _tables = ClientUserData.getClientTableData(table);
-        let gameSize = (_tables.maxPlayers == 9) ? 'holdem_full' : 'holdem_short';
         let room = await matchMaker.query({
             private: false,
             name: gameSize,

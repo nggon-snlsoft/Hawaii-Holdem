@@ -9,6 +9,11 @@ export enum EMOTICON_TYPE {
 }
 
 export let EMOTICON_CHAT_MESSAGE: string[] = [
+    'ㅋㅋㅋㅋ',
+    '빨리 빨리',
+    '화장실 다녀올게요',
+    '다음에 또봐요',
+    '맛있당',
     '안녕하세요!',
     '죄송합니다~',
     '감사합니다!',

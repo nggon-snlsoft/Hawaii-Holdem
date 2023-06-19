@@ -552,7 +552,7 @@ export class UiEntity extends Component {
     }
 
     setEmoticon( type: EMOTICON_TYPE, id: number ) {
-        Board.table.setEmoticonButtinInteractive(false);
+
         if (type == EMOTICON_TYPE.Emoticon ) {
 
             CommonUtil.setEmoticonSprite( id, this.spriteEmoticon, ()=>{
@@ -568,10 +568,15 @@ export class UiEntity extends Component {
             this.nodeEmoticon.active = true;            
             this.animationChatting.play();
         }
+
+        if ( this.isMe == true ) {
+            Board.table.setEmoticonButtinInteractive(false);
+        }
     }
 
     onFinishedEmoticonAnimation() {
         this.animationEmoticon.stop();
+        
         Board.table.setEmoticonButtinInteractive(true);
     }
 
