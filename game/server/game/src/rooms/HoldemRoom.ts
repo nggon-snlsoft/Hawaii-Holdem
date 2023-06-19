@@ -1034,7 +1034,10 @@ export class HoldemRoom extends Room<RoomState> {
 		for( let l = 0; l < this.state.entities.length; l++ ) {
 			if( true === this.state.entities[ l ].leave ) {
 				this.broadcast( "HANDLE_ESCAPEE", { seat: this.state.entities[ l ].seat } );
-				escapees.push( this.state.entities[ l ].seat );
+				escapees.push( {
+					seat: this.state.entities[ l ].seat,
+					id: this.state.entities[ l ].id,
+				} );
 
 				this._dao.UPDATE_USERS_ACTIVE_SESSION_ID( this.state.entities[ l ].id, '' );
 				this._dao.UPDATE_USERS_PENDING_SESSION_ID( this.state.entities[ l ].id, '' );
@@ -1065,29 +1068,45 @@ export class HoldemRoom extends Room<RoomState> {
 
 		for( let m = 0; m < escapees.length; m++ ) {
 			let s = escapees[ m ];
-			const idx = this.state.entities.findIndex( function( e ) {
-				return e.seat === s;
-			} );
-			if( idx > -1 ) {
-				let entity = this.state.entities[idx];
-				if ( entity != null ) {
-					if ( entity.longSitOut == true ) {
-						entity.longSitOut = false;
-						let sessionId = entity.client.sessionId;
-						this.kickPlayer( sessionId, 4001 );
-					}
-					else if ( entity.banned == true ) {
-						entity.banned = false;
-						let sessionId = entity.client.sessionId;						
-						this.kickPlayer( sessionId, 4002 );
-					} 
-					else {
-						this.state.entities.splice( idx, 1 );
+			if ( s.seat > - 1 ) {
+				const idx = this.state.entities.findIndex( function( e ) {
+					return e.seat == s.seat;
+				} );
+
+				if( idx > -1 ) {
+					let entity = this.state.entities[idx];
+					if ( entity != null ) {
+						if ( entity.longSitOut == true ) {
+							entity.longSitOut = false;
+							let sessionId = entity.client.sessionId;
+							this.kickPlayer( sessionId, 4001 );
+						}
+						else if ( entity.banned == true ) {
+							entity.banned = false;
+							let sessionId = entity.client.sessionId;
+							this.kickPlayer( sessionId, 4002 );
+						} 
+						else {
+							this.state.entities.splice( idx, 1 );
+						}
 					}
 				}
-			}
-			else {
-				logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );
+				else {
+					logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );
+				}
+			} else {
+				const idx = this.state.entities.findIndex( function( e ) {
+					return e.id === s.id;
+				} );
+
+				if ( idx > -1 ) {
+					let entity = this.state.entities[idx];
+					if ( entity != null ) {
+						this.state.entities.splice( idx, 1 );
+					}
+				} else {
+					logger.error(  this._tableIdString + "[ handleEscapee ] why??. seat : %s", s );					
+				}
 			}
 		}
 		this.UpdateSeatInfo();
