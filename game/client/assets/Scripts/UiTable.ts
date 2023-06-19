@@ -142,6 +142,9 @@ export class UiTable extends Component {
 	private rootCurrentPot: Node = null;
 	private reserveLeave: boolean = false;
 	private updateClinet: boolean = true;
+	private room_id: string = '';
+	private session_id: string = '';
+	private reconnect: boolean = false;
 
 	private cbHandInfo:( hands: any )=> void;
 
@@ -600,17 +603,24 @@ export class UiTable extends Component {
 
         room.onLeave( ( code )=>{
 
-            this.leaveRoom( code );
-            this.hide();
+			if ( code == 1001 ) {
+				this.reconnect = true;
 
-			if ( this.uiSeats.isSeatsSelectOpen() == true ) {
-				this.uiSeats.leave();
+			} else {
+				this.reconnect = false;
+
+				this.leaveRoom( code );
+				this.hide();
+	
+				if ( this.uiSeats.isSeatsSelectOpen() == true ) {
+					this.uiSeats.leave();
+				}
+	
+				NetworkManager.Instance().room.removeAllListeners();
+				NetworkManager.Instance().leaveReason = code;
+	
+				director.loadScene("LobbyScene");	
 			}
-
-            NetworkManager.Instance().room.removeAllListeners();
-            NetworkManager.Instance().leaveReason = code;
-
-			director.loadScene("LobbyScene");
         });
 
         this.room.onMessage( "ping", this.onPING.bind( this ) );
@@ -955,6 +965,7 @@ export class UiTable extends Component {
 		Board.maxStakePrice = msg["maxStakePrice"];
 
         this.room = room;
+
 		this.GAME_STATE = msg['gameState'];
 		this.SHOWDOWN_STATE = msg['showdownState'];
 
@@ -987,6 +998,13 @@ export class UiTable extends Component {
         this.isFold = false;
 		this.isAllIn = false;
 		this.isSitout = myEntity.isSitOut;
+
+		console.log('myEntity: ' + myEntity.sid );
+		this.room_id = this.room.id;
+		this.session_id = myEntity.sid;
+
+		// console.log('this room_id: ' + this.room.id );
+		// console.log('this session_id: ' + myEntity.sid );
 
         let players: any = msg["entities"];
 		this.countPlayers = players.length;
@@ -3119,21 +3137,25 @@ export class UiTable extends Component {
 			return;
 		}
 
-		this.updateClinet = true;
-		this.sendMsg("FORE_GROUND", { 
-			seat: this.mySeat,
-		});
+		if ( this.reconnect == true ) {
+			NetworkManager.Instance().reconnect( this.room_id, this.session_id );
+		}
+
+		// this.updateClinet = true;
+		// this.sendMsg("FORE_GROUND", { 
+		// 	seat: this.mySeat,
+		// });
 	}
 
 	public onEVENT_BACKGROUND() {
 		if ( this.uiSeats != null && this.uiSeats.node.active == true) {
 			return;
 		}
-				
-		this.updateClinet = false;		
-		this.sendMsg("BACK_GROUND", { 
-			seat: this.mySeat,			
-		});
+
+		// this.updateClinet = false;		
+		// this.sendMsg("BACK_GROUND", { 
+		// 	seat: this.mySeat,			
+		// });
 	}
 
 	private SetSitoutButtons( isSitout: boolean, reservable: boolean = false ) {

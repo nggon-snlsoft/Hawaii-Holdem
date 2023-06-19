@@ -168,7 +168,7 @@ export class UiGamePOPUP_MESSAGES extends Component {
 
         this.labelMessageTitle.string = this.selectedMessage.title;
         this.labelMessageSender.string = '보낸사람: 운영자';
-        this.labelMessageDescription.string = this.selectedMessage.desc;
+        this.labelMessageDescription.string = this.selectedMessage.description;
         this.labelMessageUpdate.string = this.selectedMessage.createDate;
 
         if ( this.selectedMessage.unread == 1 ) {

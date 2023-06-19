@@ -362,7 +362,7 @@ export class HoldemRoom extends Room<RoomState> {
 			entity.statics = _statics;
 		}
 
-		logger.info(  this._tableIdString + "[ playerJoin ] seat : %s // sid : %s", entity.seat, client.sessionId );
+		logger.info(  this._tableIdString + "[ playerJoin ] seat : %s / sid : %s / id: %s / nickname: %s", entity.seat, client.sessionId, entity.id, entity.nickname );
 		this.state.entities.push( entity );
 		return;
 	}
@@ -768,7 +768,8 @@ export class HoldemRoom extends Room<RoomState> {
 			if ( consented == true ) {
 				throw new Error('concented leave');
 			}
-			await this.allowReconnection( client, 20 );
+			await this.allowReconnection( client, 60 );
+			console.log('[onLEAVE] CLIENT RETURN');
 			entity.connected = true;
 
 		} catch ( e ) {
