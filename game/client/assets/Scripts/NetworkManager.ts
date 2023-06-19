@@ -1783,8 +1783,11 @@ export class NetworkManager extends cc.Component {
 		onSuccess(obj);
 	}
 
-	public async reconnect(roomid: string, session_id: string ) {
-		this.client.reconnect( roomid, session_id );
+	public async Reconnect(roomid: string, session_id: string, cb: (room: any)=>void ) {
+		// this.client = new ColySeus.Client(`${this.useSSL ? "wss" : "ws"}://${gameHost}${([443, 80].includes( this.game_port ) || this.useSSL) ? "" : `:${ this.game_port }`}`);
+		this.client.reconnect( roomid, session_id ).then(( room: any )=>{
+			cb( room );
+		});
 	}
 
 	public async reqCHECK_GAME_SERVER( onSuccess: (res)=> void, onFail: (err)=> void ) {

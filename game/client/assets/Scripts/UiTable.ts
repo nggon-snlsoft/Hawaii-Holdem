@@ -602,9 +602,20 @@ export class UiTable extends Component {
         });
 
         room.onLeave( ( code )=>{
+			console.log( 'code: ' + code );
 
-			if ( code == 1001 ) {
+			if ( code != 1000 ) {				
 				this.reconnect = true;
+				let desc = 'room_id: ' + this.room_id + ' / session_id: ' + this.session_id + '\n code: ' + code;
+				UiGameSystemPopup.instance.showOkPopup('reconnect', desc, ()=>{
+
+					NetworkManager.Instance().Reconnect( this.room_id, this.session_id, ( room )=>{
+						UiGameSystemPopup.instance.closePopup();
+						this.sendMsg('RECONNECT', {mgs: 'reconnect'});
+
+						this.registRoomEvent( room );
+					} );
+				});
 
 			} else {
 				this.reconnect = false;
@@ -3133,13 +3144,15 @@ export class UiTable extends Component {
 	}
 
 	public onEVENT_FOREGROUND() {
-		if ( this.uiSeats != null && this.uiSeats.node.active == true) {
-			return;
-		}
+		// if ( this.uiSeats != null && this.uiSeats.node.active == true) {
+		// 	return;
+		// }
 
-		if ( this.reconnect == true ) {
-			NetworkManager.Instance().reconnect( this.room_id, this.session_id );
-		}
+		// if ( this.reconnect == true ) {
+		// 	UiGameSystemPopup.instance.showOkPopup('', '', ()=>{
+		// 		NetworkManager.Instance().Reconnect( this.room_id, this.session_id );
+		// 	});
+		// }
 
 		// this.updateClinet = true;
 		// this.sendMsg("FORE_GROUND", { 

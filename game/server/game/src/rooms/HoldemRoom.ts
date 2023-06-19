@@ -769,6 +769,7 @@ export class HoldemRoom extends Room<RoomState> {
 				throw new Error('concented leave');
 			}
 			await this.allowReconnection( client, 60 );
+			
 			console.log('[onLEAVE] CLIENT RETURN');
 			entity.connected = true;
 
