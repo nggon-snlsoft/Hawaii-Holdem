@@ -4410,4 +4410,15 @@ export class HoldemRoom extends Room<RoomState> {
 			} );	
 		}
 	}
+
+	public REMOTE_CALL_EXIST_PLAYER( args: any[] ): boolean {
+		let id: any = args.user_id;
+
+		let ret = false;
+		let entity = this.state.entities.find( elem => elem.id == id );
+		if ( entity != null ) {
+			ret = true;
+		}
+		return ret;
+	}
 }

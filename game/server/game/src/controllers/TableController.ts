@@ -159,14 +159,40 @@ export class TableController {
                 msg: 'DISABLE_ACCOUNT',
             });
             return;            
-        }        
+        }
 
         if ( user.table_id != -1 ) {
-            res.status( 200 ).json({
-                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
-                msg: 'DUPLICATE_LOGIN',
-            });
-            return;
+            try {
+                let t: any = null;                
+                let p: boolean = false;                
+                t = await this.getTABLE_ByTABLE_ID( req.app.get('DAO'), user.table_id );
+                if ( t != null ) {
+                    let s = ( t.maxPlayers == 9 ) ? 'holdem_full' : 'holdem_short';
+                    let r = await matchMaker.query( {
+                        private: false,
+                        name: s,
+                        serial: t.id
+                    });
+    
+                    if ( r != null && r.length > 0 ) {
+                        let roomId = r[0].roomId;
+                        let args: any[] = [];
+                        args.push({ user_id: user.id });
+                        p = await matchMaker.remoteRoomCall( roomId, 'REMOTE_CALL_EXIST_PLAYER', args );
+
+                        if ( p == true ) {
+                            res.status( 200 ).json({
+                                code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
+                                msg: 'DUPLICATE_LOGIN',
+                            });
+                            return;
+                        }
+                    }
+                }
+    
+            } catch (error) {
+                console.log( error );
+            }
         }
 
         let table: any = null;
