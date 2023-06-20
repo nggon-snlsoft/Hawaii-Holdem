@@ -1979,7 +1979,6 @@ export class HoldemRoom extends Room<RoomState> {
 				entity.client.send( "CARD_DISPENSING", {
 					primary: -1, 
 					secondary: -1,
-					eval: '',
 					hands: handsCount,
 				} );
 				continue;
@@ -2005,7 +2004,6 @@ export class HoldemRoom extends Room<RoomState> {
 			entity.client.send( "CARD_DISPENSING", {
 				primary: primary,
 				secondary: secondary,
-				eval: entity.eval,
 				hands: handsCount,
 			} );
 
