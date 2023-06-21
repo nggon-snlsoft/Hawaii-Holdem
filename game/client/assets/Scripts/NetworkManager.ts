@@ -21,14 +21,14 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-// const apiHost: string = '127.0.0.1';
-// const gameHost: string = '127.0.0.1';
+const apiHost: string = '127.0.0.1';
+const gameHost: string = '127.0.0.1';
 
 // const apiHost: string = '43.207.193.204';	//for MAIN SERVER
 // const gameHost: string = '43.207.193.204';	//for MAIN SERVER
 
-const apiHost: string = '18.183.95.34';	//for TEST SERVER
-const gameHost: string = '18.183.95.34'; //for TEST SERVER
+// const apiHost: string = '18.183.95.34';	//for TEST SERVER
+// const gameHost: string = '18.183.95.34'; //for TEST SERVER
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;

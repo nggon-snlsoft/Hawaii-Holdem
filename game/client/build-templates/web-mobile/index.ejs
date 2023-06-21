@@ -37,6 +37,17 @@
 
 </head>
 <body>
+<script src="./devtools-detector.js"></script>
+<script>
+  devtoolsDetector.addListener(function(isOpen) {
+     if(isOpen)
+     {
+        location.href = "./detector.html";
+     }
+  });
+  devtoolsDetector.launch();
+</script>
+
   <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
         <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>

@@ -51,7 +51,7 @@ export class TableListUiElement {
 
     public setTable( table: any, cb: ( button:Button, table: any )=>void ) {
         this.table = table;
-        this.labelTableName.string = '[' + this.table.id + '] ' + this.table.name;
+        this.labelTableName.string = /*'[' + this.table.id + '] ' + */this.table.name;
 
         if ( table.maxPlayers == 9 ) {
             this.labelTableMax.string = '9인';
