@@ -21,11 +21,14 @@ export enum HOLDEM_SERVER_TYPE {
 	GAME_SERVER_SUB = 3,
 }
 
-const apiHost: string = '127.0.0.1';
-const gameHost: string = '127.0.0.1';
+// const apiHost: string = '127.0.0.1';
+// const gameHost: string = '127.0.0.1';
 
 // const apiHost: string = '43.207.193.204';
 // const gameHost: string = '43.207.193.204';
+
+const apiHost: string = 'hw-123.com';
+const gameHost: string = 'hw-123.com';
 
 const apiPort: number = 7500;
 const apiPort_sub: number = 7510;

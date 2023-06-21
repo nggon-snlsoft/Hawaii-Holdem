@@ -119,3 +119,5 @@ dist
 
 # TernJS port file
 .tern-port
+game/server/cert/ca.crt
+game/server/cert/ca.key
