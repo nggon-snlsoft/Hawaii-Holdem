@@ -2071,17 +2071,6 @@ export class HoldemRoom extends Room<RoomState> {
 			}
 		}
 
-		// for( let i = 0; i < this.state.entities.length; i++ ) {
-		// 	let e = this.state.entities[ i ];
-		// 	if ( null === e || undefined === e ) {
-		// 		continue;
-		// 	}
-
-		// 	if ( true === e.wait) {
-		// 		continue;
-		// 	}
-		// }
-
 		let player: any[] = [];
 		let ante: number = this.conf['ante'];		
 		for( let i = 0; i < this.state.entities.length; i++ ) {

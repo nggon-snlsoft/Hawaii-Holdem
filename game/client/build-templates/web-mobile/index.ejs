@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Cocos Creator | <%= projectName %></title>
+  <title><%= projectName %></title>
 
   <!--http://www.html5rocks.com/en/mobile/mobifying/-->
   <meta name="viewport"
@@ -37,6 +37,17 @@
 
 </head>
 <body>
+<script src="./devtools-detector/devtools-detector.js"></script>
+<script>
+  devtoolsDetector.addListener(function(isOpen) {
+     if(isOpen)
+     {
+        location.href = "./devtools-detector/detector.html";
+     }
+  });
+  devtoolsDetector.launch();
+</script>
+
   <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
         <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
