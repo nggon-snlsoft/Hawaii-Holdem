@@ -1343,7 +1343,6 @@ export class UiTable extends Component {
     }
 
     private onCARD_DISPENSING( msg ) {
-		console.log('onCARD_DISPENSING');
 		this.uiCommunityCards.Reset();
 		let hands = msg['hands'];
 		if ( this.cbHandInfo != null ) {
@@ -1507,7 +1506,6 @@ export class UiTable extends Component {
 
     private onBLIND_BET( msg ) {
 		console.log('onBLIND_BET');
-		console.log( msg );
 
 		this.roundState = "BLIND_BET";
 
@@ -1998,7 +1996,6 @@ export class UiTable extends Component {
 	}
 
     private onCLEAR_ROUND( msg ) {
-		console.log( msg );
 		console.log('onCLEAR_ROUND');
 
 		this.uiCommunityCards.Reset();
@@ -2403,7 +2400,6 @@ export class UiTable extends Component {
 
     private onWINNERS ( msg ) {
 		console.log('onWINNERS');
-		console.log( msg );
 
 		this.msgWINNERS = msg;
 		this.uiPlayerActionReservation.reset();

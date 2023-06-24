@@ -4418,7 +4418,7 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 	}
 
-	public REMOTE_CALL_EXIST_PLAYER( args: any[] ): boolean {
+	public REMOTE_CALL_EXIST_PLAYER( args: any ): boolean {
 		let id: any = args.user_id;
 
 		let ret = false;

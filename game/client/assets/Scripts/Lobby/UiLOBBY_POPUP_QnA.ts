@@ -330,7 +330,6 @@ export class UiLOBBY_POPUP_QnA extends Component {
 
     private onREFRESH_UNREAD( done: ()=>void  ) {
         NetworkManager.Instance().reqUNREAD( (res: any)=>{
-            console.log( res );
             if ( res != null ) {
                 if ( res.unread_answer != null && res.unread_answer > 0 ) {
                     this.labelQNAUnread.string = (res.unread_answer).toString();
@@ -748,11 +747,16 @@ export class UiLOBBY_POPUP_QnA extends Component {
                 if ( res != null ) {
                     this.ShowList( res.qnas );
                 }
-    
+
+                this.PANEL_QNA_SHOW.active = false;
+                this.PANEL_QNA_INPUT.active = false;    
                 this.PANEL_QNA_LIST.active = true;
                 this.node.active = true;
     
             }, (err:any)=>{
+
+                this.PANEL_QNA_SHOW.active = false;
+                this.PANEL_QNA_INPUT.active = false;                
                 this.PANEL_QNA_LIST.active = true;
                 this.node.active = true;
             } );

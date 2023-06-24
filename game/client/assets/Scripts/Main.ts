@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canvas } from 'cc';
+import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canvas, game } from 'cc';
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
@@ -27,7 +27,7 @@ export class Main extends Component {
 	protected onLoad(): void {
 		GameManager.Instance().Init();
 		GameManager.Instance().SetVersion( this.version );
-		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.PC_LANDSCAPE );
+		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.MOBILE_PORTRAIT );
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;
@@ -66,6 +66,17 @@ export class Main extends Component {
 			this._lableVersion.string = 'VERSION: ' + GameManager.Instance().GetVersion();			
 			this._lableVersion.node.active = true;
 		}
+
+		let isMobile = GameManager.Instance().GetSystemInfo().isMobile;
+		let isBrowser = GameManager.Instance().GetSystemInfo().isBrowser;
+
+		if ( isBrowser == true && isMobile == false ) {
+			this._loginPopup.showPopUpOk('웹버전', '현재 기기에서는 웹버전을 실행할 수 없습니다.', ()=>{
+				game.end();				
+				window.open("about:blank","_self").close();
+			});
+			return;
+		} 
 
 		GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
 		this._login.show();

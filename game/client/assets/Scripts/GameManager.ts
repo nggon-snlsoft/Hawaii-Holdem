@@ -1,6 +1,6 @@
 // @ts-ignore
 import * as cc from "cc";
-import { _decorator, Component, Node, director, Scene } from 'cc';
+import { _decorator, Component, Node, director, Scene, sys } from 'cc';
 import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, ENUM_LEAVE_REASON } from "./HoldemDefines";
 import { NetworkManager } from "./NetworkManager";
 const { ccclass } = cc._decorator;
@@ -37,6 +37,15 @@ export class GameManager extends cc.Component {
         return {
             device: this.deviceType,
             version: this.version,
+        };
+    }
+
+    public GetSystemInfo(): any {
+        return {
+            platform: sys.platform,
+            os: sys.os,
+            isMobile: sys.isMobile,
+            isBrowser: sys.isBrowser,
         };
     }
 

@@ -18,12 +18,20 @@ import UserController from './controllers/UserController';
 import TableController from './controllers/TableController';
 import StoreController from './controllers/StoreController';
 
+// const devDBInfo: any = {
+//     "host": "127.0.0.1",
+//     "port": "3306",
+//     "database": "holdem",
+//     "user": "root",
+//     "pw": "root"
+// };
+
 const devDBInfo: any = {
-    "host": "127.0.0.1",
+    "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
     "port": "3306",
     "database": "holdem",
-    "user": "root",
-    "pw": "root"
+    "user": "admin",
+    "pw": "admin0912"
 };
 
 const devServerInfo: any = {

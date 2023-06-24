@@ -403,14 +403,6 @@ export class StoreController {
             console.log( error );
         }
 
-        // let tickets: any = null;
-        // try {
-        //     tickets = await this.reqTICKETS_ByUSER_ID( req.app.get('DAO'), user_id );
-            
-        // } catch (error) {
-        //     console.log( error );            
-        // }
-
         if ( popups == null ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

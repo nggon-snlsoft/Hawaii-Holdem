@@ -27,7 +27,7 @@ class Passport {
             usernameField: 'uid',
             passwordField: 'password'
         }, (uid: string, password: string, done: any)=> {
-            let query = 'SELECT * FROM USERS WHERE userId=? AND password=?';
+            let query = 'SELECT * FROM users WHERE userId=? AND password=?';
             let args = [uid, password];
 
             this.sql.query( query, args, (err: any, res: any )=>{
@@ -48,10 +48,6 @@ class Passport {
     public auth( req: any, res: any ) {
         passport.authenticate('local', ( err: any, user: any, info: any)=>{
 
-            console.log('err: ' + err);
-            console.log(user);
-            console.log('info: ' + info );
-    
             if (err) {
     
             }

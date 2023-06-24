@@ -18,11 +18,11 @@ const sql_config = {
 	},
 
 	"production" : {
-		"host"     : "127.0.0.1",
+		"host"     : "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
 		"port"     : "3306",
 		"database" : "holdem",
-		"user"     : "root",
-		"password" : "root"
+		"user"     : "admin",
+		"password" : "admin0912"
 	}
 };
 
@@ -54,10 +54,10 @@ const createDatabasePool = function() {
 	const args = parseArgs( process.argv );
 	return mysql.createPool( {
 		connectionLimit    : 100, //important
-		host               : sql_config[ 'localhost' ].host,
-		user               : sql_config[ 'localhost' ].user,
-		password           : sql_config[ 'localhost' ].password,
-		database           : sql_config[ 'localhost' ].database,
+		host               : sql_config[ 'production' ].host,
+		user               : sql_config[ 'production' ].user,
+		password           : sql_config[ 'production' ].password,
+		database           : sql_config[ 'production' ].database,
 		waitForConnections : true,
 		dateStrings : true
 	} );
