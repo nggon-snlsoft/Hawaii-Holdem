@@ -279,10 +279,10 @@ export class UiEntity extends Component {
         this.ClearAction();
         this.ClearBetValue();
         this.ClearHands();
-        this.ResetResultEffect();        
+        this.ResetResultEffect();
         this.isFold = false;
 
-        // this.SetFold( this.isFold );
+        this.SetFold( this.isFold );
 
         if( true == entity.wait ){
             this.SetWait( entity );

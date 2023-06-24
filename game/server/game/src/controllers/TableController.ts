@@ -108,6 +108,10 @@ export class TableController {
         let client_version = req.body.version;
         let server_version = this.conf.version;
 
+        console.log( token );
+
+        console.log('1');
+
         if ( client_version == null || client_version != server_version ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -115,14 +119,15 @@ export class TableController {
             });
             return;
         }
-
+        console.log('2');
         let verify: any = null;
         try {
             verify = await this.reqTOKEN_VERIFY( req.app.get('DAO'), user_id, token );
         } catch (error) {
             console.log( error );
         }
-
+        console.log('3');
+        console.log(verify);
         if ( verify == null || verify == false ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -131,6 +136,7 @@ export class TableController {
             return;
         }
 
+        console.log('4');
         if ( table_id == null || user_id == null || user_id < 0 ) {
             res.status( 200 ).json({
                 code: ENUM_RESULT_CODE.UNKNOWN_FAIL,
@@ -138,7 +144,7 @@ export class TableController {
             });
             return;
         }
-
+        console.log('5');
         let user: any = null;
         try {
             user = await this.getUSER_ByUSER_ID( req.app.get('DAO'), user_id);            

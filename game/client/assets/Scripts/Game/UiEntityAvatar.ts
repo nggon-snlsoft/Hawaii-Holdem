@@ -87,7 +87,7 @@ export class UiEntityAvatar extends Component {
     }
 
     public SetChips( chips: number ) {
-        this.labelChips.color = new Color(255, 200, 70);
+        // this.labelChips.color = new Color(255, 200, 70);
         this.labelChips.string = CommonUtil.getKoreanNumber( chips );
     }
 
@@ -202,35 +202,17 @@ export class UiEntityAvatar extends Component {
 
             this.spriteTimer.fillRange = 0;
             this.spriteTimer.node.active = false;
-            // this.rootSelected.active = false;
             this.SetAction('fold');
-
-            // this.spriteDimmed.node.active = true;
-            // this.spriteFold.node.active = true;
-            // this.rootStatus.active = true;
             
             this.SET_FOLD();
         } else {
             this.SPRITE_FOLD.node.active = false;
-            // this.spriteFold.node.active = false;
-            // if ( this.spriteStatus.node.active == true ) {
-            //     this.spriteDimmed.node.active = true;
-            // } else {
-            //     this.spriteDimmed.node.active = false;
-            //     this.rootStatus.active = false;
-            // }
         }
     }
 
     private SET_FOLD() {
         this.SPRITE_FOLD.node.active = true;
         this.SPRITE_ALLIN.node.active = false;
-
-        // if ( this.isMe != true ) {
-        //     this.labelChips.node.active = false;
-        //     this.labelNickname.node.active = false;
-        //     this.labelBlind.node.active = false;
-        // }
 
         this.SET_DIMMED( true );
     }
@@ -378,10 +360,6 @@ export class UiEntityAvatar extends Component {
                     this.spriteStatus.spriteFrame = sf;
                     this.spriteStatus.node.active = true;
                     this.rootStatus.active = true;
-
-                    // if ( this.isMe == true ) {
-                    //     this.SET_UI_FOLD( false );
-                    // }
                 }
 
                 break;

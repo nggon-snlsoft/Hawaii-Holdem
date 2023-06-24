@@ -17,7 +17,7 @@ dao.init = function ( sql: any ) {
 
 dao.SELECT_USER_BY_USER_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM USERS WHERE ID = ?';
+	let sql = 'SELECT * FROM users WHERE ID = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -34,7 +34,7 @@ dao.SELECT_USER_BY_USER_ID = function ( id: any, cb: any ) {
 
 dao.SELECT_USERS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM USERS WHERE LOGIN_ID = ?';
+	let sql = 'SELECT * FROM users WHERE LOGIN_ID = ?';
 	let args = [login_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -50,7 +50,7 @@ dao.SELECT_USERS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 };
 
 dao.UPDATE_USERS_TOKEN_LOGIN_ID = function ( token: any, login_id: any, cb: any ) {
-	let sql = "UPDATE USERS SET TOKEN = ? WHERE LOGIN_ID = ? ";
+	let sql = "UPDATE users SET TOKEN = ? WHERE LOGIN_ID = ? ";
 	let args = [ token, login_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -74,7 +74,7 @@ dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
 	let platform = data.platform;
 	let os = data.os;
 
-	let sql = "UPDATE USERS SET LOGIN_IP = ?, PLATFORM = ?, OS = ?, RAKE_BACK_RATE = ?, LOGINCOUNT = LOGINCOUNT + 1, LOGINDATE = current_timestamp() WHERE ID = ? ";
+	let sql = "UPDATE users SET LOGIN_IP = ?, PLATFORM = ?, OS = ?, RAKE_BACK_RATE = ?, LOGINCOUNT = LOGINCOUNT + 1, LOGINDATE = current_timestamp() WHERE ID = ? ";
 	let args = [ login_ip, platform, os, rake_back_rate, id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -93,7 +93,7 @@ dao.UPDATE_USERS_LOGIN = function ( data: any, cb: any ) {
 
 dao.SELECT_JOINS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM JOINS WHERE LOGIN_ID = ?';
+	let sql = 'SELECT * FROM joins WHERE LOGIN_ID = ?';
 	let args = [login_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -110,7 +110,7 @@ dao.SELECT_JOINS_BY_LOGIN_ID = function ( login_id: any, cb: any ) {
 
 dao.SELECT_JOINS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 
-	let sql = 'SELECT * FROM JOINS WHERE NICKNAME = ?';
+	let sql = 'SELECT * FROM joins WHERE NICKNAME = ?';
 	let args = [nickname];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -127,7 +127,7 @@ dao.SELECT_JOINS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 
 dao.SELECT_USERS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 
-	let sql = 'SELECT * FROM USERS WHERE NICKNAME = ?';
+	let sql = 'SELECT * FROM users WHERE NICKNAME = ?';
 	let args = [nickname];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -144,7 +144,7 @@ dao.SELECT_USERS_BY_NICKNAME = function ( nickname: any, cb: any ) {
 
 dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any ) {
 
-	let sql = 'SELECT * FROM USERS WHERE ID = ? AND TOKEN = ? ';
+	let sql = 'SELECT * FROM users WHERE ID = ? AND TOKEN = ? ';
 	let args = [user_id, token];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -170,7 +170,7 @@ dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any
 
 dao.SELECT_SETTING_BY_USER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM SETTING WHERE USER_ID = ?';
+	let sql = 'SELECT * FROM setting WHERE USER_ID = ?';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -194,7 +194,7 @@ dao.UPDATE_SETTING = function ( user_id: any, setting: any, cb: any ) {
 	let background = setting.background;
 
 
-	let sql = "UPDATE SETTING SET SOUND = ?, MODE = ?,  CARD_TYPE = ?, BOARD_TYPE = ?, BG_TYPE = ? WHERE USER_ID = ? ";
+	let sql = "UPDATE setting SET SOUND = ?, MODE = ?,  CARD_TYPE = ?, BOARD_TYPE = ?, BG_TYPE = ? WHERE USER_ID = ? ";
 	let args = [ sound, mode, card, board, background, user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -213,7 +213,7 @@ dao.UPDATE_SETTING = function ( user_id: any, setting: any, cb: any ) {
 
 dao.SELECT_STATICS_BY_USER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM STATICS WHERE USER_ID = ?';
+	let sql = 'SELECT * FROM statics WHERE USER_ID = ?';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -230,7 +230,7 @@ dao.SELECT_STATICS_BY_USER_ID = function ( user_id: any, cb: any ) {
 
 dao.insertAccountForPending = function ( user: any, cb: any ) {
 
-	let sql = 'INSERT INTO USERS (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, disable, alive, pending ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let sql = 'INSERT INTO users (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, disable, alive, pending ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [user.uid, user.nickname, user.password, user.trans, user.phone, user.bank, user.holder, user.account, user.recommender, 0, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -249,7 +249,7 @@ dao.insertAccountForPending = function ( user: any, cb: any ) {
 
 dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 
-	let sql = 'INSERT INTO JOINS (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, rake_back_rate, join_ip, platform, os, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+	let sql = 'INSERT INTO joins (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, rake_back_rate, join_ip, platform, os, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
 		user.bank, user.holder, user.account, user.recommender, user.rake_back_rate, user.join_ip, user.platform, user.os, 1 ];
 
@@ -292,7 +292,7 @@ dao.INSERT_SETTING = function ( user_id: any, cb: any ) {
 
 dao.INSERT_STATICS = ( user_id: any, cb: any )=> {
 
-	let sql = "INSERT INTO STATICS(user_id) VALUES (?)";
+	let sql = "INSERT INTO statics(user_id) VALUES (?)";
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -314,7 +314,7 @@ dao.INSERT_STATICS = ( user_id: any, cb: any )=> {
 
 dao.UPDATE_AVATAR = function ( id: any, avatar: any, cb: any ) {
 
-	let sql = "UPDATE USERS SET AVATAR = ? WHERE ID = ? ";
+	let sql = "UPDATE users SET AVATAR = ? WHERE ID = ? ";
 	let args = [avatar, id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -335,7 +335,7 @@ dao.UPDATE_POINT_TRANSFER = function ( data: any, cb: any ) {
 	let balance = data.balance;
 	let point = data.point;
 
-	let sql = "UPDATE USERS SET BALANCE = ?, POINT = ? WHERE ID = ? ";
+	let sql = "UPDATE users SET BALANCE = ?, POINT = ? WHERE ID = ? ";
 	let args = [ balance, point, id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -353,7 +353,7 @@ dao.UPDATE_POINT_TRANSFER = function ( data: any, cb: any ) {
 
 dao.UPDATE_TICKETS_ALIVE = function ( ticket_id: any, cb: any ) {
 
-	let sql = "UPDATE TICKETS SET ALIVE = 0 WHERE ID = ? ";
+	let sql = "UPDATE tickets SET ALIVE = 0 WHERE ID = ? ";
 	let args = [ ticket_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -387,7 +387,7 @@ dao.selectTables = function ( cb: any ) {
 
 dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM STORES WHERE ID = ?';
+	let sql = 'SELECT * FROM stores WHERE ID = ?';
 	let args = [store_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -404,7 +404,7 @@ dao.SELECT_STORE_BySTORE_ID = function ( store_id: any, cb: any ) {
 
 dao.SELECT_STORES = function ( cb: any ) {
 
-	let sql = 'SELECT * FROM STORES';
+	let sql = 'SELECT * FROM stores';
 	_client.query(sql, null, function (err: any, res: any) {
 		if (!!err) {
 			if (!!cb) {
@@ -419,7 +419,7 @@ dao.SELECT_STORES = function ( cb: any ) {
 
 dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
 
-	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
+	let sql = 'SELECT * FROM partners WHERE CODE = ?';
 	let args = [code];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -444,7 +444,7 @@ dao.SELECT_PARTNERS_ByCODE = function ( code: any, cb: any ) {
 
 dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM DISTRIBUTORS WHERE ID = ?';
+	let sql = 'SELECT * FROM distributors WHERE ID = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -469,7 +469,7 @@ dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
 
 dao.SELECT_PARTNERS_ByPARTNERS_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM PARTNERS WHERE ID = ?';
+	let sql = 'SELECT * FROM partners WHERE ID = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -494,7 +494,7 @@ dao.SELECT_PARTNERS_ByPARTNERS_ID = function ( id: any, cb: any ) {
 
 dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
-	let sql = 'SELECT * FROM PARTNERS WHERE CODE = ?';
+	let sql = 'SELECT * FROM partners WHERE CODE = ?';
 	let args = [code];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -519,7 +519,7 @@ dao.SELECT_STORE_CODE_ByCODE = function ( code: any, cb: any ) {
 
 dao.SELECT_CHARGE_REQUESTS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM CHARGES WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
+	let sql = 'SELECT * FROM charges WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -536,7 +536,7 @@ dao.SELECT_CHARGE_REQUESTS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM TRANSFERS WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
+	let sql = 'SELECT * FROM transfers WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
 	let args = [user_id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -553,7 +553,7 @@ dao.SELECT_TRANSFER_REQUEST_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_POPUPS_BySTORE_ID = function ( cb: any ) {
 
-	let sql = 'SELECT * FROM POPUPS WHERE DISABLE = 0';
+	let sql = 'SELECT * FROM popups WHERE DISABLE = 0';
 
 	_client.query(sql, null, function (err: any, res: any) {
 		if (!!err) {
@@ -569,7 +569,7 @@ dao.SELECT_POPUPS_BySTORE_ID = function ( cb: any ) {
 
 dao.SELECT_NOTICES = function ( cb: any ) {
 
-	let sql = 'SELECT * FROM NOTICES WHERE DISABLE = 0';
+	let sql = 'SELECT * FROM notices WHERE DISABLE = 0';
 
 	_client.query(sql, null, function (err: any, res: any) {
 		if (!!err) {
@@ -585,7 +585,7 @@ dao.SELECT_NOTICES = function ( cb: any ) {
 
 dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM TICKETS WHERE USER_ID = ? AND ALIVE = 1';
+	let sql = 'SELECT * FROM tickets WHERE USER_ID = ? AND ALIVE = 1';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -602,7 +602,7 @@ dao.SELECT_TICKETS_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND ALIVE = 1';
+	let sql = 'SELECT * FROM point_receives WHERE USER_ID = ? AND ALIVE = 1';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -619,7 +619,7 @@ dao.SELECT_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_PENDING_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
+	let sql = 'SELECT * FROM point_receives WHERE USER_ID = ? AND ALIVE = 1 AND PENDING = 1';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -636,7 +636,7 @@ dao.SELECT_PENDING_POINT_RECEIVES_ByUSER_ID = function ( user_id: any, cb: any )
 
 dao.SELECT_UNREAD_ANSWER_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM QUESTIONS WHERE (USER_ID = ? AND ALIVE = 1 AND PENDING = 0 AND UNREAD = 1 )';
+	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM questions WHERE (USER_ID = ? AND ALIVE = 1 AND PENDING = 0 AND UNREAD = 1 )';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -654,7 +654,7 @@ dao.SELECT_UNREAD_ANSWER_ByUSER_ID = function ( user_id: any, cb: any ) {
 
 dao.SELECT_UNREAD_MESSAGE_ByUSER_ID = function ( user_id: any, cb: any ) {
 
-	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM MESSAGES WHERE (USER_ID = ? AND ALIVE = 1 AND UNREAD = 1 )';
+	let sql = 'SELECT COUNT(*) AS UNREAD_COUNT FROM messages WHERE (USER_ID = ? AND ALIVE = 1 AND UNREAD = 1 )';
 	let args = [ user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -675,7 +675,7 @@ dao.INSERT_CHARGE_REQUEST = function ( data: any, cb: any ) {
 	let user = data.user;
 	let holder = data.holder;
 
-	let sql = 'INSERT INTO CHARGES ( user_id, login_id, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
+	let sql = 'INSERT INTO charges ( user_id, login_id, nickname, holder, amount, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ? )';
 	let args = [ user.id, user.login_id, user.nickname, holder, amount, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -699,7 +699,7 @@ dao.INSERT_QNA = function ( user: any, data: any, cb: any ) {
 	let title = data.title;
 	let question = data.question;
 
-	let sql = 'INSERT INTO QUESTIONS ( user_id, store_id, nickname, type, title, question, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let sql = 'INSERT INTO questions ( user_id, store_id, nickname, type, title, question, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
 	let args = [ user_id, store_id, nickname, 0, title, question, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -721,7 +721,7 @@ dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
 	let user_id = data.user_id;
 	let point = data.point;
 
-	let sql = "UPDATE USERS SET POINT = POINT + ? WHERE ID = ? ";
+	let sql = "UPDATE users SET POINT = POINT + ? WHERE ID = ? ";
 	let args = [ point, user_id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -729,7 +729,7 @@ dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
 			cb(err, 0);
 		} else {
 			if (!!res && res.affectedRows > 0) {
-				sql = "UPDATE POINT_RECEIVES SET PENDING = 0 WHERE ID = ? ";
+				sql = "UPDATE point_receives SET PENDING = 0 WHERE ID = ? ";
 				args = [id];
 
 				_client.query( sql, args, function ( err1: any, res1: any) {
@@ -753,7 +753,7 @@ dao.UPDATE_POINT_ByPOINT_RECEIVES = function ( data: any, cb: any ) {
 
 dao.UPDATE_USERS_DISABLE = function ( id: any, cb: any ) {
 
-	let sql = "UPDATE USERS SET DISABLE = 1 WHERE ID = ? ";
+	let sql = "UPDATE users SET DISABLE = 1 WHERE ID = ? ";
 	let args = [ id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -771,7 +771,7 @@ dao.UPDATE_USERS_DISABLE = function ( id: any, cb: any ) {
 
 dao.UPDATE_QNA_READ = function ( id: any, cb: any ) {
 
-	let sql = "UPDATE QUESTIONS SET UNREAD = 0 WHERE ID = ? ";
+	let sql = "UPDATE questions SET UNREAD = 0 WHERE ID = ? ";
 	let args = [ id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -789,7 +789,7 @@ dao.UPDATE_QNA_READ = function ( id: any, cb: any ) {
 
 dao.UPDATE_MESSAGE_READ = function ( id: any, cb: any ) {
 
-	let sql = "UPDATE MESSAGES SET UNREAD = 0 WHERE ID = ? ";
+	let sql = "UPDATE messages SET UNREAD = 0 WHERE ID = ? ";
 	let args = [ id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -807,7 +807,7 @@ dao.UPDATE_MESSAGE_READ = function ( id: any, cb: any ) {
 
 dao.UPDATE_QNA_DELETE = function ( id: any, cb: any ) {
 
-	let sql = "UPDATE QUESTIONS SET ALIVE = 0 WHERE ID = ? ";
+	let sql = "UPDATE questions SET ALIVE = 0 WHERE ID = ? ";
 	let args = [ id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -831,7 +831,7 @@ dao.INSERT_TRANSFER_REQUEST = function ( data: any, cb: any ) {
 
 	let newBalance = oldBalance - value;
 
-	let sql = 'INSERT INTO TRANSFERS ( user_id, login_id, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
+	let sql = 'INSERT INTO transfers ( user_id, login_id, nickname, amount, oldBalance, newBalance, alive, pending ) values ( ?, ?, ?, ?, ?, ?, ?, ? )';
 	let args = [ user.id, user.login_id, user.nickname, value, oldBalance, newBalance, 1, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -858,7 +858,7 @@ dao.UPDATE_USER_BALANCE = function ( data: any, cb: any ) {
 	let id = data.id;
 	let value = data.newBalance;
 
-	let sql = "UPDATE USERS SET BALANCE = ? WHERE ID = ? ";
+	let sql = "UPDATE users SET BALANCE = ? WHERE ID = ? ";
 	let args = [ value , id ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -866,7 +866,7 @@ dao.UPDATE_USER_BALANCE = function ( data: any, cb: any ) {
 			cb(err, null);
 		} else {
 			if (!!res && res.affectedRows > 0) {
-				sql = 'SELECT * FROM USERS WHERE ID = ?';
+				sql = 'SELECT * FROM users WHERE ID = ?';
 				args = [id];
 
 				_client.query( sql, args, function ( err: any, user: any ) {
@@ -891,7 +891,7 @@ dao.INSERT_POINT_TRANSFER_LOG = ( data: any, cb: any )=> {
 	let oldBalance = data.oldBalance;
 	let newBalance = data.newBalance;
 
-	let sql = 'INSERT INTO POINT_TRANSFERS ( user_id, oldPoint, newPoint, point, oldBalance, newBalance ) VALUES ( ?, ?, ?, ?, ?, ? )';
+	let sql = 'INSERT INTO point_transfers ( user_id, oldPoint, newPoint, point, oldBalance, newBalance ) VALUES ( ?, ?, ?, ?, ?, ? )';
 	let args = [ user_id, oldPoint, newPoint, point, oldBalance, newBalance];
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -901,7 +901,7 @@ dao.INSERT_POINT_TRANSFER_LOG = ( data: any, cb: any )=> {
 		} else {
 			if (!!res && res.affectedRows > 0) {
 
-				sql = 'SELECT * FROM POINT_TRANSFERS WHERE USER_ID = ? ORDER BY createDate DESC';
+				sql = 'SELECT * FROM point_transfers WHERE USER_ID = ? ORDER BY createDate DESC';
 				args = [ user_id ];
 
 				_client.query( sql, args, function ( err: any, logs: any ) {
@@ -919,7 +919,7 @@ dao.INSERT_POINT_TRANSFER_LOG = ( data: any, cb: any )=> {
 }
 
 dao.SELECT_POINT_TRANSFER_LOG = ( id: any, cb: any )=> {
-	let sql = 'SELECT * FROM POINT_TRANSFERS WHERE USER_ID = ? ORDER BY createDate DESC';
+	let sql = 'SELECT * FROM point_transfers WHERE USER_ID = ? ORDER BY createDate DESC';
 	let args = [ id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -937,7 +937,7 @@ dao.SELECT_POINT_TRANSFER_LOG = ( id: any, cb: any )=> {
 }
 
 dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
-	let sql = 'SELECT * FROM POINT_RECEIVES WHERE USER_ID = ? AND PENDING = 0 AND ALIVE = 1 ORDER BY createDate DESC';
+	let sql = 'SELECT * FROM point_receives WHERE USER_ID = ? AND PENDING = 0 AND ALIVE = 1 ORDER BY createDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -955,7 +955,7 @@ dao.SELECT_POINT_RECEIVE_LOG = ( user_id: any, cb: any )=> {
 }
 
 dao.SELECT_QUESTIONS_ByUSER_ID = ( user_id: any, cb: any )=> {
-	let sql = 'SELECT * FROM QUESTIONS WHERE USER_ID = ? AND ALIVE = 1 ORDER BY questionDate DESC';
+	let sql = 'SELECT * FROM questions WHERE USER_ID = ? AND ALIVE = 1 ORDER BY questionDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -973,7 +973,7 @@ dao.SELECT_QUESTIONS_ByUSER_ID = ( user_id: any, cb: any )=> {
 }
 
 dao.SELECT_MESSAGES_ByUSER_ID = ( user_id: any, cb: any )=> {
-	let sql = 'SELECT * FROM MESSAGES WHERE USER_ID = ? AND ALIVE = 1 ORDER BY createDate DESC';
+	let sql = 'SELECT * FROM messages WHERE USER_ID = ? AND ALIVE = 1 ORDER BY createDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        
@@ -991,7 +991,7 @@ dao.SELECT_MESSAGES_ByUSER_ID = ( user_id: any, cb: any )=> {
 }
 
 dao.SELECT_MESSAGES_ByUSER_ID = ( user_id: any, cb: any )=> {
-	let sql = 'SELECT * FROM MESSAGES WHERE USER_ID = ? AND ALIVE = 1 ORDER BY createDate DESC';
+	let sql = 'SELECT * FROM messages WHERE USER_ID = ? AND ALIVE = 1 ORDER BY createDate DESC';
 	let args = [ user_id ];	
 
 	_client.query(sql, args, function (err: any, res: any) {        

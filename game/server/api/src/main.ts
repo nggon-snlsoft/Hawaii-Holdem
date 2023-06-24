@@ -9,6 +9,7 @@ import exitHook from './modules/hookExit';
 import * as fs from 'fs';
 import * as path from 'path';
 import requestIp from 'request-ip';
+import https from 'https';
 
 const cors = require('cors');
 const favicon = require('serve-favicon');
@@ -19,16 +20,29 @@ import TableController from './controllers/TableController';
 import StoreController from './controllers/StoreController';
 
 const devDBInfo: any = {
-    "host": "127.0.0.1",
+    "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
     "port": "3306",
     "database": "holdem",
-    "user": "root",
-    "pw": "root"
+    "user": "admin",
+    "pw": "admin0912"
 };
+
+// const devDBInfo: any = {
+//     "host": "127.0.0.1",
+//     "port": "3306",
+//     "database": "holdem",
+//     "user": "root",
+//     "pw": "root"
+// };
 
 const devServerInfo: any = {
     port: '2568',
 };
+
+// const options = {
+//     key: fs.readFileSync('../cert/cert.key'),
+//     cert: fs.readFileSync('../cert/cert.crt')
+// }
 
 export enum ENUM_RESULT_CODE {
     UNKNOWN_FAIL = -1,
@@ -141,6 +155,10 @@ export class HoldemApiServer {
     }
 
     public listen( port: number ) {
+        // https.createServer( options, this.app ).listen( port, ()=>{
+        //     console.log(`API SERVER IS RUNNING ON ${ port }`);
+        // });
+
         this.app.listen( port, ()=>{
             console.log(`API SERVER IS RUNNING ON ${ port }`);
         });

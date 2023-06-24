@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Cocos Creator | <%= projectName %></title>
+  <title><%= projectName %></title>
 
   <!--http://www.html5rocks.com/en/mobile/mobifying/-->
   <meta name="viewport"
@@ -37,12 +37,12 @@
 
 </head>
 <body>
-<script src="./devtools-detector.js"></script>
+<script src="./devtools-detector/devtools-detector.js"></script>
 <script>
   devtoolsDetector.addListener(function(isOpen) {
      if(isOpen)
      {
-        location.href = "./detector.html";
+        location.href = "./devtools-detector/detector.html";
      }
   });
   devtoolsDetector.launch();

@@ -1,6 +1,6 @@
 // @ts-ignore
 import * as cc from "cc";
-import { _decorator, Component, Node, director, Scene } from 'cc';
+import { _decorator, Component, Node, director, Scene, sys } from 'cc';
 import { ENUM_CURRENT_SCENE, ENUM_DEVICE_TYPE, ENUM_LEAVE_REASON } from "./HoldemDefines";
 import { NetworkManager } from "./NetworkManager";
 const { ccclass } = cc._decorator;
@@ -27,10 +27,18 @@ export class GameManager extends cc.Component {
 
     public Init() {
         this.showEventPopup = true;
-
         this.version = CLIENT_VERSION;
         this.deviceType = ENUM_DEVICE_TYPE.MOBILE_PORTRAIT;
-        // this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;        
+        // this.deviceType = ENUM_DEVICE_TYPE.PC_LANDSCAPE;
+    }
+
+    public GetSystemInfo(): any {
+        return {
+            platform: cc.sys.platform,
+            os: cc.sys.os,
+            browser: cc.sys.browserType,
+            isMobile: cc.sys.isMobile,
+        }
     }
 
     public GetInfo(): any {

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canvas } from 'cc';
+import { _decorator, Component, Node, Input, resources, SpriteFrame, Label, Canvas, director, game, sys } from 'cc';
 import { UiJoinPlayer } from './Lobby/UiJoinPlayer';
 import { LoginSystemPopup } from './Login/LoginSystemPopup';
 import { UiLogin } from './UiLogin';
@@ -23,11 +23,13 @@ export class Main extends Component {
 	private _lableVersion: Label = null;
 
 	private _isChildrenRegisted: boolean = false;
+	private _isWebVersion: boolean = false;
 
 	protected onLoad(): void {
 		GameManager.Instance().Init();
 		GameManager.Instance().SetVersion( this.version );
 		GameManager.Instance().SetDeviceType( ENUM_DEVICE_TYPE.PC_LANDSCAPE );
+		this._isWebVersion = false;
 
 		this.rootPortrait.active = false;
 		this.rootLandscape.active = false;
@@ -50,6 +52,7 @@ export class Main extends Component {
 	}
 
 	private Init() {
+
 		if ( this._login != null ) {
 			this._login.init( this );
 		}
@@ -62,15 +65,22 @@ export class Main extends Component {
 			this._loginPopup.initialize();
 		}
 
-		if ( this._lableVersion != null ) {
-			this._lableVersion.string = 'VERSION: ' + GameManager.Instance().GetVersion();			
-			this._lableVersion.node.active = true;
+		if ( this._isWebVersion == true && GameManager.Instance().GetSystemInfo().isMobile == false ) {
+			this._loginPopup.showPopUpOk('로그인', '현재 디바이스에서는 웹버전을 이용할 수 없습니다.', ()=>{
+				game.end();				
+				window.open("about:blank","_self").close();
+			});
+		} else {
+			if ( this._lableVersion != null ) {
+				this._lableVersion.string = 'VERSION: ' + GameManager.Instance().GetVersion();			
+				this._lableVersion.node.active = true;
+			}
+
+			GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
+			this._login.show();
+	
+			NetworkManager.Instance().Initialize();
 		}
-
-		GameManager.Instance().SetCurrentScene( ENUM_CURRENT_SCENE.LOGIN_SCENE );
-		this._login.show();
-
-		NetworkManager.Instance().Initialize();
 	}
 
 	public onShowJoinMember() {
