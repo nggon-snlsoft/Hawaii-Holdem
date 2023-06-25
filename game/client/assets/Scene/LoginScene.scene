@@ -122,7 +122,7 @@
     "canvasLogin": {
       "__id__": 450
     },
-    "version": "23",
+    "version": "24",
     "_id": "38MqJ78DJKkr68ZtALei29"
   },
   {
@@ -152,7 +152,7 @@
         "__id__": 811
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 859
@@ -224,8 +224,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 384.00000000000006,
-      "y": 640,
+      "x": 640,
+      "y": 384,
       "z": 0
     },
     "_lrot": {
@@ -365,7 +365,7 @@
         "__id__": 399
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 447
@@ -16392,8 +16392,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 768,
-      "height": 1280
+      "width": 1280,
+      "height": 768
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

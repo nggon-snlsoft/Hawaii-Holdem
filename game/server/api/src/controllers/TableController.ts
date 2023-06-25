@@ -21,7 +21,6 @@ export class TableController {
         this.initRouter();
 
         this.serverPrefix = 'http://' + this.devServerInfo.host + ':' + this.devServerInfo.port + '/';
-        console.log('TABLE_CONTROLLER_INITIALIZED');
     }
 
     private initRouter() {
