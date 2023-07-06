@@ -1,5 +1,4 @@
 import { userInfo } from "os";
-import { ENUM_RESULT_CODE } from "../main";
 import { error } from "console";
 
 // const moment = require('moment-timezone');
@@ -173,7 +172,7 @@ dao.SELECT_SALES_INFOS = function ( lastest: any, cb: any ) {
 
 dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
 
-	let sql = 'SELECT * FROM distributors WHERE ID = ?';
+	let sql = 'SELECT * FROM distributors WHERE id = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -242,12 +241,12 @@ dao.UPDATE_STORE_CALCULATE = function ( data: any, cb: any ) {
 };
 
 dao.UPDATE_DISTRIBUTOR_CALCULATE_ByADMIN_ID = function ( data: any, cb: any ) {
-	let id = data.id;
+	let admin_id = data.admin_id;
 	let rate = data.rate;
 	let rakes = data.rakes;
 
-	let sql = "UPDATE calculates SET commision = ?, deal_money = deal_money + ?, updateDate = current_timestamp() WHERE admin_id = ? AND type = 1";
-	let args = [ rate, rakes, id ];
+	let sql = "UPDATE calculates SET commision = ?, deal_money = deal_money + ?, updateDate = current_timestamp() WHERE admin_id = ? AND type = ? ";
+	let args = [ rate, rakes, admin_id, 1 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -263,12 +262,12 @@ dao.UPDATE_DISTRIBUTOR_CALCULATE_ByADMIN_ID = function ( data: any, cb: any ) {
 };
 
 dao.UPDATE_PARTNER_CALCULATE_ByADMIN_ID = function ( data: any, cb: any ) {
-	let id = data.id;
+	let admin_id = data.admin_id;
 	let rate = data.rate;
 	let rakes = data.rakes;
 
-	let sql = "UPDATE calculates SET commision = ?, deal_money = deal_money + ?, updateDate = current_timestamp() WHERE admin_id = ? and type = 2";
-	let args = [ rate, rakes, id ];
+	let sql = "UPDATE calculates SET commision = ?, deal_money = deal_money + ?, updateDate = current_timestamp() WHERE admin_id = ? and type = ?";
+	let args = [ rate, rakes, admin_id, 2 ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (!!err) {
@@ -292,7 +291,7 @@ dao.UPDATE_CALCULATE_CRON = function ( cron_info: any, cb: any ) {
 	let deal_distributors = cron_info.deal_distributors;
 	let deal_partners = cron_info.deal_partners;
 
-	let sql = "UPDATE calculate_cron SET start_index = ?, end_index = ?, deal_money = ?, deal_stores = ?, deal_distributors = ?, deal_partners = ?, startDate = ?, endDate = current_timestamp(), updateDate = current_timestamp() WHERE id = 1";
+	let sql = "UPDATE calculate_cron SET start_index = ?, end_index = ?, deal_money = deal_money + ?, deal_stores = deal_stores + ?, deal_distributors = deal_distributors + ?, deal_partners = deal_partners + ?, startDate = ?, endDate = current_timestamp(), updateDate = current_timestamp() WHERE id = 1";
 	let args = [ start_index, end_index, deal_money, deal_stores, deal_distributors, deal_partners, startDate ];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -504,47 +503,6 @@ dao.SELECT_STATICS_BY_USER_ID = function ( user_id: any, cb: any ) {
 
 	});
 };
-
-dao.insertAccountForPending = function ( user: any, cb: any ) {
-
-	let sql = 'INSERT INTO users (uid, nickname, password, transferpassword, phone, bank, holder, account, recommender, disable, alive, pending ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-	let args = [user.uid, user.nickname, user.password, user.trans, user.phone, user.bank, user.holder, user.account, user.recommender, 0, 1, 1 ];
-
-	_client.query(sql, args, function (err: any, res: any) {        
-		if (!!err) {
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, {
-            code: ENUM_RESULT_CODE.SUCCESS,
-         });
-	});
-}
-
-dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
-
-	let sql = 'INSERT INTO joins (login_id, store_id, distributor_id, partner_id, nickname, password, transferpassword, phone, bank, holder, account, recommender, rake_back_rate, join_ip, platform, os, alive ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-	let args = [ user.login_id, user.store_id, user.distributor_id, user.partner_id, user.nickname, user.password, user.transfer_password, user.phone, 
-		user.bank, user.holder, user.account, user.recommender, user.rake_back_rate, user.join_ip, user.platform, user.os, 1 ];
-
-	_client.query(sql, args, function (err: any, res: any) {        
-
-		if (!!err) {
-			
-			if (!!cb) {
-				cb(err, null);
-			}
-			return;
-		}
-
-		cb?.(null, {
-            code: ENUM_RESULT_CODE.SUCCESS,
-         });
-	});
-}
 
 dao.INSERT_SETTING = function ( user_id: any, cb: any ) {
 

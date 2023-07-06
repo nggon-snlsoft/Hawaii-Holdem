@@ -87,6 +87,7 @@ export class ScheduleController {
                     start_index = sales[0].id;
                     for ( let i = 0 ; i < sales.length ; i++ ) {
                         last_index = sales[i].id;
+
                         if ( sales[i].useTicket == 1 ) {
                             continue;
                         }
@@ -95,26 +96,17 @@ export class ScheduleController {
                         if ( rolling_rakes > 0 ) {
                             deal_money += rolling_rakes;
 
-                            let distributor: any = null;
-                            let distributor_rate: number = 0;
-                            
+                            let distributor: any = null;                            
                             distributor = await this.getDISTRIBUTOR( this.dao, sales[i].distributor_id);
-                            if ( distributor != null ) {
-                                distributor_rate = distributor.commision;
-                            }
 
                             let partner: any = null;
-                            let partner_rate: number = 0;
                             partner = await this.getPARTNER( this.dao, sales[i].partner_id);
-                            if ( partner != null ) {
-                                partner_rate = partner.commision;
-                            }
 
-                            let distributor_rakes = Math.floor( rolling_rakes * ((distributor_rate - partner_rate ) / deal_rate ));
-                            let partner_rakes = Math.floor( rolling_rakes * ( partner_rate / deal_rate ));
+                            let distributor_rakes = Math.floor( rolling_rakes * (( distributor.commision - partner.commision ) / deal_rate ));
+                            let partner_rakes = Math.floor( rolling_rakes * ( partner.commision / deal_rate ));
                             let store_rakes =  Math.floor( rolling_rakes - distributor_rakes - partner_rakes );
 
-                            if ( store_rakes > 0 ) {
+                            if ( store_rakes >= 0 ) {
                                 let affected: any = null;
                                 affected = await this.updateSTORE_CALCULATE( this.dao, {
                                     rate: deal_rate,
@@ -125,12 +117,12 @@ export class ScheduleController {
                                 }
                             }
 
-                            if ( distributor_rakes > 0 ) {
+                            if ( distributor_rakes >= 0 ) {
                                 let affected: any = null;
                                 affected = await this.updateDISTRIBUTOR_CALCULATE( this.dao, 
                                     {
-                                        id: sales[i].distributor_id,
-                                        rate: distributor_rate,
+                                        admin_id: distributor.admin_id,
+                                        rate: distributor.commision,
                                         rakes: distributor_rakes,
 
                                     });
@@ -139,11 +131,11 @@ export class ScheduleController {
                                 }
                             }
 
-                            if ( partner_rakes > 0 ) {
+                            if ( partner_rakes >= 0 ) {
                                 let affected: any = null;
                                 affected = await this.updatePARTNER_CALCULATE( this.dao, {
-                                    id: sales[i].partner_id,
-                                    rate: partner_rate,
+                                    admin_id: partner.admin_id,
+                                    rate: partner.commision,
                                     rakes: partner_rakes
                                 } );
 
