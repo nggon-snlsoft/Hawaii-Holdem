@@ -16,7 +16,7 @@ export class ScheduleController {
     }
 
     public async RegistCRON() {
-        this.job = new cron.CronJob('0 * * * *', ()=>{
+        this.job = new cron.CronJob('* * * * *', ()=>{
             this.startDate = new Date();
             this.InsertADMINS(()=>{
                 this.UpdateCALCULATOR();

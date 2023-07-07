@@ -1,0 +1,7 @@
+{
+  "server": {
+    "name": "api",
+    "version": "23",
+    "checkIpDuplication": false
+  }
+}

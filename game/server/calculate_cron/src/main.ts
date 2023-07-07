@@ -3,21 +3,21 @@ import dao from './modules/dao';
 import exitHook from './modules/hookExit';
 import ScheduleController from './controllers/ScheduleController';
 
-// const devDBInfo: any = {
-//     "host": "127.0.0.1",
-//     "port": "3306",
-//     "database": "holdem",
-//     "user": "root",
-//     "pw": "root"
-// };
-
 const devDBInfo: any = {
-    "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
+    "host": "127.0.0.1",
     "port": "3306",
     "database": "holdem",
-    "user": "admin",
-    "pw": "admin0912"
+    "user": "root",
+    "pw": "root"
 };
+
+// const devDBInfo: any = {
+//     "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
+//     "port": "3306",
+//     "database": "holdem",
+//     "user": "admin",
+//     "pw": "admin0912"
+// };
 
 export class HoldemCalculateCronServer {
 
