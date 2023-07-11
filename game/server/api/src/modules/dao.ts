@@ -269,10 +269,14 @@ dao.insertJOIN_MEMBER = function ( user: any, cb: any ) {
 	});
 }
 
-dao.INSERT_SETTING = function ( user_id: any, cb: any ) {
+dao.INSERT_SETTING = function ( data: any, cb: any ) {
+	let user_id = data.user_id;
+	let card_type = data.card_type;
+	let board_type = data.board_type;
+	let bg_type = data.bg_type;
 
-	let sql = "INSERT INTO setting ( user_id ) values ( ? )";
-	let args = [ user_id ];
+	let sql = "INSERT INTO setting ( user_id, card_type, board_type, bg_type ) values ( ?, ?, ?, ? )";
+	let args = [ user_id, card_type, board_type, bg_type ];
 
 	_client.query(sql, args, function (err: any, res: any) {        
 		if (!!err) {

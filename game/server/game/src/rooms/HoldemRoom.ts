@@ -3690,9 +3690,9 @@ export class HoldemRoom extends Room<RoomState> {
 		}
 
 		let e = this.getEntity(  msg[ "seat" ] );
-		logger.info(  this._tableIdString + "[ onFOLD ] seat: %s // name %s // chips %s // send msg : %s", e.seat, e.nickname, e.chips, msg );		
 
 		if ( e != null ) {
+			logger.info(  this._tableIdString + "[ onFOLD ] seat: %s // name %s // chips %s // send msg : %s", e.seat, e.nickname, e.chips, msg );					
 			if(e.fold === true){
 				logger.error( this._tableIdString + " onFold - player " + e.seat + " is fold but try fold");
 				return;
@@ -4017,12 +4017,14 @@ export class HoldemRoom extends Room<RoomState> {
 	private onSIT_OUT(client : Client, msg : any){
 		let seat: number = msg['seat'];
 		if ( seat == null ) {
-			logger.error( this._tableIdString + " [ onSIT_OUT ] Seat number is null!" + msg);			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] Seat number is null!" + msg);
+			return;
 		}
 
 		let player = this.getEntity( seat );
 		if ( player == null ) {
 			logger.error( this._tableIdString + " [ onSIT_OUT ] Can't find player!" + msg);
+			return;
 		}
 
 		if ( player.isSitOut == true ) {
@@ -4060,11 +4062,13 @@ export class HoldemRoom extends Room<RoomState> {
 		let seat: number = msg["seat"];
 		if ( seat == null ) {
 			logger.error( this._tableIdString + " [ onSIT_OUT ] onSIT_OUT fail seat is null " + msg);
+			return;
 		}
 
 		let player = this.getEntity( seat );
 		if ( player == null ) {
-			logger.error( this._tableIdString + " [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);			
+			logger.error( this._tableIdString + " [ onSIT_OUT ] onSIT_OUT fail can't find player " + msg);
+			return;
 		}
 
 		player.pendSitout = false;
@@ -4078,11 +4082,13 @@ export class HoldemRoom extends Room<RoomState> {
 		let seat : number = msg["seat"];
 		if ( seat == null ) {
 			logger.error( this._tableIdString + " [ onSIT_BACK ] onSIT_BACK fail seat is null " + msg);
+			return;
 		}
 
 		let player = this.getEntity(seat);
 		if ( player == null ) {
 			logger.error( this._tableIdString + " [ onSIT_BACK ] onSIT_BACK fail can't find player " + msg);
+			return;
 		}
 
 		if ( player.isSitOut == false ) {
@@ -4234,14 +4240,15 @@ export class HoldemRoom extends Room<RoomState> {
 		let entity = this.getEntity( seat );
 		if ( entity != null ) {
 			_statics = entity.statics;
+
+			client.send( "SHOW_PROFILE", {
+				id: id,
+				seat: seat,
+				entity: entity,
+				statics: _statics,
+			} );	
 		}
 
-		client.send( "SHOW_PROFILE", {
-			id: id,
-			seat: seat,
-			entity: entity,
-			statics: _statics,
-		} );
 	}
 
 	onEXIT_TABLE( client: Client, msg: any ) {

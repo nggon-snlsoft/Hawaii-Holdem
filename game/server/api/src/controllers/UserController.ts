@@ -292,7 +292,24 @@ export class UserController {
         let affected: any = 0;
         if ( setting == null || setting == undefined ) {
             try {
-                affected = await this.createSETTING( req.app.get('DAO'), user_id );                
+                let avatar_type = Math.floor( Math.random() * ( 19 - 1) + 1);
+                let card_type = Math.floor( Math.random() * (2));
+                let board_type = Math.floor( Math.random() * (2));
+                let bg_type = Math.floor( Math.random() * (4));
+
+                affected = await this.createSETTING( req.app.get('DAO'), {
+                    user_id: user_id,
+                    card_type: card_type,
+                    board_type: board_type,
+                    bg_type: bg_type,
+                } );
+
+                let avatar: any = null;
+                avatar = await this.changeUSER_AVATAR( req.app.get('DAO'), user_id, avatar_type );
+                if ( avatar != null ) {
+
+                }
+
             } catch (error) {
                 console.log( error );
             }
@@ -2120,9 +2137,9 @@ export class UserController {
         });
     }    
 
-    private async createSETTING( dao: any, user_id: any ) {
+    private async createSETTING( dao: any, data: any ) {
         return new Promise ( (resolve, reject ) =>{
-            dao.INSERT_SETTING( user_id, function( err: any, res: any ) {
+            dao.INSERT_SETTING( data, function( err: any, res: any ) {
                 if (!!err ) {
                     reject( {
                         code: ENUM_RESULT_CODE.UNKNOWN_FAIL,

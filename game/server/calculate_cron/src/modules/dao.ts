@@ -118,9 +118,11 @@ dao.INSERT_CALCULATES_ByDATA = function ( calculator: any, cb: any ) {
 	let type = calculator.type;
 	let name = calculator.name;
 	let disable = calculator.disable;
+	let distributor_id = calculator.distributor_id;
+	let partner_id = calculator.partner_id;
 
-	let sql = 'INSERT INTO calculates ( admin_id, login_id, type, name, deal_money, pre_settled, settle_amount, disable ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )';
-	let args = [admin_id, login_id, type, name, 0, 0, 0, disable ];
+	let sql = 'INSERT INTO calculates ( admin_id, login_id, distributor_id, partner_id, type, name, deal_money, pre_settled, settle_amount, disable ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )';
+	let args = [admin_id, login_id, distributor_id, partner_id, type, name, 0, 0, 0, disable ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 		if (err !== null) {
@@ -154,8 +156,24 @@ dao.SELECT_CRONS_INFO = function ( cb: any ) {
 	});
 };
 
+// dao.SELECT_PREVIOUS_SALES_USER = function ( cb: any ) {
+// 	let sql = 'SELECT * FROM sales_user WHERE id > ?';
+// 	let args = [lastest];
+
+// 	_client.query(sql, args, function (err: any, res: any) {
+// 		if (!!err) {
+// 			if (!!cb) {
+// 				cb(err, null);
+// 			}
+// 			return;
+// 		}
+
+// 		cb?.(null, res);
+// 	});
+// };
+
 dao.SELECT_SALES_INFOS = function ( lastest: any, cb: any ) {
-	let sql = 'SELECT * FROM sales_user WHERE id > ?';
+	let sql = 'SELECT * FROM sales_user WHERE id > ? AND useTicket = 0 AND DATE_FORMAT(createDate, "%Y-%m-%d") <= CURDATE();'
 	let args = [lastest];
 
 	_client.query(sql, args, function (err: any, res: any) {
@@ -198,6 +216,106 @@ dao.SELECT_DISTRIBUTORS_ByDISTRIBUTOR_ID = function ( id: any, cb: any ) {
 dao.SELECT_PARTNERS_ByPARTNERS_ID = function ( id: any, cb: any ) {
 
 	let sql = 'SELECT * FROM partners WHERE ID = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
+dao.SELECT_USER_By_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM users WHERE id = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
+dao.SELECT_DISTRIBUTOR_ID_ByADMIN_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM distributors WHERE admin_id = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
+dao.SELECT_DISTRIBUTOR_ID_ByPARTNER_ADMIN_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM partners WHERE admin_id = ?';
+	let args = [id];
+
+	_client.query(sql, args, function (err: any, res: any) {
+		if (!!err) {
+			if (!!cb) {
+				cb(err, null);
+			}
+			return;
+		}
+
+		if ( res == null ) {
+			cb( null, null );
+		} else {
+			if ( res.length > 0 ) {
+				cb(null, res[0]);
+			} else {
+				cb( null, null );
+			}
+		}
+	});
+};
+
+dao.SELECT_PARTNERS_ByADMIN_ID = function ( id: any, cb: any ) {
+
+	let sql = 'SELECT * FROM partners WHERE admin_id = ?';
 	let args = [id];
 
 	_client.query(sql, args, function (err: any, res: any) {

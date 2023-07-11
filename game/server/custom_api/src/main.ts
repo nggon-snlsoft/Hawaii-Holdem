@@ -15,21 +15,21 @@ const methodOverride = require( "method-override" );
 
 import ApiController from './controllers/CustomApiController';
 
-const devDBInfo: any = {
-    "host": "127.0.0.1",
-    "port": "3306",
-    "database": "holdem",
-    "user": "root",
-    "pw": "root"
-};
-
 // const devDBInfo: any = {
-//     "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
+//     "host": "127.0.0.1",
 //     "port": "3306",
 //     "database": "holdem",
-//     "user": "admin",
-//     "pw": "admin0912"
+//     "user": "root",
+//     "pw": "root"
 // };
+
+const devDBInfo: any = {
+    "host": "database-1.cleanm1dnitm.ap-northeast-1.rds.amazonaws.com",
+    "port": "3306",
+    "database": "holdem",
+    "user": "admin",
+    "pw": "admin0912"
+};
 
 export enum ENUM_RESULT_CODE {
     UNKNOWN_FAIL = -1,

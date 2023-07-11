@@ -53,11 +53,16 @@ export class CustomApiController {
 
         sales_users = await this.GET_SALES_USERS( req.app.get('DAO'));        
         if ( sales_users != null ) {
+            console.log(sales_users.length);
+
+            let c: number = 0;
 
             for( let i = 0 ; i < sales_users.length; i ++ ) {
                 if ( sales_users[i].useTicket != 0 ) {
                     continue;
                 }
+
+                c++;
 
                 items.push( {
                     user_id: sales_users[i].user_id,
@@ -84,6 +89,8 @@ export class CustomApiController {
                 });
             }
 
+            console.log('useTicket 0 = : ' + c );
+
         } else {
             res.send( "TRANSFER_TICKET_FAIL" );
             return;
@@ -91,11 +98,14 @@ export class CustomApiController {
 
         let tickets: any = null;
         tickets = await this.GET_TICKETS( req.app.get('DAO'));
+
         if ( tickets != null ) {
+            console.log('ticket count = : ' + tickets.length );        
             for( let i = 0 ; i < tickets.length; i ++ ) {
                 let user: any = null;
                 user = await this.GET_USER_ByUSER_ID( req.app.get('DAO'), tickets[i].user_id );
                 if ( user != null ) {
+
                     if ( tickets[i].return > 0 ) {
                         continue;
                     }
@@ -157,8 +167,11 @@ export class CustomApiController {
             return;
         }
 
+        console.log( items.length );
+
         for ( let i = 0; i < items.length; i ++ ) {
             let affected: any = null;
+
             affected = await this.INSERT_SALES_USER( req.app.get('DAO'), items[i] );
             if ( affected > 0 ) {
                 affectedCount++;

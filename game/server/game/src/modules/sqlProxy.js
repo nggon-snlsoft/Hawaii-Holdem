@@ -54,10 +54,10 @@ const createDatabasePool = function() {
 	const args = parseArgs( process.argv );
 	return mysql.createPool( {
 		connectionLimit    : 100, //important
-		host               : sql_config[ 'production' ].host,
-		user               : sql_config[ 'production' ].user,
-		password           : sql_config[ 'production' ].password,
-		database           : sql_config[ 'production' ].database,
+		host               : sql_config[ 'localhost' ].host,
+		user               : sql_config[ 'localhost' ].user,
+		password           : sql_config[ 'localhost' ].password,
+		database           : sql_config[ 'localhost' ].database,
 		waitForConnections : true,
 		dateStrings : true
 	} );
