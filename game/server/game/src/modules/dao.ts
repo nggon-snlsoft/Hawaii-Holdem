@@ -686,10 +686,10 @@ dao.SELECT_USERS_BY_USER_ID_TOKEN = function ( user_id: any, token: any, cb: any
 	});
 };
 
-dao.INSERT_PLAY_TABLE = function ( msg: any, cb: any ) {
+dao.INSERT_PLAY_TABLE = function ( title: any, msg: any, cb: any ) {
 
-	let sql = 'INSERT INTO play_table ( message ) values ( ? )';
-	let args = [ msg ];
+	let sql = 'INSERT INTO play_table ( title, message ) values ( ?, ? )';
+	let args = [ title, msg ];
 
 	_client.query(sql, args, function (err: any, res: any) {
 

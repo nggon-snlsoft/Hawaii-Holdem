@@ -2030,11 +2030,16 @@ export class HoldemRoom extends Room<RoomState> {
 				logger.info(  this._tableIdString + "[DISPENSING ] eval: %s ", entity.eval );
 			}
 
-			handsMsg += '/' + entity.primaryCard + ', ' + entity.secondaryCard + ' : ' + entity.nickname ;
+			try {
+				handsMsg += '/' + entity.primaryCard + ', ' + entity.secondaryCard + 
+				' [' + entity.eval.handName + ' (' + entity.eval.value + ')]' +  ': ' + entity.nickname ;
+	
+			} catch ( error ) {
+			}
 		}
 		handsMsg += '/';
 		try {
-			this._dao.INSERT_PLAY_TABLE( handsMsg, ( err: any, res: any )=>{
+			this._dao.INSERT_PLAY_TABLE( this.tabelName, handsMsg, ( err: any, res: any )=>{
 
 			});
 		} catch (error) {
